@@ -49,11 +49,16 @@ const Home = () => {
       const updateUserTutorialStatus = async () => {
         try {
           // Safely update the profile with the has_seen_tutorial property
-          await supabase
+          const { error } = await supabase
             .from('profiles')
             .update({ has_seen_tutorial: true })
             .eq('id', user.id);
-          setHasSeenTutorial(true);
+            
+          if (!error) {
+            setHasSeenTutorial(true);
+          } else {
+            console.error("Error updating tutorial status:", error);
+          }
         } catch (error) {
           console.error("Error updating tutorial status:", error);
         }

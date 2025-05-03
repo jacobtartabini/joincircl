@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -83,7 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setProfile(data);
       
-      // Check if user has seen tutorial
+      // Check if user has seen tutorial - safely access the property
       if (data?.has_seen_tutorial) {
         setHasSeenTutorial(true);
       }
