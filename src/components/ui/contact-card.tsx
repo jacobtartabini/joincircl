@@ -4,24 +4,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CircleBadge, getCircleName } from "./circle-badge";
 import { Eye, Plus, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-export interface ContactProps {
-  id: string;
-  name: string;
-  avatar?: string;
-  email?: string;
-  phone?: string;
-  circle: "inner" | "middle" | "outer";
-  lastContact?: Date;
-  tags?: string[];
-}
+import { Contact } from "@/types/contact";
+import { Link } from "react-router-dom";
+import { format, isToday, isYesterday } from "date-fns";
 
 interface ContactCardProps {
-  contact: ContactProps;
+  contact: Contact;
   className?: string;
-  onAddNote?: (contact: ContactProps) => void;
-  onViewInsights?: (contact: ContactProps) => void;
-  onMarkComplete?: (contact: ContactProps) => void;
+  onAddNote?: (contact: Contact) => void;
+  onViewInsights?: (contact: Contact) => void;
+  onMarkComplete?: (contact: Contact) => void;
 }
 
 export const ContactCard = ({
@@ -31,11 +23,8 @@ export const ContactCard = ({
   onViewInsights,
   onMarkComplete,
 }: ContactCardProps) => {
-  const daysSinceLastContact = contact.lastContact
-    ? Math.floor(
-        (new Date().getTime() - new Date(contact.lastContact).getTime()) /
-          (1000 * 3600 * 24)
-      )
+  const daysSinceLastContact = contact.last_contact
+    ? getFormattedLastContact(new Date(contact.last_contact))
     : null;
 
   return (
@@ -44,9 +33,9 @@ export const ContactCard = ({
         <div className="flex items-center gap-3">
           <div className="relative">
             <div className="w-12 h-12 bg-circl-lightBlue/20 rounded-full flex items-center justify-center text-circl-blue font-medium">
-              {contact.avatar ? (
+              {contact.avatar_url ? (
                 <img
-                  src={contact.avatar}
+                  src={contact.avatar_url}
                   alt={contact.name}
                   className="w-full h-full object-cover rounded-full"
                 />
@@ -62,18 +51,16 @@ export const ContactCard = ({
           <div className="flex-1">
             <div className="flex justify-between items-start">
               <div>
-                <h3 className="font-medium">{contact.name}</h3>
+                <Link to={`/contacts/${contact.id}`}>
+                  <h3 className="font-medium hover:text-blue-600">{contact.name}</h3>
+                </Link>
                 <p className="text-sm text-muted-foreground">
                   {getCircleName(contact.circle)} Circle
                 </p>
               </div>
               {daysSinceLastContact !== null && (
                 <div className="text-xs text-muted-foreground">
-                  {daysSinceLastContact === 0
-                    ? "Today"
-                    : daysSinceLastContact === 1
-                    ? "Yesterday"
-                    : `${daysSinceLastContact} days ago`}
+                  {daysSinceLastContact}
                 </div>
               )}
             </div>
@@ -121,3 +108,13 @@ export const ContactCard = ({
     </Card>
   );
 };
+
+function getFormattedLastContact(date: Date): string {
+  if (isToday(date)) {
+    return "Today";
+  } else if (isYesterday(date)) {
+    return "Yesterday";
+  } else {
+    return format(date, 'MMM d');
+  }
+}

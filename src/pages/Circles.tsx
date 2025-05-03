@@ -1,61 +1,44 @@
 
 import { Button } from "@/components/ui/button";
-import { ContactCard, ContactProps } from "@/components/ui/contact-card";
+import { ContactCard } from "@/components/ui/contact-card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Linkedin, Phone } from "lucide-react";
-import { useState } from "react";
-
-// Mock data for initial UI
-const MOCK_CONTACTS: ContactProps[] = [
-  {
-    id: "1",
-    name: "Alex Johnson",
-    email: "alex@example.com",
-    circle: "inner",
-    lastContact: new Date(2023, 4, 15),
-    tags: ["Family", "Birthday June 12"],
-  },
-  {
-    id: "2",
-    name: "Morgan Smith",
-    email: "morgan@example.com",
-    circle: "middle",
-    lastContact: new Date(2023, 4, 1),
-    tags: ["Work", "Design Team"],
-  },
-  {
-    id: "3",
-    name: "Taylor Wilson",
-    email: "taylor@example.com",
-    circle: "outer",
-    lastContact: new Date(2023, 3, 20),
-    tags: ["Conference", "Marketing"],
-  },
-  {
-    id: "4",
-    name: "Jamie Brown",
-    email: "jamie@example.com",
-    circle: "inner",
-    lastContact: new Date(2023, 4, 10),
-    tags: ["College", "Roommate"],
-  },
-  {
-    id: "5",
-    name: "Casey Garcia",
-    email: "casey@example.com",
-    circle: "middle",
-    lastContact: new Date(2023, 4, 5),
-    tags: ["Work", "Project X"],
-  },
-];
+import { Search, Linkedin, Phone, Plus } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Contact } from "@/types/contact";
+import { contactService } from "@/services/contactService";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import ContactForm from "@/components/contact/ContactForm";
 
 const Circles = () => {
   const { toast } = useToast();
-  const [contacts] = useState<ContactProps[]>(MOCK_CONTACTS);
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCircle, setActiveCircle] = useState<string | null>(null);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+
+  useEffect(() => {
+    async function fetchContacts() {
+      setLoading(true);
+      try {
+        const data = await contactService.getContacts();
+        setContacts(data);
+      } catch (error) {
+        console.error("Error fetching contacts:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load contacts. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchContacts();
+  }, [toast]);
 
   const filteredContacts = contacts.filter(
     (contact) =>
@@ -63,21 +46,21 @@ const Circles = () => {
       (activeCircle === null || contact.circle === activeCircle)
   );
 
-  const handleAddNote = (contact: ContactProps) => {
+  const handleAddNote = (contact: Contact) => {
     toast({
       title: "Add Note",
       description: `Adding a note for ${contact.name}`,
     });
   };
 
-  const handleViewInsights = (contact: ContactProps) => {
+  const handleViewInsights = (contact: Contact) => {
     toast({
       title: "View Insights",
       description: `Viewing insights for ${contact.name}`,
     });
   };
 
-  const handleMarkComplete = (contact: ContactProps) => {
+  const handleMarkComplete = (contact: Contact) => {
     toast({
       title: "Marked Complete",
       description: `Contact with ${contact.name} marked as complete`,
@@ -98,6 +81,24 @@ const Circles = () => {
     });
   };
 
+  const handleCreateContact = async () => {
+    setIsAddDialogOpen(true);
+  };
+
+  const handleContactAdded = async () => {
+    try {
+      const data = await contactService.getContacts();
+      setContacts(data);
+      setIsAddDialogOpen(false);
+      toast({
+        title: "Success",
+        description: "Contact added successfully.",
+      });
+    } catch (error) {
+      console.error("Error refreshing contacts:", error);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
@@ -107,8 +108,8 @@ const Circles = () => {
             Manage your relationships by circle
           </p>
         </div>
-        <Button size="sm">
-          + Add Contact
+        <Button size="sm" onClick={handleCreateContact}>
+          <Plus size={16} className="mr-1" /> Add Contact
         </Button>
       </div>
 
@@ -174,22 +175,42 @@ const Circles = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredContacts.map((contact) => (
-          <ContactCard
-            key={contact.id}
-            contact={contact}
-            onAddNote={handleAddNote}
-            onViewInsights={handleViewInsights}
-            onMarkComplete={handleMarkComplete}
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filteredContacts.map((contact) => (
+            <ContactCard
+              key={contact.id}
+              contact={contact}
+              onAddNote={handleAddNote}
+              onViewInsights={handleViewInsights}
+              onMarkComplete={handleMarkComplete}
+            />
+          ))}
+          {filteredContacts.length === 0 && (
+            <div className="col-span-2 text-center py-8 text-muted-foreground">
+              {searchTerm
+                ? "No contacts found matching your search."
+                : "No contacts in this circle yet. Add your first contact!"}
+            </div>
+          )}
+        </div>
+      )}
+
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add New Contact</DialogTitle>
+          </DialogHeader>
+          <ContactForm 
+            onSuccess={handleContactAdded}
+            onCancel={() => setIsAddDialogOpen(false)}
           />
-        ))}
-        {filteredContacts.length === 0 && (
-          <div className="col-span-2 text-center py-8 text-muted-foreground">
-            No contacts found matching your search.
-          </div>
-        )}
-      </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
