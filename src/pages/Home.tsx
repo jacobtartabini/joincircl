@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { ContactCard } from "@/components/ui/contact-card";
 import { StatsCard } from "@/components/ui/stats-card";
@@ -47,6 +48,7 @@ const Home = () => {
     if (!hasSeenTutorial && user) {
       const updateUserTutorialStatus = async () => {
         try {
+          // Safely update the profile with the has_seen_tutorial property
           await supabase
             .from('profiles')
             .update({ has_seen_tutorial: true })
