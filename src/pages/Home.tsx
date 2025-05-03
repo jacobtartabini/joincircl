@@ -1,41 +1,51 @@
 
 import { Button } from "@/components/ui/button";
-import { ContactCard, ContactProps } from "@/components/ui/contact-card";
+import { ContactCard } from "@/components/ui/contact-card";
 import { StatsCard } from "@/components/ui/stats-card";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+import { Contact } from "@/types/contact";
 
 // Mock data for initial UI
-const MOCK_CONTACTS: ContactProps[] = [
+const MOCK_CONTACTS: Contact[] = [
   {
     id: "1",
+    user_id: "mock-user-id",
     name: "Alex Johnson",
     email: "alex@example.com",
     circle: "inner",
-    lastContact: new Date(2023, 4, 15),
+    last_contact: new Date(2023, 4, 15).toISOString(),
     tags: ["Family", "Birthday June 12"],
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
   },
   {
     id: "2",
+    user_id: "mock-user-id",
     name: "Morgan Smith",
     email: "morgan@example.com",
     circle: "middle",
-    lastContact: new Date(2023, 4, 1),
+    last_contact: new Date(2023, 4, 1).toISOString(),
     tags: ["Work", "Design Team"],
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
   },
   {
     id: "3",
+    user_id: "mock-user-id",
     name: "Taylor Wilson",
     email: "taylor@example.com",
     circle: "outer",
-    lastContact: new Date(2023, 3, 20),
+    last_contact: new Date(2023, 3, 20).toISOString(),
     tags: ["Conference", "Marketing"],
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
   },
 ];
 
 const Home = () => {
   const { toast } = useToast();
-  const [contacts] = useState<ContactProps[]>(MOCK_CONTACTS);
+  const [contacts] = useState<Contact[]>(MOCK_CONTACTS);
 
   const innerCircleCount = contacts.filter(
     (contact) => contact.circle === "inner"
@@ -47,21 +57,21 @@ const Home = () => {
     (contact) => contact.circle === "outer"
   ).length;
 
-  const handleAddNote = (contact: ContactProps) => {
+  const handleAddNote = (contact: Contact) => {
     toast({
       title: "Add Note",
       description: `Adding a note for ${contact.name}`,
     });
   };
 
-  const handleViewInsights = (contact: ContactProps) => {
+  const handleViewInsights = (contact: Contact) => {
     toast({
       title: "View Insights",
       description: `Viewing insights for ${contact.name}`,
     });
   };
 
-  const handleMarkComplete = (contact: ContactProps) => {
+  const handleMarkComplete = (contact: Contact) => {
     toast({
       title: "Marked Complete",
       description: `Contact with ${contact.name} marked as complete`,

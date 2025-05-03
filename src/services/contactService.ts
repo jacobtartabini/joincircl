@@ -13,7 +13,7 @@ export const contactService = {
       throw new Error(error.message);
     }
 
-    return data || [];
+    return data as Contact[];
   },
 
   async getContact(id: string): Promise<Contact> {
@@ -27,7 +27,7 @@ export const contactService = {
       throw new Error(error.message);
     }
 
-    return data;
+    return data as Contact;
   },
 
   async getInteractionsByContactId(contactId: string): Promise<Interaction[]> {
@@ -41,13 +41,19 @@ export const contactService = {
       throw new Error(error.message);
     }
 
-    return data || [];
+    return data as Interaction[];
   },
 
   async createContact(contact: Omit<Contact, "id" | "user_id" | "created_at" | "updated_at">): Promise<Contact> {
+    const { data: userSession } = await supabase.auth.getSession();
+    
+    if (!userSession.session?.user.id) {
+      throw new Error("User not authenticated");
+    }
+    
     const { data, error } = await supabase
       .from("contacts")
-      .insert([contact])
+      .insert([{ ...contact, user_id: userSession.session.user.id }])
       .select()
       .single();
 
@@ -55,13 +61,19 @@ export const contactService = {
       throw new Error(error.message);
     }
 
-    return data;
+    return data as Contact;
   },
 
   async updateContact(id: string, contact: Partial<Contact>): Promise<Contact> {
+    // Convert Date objects to ISO strings if they exist
+    const contactToUpdate = { ...contact };
+    if (contact.last_contact && contact.last_contact instanceof Date) {
+      contactToUpdate.last_contact = contact.last_contact.toISOString();
+    }
+
     const { data, error } = await supabase
       .from("contacts")
-      .update(contact)
+      .update(contactToUpdate)
       .eq("id", id)
       .select()
       .single();
@@ -70,7 +82,7 @@ export const contactService = {
       throw new Error(error.message);
     }
 
-    return data;
+    return data as Contact;
   },
 
   async deleteContact(id: string): Promise<void> {
@@ -85,9 +97,15 @@ export const contactService = {
   },
 
   async addInteraction(interaction: Omit<Interaction, "id" | "user_id" | "created_at">): Promise<Interaction> {
+    const { data: userSession } = await supabase.auth.getSession();
+    
+    if (!userSession.session?.user.id) {
+      throw new Error("User not authenticated");
+    }
+    
     const { data, error } = await supabase
       .from("interactions")
-      .insert([interaction])
+      .insert([{ ...interaction, user_id: userSession.session.user.id }])
       .select()
       .single();
 
@@ -95,6 +113,6 @@ export const contactService = {
       throw new Error(error.message);
     }
 
-    return data;
+    return data as Interaction;
   }
 };

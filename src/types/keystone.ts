@@ -2,7 +2,7 @@
 export interface Keystone {
   id: string;
   title: string;
-  date: string;
+  date: string; // Changed from Date to string to match Supabase
   category?: string;
   contact_id?: string;
   user_id: string;

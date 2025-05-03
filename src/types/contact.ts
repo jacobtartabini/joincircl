@@ -7,7 +7,7 @@ export interface Contact {
   phone?: string;
   avatar_url?: string;
   circle: 'inner' | 'middle' | 'outer';
-  last_contact?: Date;
+  last_contact?: string; // Changed from Date to string to match Supabase
   notes?: string;
   tags?: string[];
   created_at: string;
@@ -20,7 +20,7 @@ export interface Interaction {
   user_id: string;
   type: string;
   notes?: string;
-  date: string;
+  date: string; // Changed from Date to string to match Supabase
   created_at: string;
 }
 
