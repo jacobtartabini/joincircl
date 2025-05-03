@@ -67,8 +67,8 @@ export const contactService = {
   async updateContact(id: string, contact: Partial<Contact>): Promise<Contact> {
     // Convert Date objects to ISO strings if they exist
     const contactToUpdate = { ...contact };
-    if (contact.last_contact && contact.last_contact instanceof Date) {
-      contactToUpdate.last_contact = contact.last_contact.toISOString();
+    if (contact.last_contact && typeof contact.last_contact === 'object') {
+      contactToUpdate.last_contact = new Date(contact.last_contact).toISOString();
     }
 
     const { data, error } = await supabase

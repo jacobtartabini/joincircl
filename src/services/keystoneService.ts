@@ -53,8 +53,8 @@ export const keystoneService = {
   async updateKeystone(id: string, keystone: Partial<Keystone>): Promise<Keystone> {
     // Convert Date objects to ISO strings if they exist
     const keystoneToUpdate = { ...keystone };
-    if (keystone.date && keystone.date instanceof Date) {
-      keystoneToUpdate.date = keystone.date.toISOString();
+    if (keystone.date && typeof keystone.date === 'object') {
+      keystoneToUpdate.date = new Date(keystone.date).toISOString();
     }
 
     const { data, error } = await supabase
