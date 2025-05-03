@@ -1,5 +1,5 @@
 
-import { Home, List, Calendar, Settings, LogOut } from "lucide-react";
+import { Home, Circle, Calendar, Settings, LogOut } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 interface MobileNavProps {
@@ -12,7 +12,7 @@ const MobileNav = ({ onSignOut }: MobileNavProps) => {
 
   const navItems = [
     { icon: Home, label: "Home", path: "/" },
-    { icon: List, label: "Circles", path: "/circles" },
+    { icon: Circle, label: "Circles", path: "/circles" },
     { icon: Calendar, label: "Keystones", path: "/keystones" },
     { icon: Settings, label: "Settings", path: "/settings" },
   ];

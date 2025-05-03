@@ -13,6 +13,9 @@ interface AuthContextType extends AuthState {
   signInWithGoogle: () => Promise<void>;
   profile: Profile | null;
   updateProfile: (profile: Partial<Profile>) => Promise<void>;
+  hasSeenTutorial: boolean;
+  setHasSeenTutorial: (value: boolean) => void;
+  deleteAccount: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,6 +27,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loading: true,
   });
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [hasSeenTutorial, setHasSeenTutorial] = useState<boolean>(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -79,6 +83,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       setProfile(data);
+      
+      // Check if user has seen tutorial
+      if (data.has_seen_tutorial) {
+        setHasSeenTutorial(true);
+      }
     } catch (error) {
       console.error('Error in fetchProfile:', error);
     }
@@ -119,6 +128,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           data: {
             full_name: fullName,
           },
+          emailRedirectTo: window.location.origin + '/auth/callback',
         },
       });
 
@@ -189,6 +199,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         },
       });
 
@@ -239,6 +253,58 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw error;
     }
   };
+  
+  const deleteAccount = async () => {
+    if (!authState.user?.id) return;
+    
+    try {
+      // First delete user data
+      await supabase
+        .from('contacts')
+        .delete()
+        .eq('user_id', authState.user.id);
+        
+      await supabase
+        .from('interactions')
+        .delete()
+        .eq('user_id', authState.user.id);
+        
+      await supabase
+        .from('keystones')
+        .delete()
+        .eq('user_id', authState.user.id);
+      
+      // Then delete the user account
+      const { error } = await supabase.auth.admin.deleteUser(
+        authState.user.id
+      );
+
+      if (error) {
+        toast({
+          title: "Account deletion failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        throw error;
+      }
+      
+      // Sign out after successful deletion
+      await supabase.auth.signOut();
+      
+      toast({
+        title: "Account deleted",
+        description: "Your account has been permanently deleted.",
+      });
+    } catch (error: any) {
+      console.error('Account deletion error:', error);
+      toast({
+        title: "Account deletion failed",
+        description: "There was an error deleting your account. Please contact support.",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
 
   return (
     <AuthContext.Provider
@@ -251,6 +317,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signInWithGoogle,
         profile,
         updateProfile,
+        hasSeenTutorial,
+        setHasSeenTutorial,
+        deleteAccount,
       }}
     >
       {children}

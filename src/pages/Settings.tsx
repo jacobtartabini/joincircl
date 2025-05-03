@@ -3,17 +3,20 @@ import { useState, useEffect, ChangeEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { useNavigate } from "react-router-dom";
 
 const Settings = () => {
   const { toast } = useToast();
-  const { user, profile, updateProfile } = useAuth();
+  const navigate = useNavigate();
+  const { user, profile, updateProfile, deleteAccount } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [bio, setBio] = useState("");
@@ -79,10 +82,19 @@ const Settings = () => {
         });
       }
 
+      // Delete old avatar if exists
+      if (profile?.avatar_url) {
+        const oldFilePath = profile.avatar_url.split('/').pop() || '';
+        await supabase.storage.from('avatars').remove([oldFilePath]);
+      }
+
       // Upload the file
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError, data: uploadData } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          upsert: true,
+          contentType: file.type
+        });
 
       if (uploadError) {
         throw uploadError;
@@ -107,7 +119,7 @@ const Settings = () => {
       console.error("Error uploading avatar:", error);
       toast({
         title: "Upload Failed",
-        description: "There was a problem uploading your avatar.",
+        description: "There was a problem uploading your avatar. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -120,6 +132,15 @@ const Settings = () => {
       title: "Upgrade Subscription",
       description: "Opening subscription options...",
     });
+  };
+  
+  const handleDeleteAccount = async () => {
+    try {
+      await deleteAccount();
+      navigate("/auth/sign-in");
+    } catch (error) {
+      console.error("Error deleting account:", error);
+    }
   };
 
   return (
@@ -240,6 +261,35 @@ const Settings = () => {
               </div>
               <Button>Update Password</Button>
             </CardContent>
+            <CardFooter className="flex flex-col items-start border-t pt-6">
+              <h3 className="font-medium text-destructive mb-2">Danger Zone</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Once you delete your account, there is no going back. All your data will be permanently deleted.
+              </p>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive">Delete Account</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete your
+                      account and remove all your data from our servers.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={handleDeleteAccount}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Delete Account
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </CardFooter>
           </Card>
         </TabsContent>
         

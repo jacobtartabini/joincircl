@@ -9,12 +9,18 @@ import { contactService } from "@/services/contactService";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ContactForm from "@/components/contact/ContactForm";
 import { Plus } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Home = () => {
   const { toast } = useToast();
+  const { user, profile, hasSeenTutorial, setHasSeenTutorial } = useAuth();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [followUpStats, setFollowUpStats] = useState({
+    due: 0,
+    trend: { value: 0, isPositive: true },
+  });
 
   useEffect(() => {
     const fetchContacts = async () => {
@@ -22,6 +28,7 @@ const Home = () => {
         setIsLoading(true);
         const data = await contactService.getContacts();
         setContacts(data);
+        calculateFollowUpStats(data);
       } catch (error) {
         console.error("Error fetching contacts:", error);
         toast({
@@ -35,7 +42,57 @@ const Home = () => {
     };
 
     fetchContacts();
-  }, [toast]);
+    
+    // Save that the user has seen the tutorial
+    if (!hasSeenTutorial && user) {
+      const updateUserTutorialStatus = async () => {
+        try {
+          await supabase
+            .from('profiles')
+            .update({ has_seen_tutorial: true })
+            .eq('id', user.id);
+          setHasSeenTutorial(true);
+        } catch (error) {
+          console.error("Error updating tutorial status:", error);
+        }
+      };
+      
+      updateUserTutorialStatus();
+    }
+  }, [toast, user, hasSeenTutorial, setHasSeenTutorial]);
+  
+  const calculateFollowUpStats = (contactsData: Contact[]) => {
+    // Calculate number of follow-ups due
+    const followUpsDue = contactsData.filter(contact => {
+      if (!contact.last_contact) return true; // If never contacted, a follow-up is due
+      
+      const lastContactDate = new Date(contact.last_contact);
+      const today = new Date();
+      const daysSinceLastContact = Math.floor((today.getTime() - lastContactDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      // Determine follow-up frequency based on circle
+      let followUpFrequency = 30; // Default (outer circle)
+      if (contact.circle === "inner") followUpFrequency = 7;
+      else if (contact.circle === "middle") followUpFrequency = 14;
+      
+      return daysSinceLastContact >= followUpFrequency;
+    }).length;
+    
+    // Calculate trend (comparing to previous week)
+    // This is a simplified calculation - in a real app you'd compare to historical data
+    const previousFollowUps = contactsData.length > 0 ? Math.round(contactsData.length * 0.15) : 0;
+    const changePercent = previousFollowUps > 0 
+      ? Math.round(((followUpsDue - previousFollowUps) / previousFollowUps) * 100)
+      : 0;
+    
+    setFollowUpStats({
+      due: followUpsDue,
+      trend: {
+        value: Math.abs(changePercent),
+        isPositive: changePercent <= 0,
+      }
+    });
+  };
 
   // Get the most recent contacts (limited to 4)
   const recentContacts = [...contacts]
@@ -72,8 +129,8 @@ const Home = () => {
 
   const handleMarkComplete = (contact: Contact) => {
     toast({
-      title: "Marked Complete",
-      description: `Contact with ${contact.name} marked as complete`,
+      title: "View Contact",
+      description: `Viewing contact details for ${contact.name}`,
     });
   };
 
@@ -118,9 +175,9 @@ const Home = () => {
         />
         <StatsCard
           title="Follow-ups Due"
-          value={String(contacts.length > 0 ? Math.min(2, contacts.length) : 0)}
+          value={String(followUpStats.due)}
           description="Based on contact frequency"
-          trend={{ value: 25, isPositive: false }}
+          trend={followUpStats.due > 0 ? followUpStats.trend : undefined}
         />
       </div>
 

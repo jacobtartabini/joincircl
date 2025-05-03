@@ -1,5 +1,5 @@
 
-import { Home, List, Calendar, Settings, LogOut } from "lucide-react";
+import { Home, Circle, Calendar, Settings, LogOut } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 interface DesktopNavProps {
@@ -12,7 +12,7 @@ const DesktopNav = ({ onSignOut }: DesktopNavProps) => {
 
   const navItems = [
     { icon: Home, label: "Home", path: "/" },
-    { icon: List, label: "Circles", path: "/circles" },
+    { icon: Circle, label: "Circles", path: "/circles" },
     { icon: Calendar, label: "Keystones", path: "/keystones" },
     { icon: Settings, label: "Settings", path: "/settings" },
   ];
@@ -22,7 +22,13 @@ const DesktopNav = ({ onSignOut }: DesktopNavProps) => {
       <div className="flex flex-col items-center justify-between h-full py-6">
         <div className="flex flex-col items-center">
           <Link to="/" className="mb-8">
-            <div className="w-10 h-10 rounded-full bg-circl-blue flex items-center justify-center text-white font-serif text-xl">C</div>
+            <div className="w-10 h-10">
+              <img 
+                src="/lovable-uploads/12af9685-d6d3-4f9d-87cf-0aa29d9c78f8.png" 
+                alt="Circl" 
+                className="w-full h-full object-contain"
+              />
+            </div>
           </Link>
           <div className="flex flex-col items-center space-y-8">
             {navItems.map((item) => {

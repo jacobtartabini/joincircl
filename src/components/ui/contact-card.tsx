@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CircleBadge, getCircleName } from "./circle-badge";
-import { Eye, Plus, Check } from "lucide-react";
+import { Eye, BarChart, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Contact } from "@/types/contact";
 import { Link } from "react-router-dom";
@@ -83,9 +83,9 @@ export const ContactCard = ({
             variant="outline"
             size="sm"
             className="flex-1"
-            onClick={() => onAddNote && onAddNote(contact)}
+            onClick={() => onMarkComplete && onMarkComplete(contact)}
           >
-            <Plus size={16} className="mr-1" /> Note
+            <Eye size={16} className="mr-1" /> View
           </Button>
           <Button
             variant="outline"
@@ -93,15 +93,15 @@ export const ContactCard = ({
             className="flex-1"
             onClick={() => onViewInsights && onViewInsights(contact)}
           >
-            <Eye size={16} className="mr-1" /> Insights
+            <BarChart size={16} className="mr-1" /> Insights
           </Button>
           <Button
             variant="outline"
             size="sm"
             className="flex-1"
-            onClick={() => onMarkComplete && onMarkComplete(contact)}
+            onClick={() => onAddNote && onAddNote(contact)}
           >
-            <Check size={16} className="mr-1" /> Done
+            <FileText size={16} className="mr-1" /> Note
           </Button>
         </div>
       </CardContent>

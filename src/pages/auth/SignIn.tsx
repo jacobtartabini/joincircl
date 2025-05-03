@@ -47,10 +47,10 @@ export default function SignIn() {
     setIsLoading(true);
     try {
       await signInWithGoogle();
+      // Note: The redirect to callback page is handled by Supabase OAuth flow
     } catch (error) {
       console.error("Error signing in with Google:", error);
-    } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Only set loading to false if there's an error
     }
   };
 
@@ -59,7 +59,13 @@ export default function SignIn() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
-            <div className="w-12 h-12 rounded-full bg-circl-blue flex items-center justify-center text-white font-serif text-2xl">C</div>
+            <div className="w-12 h-12">
+              <img 
+                src="/lovable-uploads/12af9685-d6d3-4f9d-87cf-0aa29d9c78f8.png" 
+                alt="Circl" 
+                className="w-full h-full object-contain"
+              />
+            </div>
           </div>
           <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
           <CardDescription>
