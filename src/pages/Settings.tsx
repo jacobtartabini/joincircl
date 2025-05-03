@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect, ChangeEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,18 +8,111 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const Settings = () => {
   const { toast } = useToast();
-  const [name, setName] = useState("Jamie Doe");
-  const [email, setEmail] = useState("jamie@example.com");
-  const [bio, setBio] = useState("Product Designer | Dog Lover | Coffee Enthusiast");
+  const { user, profile, updateProfile } = useAuth();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [bio, setBio] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const handleSaveProfile = () => {
-    toast({
-      title: "Profile Updated",
-      description: "Your profile has been updated successfully.",
-    });
+  useEffect(() => {
+    if (user && profile) {
+      setName(profile.full_name || "");
+      setEmail(user.email || "");
+      setBio(profile.bio || "");
+      setAvatarUrl(profile.avatar_url || null);
+    }
+  }, [user, profile]);
+
+  const handleSaveProfile = async () => {
+    if (!user) return;
+
+    setSaving(true);
+    try {
+      await updateProfile({
+        full_name: name,
+        bio: bio
+      });
+
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been updated successfully.",
+      });
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast({
+        title: "Update Failed",
+        description: "There was a problem updating your profile.",
+        variant: "destructive"
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleAvatarUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files || event.target.files.length === 0 || !user) {
+      return;
+    }
+
+    const file = event.target.files[0];
+    const fileExt = file.name.split('.').pop();
+    const filePath = `${user.id}-${Math.random()}.${fileExt}`;
+
+    setUploading(true);
+
+    try {
+      // Check if avatars bucket exists, create if not
+      const { data: buckets } = await supabase.storage.listBuckets();
+      const avatarsBucketExists = buckets?.some(bucket => bucket.name === 'avatars');
+      
+      if (!avatarsBucketExists) {
+        await supabase.storage.createBucket('avatars', {
+          public: true,
+          fileSizeLimit: 1024 * 1024 * 2 // 2MB limit
+        });
+      }
+
+      // Upload the file
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      // Get the public URL
+      const { data } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      if (data?.publicUrl) {
+        // Update user profile with new avatar URL
+        await updateProfile({ avatar_url: data.publicUrl });
+        setAvatarUrl(data.publicUrl);
+
+        toast({
+          title: "Avatar Updated",
+          description: "Your profile picture has been updated successfully.",
+        });
+      }
+    } catch (error) {
+      console.error("Error uploading avatar:", error);
+      toast({
+        title: "Upload Failed",
+        description: "There was a problem uploading your avatar.",
+        variant: "destructive"
+      });
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleUpgradeClick = () => {
@@ -59,16 +152,31 @@ const Settings = () => {
               <div className="flex flex-col md:flex-row gap-4 md:items-center">
                 <div className="flex-shrink-0">
                   <Avatar className="w-20 h-20">
-                    <AvatarImage src="" />
+                    <AvatarImage src={avatarUrl || ''} />
                     <AvatarFallback className="text-lg">
-                      {name.charAt(0)}
+                      {name ? name.charAt(0).toUpperCase() : "?"}
                     </AvatarFallback>
                   </Avatar>
                 </div>
                 <div className="flex-1">
-                  <Button variant="outline" size="sm">
-                    Upload Photo
-                  </Button>
+                  <Input 
+                    id="avatar-upload" 
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAvatarUpload} 
+                  />
+                  <label htmlFor="avatar-upload">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="cursor-pointer" 
+                      disabled={uploading}
+                      onClick={() => document.getElementById('avatar-upload')?.click()}
+                    >
+                      {uploading ? "Uploading..." : "Upload Photo"}
+                    </Button>
+                  </label>
                 </div>
               </div>
               <div className="space-y-4">
@@ -86,9 +194,12 @@ const Settings = () => {
                     id="bio"
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
+                    placeholder="Tell us a bit about yourself"
                   />
                 </div>
-                <Button onClick={handleSaveProfile}>Save Changes</Button>
+                <Button onClick={handleSaveProfile} disabled={saving}>
+                  {saving ? "Saving..." : "Save Changes"}
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -109,8 +220,11 @@ const Settings = () => {
                   id="email"
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  disabled
                 />
+                <p className="text-sm text-muted-foreground mt-1">
+                  Contact support to change your email address
+                </p>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="current-password">Current Password</Label>

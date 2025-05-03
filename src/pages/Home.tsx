@@ -3,49 +3,48 @@ import { Button } from "@/components/ui/button";
 import { ContactCard } from "@/components/ui/contact-card";
 import { StatsCard } from "@/components/ui/stats-card";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Contact } from "@/types/contact";
-
-// Mock data for initial UI
-const MOCK_CONTACTS: Contact[] = [
-  {
-    id: "1",
-    user_id: "mock-user-id",
-    name: "Alex Johnson",
-    email: "alex@example.com",
-    circle: "inner",
-    last_contact: new Date(2023, 4, 15).toISOString(),
-    tags: ["Family", "Birthday June 12"],
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "2",
-    user_id: "mock-user-id",
-    name: "Morgan Smith",
-    email: "morgan@example.com",
-    circle: "middle",
-    last_contact: new Date(2023, 4, 1).toISOString(),
-    tags: ["Work", "Design Team"],
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "3",
-    user_id: "mock-user-id",
-    name: "Taylor Wilson",
-    email: "taylor@example.com",
-    circle: "outer",
-    last_contact: new Date(2023, 3, 20).toISOString(),
-    tags: ["Conference", "Marketing"],
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-];
+import { contactService } from "@/services/contactService";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import ContactForm from "@/components/contact/ContactForm";
+import { Plus } from "lucide-react";
 
 const Home = () => {
   const { toast } = useToast();
-  const [contacts] = useState<Contact[]>(MOCK_CONTACTS);
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchContacts = async () => {
+      try {
+        setIsLoading(true);
+        const data = await contactService.getContacts();
+        setContacts(data);
+      } catch (error) {
+        console.error("Error fetching contacts:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load contacts. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchContacts();
+  }, [toast]);
+
+  // Get the most recent contacts (limited to 4)
+  const recentContacts = [...contacts]
+    .sort((a, b) => {
+      const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return dateB - dateA;
+    })
+    .slice(0, 4);
 
   const innerCircleCount = contacts.filter(
     (contact) => contact.circle === "inner"
@@ -78,6 +77,20 @@ const Home = () => {
     });
   };
 
+  const handleContactAdded = async () => {
+    try {
+      const data = await contactService.getContacts();
+      setContacts(data);
+      setIsAddDialogOpen(false);
+      toast({
+        title: "Success",
+        description: "Contact added successfully.",
+      });
+    } catch (error) {
+      console.error("Error refreshing contacts:", error);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
@@ -87,8 +100,8 @@ const Home = () => {
             Your personal relationship manager
           </p>
         </div>
-        <Button size="sm">
-          + Add Contact
+        <Button size="sm" onClick={() => setIsAddDialogOpen(true)}>
+          <Plus size={16} className="mr-1" /> Add Contact
         </Button>
       </div>
 
@@ -105,7 +118,7 @@ const Home = () => {
         />
         <StatsCard
           title="Follow-ups Due"
-          value="2"
+          value={String(contacts.length > 0 ? Math.min(2, contacts.length) : 0)}
           description="Based on contact frequency"
           trend={{ value: 25, isPositive: false }}
         />
@@ -113,18 +126,47 @@ const Home = () => {
 
       <div>
         <h2 className="text-xl font-medium mb-4">Recent Contacts</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {contacts.map((contact) => (
-            <ContactCard
-              key={contact.id}
-              contact={contact}
-              onAddNote={handleAddNote}
-              onViewInsights={handleViewInsights}
-              onMarkComplete={handleMarkComplete}
-            />
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        ) : recentContacts.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {recentContacts.map((contact) => (
+              <ContactCard
+                key={contact.id}
+                contact={contact}
+                onAddNote={handleAddNote}
+                onViewInsights={handleViewInsights}
+                onMarkComplete={handleMarkComplete}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 border rounded-md bg-muted/30">
+            <p className="text-muted-foreground">No contacts added yet.</p>
+            <Button 
+              variant="link" 
+              className="mt-2"
+              onClick={() => setIsAddDialogOpen(true)}
+            >
+              Add your first contact
+            </Button>
+          </div>
+        )}
       </div>
+
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add New Contact</DialogTitle>
+          </DialogHeader>
+          <ContactForm 
+            onSuccess={handleContactAdded}
+            onCancel={() => setIsAddDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

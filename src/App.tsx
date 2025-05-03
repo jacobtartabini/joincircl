@@ -17,6 +17,7 @@ import CallbackPage from "./pages/auth/CallbackPage";
 import ContactDetail from "./pages/contact/ContactDetail";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { RequireAuth } from "@/components/guards/RequireAuth";
+import UserOnboarding from "./components/UserOnboarding";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ const App = () => (
                   <MainLayout>
                     <Home />
                   </MainLayout>
+                  <UserOnboarding />
                 </RequireAuth>
               }
             />

@@ -14,6 +14,7 @@ export default function SignUp() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isSignupComplete, setIsSignupComplete] = useState(false);
   const { signUp, signInWithGoogle, user } = useAuth();
   const { toast } = useToast();
 
@@ -46,9 +47,11 @@ export default function SignUp() {
     setIsLoading(true);
     try {
       await signUp(email, password, fullName);
-      // Navigate is handled by auth state change
+      setIsSignupComplete(true);
+      // Navigate is handled by auth state change or verification flow
     } catch (error) {
       console.error("Error signing up:", error);
+      setIsSignupComplete(false);
     } finally {
       setIsLoading(false);
     }
@@ -64,6 +67,54 @@ export default function SignUp() {
       setIsLoading(false);
     }
   };
+
+  if (isSignupComplete) {
+    return (
+      <div className="flex min-h-screen items-center justify-center px-4 py-12 bg-background">
+        <Card className="w-full max-w-md">
+          <CardHeader className="space-y-1 text-center">
+            <div className="flex justify-center mb-4">
+              <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center text-white">
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="24" 
+                  height="24" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                >
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+            </div>
+            <CardTitle className="text-2xl font-bold">Sign Up Successful</CardTitle>
+            <CardDescription>
+              Check your email to verify your account
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <p className="mb-4">
+              We've sent a verification email to <strong>{email}</strong>.
+              Please check your inbox and click the verification link.
+            </p>
+            <p className="text-sm text-muted-foreground mb-4">
+              If you don't see the email, check your spam folder or try again.
+            </p>
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => window.location.href = '/auth/sign-in'}
+            >
+              Go to Sign In
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-12 bg-background">
