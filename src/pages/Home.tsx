@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { ContactCard } from "@/components/ui/contact-card";
 import { StatsCard } from "@/components/ui/stats-card";
@@ -10,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import ContactForm from "@/components/contact/ContactForm";
 import { Plus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const Home = () => {
   const { toast } = useToast();
