@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -31,7 +30,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setAuthState(prev => ({
@@ -40,7 +38,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           user: session?.user ?? null,
         }));
         
-        // If session exists, fetch the user profile
         if (session?.user) {
           setTimeout(() => {
             fetchProfile(session.user.id);
@@ -51,7 +48,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     );
 
-    // Then check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setAuthState({
         session: session,
@@ -84,7 +80,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setProfile(data);
       
-      // Check if user has seen tutorial - safely access the property
       if (data?.has_seen_tutorial) {
         setHasSeenTutorial(true);
       }
@@ -238,7 +233,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw error;
       }
 
-      // Update the local profile state
       setProfile(prev => {
         if (!prev) return prev;
         return { ...prev, ...updates };
@@ -258,7 +252,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!authState.user?.id) return;
     
     try {
-      // First delete user data
       await supabase
         .from('contacts')
         .delete()
@@ -274,7 +267,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .delete()
         .eq('user_id', authState.user.id);
       
-      // Then delete the user account
       const { error } = await supabase.auth.admin.deleteUser(
         authState.user.id
       );
@@ -288,7 +280,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw error;
       }
       
-      // Sign out after successful deletion
       await supabase.auth.signOut();
       
       toast({
