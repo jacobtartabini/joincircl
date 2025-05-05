@@ -12,45 +12,90 @@ export type Database = {
       contacts: {
         Row: {
           avatar_url: string | null
+          birthday: string | null
           circle: string
+          company_name: string | null
           created_at: string | null
-          email: string | null
+          department: string | null
+          facebook: string | null
+          graduation_year: number | null
+          how_met: string | null
           id: string
+          industry: string | null
+          job_title: string | null
           last_contact: string | null
+          linkedin: string | null
+          location: string | null
+          major: string | null
+          minor: string | null
+          mobile_phone: string | null
           name: string
           notes: string | null
-          phone: string | null
+          personal_email: string | null
           tags: string[] | null
+          university: string | null
           updated_at: string | null
           user_id: string
+          website: string | null
+          work_address: string | null
         }
         Insert: {
           avatar_url?: string | null
+          birthday?: string | null
           circle?: string
+          company_name?: string | null
           created_at?: string | null
-          email?: string | null
+          department?: string | null
+          facebook?: string | null
+          graduation_year?: number | null
+          how_met?: string | null
           id?: string
+          industry?: string | null
+          job_title?: string | null
           last_contact?: string | null
+          linkedin?: string | null
+          location?: string | null
+          major?: string | null
+          minor?: string | null
+          mobile_phone?: string | null
           name: string
           notes?: string | null
-          phone?: string | null
+          personal_email?: string | null
           tags?: string[] | null
+          university?: string | null
           updated_at?: string | null
           user_id: string
+          website?: string | null
+          work_address?: string | null
         }
         Update: {
           avatar_url?: string | null
+          birthday?: string | null
           circle?: string
+          company_name?: string | null
           created_at?: string | null
-          email?: string | null
+          department?: string | null
+          facebook?: string | null
+          graduation_year?: number | null
+          how_met?: string | null
           id?: string
+          industry?: string | null
+          job_title?: string | null
           last_contact?: string | null
+          linkedin?: string | null
+          location?: string | null
+          major?: string | null
+          minor?: string | null
+          mobile_phone?: string | null
           name?: string
           notes?: string | null
-          phone?: string | null
+          personal_email?: string | null
           tags?: string[] | null
+          university?: string | null
           updated_at?: string | null
           user_id?: string
+          website?: string | null
+          work_address?: string | null
         }
         Relationships: [
           {

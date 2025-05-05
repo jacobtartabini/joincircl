@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CircleBadge, getCircleName } from "./circle-badge";
-import { Eye, BarChart, FileText } from "lucide-react";
+import { Eye, BarChart, FileText, MapPin, Briefcase } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Contact } from "@/types/contact";
 import { Link } from "react-router-dom";
@@ -64,9 +64,30 @@ export const ContactCard = ({
                 </div>
               )}
             </div>
+            
+            <div className="mt-1 flex flex-wrap items-center text-xs text-muted-foreground gap-x-3">
+              {contact.job_title && contact.company_name && (
+                <div className="flex items-center">
+                  <Briefcase size={12} className="mr-1" />
+                  <span className="truncate max-w-[150px]" title={`${contact.job_title} at ${contact.company_name}`}>
+                    {contact.job_title}, {contact.company_name}
+                  </span>
+                </div>
+              )}
+              
+              {contact.location && (
+                <div className="flex items-center">
+                  <MapPin size={12} className="mr-1" />
+                  <span className="truncate max-w-[120px]" title={contact.location}>
+                    {contact.location}
+                  </span>
+                </div>
+              )}
+            </div>
+            
             {contact.tags && contact.tags.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1">
-                {contact.tags.map((tag) => (
+                {contact.tags.slice(0, 3).map((tag) => (
                   <span
                     key={tag}
                     className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs"
@@ -74,6 +95,11 @@ export const ContactCard = ({
                     {tag}
                   </span>
                 ))}
+                {contact.tags.length > 3 && (
+                  <span className="px-2 py-0.5 bg-gray-100 text-gray-800 rounded-full text-xs">
+                    +{contact.tags.length - 3}
+                  </span>
+                )}
               </div>
             )}
           </div>

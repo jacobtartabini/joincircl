@@ -1,15 +1,32 @@
 
+
 export interface Contact {
   id: string;
   user_id: string;
   name: string;
-  email?: string;
-  phone?: string;
+  personal_email?: string;
+  mobile_phone?: string;
   avatar_url?: string;
   circle: 'inner' | 'middle' | 'outer';
-  last_contact?: string; // Changed from Date to string to match Supabase
+  last_contact?: string; // Date stored as string to match Supabase
   notes?: string;
   tags?: string[];
+  // Added fields
+  website?: string;
+  birthday?: string; // Date stored as string to match Supabase
+  location?: string;
+  linkedin?: string;
+  facebook?: string;
+  company_name?: string;
+  job_title?: string;
+  industry?: string;
+  department?: string;
+  work_address?: string;
+  university?: string;
+  major?: string;
+  minor?: string;
+  graduation_year?: number;
+  how_met?: string;
   created_at: string;
   updated_at: string;
 }
@@ -29,3 +46,4 @@ export interface ConnectionStrength {
   level: 'weak' | 'moderate' | 'strong';
   suggestions: string[];
 }
+

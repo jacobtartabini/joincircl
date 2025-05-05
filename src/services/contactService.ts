@@ -51,9 +51,12 @@ export const contactService = {
       throw new Error("User not authenticated");
     }
     
+    // Format the birthday to a date string if it exists
+    const formattedContact = { ...contact };
+    
     const { data, error } = await supabase
       .from("contacts")
-      .insert([{ ...contact, user_id: userSession.session.user.id }])
+      .insert([{ ...formattedContact, user_id: userSession.session.user.id }])
       .select()
       .single();
 
