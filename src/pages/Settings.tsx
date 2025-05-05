@@ -1,5 +1,5 @@
 
-import { useState, useEffect, ChangeEvent } from "react";
+import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,17 +12,26 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useNavigate } from "react-router-dom";
+import { Separator } from "@/components/ui/separator";
+import { LogOut, HelpCircle, MailQuestion, Bug, Scale } from "lucide-react";
 
 const Settings = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { user, profile, updateProfile, deleteAccount } = useAuth();
+  const { user, profile, updateProfile, deleteAccount, signOut } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [bio, setBio] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: ""
+  });
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     if (user && profile) {
@@ -84,8 +93,15 @@ const Settings = () => {
 
       // Delete old avatar if exists
       if (profile?.avatar_url) {
-        const oldFilePath = profile.avatar_url.split('/').pop() || '';
-        await supabase.storage.from('avatars').remove([oldFilePath]);
+        try {
+          const oldFilePath = profile.avatar_url.split('/').pop() || '';
+          if (oldFilePath) {
+            await supabase.storage.from('avatars').remove([oldFilePath]);
+          }
+        } catch (removeError) {
+          console.error("Error removing old avatar:", removeError);
+          // Continue even if there's an error removing the old avatar
+        }
       }
 
       // Upload the file
@@ -127,6 +143,49 @@ const Settings = () => {
     }
   };
 
+  const handleChangePassword = async (e: FormEvent) => {
+    e.preventDefault();
+    
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast({
+        title: "Passwords Don't Match",
+        description: "Your new password and confirmation password do not match.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsUpdatingPassword(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: passwordData.newPassword
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Password Updated",
+        description: "Your password has been successfully updated.",
+      });
+      
+      // Clear password fields
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: ""
+      });
+    } catch (error: any) {
+      console.error("Error updating password:", error);
+      toast({
+        title: "Password Update Failed",
+        description: error.message || "There was a problem updating your password.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUpdatingPassword(false);
+    }
+  };
+  
   const handleUpgradeClick = () => {
     toast({
       title: "Upgrade Subscription",
@@ -137,9 +196,34 @@ const Settings = () => {
   const handleDeleteAccount = async () => {
     try {
       await deleteAccount();
+      toast({
+        title: "Account Deleted",
+        description: "Your account has been successfully deleted.",
+      });
+      navigate("/auth/sign-in");
+    } catch (error: any) {
+      console.error("Error deleting account:", error);
+      toast({
+        title: "Delete Failed",
+        description: error.message || "There was a problem deleting your account.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsDeleteDialogOpen(false);
+    }
+  };
+  
+  const handleLogout = async () => {
+    try {
+      await signOut();
       navigate("/auth/sign-in");
     } catch (error) {
-      console.error("Error deleting account:", error);
+      console.error("Error signing out:", error);
+      toast({
+        title: "Sign Out Failed",
+        description: "There was a problem signing out.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -159,6 +243,7 @@ const Settings = () => {
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="account">Account</TabsTrigger>
           <TabsTrigger value="subscription">Subscription</TabsTrigger>
+          <TabsTrigger value="resources">Resources</TabsTrigger>
         </TabsList>
         
         <TabsContent value="profile" className="space-y-4 mt-4">
@@ -247,26 +332,60 @@ const Settings = () => {
                   Contact support to change your email address
                 </p>
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="current-password">Current Password</Label>
-                <Input id="current-password" type="password" />
+              <form onSubmit={handleChangePassword} className="space-y-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="current-password">Current Password</Label>
+                  <Input 
+                    id="current-password" 
+                    type="password"
+                    value={passwordData.currentPassword}
+                    onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
+                    required
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="new-password">New Password</Label>
+                  <Input 
+                    id="new-password" 
+                    type="password"
+                    value={passwordData.newPassword}
+                    onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
+                    required
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="confirm-password">Confirm Password</Label>
+                  <Input 
+                    id="confirm-password" 
+                    type="password"
+                    value={passwordData.confirmPassword}
+                    onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
+                    required
+                  />
+                </div>
+                <Button type="submit" disabled={isUpdatingPassword}>
+                  {isUpdatingPassword ? "Updating..." : "Update Password"}
+                </Button>
+              </form>
+              <Separator className="my-4" />
+              <div className="space-y-4">
+                <h3 className="font-medium">Account Actions</h3>
+                <Button 
+                  onClick={handleLogout} 
+                  variant="outline" 
+                  className="w-full flex items-center justify-center gap-2"
+                >
+                  <LogOut size={16} />
+                  Log Out
+                </Button>
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="new-password">New Password</Label>
-                <Input id="new-password" type="password" />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="confirm-password">Confirm Password</Label>
-                <Input id="confirm-password" type="password" />
-              </div>
-              <Button>Update Password</Button>
             </CardContent>
             <CardFooter className="flex flex-col items-start border-t pt-6">
               <h3 className="font-medium text-destructive mb-2">Danger Zone</h3>
               <p className="text-sm text-muted-foreground mb-4">
                 Once you delete your account, there is no going back. All your data will be permanently deleted.
               </p>
-              <AlertDialog>
+              <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                 <AlertDialogTrigger asChild>
                   <Button variant="destructive">Delete Account</Button>
                 </AlertDialogTrigger>
@@ -338,7 +457,57 @@ const Settings = () => {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="resources" className="space-y-4 mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Resources</CardTitle>
+              <CardDescription>
+                Help, support, and additional resources
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4">
+                <Button variant="outline" className="justify-start text-left h-auto py-3">
+                  <HelpCircle className="mr-2 h-4 w-4" />
+                  <div>
+                    <p className="font-medium">Help</p>
+                    <p className="text-sm text-muted-foreground">Access guides, tutorials and FAQs</p>
+                  </div>
+                </Button>
+                
+                <Button variant="outline" className="justify-start text-left h-auto py-3">
+                  <MailQuestion className="mr-2 h-4 w-4" />
+                  <div>
+                    <p className="font-medium">Contact</p>
+                    <p className="text-sm text-muted-foreground">Get in touch with our support team</p>
+                  </div>
+                </Button>
+                
+                <Button variant="outline" className="justify-start text-left h-auto py-3">
+                  <Bug className="mr-2 h-4 w-4" />
+                  <div>
+                    <p className="font-medium">Bugs</p>
+                    <p className="text-sm text-muted-foreground">Report bugs or technical issues</p>
+                  </div>
+                </Button>
+                
+                <Button variant="outline" className="justify-start text-left h-auto py-3">
+                  <Scale className="mr-2 h-4 w-4" />
+                  <div>
+                    <p className="font-medium">Legal</p>
+                    <p className="text-sm text-muted-foreground">Terms of service and privacy policy</p>
+                  </div>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
+      
+      <footer className="border-t pt-6 pb-8 text-center text-sm text-muted-foreground">
+        © 2025 Jacob Tartabini. All rights reserved. Unauthorized reproduction or distribution of any content is prohibited.
+      </footer>
     </div>
   );
 };
