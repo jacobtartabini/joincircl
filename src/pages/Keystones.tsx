@@ -64,11 +64,12 @@ const Keystones = () => {
     setIsEditDialogOpen(true);
   };
 
+  // Use date property if due_date doesn't exist
   const upcomingKeystones = keystones.filter(
-    (k) => new Date(k.due_date) >= new Date()
+    (k) => new Date(k.due_date || k.date) >= new Date()
   );
   const pastKeystones = keystones.filter(
-    (k) => new Date(k.due_date) < new Date()
+    (k) => new Date(k.due_date || k.date) < new Date()
   );
 
   return (
@@ -101,7 +102,11 @@ const Keystones = () => {
               {upcomingKeystones.map((keystone) => (
                 <KeystoneCard
                   key={keystone.id}
-                  keystone={keystone}
+                  keystone={{
+                    ...keystone,
+                    contactId: keystone.contact_id || "",
+                    contactName: keystone.contact_name || ""
+                  }}
                   onEdit={() => handleEditKeystone(keystone)}
                 />
               ))}
@@ -109,13 +114,13 @@ const Keystones = () => {
           ) : (
             <div className="text-center py-8 border rounded-md bg-muted/30">
               <p className="text-muted-foreground">No upcoming keystones.</p>
-              <Button 
-                variant="link" 
-                className="mt-2"
+              <Link 
+                to="#" 
+                className="text-blue-600 hover:underline text-sm font-medium mt-2 inline-block"
                 onClick={() => setIsAddDialogOpen(true)}
               >
                 Add your first keystone
-              </Button>
+              </Link>
             </div>
           )}
         </TabsContent>
@@ -130,7 +135,11 @@ const Keystones = () => {
               {pastKeystones.map((keystone) => (
                 <KeystoneCard
                   key={keystone.id}
-                  keystone={keystone}
+                  keystone={{
+                    ...keystone,
+                    contactId: keystone.contact_id || "",
+                    contactName: keystone.contact_name || ""
+                  }}
                   onEdit={() => handleEditKeystone(keystone)}
                   isPast
                 />

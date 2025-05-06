@@ -31,6 +31,7 @@ export interface Contact {
   hobbies_interests?: string; // Added field
   created_at: string;
   updated_at: string;
+  connection_strength?: ConnectionStrength; // Added missing property
 }
 
 export interface Interaction {

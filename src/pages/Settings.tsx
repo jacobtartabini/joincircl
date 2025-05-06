@@ -203,15 +203,11 @@ const Settings = () => {
   
   const handleDeleteAccount = async () => {
     try {
-      // Delete user's own account using Supabase
-      const { error } = await supabase.auth.admin.deleteUser(user?.id || '');
-      
-      if (error) {
-        throw error;
+      if (!user?.id) {
+        throw new Error("User ID not found");
       }
       
-      // Sign out after successful deletion
-      await signOut();
+      await deleteAccount();
       
       toast({
         title: "Account Deleted",
@@ -221,27 +217,11 @@ const Settings = () => {
     } catch (error: any) {
       console.error("Error deleting account:", error);
       
-      // Try alternative deletion method if admin deletion fails
-      try {
-        const { error: deleteError } = await supabase.rpc('delete_user');
-        
-        if (deleteError) throw deleteError;
-        
-        await signOut();
-        
-        toast({
-          title: "Account Deleted",
-          description: "Your account has been successfully deleted.",
-        });
-        navigate("/auth/sign-in");
-      } catch (fallbackError: any) {
-        console.error("Fallback deletion failed:", fallbackError);
-        toast({
-          title: "Delete Failed",
-          description: "We couldn't delete your account. Please contact support for assistance.",
-          variant: "destructive"
-        });
-      }
+      toast({
+        title: "Delete Failed",
+        description: "We couldn't delete your account. Please contact support for assistance.",
+        variant: "destructive"
+      });
     } finally {
       setIsDeleteDialogOpen(false);
     }
