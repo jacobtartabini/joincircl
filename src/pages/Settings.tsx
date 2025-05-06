@@ -1,4 +1,3 @@
-
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -14,6 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useNavigate } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
 import { LogOut, HelpCircle, MailQuestion, Bug, Scale } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const Settings = () => {
   const { toast } = useToast();
@@ -32,6 +32,11 @@ const Settings = () => {
   });
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isGoogleUser, setIsGoogleUser] = useState(false);
+  const [helpDialogOpen, setHelpDialogOpen] = useState(false);
+  const [contactDialogOpen, setContactDialogOpen] = useState(false);
+  const [bugsDialogOpen, setBugsDialogOpen] = useState(false);
+  const [legalDialogOpen, setLegalDialogOpen] = useState(false);
 
   useEffect(() => {
     if (user && profile) {
@@ -39,6 +44,9 @@ const Settings = () => {
       setEmail(user.email || "");
       setBio(profile.bio || "");
       setAvatarUrl(profile.avatar_url || null);
+      
+      // Check if the user signed in with Google
+      setIsGoogleUser(user.app_metadata?.provider === 'google');
     }
   }, [user, profile]);
 
@@ -195,7 +203,16 @@ const Settings = () => {
   
   const handleDeleteAccount = async () => {
     try {
-      await deleteAccount();
+      // Delete user's own account using Supabase
+      const { error } = await supabase.auth.admin.deleteUser(user?.id || '');
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Sign out after successful deletion
+      await signOut();
+      
       toast({
         title: "Account Deleted",
         description: "Your account has been successfully deleted.",
@@ -203,11 +220,28 @@ const Settings = () => {
       navigate("/auth/sign-in");
     } catch (error: any) {
       console.error("Error deleting account:", error);
-      toast({
-        title: "Delete Failed",
-        description: error.message || "There was a problem deleting your account.",
-        variant: "destructive"
-      });
+      
+      // Try alternative deletion method if admin deletion fails
+      try {
+        const { error: deleteError } = await supabase.rpc('delete_user');
+        
+        if (deleteError) throw deleteError;
+        
+        await signOut();
+        
+        toast({
+          title: "Account Deleted",
+          description: "Your account has been successfully deleted.",
+        });
+        navigate("/auth/sign-in");
+      } catch (fallbackError: any) {
+        console.error("Fallback deletion failed:", fallbackError);
+        toast({
+          title: "Delete Failed",
+          description: "We couldn't delete your account. Please contact support for assistance.",
+          variant: "destructive"
+        });
+      }
     } finally {
       setIsDeleteDialogOpen(false);
     }
@@ -332,41 +366,51 @@ const Settings = () => {
                   Contact support to change your email address
                 </p>
               </div>
-              <form onSubmit={handleChangePassword} className="space-y-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="current-password">Current Password</Label>
-                  <Input 
-                    id="current-password" 
-                    type="password"
-                    value={passwordData.currentPassword}
-                    onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
-                    required
-                  />
+              
+              {isGoogleUser ? (
+                <div className="p-4 bg-blue-50 rounded-md">
+                  <p className="text-sm">
+                    You signed in with Google. To manage your password, please visit your Google account settings.
+                  </p>
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="new-password">New Password</Label>
-                  <Input 
-                    id="new-password" 
-                    type="password"
-                    value={passwordData.newPassword}
-                    onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
-                    required
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="confirm-password">Confirm Password</Label>
-                  <Input 
-                    id="confirm-password" 
-                    type="password"
-                    value={passwordData.confirmPassword}
-                    onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
-                    required
-                  />
-                </div>
-                <Button type="submit" disabled={isUpdatingPassword}>
-                  {isUpdatingPassword ? "Updating..." : "Update Password"}
-                </Button>
-              </form>
+              ) : (
+                <form onSubmit={handleChangePassword} className="space-y-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="current-password">Current Password</Label>
+                    <Input 
+                      id="current-password" 
+                      type="password"
+                      value={passwordData.currentPassword}
+                      onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="new-password">New Password</Label>
+                    <Input 
+                      id="new-password" 
+                      type="password"
+                      value={passwordData.newPassword}
+                      onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="confirm-password">Confirm Password</Label>
+                    <Input 
+                      id="confirm-password" 
+                      type="password"
+                      value={passwordData.confirmPassword}
+                      onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <Button type="submit" disabled={isUpdatingPassword}>
+                    {isUpdatingPassword ? "Updating..." : "Update Password"}
+                  </Button>
+                </form>
+              )}
+              
               <Separator className="my-4" />
               <div className="space-y-4">
                 <h3 className="font-medium">Account Actions</h3>
@@ -468,7 +512,11 @@ const Settings = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4">
-                <Button variant="outline" className="justify-start text-left h-auto py-3">
+                <Button 
+                  variant="outline" 
+                  className="justify-start text-left h-auto py-3"
+                  onClick={() => setHelpDialogOpen(true)}
+                >
                   <HelpCircle className="mr-2 h-4 w-4" />
                   <div>
                     <p className="font-medium">Help</p>
@@ -476,7 +524,11 @@ const Settings = () => {
                   </div>
                 </Button>
                 
-                <Button variant="outline" className="justify-start text-left h-auto py-3">
+                <Button 
+                  variant="outline" 
+                  className="justify-start text-left h-auto py-3"
+                  onClick={() => setContactDialogOpen(true)}
+                >
                   <MailQuestion className="mr-2 h-4 w-4" />
                   <div>
                     <p className="font-medium">Contact</p>
@@ -484,7 +536,11 @@ const Settings = () => {
                   </div>
                 </Button>
                 
-                <Button variant="outline" className="justify-start text-left h-auto py-3">
+                <Button 
+                  variant="outline" 
+                  className="justify-start text-left h-auto py-3"
+                  onClick={() => setBugsDialogOpen(true)}
+                >
                   <Bug className="mr-2 h-4 w-4" />
                   <div>
                     <p className="font-medium">Bugs</p>
@@ -492,7 +548,11 @@ const Settings = () => {
                   </div>
                 </Button>
                 
-                <Button variant="outline" className="justify-start text-left h-auto py-3">
+                <Button 
+                  variant="outline" 
+                  className="justify-start text-left h-auto py-3"
+                  onClick={() => setLegalDialogOpen(true)}
+                >
                   <Scale className="mr-2 h-4 w-4" />
                   <div>
                     <p className="font-medium">Legal</p>
@@ -508,6 +568,138 @@ const Settings = () => {
       <footer className="border-t pt-6 pb-8 text-center text-sm text-muted-foreground">
         © 2025 Jacob Tartabini. All rights reserved. Unauthorized reproduction or distribution of any content is prohibited.
       </footer>
+
+      {/* Help Dialog */}
+      <Dialog open={helpDialogOpen} onOpenChange={setHelpDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Help Center</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <h3 className="font-medium">Getting Started</h3>
+            <p className="text-sm text-muted-foreground">
+              Welcome to Circl! This help center provides guides and resources to help you get the most out of your relationship management.
+            </p>
+            
+            <h3 className="font-medium">Frequently Asked Questions</h3>
+            <div className="space-y-2">
+              <div className="border p-3 rounded-md">
+                <h4 className="text-sm font-medium">How do I add a new contact?</h4>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Click the "Add Contact" button on the Home or Circles page to create a new contact. Fill out the form with contact details and assign them to a circle.
+                </p>
+              </div>
+              <div className="border p-3 rounded-md">
+                <h4 className="text-sm font-medium">What are Keystones?</h4>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Keystones are important events or reminders related to your contacts. Use them to keep track of birthdays, follow-ups, or other significant dates.
+                </p>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Contact Dialog */}
+      <Dialog open={contactDialogOpen} onOpenChange={setContactDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Contact Support</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Need help with something specific? Our support team is here to assist you.
+            </p>
+            
+            <div className="space-y-2">
+              <Label htmlFor="subject">Subject</Label>
+              <Input id="subject" placeholder="What's this about?" />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="message">Message</Label>
+              <textarea 
+                id="message" 
+                className="w-full min-h-[100px] p-2 border rounded-md" 
+                placeholder="How can we help you?"
+              />
+            </div>
+            
+            <Button className="w-full">Submit Request</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bugs Dialog */}
+      <Dialog open={bugsDialogOpen} onOpenChange={setBugsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Report a Bug</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Found something that's not working correctly? Let us know so we can fix it.
+            </p>
+            
+            <div className="space-y-2">
+              <Label htmlFor="bug-type">Bug Type</Label>
+              <select id="bug-type" className="w-full p-2 border rounded-md">
+                <option>UI/Display Issue</option>
+                <option>Performance Problem</option>
+                <option>Feature Not Working</option>
+                <option>Other</option>
+              </select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="bug-description">Bug Description</Label>
+              <textarea 
+                id="bug-description" 
+                className="w-full min-h-[100px] p-2 border rounded-md" 
+                placeholder="Please describe what happened and steps to reproduce the issue..."
+              />
+            </div>
+            
+            <Button className="w-full">Submit Report</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Legal Dialog */}
+      <Dialog open={legalDialogOpen} onOpenChange={setLegalDialogOpen}>
+        <DialogContent className="max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Legal Information</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <h3 className="font-medium">Terms of Service</h3>
+            <p className="text-sm text-muted-foreground">
+              By using Circl, you agree to these terms which govern your use of and access to our services.
+            </p>
+            <div className="text-xs space-y-2 border-l-2 border-gray-200 pl-3">
+              <p>Last updated: May 6, 2025</p>
+              <p>
+                These Terms of Service ("Terms") govern your access to and use of Circl ("we," "us," or "our") 
+                website, applications, and other products and services (collectively, the "Services"). 
+                By accessing or using our Services, you agree to be bound by these Terms.
+              </p>
+            </div>
+            
+            <h3 className="font-medium mt-6">Privacy Policy</h3>
+            <p className="text-sm text-muted-foreground">
+              Our Privacy Policy describes how we handle the information you provide to us.
+            </p>
+            <div className="text-xs space-y-2 border-l-2 border-gray-200 pl-3">
+              <p>Last updated: May 6, 2025</p>
+              <p>
+                This Privacy Policy describes how Circl ("we," "us," or "our") collects, uses, and shares 
+                information in connection with your use of our websites, applications, and other services. 
+                This Privacy Policy does not apply to information we collect from our employees or contractors.
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

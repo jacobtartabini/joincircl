@@ -14,6 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import NetworkRecommendations from "@/components/home/NetworkRecommendations";
+import ConnectionInsights from "@/components/contact/ConnectionInsights";
 
 const Home = () => {
   const { toast } = useToast();
@@ -23,6 +24,7 @@ const Home = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isAddNoteDialogOpen, setIsAddNoteDialogOpen] = useState(false);
+  const [isInsightsDialogOpen, setIsInsightsDialogOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [followUpStats, setFollowUpStats] = useState({
     due: 0,
@@ -132,7 +134,8 @@ const Home = () => {
   };
 
   const handleViewInsights = (contact: Contact) => {
-    navigate(`/contacts/${contact.id}#insights`);
+    setSelectedContact(contact);
+    setIsInsightsDialogOpen(true);
   };
 
   const handleViewContact = (contact: Contact) => {
@@ -214,9 +217,9 @@ const Home = () => {
                 <ContactCard
                   key={contact.id}
                   contact={contact}
-                  onAddNote={handleAddNote}
-                  onViewInsights={handleViewInsights}
-                  onMarkComplete={handleViewContact}
+                  onAddNote={() => handleAddNote(contact)}
+                  onViewInsights={() => handleViewInsights(contact)}
+                  onMarkComplete={() => handleViewContact(contact)}
                 />
               ))}
             </div>
@@ -267,6 +270,17 @@ const Home = () => {
                 setSelectedContact(null);
               }}
             />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isInsightsDialogOpen} onOpenChange={setIsInsightsDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Connection Insights</DialogTitle>
+          </DialogHeader>
+          {selectedContact && selectedContact.connection_strength && (
+            <ConnectionInsights strength={selectedContact.connection_strength} />
           )}
         </DialogContent>
       </Dialog>

@@ -1,12 +1,8 @@
 
-import { Home, Circle, Calendar, Settings, LogOut } from "lucide-react";
+import { Home, Circle, Calendar, Settings } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
-interface MobileNavProps {
-  onSignOut: () => Promise<void>;
-}
-
-const MobileNav = ({ onSignOut }: MobileNavProps) => {
+const MobileNav = () => {
   const location = useLocation();
   const currentPath = location.pathname;
 
@@ -39,13 +35,6 @@ const MobileNav = ({ onSignOut }: MobileNavProps) => {
             </Link>
           );
         })}
-        <button
-          onClick={onSignOut}
-          className="flex flex-col items-center justify-center w-full h-full text-gray-500"
-        >
-          <LogOut size={20} />
-          <span className="text-xs mt-1">Sign Out</span>
-        </button>
       </div>
     </nav>
   );

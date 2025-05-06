@@ -1,12 +1,8 @@
 
-import { Home, Circle, Calendar, Settings, LogOut } from "lucide-react";
+import { Home, Circle, Calendar, Settings } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
-interface DesktopNavProps {
-  onSignOut: () => Promise<void>;
-}
-
-const DesktopNav = ({ onSignOut }: DesktopNavProps) => {
+const DesktopNav = () => {
   const location = useLocation();
   const currentPath = location.pathname;
 
@@ -52,14 +48,6 @@ const DesktopNav = ({ onSignOut }: DesktopNavProps) => {
             })}
           </div>
         </div>
-        
-        <button
-          onClick={onSignOut}
-          className="flex flex-col items-center text-gray-500 hover:text-red-500 transition-colors"
-        >
-          <LogOut size={24} />
-          <span className="text-xs mt-1">Sign Out</span>
-        </button>
       </div>
     </div>
   );
