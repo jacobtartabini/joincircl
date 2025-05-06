@@ -6,7 +6,7 @@ import { format } from "date-fns";
 export interface KeystoneProps {
   id: string;
   title: string;
-  date: Date;
+  date: string;  // Changed from Date to string to match backend
   category: string;
   contactId: string;
   contactName: string;
@@ -17,30 +17,42 @@ interface KeystoneCardProps {
   keystone: KeystoneProps;
   className?: string;
   onClick?: (keystone: KeystoneProps) => void;
+  onEdit?: () => void;
+  isPast?: boolean;
 }
 
 export function KeystoneCard({
   keystone,
   className,
   onClick,
+  onEdit,
+  isPast,
 }: KeystoneCardProps) {
   const handleClick = () => {
     if (onClick) onClick(keystone);
+    else if (onEdit) onEdit();
   };
+
+  // Parse the string date to a Date object for formatting
+  const dateObject = new Date(keystone.date);
 
   return (
     <Card
-      className={cn("overflow-hidden card-hover cursor-pointer", className)}
+      className={cn(
+        "overflow-hidden card-hover cursor-pointer", 
+        isPast && "opacity-70",
+        className
+      )}
       onClick={handleClick}
     >
       <CardContent className="p-4">
         <div className="flex gap-3">
           <div className="min-w-12 text-center">
             <div className="text-sm font-medium text-muted-foreground">
-              {format(new Date(keystone.date), "MMM")}
+              {format(dateObject, "MMM")}
             </div>
             <div className="text-2xl font-bold">
-              {format(new Date(keystone.date), "d")}
+              {format(dateObject, "d")}
             </div>
           </div>
           <div>

@@ -103,9 +103,12 @@ const Keystones = () => {
                 <KeystoneCard
                   key={keystone.id}
                   keystone={{
-                    ...keystone,
+                    id: keystone.id,
+                    title: keystone.title,
+                    date: keystone.due_date || keystone.date, // Use due_date if available, fall back to date
+                    category: keystone.category || "Event",
                     contactId: keystone.contact_id || "",
-                    contactName: keystone.contact_name || ""
+                    contactName: keystone.contact_name || "No Contact"
                   }}
                   onEdit={() => handleEditKeystone(keystone)}
                 />
@@ -136,9 +139,12 @@ const Keystones = () => {
                 <KeystoneCard
                   key={keystone.id}
                   keystone={{
-                    ...keystone,
+                    id: keystone.id,
+                    title: keystone.title,
+                    date: keystone.due_date || keystone.date, // Use due_date if available, fall back to date
+                    category: keystone.category || "Event",
                     contactId: keystone.contact_id || "",
-                    contactName: keystone.contact_name || ""
+                    contactName: keystone.contact_name || "No Contact"
                   }}
                   onEdit={() => handleEditKeystone(keystone)}
                   isPast
