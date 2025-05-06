@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -6,16 +7,36 @@ import { CircleBadge, getCircleName } from "@/components/ui/circle-badge";
 import { format } from "date-fns";
 import { contactService } from "@/services/contactService";
 import { keystoneService } from "@/services/keystoneService";
-import { Contact, Interaction } from "@/types/contact";
+import { contactMediaService } from "@/services/contactMediaService";
+import { Contact, Interaction, ContactMedia } from "@/types/contact";
 import { Keystone } from "@/types/keystone";
 import { useToast } from "@/hooks/use-toast";
 import ConnectionInsights from "@/components/contact/ConnectionInsights";
 import { calculateConnectionStrength } from "@/utils/connectionStrength";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ContactForm from "@/components/contact/ContactForm";
+import KeystoneForm from "@/components/keystone/KeystoneForm";
+import InteractionForm from "@/components/interaction/InteractionForm";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Calendar, Mail, Phone, Edit, Trash, PlusCircle, Briefcase, GraduationCap, MapPin } from "lucide-react";
+import {
+  Calendar,
+  Mail,
+  Phone,
+  Edit,
+  Trash,
+  PlusCircle,
+  Briefcase,
+  GraduationCap,
+  MapPin,
+  Instagram,
+  Twitter,
+  FileImage,
+  File,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 export default function ContactDetail() {
   const { id } = useParams<{ id: string }>();
@@ -24,9 +45,17 @@ export default function ContactDetail() {
   const [contact, setContact] = useState<Contact | null>(null);
   const [interactions, setInteractions] = useState<Interaction[]>([]);
   const [keystones, setKeystones] = useState<Keystone[]>([]);
+  const [contactMedia, setContactMedia] = useState<ContactMedia[]>([]);
   const [loading, setLoading] = useState(true);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isAddKeystoneDialogOpen, setIsAddKeystoneDialogOpen] = useState(false);
+  const [isEditKeystoneDialogOpen, setIsEditKeystoneDialogOpen] = useState(false);
+  const [selectedKeystone, setSelectedKeystone] = useState<Keystone | null>(null);
+  const [isAddInteractionDialogOpen, setIsAddInteractionDialogOpen] = useState(false);
+  const [expandedKeystoneId, setExpandedKeystoneId] = useState<string | null>(null);
+  const [expandedInteractionId, setExpandedInteractionId] = useState<string | null>(null);
+  const [isDeleteKeystoneDialogOpen, setIsDeleteKeystoneDialogOpen] = useState(false);
   
   useEffect(() => {
     async function loadContactData() {
@@ -37,10 +66,19 @@ export default function ContactDetail() {
         const contactData = await contactService.getContact(id);
         const interactionsData = await contactService.getInteractionsByContactId(id);
         const keystonesData = await keystoneService.getKeystonesByContactId(id);
+        let mediaData: ContactMedia[] = [];
+        
+        try {
+          mediaData = await contactMediaService.getContactMedia(id);
+        } catch (error) {
+          console.error("Error loading contact media:", error);
+          // Don't fail the entire page load if media loading fails
+        }
         
         setContact(contactData);
         setInteractions(interactionsData);
         setKeystones(keystonesData);
+        setContactMedia(mediaData);
       } catch (error) {
         console.error("Error loading contact data:", error);
         toast({
@@ -76,6 +114,87 @@ export default function ContactDetail() {
       });
     }
   };
+
+  const handleDeleteKeystone = async () => {
+    if (!selectedKeystone?.id) return;
+    
+    try {
+      await keystoneService.deleteKeystone(selectedKeystone.id);
+      setKeystones(keystones.filter(k => k.id !== selectedKeystone.id));
+      setIsDeleteKeystoneDialogOpen(false);
+      setSelectedKeystone(null);
+      
+      toast({
+        title: "Keystone deleted",
+        description: "The keystone has been successfully deleted.",
+      });
+    } catch (error) {
+      console.error("Error deleting keystone:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete keystone. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleContactUpdate = async () => {
+    if (!id) return;
+    
+    try {
+      const updatedContact = await contactService.getContact(id);
+      setContact(updatedContact);
+      setIsEditDialogOpen(false);
+    } catch (error) {
+      console.error("Error refreshing contact:", error);
+    }
+  };
+
+  const handleKeystoneAdded = async () => {
+    if (!id) return;
+    
+    try {
+      const updatedKeystones = await keystoneService.getKeystonesByContactId(id);
+      setKeystones(updatedKeystones);
+      setIsAddKeystoneDialogOpen(false);
+      setIsEditKeystoneDialogOpen(false);
+      setSelectedKeystone(null);
+    } catch (error) {
+      console.error("Error refreshing keystones:", error);
+    }
+  };
+
+  const handleInteractionAdded = async () => {
+    if (!id) return;
+    
+    try {
+      const updatedContact = await contactService.getContact(id);
+      const updatedInteractions = await contactService.getInteractionsByContactId(id);
+      setContact(updatedContact);
+      setInteractions(updatedInteractions);
+      setIsAddInteractionDialogOpen(false);
+    } catch (error) {
+      console.error("Error refreshing interactions:", error);
+    }
+  };
+
+  const handleKeystoneClick = (keystoneId: string) => {
+    setExpandedKeystoneId(expandedKeystoneId === keystoneId ? null : keystoneId);
+  };
+
+  const handleInteractionClick = (interactionId: string) => {
+    setExpandedInteractionId(expandedInteractionId === interactionId ? null : interactionId);
+  };
+
+  const handleEditKeystone = (keystone: Keystone) => {
+    setSelectedKeystone(keystone);
+    setIsEditKeystoneDialogOpen(true);
+  };
+
+  const handleDeleteKeystoneConfirmation = (keystone: Keystone) => {
+    setSelectedKeystone(keystone);
+    setIsDeleteKeystoneDialogOpen(true);
+  };
   
   const connectionStrength = contact ? calculateConnectionStrength(contact, interactions) : null;
   
@@ -101,6 +220,10 @@ export default function ContactDetail() {
       </div>
     );
   }
+  
+  // Group media by type for display
+  const images = contactMedia.filter(media => media.is_image);
+  const documents = contactMedia.filter(media => !media.is_image);
   
   return (
     <div className="space-y-6 animate-fade-in">
@@ -136,7 +259,11 @@ export default function ContactDetail() {
               <div className="flex items-center gap-4">
                 <div className="relative">
                   <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xl font-medium">
-                    {contact.name.charAt(0).toUpperCase()}
+                    {contact.avatar_url ? (
+                      <img src={contact.avatar_url} alt={contact.name} className="w-full h-full object-cover rounded-full" />
+                    ) : (
+                      contact.name.charAt(0).toUpperCase()
+                    )}
                   </div>
                   <CircleBadge 
                     type={contact.circle} 
@@ -219,6 +346,20 @@ export default function ContactDetail() {
                         <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
                       </svg>
                       Facebook
+                    </a>
+                  )}
+
+                  {contact.twitter && (
+                    <a href={contact.twitter} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-2.5 py-1.5 rounded-md bg-blue-50 text-blue-700 text-xs hover:bg-blue-100">
+                      <Twitter size={14} className="mr-1" />
+                      Twitter
+                    </a>
+                  )}
+
+                  {contact.instagram && (
+                    <a href={contact.instagram} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-2.5 py-1.5 rounded-md bg-blue-50 text-blue-700 text-xs hover:bg-blue-100">
+                      <Instagram size={14} className="mr-1" />
+                      Instagram
                     </a>
                   )}
                 </div>
@@ -314,17 +455,76 @@ export default function ContactDetail() {
                   </div>
                 </div>
               )}
+
+              {/* Files & Images */}
+              {(images.length > 0 || documents.length > 0) && (
+                <div className="mt-6">
+                  <h3 className="font-semibold text-sm text-muted-foreground mb-4">FILES & MEDIA</h3>
+                  
+                  {images.length > 0 && (
+                    <div className="mb-4">
+                      <h4 className="text-sm font-medium mb-2">Images</h4>
+                      <div className="grid grid-cols-3 gap-2">
+                        {images.map(image => (
+                          <a 
+                            key={image.id} 
+                            href={image.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="block"
+                          >
+                            <img 
+                              src={image.url} 
+                              alt={image.file_name} 
+                              className="h-24 w-full object-cover rounded border"
+                            />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {documents.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-medium mb-2">Documents</h4>
+                      <div className="space-y-2">
+                        {documents.map(doc => (
+                          <a 
+                            key={doc.id} 
+                            href={doc.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center p-2 border rounded hover:bg-muted/50"
+                          >
+                            <File size={16} className="mr-2 text-blue-600" />
+                            <span className="text-sm truncate">{doc.file_name}</span>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
               
               {/* Relational Context */}
-              {contact.how_met && (
+              {(contact.how_met || contact.hobbies_interests) && (
                 <div className="mt-6">
                   <h3 className="font-semibold text-sm text-muted-foreground mb-4">RELATIONAL CONTEXT</h3>
                   
                   <div className="space-y-3">
-                    <div>
-                      <h4 className="font-medium mb-1">How You Met</h4>
-                      <p className="text-sm whitespace-pre-wrap">{contact.how_met}</p>
-                    </div>
+                    {contact.how_met && (
+                      <div>
+                        <h4 className="font-medium mb-1">How You Met</h4>
+                        <p className="text-sm whitespace-pre-wrap">{contact.how_met}</p>
+                      </div>
+                    )}
+                    
+                    {contact.hobbies_interests && (
+                      <div>
+                        <h4 className="font-medium mb-1">Hobbies & Interests</h4>
+                        <p className="text-sm whitespace-pre-wrap">{contact.hobbies_interests}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -344,7 +544,11 @@ export default function ContactDetail() {
           <Card>
             <CardHeader className="pb-2 flex flex-row items-center justify-between">
               <CardTitle className="text-lg font-medium">Keystones</CardTitle>
-              <Button size="sm" variant="outline">
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={() => setIsAddKeystoneDialogOpen(true)}
+              >
                 <PlusCircle size={16} className="mr-1" />
                 Add Keystone
               </Button>
@@ -358,18 +562,49 @@ export default function ContactDetail() {
               ) : (
                 <div className="space-y-4">
                   {keystones.map((keystone) => (
-                    <div key={keystone.id} className="flex gap-3 items-start">
-                      <div className="bg-blue-100 text-blue-800 p-2 rounded-md">
-                        <Calendar size={16} />
-                      </div>
-                      <div>
-                        <p className="font-medium">{keystone.title}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {format(new Date(keystone.date), 'PPP')}
-                          {keystone.category && ` · ${keystone.category}`}
-                        </p>
-                      </div>
-                    </div>
+                    <Collapsible 
+                      key={keystone.id}
+                      open={expandedKeystoneId === keystone.id}
+                      onOpenChange={() => handleKeystoneClick(keystone.id)}
+                    >
+                      <CollapsibleTrigger className="flex w-full gap-3 items-start hover:bg-muted/50 p-2 rounded-md transition-colors cursor-pointer">
+                        <div className="bg-blue-100 text-blue-800 p-2 rounded-md flex-shrink-0">
+                          <Calendar size={16} />
+                        </div>
+                        <div className="flex-grow">
+                          <div className="flex justify-between items-start">
+                            <p className="font-medium">{keystone.title}</p>
+                            {expandedKeystoneId === keystone.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {format(new Date(keystone.date), 'PPP')}
+                            {keystone.category && ` · ${keystone.category}`}
+                            {keystone.is_recurring && ` · Recurring (${keystone.recurrence_frequency})`}
+                          </p>
+                        </div>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="ml-10 pl-3 border-l mt-2 space-y-2">
+                        <div className="flex gap-2 mt-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleEditKeystone(keystone)}
+                          >
+                            <Edit size={14} className="mr-1" />
+                            Edit
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleDeleteKeystoneConfirmation(keystone)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash size={14} className="mr-1" />
+                            Delete
+                          </Button>
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
                   ))}
                 </div>
               )}
@@ -380,7 +615,11 @@ export default function ContactDetail() {
           <Card>
             <CardHeader className="pb-2 flex flex-row items-center justify-between">
               <CardTitle className="text-lg font-medium">Interactions</CardTitle>
-              <Button size="sm" variant="outline">
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={() => setIsAddInteractionDialogOpen(true)}
+              >
                 <PlusCircle size={16} className="mr-1" />
                 Log Interaction
               </Button>
@@ -394,17 +633,26 @@ export default function ContactDetail() {
               ) : (
                 <div className="space-y-4">
                   {interactions.map((interaction) => (
-                    <div key={interaction.id} className="border-b pb-3 last:border-b-0 last:pb-0">
-                      <div className="flex justify-between items-start">
-                        <p className="font-medium capitalize">{interaction.type}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {format(new Date(interaction.date), 'PPP')}
-                        </p>
-                      </div>
-                      {interaction.notes && (
-                        <p className="text-sm mt-1">{interaction.notes}</p>
-                      )}
-                    </div>
+                    <Collapsible 
+                      key={interaction.id}
+                      open={expandedInteractionId === interaction.id}
+                      onOpenChange={() => handleInteractionClick(interaction.id)}
+                    >
+                      <CollapsibleTrigger className="flex w-full justify-between items-start hover:bg-muted/50 p-2 rounded-md transition-colors cursor-pointer">
+                        <div className="flex items-start">
+                          <p className="font-medium capitalize">{interaction.type}</p>
+                          <p className="text-sm text-muted-foreground ml-2">
+                            {format(new Date(interaction.date), 'PPP')}
+                          </p>
+                        </div>
+                        {expandedInteractionId === interaction.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-2 ml-2 pl-3 border-l">
+                        {interaction.notes && (
+                          <p className="text-sm mb-3 whitespace-pre-wrap">{interaction.notes}</p>
+                        )}
+                      </CollapsibleContent>
+                    </Collapsible>
                   ))}
                 </div>
               )}
@@ -428,19 +676,59 @@ export default function ContactDetail() {
           </DialogHeader>
           <ContactForm 
             contact={contact}
-            onSuccess={() => {
-              setIsEditDialogOpen(false);
-              // Refresh the contact data
-              if (id) {
-                contactService.getContact(id).then(setContact);
-              }
-            }}
+            onSuccess={handleContactUpdate}
             onCancel={() => setIsEditDialogOpen(false)}
           />
         </DialogContent>
       </Dialog>
       
-      {/* Delete Confirmation Dialog */}
+      {/* Add Keystone Dialog */}
+      <Dialog open={isAddKeystoneDialogOpen} onOpenChange={setIsAddKeystoneDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Keystone</DialogTitle>
+          </DialogHeader>
+          <KeystoneForm 
+            contact={contact}
+            onSuccess={handleKeystoneAdded}
+            onCancel={() => setIsAddKeystoneDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+      
+      {/* Edit Keystone Dialog */}
+      <Dialog open={isEditKeystoneDialogOpen} onOpenChange={setIsEditKeystoneDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Keystone</DialogTitle>
+          </DialogHeader>
+          <KeystoneForm 
+            keystone={selectedKeystone || undefined}
+            contact={contact}
+            onSuccess={handleKeystoneAdded}
+            onCancel={() => {
+              setIsEditKeystoneDialogOpen(false);
+              setSelectedKeystone(null);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+      
+      {/* Add Interaction Dialog */}
+      <Dialog open={isAddInteractionDialogOpen} onOpenChange={setIsAddInteractionDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Log Interaction</DialogTitle>
+          </DialogHeader>
+          <InteractionForm 
+            contact={contact}
+            onSuccess={handleInteractionAdded}
+            onCancel={() => setIsAddInteractionDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+      
+      {/* Delete Contact Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -453,6 +741,29 @@ export default function ContactDetail() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      {/* Delete Keystone Confirmation Dialog */}
+      <AlertDialog open={isDeleteKeystoneDialogOpen} onOpenChange={setIsDeleteKeystoneDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this keystone?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete this keystone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setIsDeleteKeystoneDialogOpen(false);
+              setSelectedKeystone(null);
+            }}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteKeystone} className="bg-red-600 hover:bg-red-700">
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

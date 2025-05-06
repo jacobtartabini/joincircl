@@ -9,6 +9,47 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      contact_media: {
+        Row: {
+          contact_id: string
+          created_at: string
+          file_name: string
+          file_type: string
+          id: string
+          is_image: boolean
+          storage_path: string
+          user_id: string
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string
+          file_name: string
+          file_type: string
+          id?: string
+          is_image: boolean
+          storage_path: string
+          user_id: string
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string
+          file_name?: string
+          file_type?: string
+          id?: string
+          is_image?: boolean
+          storage_path?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_media_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contacts: {
         Row: {
           avatar_url: string | null
@@ -19,9 +60,11 @@ export type Database = {
           department: string | null
           facebook: string | null
           graduation_year: number | null
+          hobbies_interests: string | null
           how_met: string | null
           id: string
           industry: string | null
+          instagram: string | null
           job_title: string | null
           last_contact: string | null
           linkedin: string | null
@@ -33,6 +76,7 @@ export type Database = {
           notes: string | null
           personal_email: string | null
           tags: string[] | null
+          twitter: string | null
           university: string | null
           updated_at: string | null
           user_id: string
@@ -48,9 +92,11 @@ export type Database = {
           department?: string | null
           facebook?: string | null
           graduation_year?: number | null
+          hobbies_interests?: string | null
           how_met?: string | null
           id?: string
           industry?: string | null
+          instagram?: string | null
           job_title?: string | null
           last_contact?: string | null
           linkedin?: string | null
@@ -62,6 +108,7 @@ export type Database = {
           notes?: string | null
           personal_email?: string | null
           tags?: string[] | null
+          twitter?: string | null
           university?: string | null
           updated_at?: string | null
           user_id: string
@@ -77,9 +124,11 @@ export type Database = {
           department?: string | null
           facebook?: string | null
           graduation_year?: number | null
+          hobbies_interests?: string | null
           how_met?: string | null
           id?: string
           industry?: string | null
+          instagram?: string | null
           job_title?: string | null
           last_contact?: string | null
           linkedin?: string | null
@@ -91,6 +140,7 @@ export type Database = {
           notes?: string | null
           personal_email?: string | null
           tags?: string[] | null
+          twitter?: string | null
           university?: string | null
           updated_at?: string | null
           user_id?: string
@@ -159,6 +209,8 @@ export type Database = {
           created_at: string | null
           date: string
           id: string
+          is_recurring: boolean | null
+          recurrence_frequency: string | null
           title: string
           updated_at: string | null
           user_id: string
@@ -169,6 +221,8 @@ export type Database = {
           created_at?: string | null
           date: string
           id?: string
+          is_recurring?: boolean | null
+          recurrence_frequency?: string | null
           title: string
           updated_at?: string | null
           user_id: string
@@ -179,6 +233,8 @@ export type Database = {
           created_at?: string | null
           date?: string
           id?: string
+          is_recurring?: boolean | null
+          recurrence_frequency?: string | null
           title?: string
           updated_at?: string | null
           user_id?: string

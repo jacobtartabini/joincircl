@@ -1,5 +1,4 @@
 
-
 export interface Contact {
   id: string;
   user_id: string;
@@ -17,6 +16,8 @@ export interface Contact {
   location?: string;
   linkedin?: string;
   facebook?: string;
+  twitter?: string; // Added field
+  instagram?: string; // Added field
   company_name?: string;
   job_title?: string;
   industry?: string;
@@ -27,6 +28,7 @@ export interface Contact {
   minor?: string;
   graduation_year?: number;
   how_met?: string;
+  hobbies_interests?: string; // Added field
   created_at: string;
   updated_at: string;
 }
@@ -47,3 +49,14 @@ export interface ConnectionStrength {
   suggestions: string[];
 }
 
+export interface ContactMedia {
+  id: string;
+  contact_id: string;
+  user_id: string;
+  file_name: string;
+  file_type: string;
+  storage_path: string;
+  is_image: boolean;
+  created_at: string;
+  url?: string; // Client-side URL for display
+}

@@ -1,6 +1,4 @@
-
-
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,9 +20,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, X, Upload, FileImage, File } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { contactMediaService } from "@/services/contactMediaService";
+import { keystoneService } from "@/services/keystoneService";
 
 interface ContactFormProps {
   contact?: Contact;
@@ -48,8 +48,10 @@ export default function ContactForm({
       tags: [],
       website: "",
       location: "",
-      linkedin: "",
-      facebook: "",
+      linkedin: "https://www.linkedin.com/in/",
+      facebook: "https://www.facebook.com/",
+      twitter: "https://www.twitter.com/",
+      instagram: "https://www.instagram.com/",
       company_name: "",
       job_title: "",
       industry: "",
@@ -59,12 +61,28 @@ export default function ContactForm({
       major: "",
       minor: "",
       how_met: "",
+      hobbies_interests: "",
     }
   );
+  
   const [tagInput, setTagInput] = useState("");
   const [birthday, setBirthday] = useState<Date | undefined>(
     formData.birthday ? new Date(formData.birthday) : undefined
   );
+  const [birthdayYear, setBirthdayYear] = useState<number | undefined>(
+    birthday ? birthday.getFullYear() : undefined
+  );
+  const [birthdayMonth, setBirthdayMonth] = useState<number | undefined>(
+    birthday ? birthday.getMonth() : undefined
+  );
+  const [calendarView, setCalendarView] = useState<"days" | "months" | "years">("days");
+  
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [documentFiles, setDocumentFiles] = useState<File[]>([]);
+  
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const documentInputRef = useRef<HTMLInputElement>(null);
+  
   const { toast } = useToast();
 
   const handleChange = (
@@ -105,12 +123,113 @@ export default function ContactForm({
     }));
   };
 
-  const handleBirthdayChange = (date?: Date) => {
+  const handleBirthdayYearChange = (year: number) => {
+    setBirthdayYear(year);
+    
+    // If we have a month and year, update the date
+    if (birthdayMonth !== undefined) {
+      const newDate = new Date();
+      newDate.setFullYear(year);
+      newDate.setMonth(birthdayMonth);
+      // Keep the day or set to 1 if invalid date
+      const day = birthday ? Math.min(birthday.getDate(), new Date(year, birthdayMonth + 1, 0).getDate()) : 1;
+      newDate.setDate(day);
+      newDate.setHours(0, 0, 0, 0);
+      setBirthday(newDate);
+      
+      setFormData(prev => ({
+        ...prev,
+        birthday: newDate.toISOString()
+      }));
+    }
+    
+    // After selecting a year, move to month view
+    setCalendarView("months");
+  };
+
+  const handleBirthdayMonthChange = (month: number) => {
+    setBirthdayMonth(month);
+    
+    // If we have a year and month, update the date
+    if (birthdayYear !== undefined) {
+      const newDate = new Date();
+      newDate.setFullYear(birthdayYear);
+      newDate.setMonth(month);
+      // Set to the 1st day of month initially
+      newDate.setDate(1);
+      newDate.setHours(0, 0, 0, 0);
+      setBirthday(newDate);
+      
+      setFormData(prev => ({
+        ...prev,
+        birthday: newDate.toISOString()
+      }));
+    }
+    
+    // After selecting a month, move to day view
+    setCalendarView("days");
+  };
+
+  const handleBirthdayDayChange = (date: Date | undefined) => {
     setBirthday(date);
-    setFormData(prev => ({
-      ...prev,
-      birthday: date ? date.toISOString() : undefined
-    }));
+    
+    if (date) {
+      setBirthdayYear(date.getFullYear());
+      setBirthdayMonth(date.getMonth());
+      
+      setFormData(prev => ({
+        ...prev,
+        birthday: date.toISOString()
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        birthday: undefined
+      }));
+    }
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const newFiles = Array.from(e.target.files);
+      setImageFiles((prev) => [...prev, ...newFiles]);
+    }
+  };
+
+  const handleDocumentUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const newFiles = Array.from(e.target.files);
+      setDocumentFiles((prev) => [...prev, ...newFiles]);
+    }
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setImageFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleRemoveDocument = (index: number) => {
+    setDocumentFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const createBirthdayKeystone = async (contactId: string, birthdate: Date) => {
+    const birthdayMonth = birthdate.getMonth() + 1;
+    const birthdayDay = birthdate.getDate();
+    const currentYear = new Date().getFullYear();
+    
+    try {
+      // Create a recurring birthday keystone
+      await keystoneService.createKeystone({
+        title: `${formData.name}'s Birthday`,
+        date: new Date(currentYear, birthdate.getMonth(), birthdate.getDate()).toISOString(),
+        category: "Birthday",
+        contact_id: contactId,
+        is_recurring: true,
+        recurrence_frequency: "Yearly"
+      });
+    } catch (error) {
+      console.error("Error creating birthday keystone:", error);
+      // Don't fail the whole submission if keystone creation fails
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -126,19 +245,45 @@ export default function ContactForm({
 
     setIsSubmitting(true);
     try {
+      let contactId;
+      
       if (contact?.id) {
-        await contactService.updateContact(contact.id, formData);
+        // Update existing contact
+        const updatedContact = await contactService.updateContact(contact.id, formData);
+        contactId = updatedContact.id;
         toast({
           title: "Contact updated",
           description: "The contact has been successfully updated.",
         });
       } else {
-        await contactService.createContact(formData as Omit<Contact, "id" | "user_id" | "created_at" | "updated_at">);
+        // Create new contact
+        const newContact = await contactService.createContact(formData as Omit<Contact, "id" | "user_id" | "created_at" | "updated_at">);
+        contactId = newContact.id;
         toast({
           title: "Contact created",
           description: "The new contact has been successfully created.",
         });
       }
+      
+      // If we have a birthday set, create a birthday keystone
+      if (birthday) {
+        await createBirthdayKeystone(contactId, birthday);
+      }
+      
+      // Upload any files
+      const uploadPromises = [
+        ...imageFiles.map(file => contactMediaService.uploadContactMedia(contactId, file, true)),
+        ...documentFiles.map(file => contactMediaService.uploadContactMedia(contactId, file, false))
+      ];
+      
+      if (uploadPromises.length > 0) {
+        await Promise.all(uploadPromises);
+        toast({
+          title: "Files uploaded",
+          description: `Successfully uploaded ${uploadPromises.length} file(s).`,
+        });
+      }
+      
       onSuccess();
     } catch (error: any) {
       toast({
@@ -151,13 +296,80 @@ export default function ContactForm({
     }
   };
 
+  // Render calendar content based on the current view
+  const renderCalendarContent = () => {
+    if (calendarView === "years") {
+      const currentYear = new Date().getFullYear();
+      const startYear = currentYear - 70; // Show 70 years in the past
+      const years = Array.from({ length: 100 }, (_, i) => startYear + i);
+      
+      return (
+        <div className="p-2 h-[240px] overflow-y-auto">
+          <div className="grid grid-cols-4 gap-1 text-center">
+            {years.map(year => (
+              <button
+                key={year}
+                type="button"
+                className={cn(
+                  "p-2 rounded hover:bg-accent",
+                  birthdayYear === year ? "bg-primary text-primary-foreground" : ""
+                )}
+                onClick={() => handleBirthdayYearChange(year)}
+              >
+                {year}
+              </button>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    
+    if (calendarView === "months") {
+      const months = [
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+      ];
+      
+      return (
+        <div className="p-2">
+          <div className="grid grid-cols-3 gap-2 text-center">
+            {months.map((month, index) => (
+              <button
+                key={month}
+                type="button"
+                className={cn(
+                  "p-2 rounded hover:bg-accent",
+                  birthdayMonth === index ? "bg-primary text-primary-foreground" : ""
+                )}
+                onClick={() => handleBirthdayMonthChange(index)}
+              >
+                {month}
+              </button>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    
+    return (
+      <Calendar
+        mode="single"
+        selected={birthday}
+        onSelect={handleBirthdayDayChange}
+        initialFocus
+        className="p-3 pointer-events-auto"
+      />
+    );
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
       <Tabs defaultValue="basic" className="w-full">
-        <TabsList className="grid grid-cols-4 mb-4">
+        <TabsList className="grid grid-cols-5 mb-4">
           <TabsTrigger value="basic">Basic</TabsTrigger>
           <TabsTrigger value="professional">Professional</TabsTrigger>
           <TabsTrigger value="education">Education</TabsTrigger>
+          <TabsTrigger value="files">Files</TabsTrigger>
           <TabsTrigger value="other">Other</TabsTrigger>
         </TabsList>
         
@@ -222,13 +434,33 @@ export default function ContactForm({
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={birthday}
-                  onSelect={handleBirthdayChange}
-                  initialFocus
-                  className="p-3 pointer-events-auto"
-                />
+                <div className="p-2 flex border-b">
+                  <Button 
+                    type="button"
+                    variant={calendarView === "days" ? "default" : "outline"} 
+                    className="mr-1 flex-1 text-xs"
+                    onClick={() => setCalendarView("days")}
+                  >
+                    Day
+                  </Button>
+                  <Button 
+                    type="button"
+                    variant={calendarView === "months" ? "default" : "outline"} 
+                    className="mr-1 flex-1 text-xs"
+                    onClick={() => setCalendarView("months")}
+                  >
+                    Month
+                  </Button>
+                  <Button 
+                    type="button"
+                    variant={calendarView === "years" ? "default" : "outline"} 
+                    className="flex-1 text-xs"
+                    onClick={() => setCalendarView("years")}
+                  >
+                    Year
+                  </Button>
+                </div>
+                {renderCalendarContent()}
               </PopoverContent>
             </Popover>
           </div>
@@ -244,27 +476,48 @@ export default function ContactForm({
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="linkedin">LinkedIn</Label>
-              <Input
-                id="linkedin"
-                name="linkedin"
-                placeholder="LinkedIn profile URL"
-                value={formData.linkedin || ""}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="facebook">Facebook</Label>
-              <Input
-                id="facebook"
-                name="facebook"
-                placeholder="Facebook profile URL"
-                value={formData.facebook || ""}
-                onChange={handleChange}
-              />
+          <div className="space-y-2">
+            <Label>Social Media Profiles</Label>
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <Label htmlFor="linkedin" className="text-xs text-muted-foreground">LinkedIn</Label>
+                <Input
+                  id="linkedin"
+                  name="linkedin"
+                  value={formData.linkedin || "https://www.linkedin.com/in/"}
+                  onChange={handleChange}
+                />
+              </div>
+              
+              <div className="space-y-1">
+                <Label htmlFor="facebook" className="text-xs text-muted-foreground">Facebook</Label>
+                <Input
+                  id="facebook"
+                  name="facebook"
+                  value={formData.facebook || "https://www.facebook.com/"}
+                  onChange={handleChange}
+                />
+              </div>
+              
+              <div className="space-y-1">
+                <Label htmlFor="twitter" className="text-xs text-muted-foreground">Twitter</Label>
+                <Input
+                  id="twitter"
+                  name="twitter"
+                  value={formData.twitter || "https://www.twitter.com/"}
+                  onChange={handleChange}
+                />
+              </div>
+              
+              <div className="space-y-1">
+                <Label htmlFor="instagram" className="text-xs text-muted-foreground">Instagram</Label>
+                <Input
+                  id="instagram"
+                  name="instagram"
+                  value={formData.instagram || "https://www.instagram.com/"}
+                  onChange={handleChange}
+                />
+              </div>
             </div>
           </div>
 
@@ -386,6 +639,87 @@ export default function ContactForm({
           </div>
         </TabsContent>
         
+        <TabsContent value="files" className="space-y-4">
+          <div className="space-y-2">
+            <Label>Images</Label>
+            <div className="border-2 border-dashed rounded-md p-4 cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => imageInputRef.current?.click()}>
+              <div className="text-center">
+                <FileImage className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                <p className="text-sm font-medium">Click to upload images</p>
+                <p className="text-xs text-muted-foreground">PNG, JPG, WEBP up to 10MB each</p>
+              </div>
+              <input
+                ref={imageInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handleImageUpload}
+              />
+            </div>
+            
+            {imageFiles.length > 0 && (
+              <div className="grid grid-cols-3 gap-2 mt-2">
+                {imageFiles.map((file, index) => (
+                  <div key={index} className="relative">
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt={`Upload ${index}`}
+                      className="h-20 w-full object-cover rounded"
+                    />
+                    <button
+                      type="button"
+                      className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5"
+                      onClick={() => handleRemoveImage(index)}
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Documents</Label>
+            <div className="border-2 border-dashed rounded-md p-4 cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => documentInputRef.current?.click()}>
+              <div className="text-center">
+                <File className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                <p className="text-sm font-medium">Click to upload documents</p>
+                <p className="text-xs text-muted-foreground">PDF, DOC, TXT up to 10MB each</p>
+              </div>
+              <input
+                ref={documentInputRef}
+                type="file"
+                accept=".pdf,.doc,.docx,.txt"
+                multiple
+                className="hidden"
+                onChange={handleDocumentUpload}
+              />
+            </div>
+            
+            {documentFiles.length > 0 && (
+              <div className="space-y-2 mt-2">
+                {documentFiles.map((file, index) => (
+                  <div key={index} className="flex justify-between items-center bg-muted p-2 rounded">
+                    <div className="flex items-center">
+                      <File size={16} className="mr-2" />
+                      <span className="text-sm truncate max-w-[200px]">{file.name}</span>
+                    </div>
+                    <button
+                      type="button"
+                      className="text-red-500 hover:text-red-700"
+                      onClick={() => handleRemoveDocument(index)}
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </TabsContent>
+        
         <TabsContent value="other" className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="how_met">How You Met</Label>
@@ -396,6 +730,18 @@ export default function ContactForm({
               onChange={handleChange}
               rows={3}
               placeholder="Describe how you met this person..."
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="hobbies_interests">Hobbies & Interests</Label>
+            <Textarea
+              id="hobbies_interests"
+              name="hobbies_interests"
+              value={formData.hobbies_interests || ""}
+              onChange={handleChange}
+              rows={3}
+              placeholder="List hobbies, interests, favorite activities..."
             />
           </div>
 

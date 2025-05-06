@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { keystoneService } from "@/services/keystoneService";
 import { Keystone } from "@/types/keystone";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Calendar } from "lucide-react";
+import { Plus, Calendar, Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +14,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { contactService } from "@/services/contactService";
 import { Contact } from "@/types/contact";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 
 const Keystones = () => {
   const { toast } = useToast();
@@ -30,11 +32,15 @@ const Keystones = () => {
     date: string;
     category?: string;
     contact_id?: string;
+    is_recurring: boolean;
+    recurrence_frequency?: string;
   }>({
     title: "",
     date: new Date().toISOString().split('T')[0],
     category: "",
-    contact_id: undefined
+    contact_id: undefined,
+    is_recurring: false,
+    recurrence_frequency: undefined
   });
 
   useEffect(() => {
@@ -64,6 +70,14 @@ const Keystones = () => {
 
   const handleKeystoneClick = (keystone: Keystone) => {
     setSelectedKeystone(keystone);
+    setFormData({
+      title: keystone.title,
+      date: new Date(keystone.date).toISOString().split('T')[0],
+      category: keystone.category,
+      contact_id: keystone.contact_id,
+      is_recurring: keystone.is_recurring || false,
+      recurrence_frequency: keystone.recurrence_frequency
+    });
     setIsViewDialogOpen(true);
   };
 
@@ -73,7 +87,9 @@ const Keystones = () => {
       title: "",
       date: new Date().toISOString().split('T')[0],
       category: "",
-      contact_id: undefined
+      contact_id: undefined,
+      is_recurring: false,
+      recurrence_frequency: undefined
     });
   };
 
@@ -86,6 +102,14 @@ const Keystones = () => {
 
   const handleSelectChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value || undefined }));
+  };
+
+  const toggleRecurring = () => {
+    setFormData((prev) => ({
+      ...prev,
+      is_recurring: !prev.is_recurring,
+      recurrence_frequency: !prev.is_recurring ? "Monthly" : undefined
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -133,7 +157,17 @@ const Keystones = () => {
     if (!selectedKeystone) return;
     
     try {
-      await keystoneService.updateKeystone(selectedKeystone.id, selectedKeystone);
+      // Convert form data to update format
+      const updateData = {
+        title: formData.title,
+        date: new Date(formData.date).toISOString(),
+        category: formData.category,
+        contact_id: formData.contact_id,
+        is_recurring: formData.is_recurring,
+        recurrence_frequency: formData.is_recurring ? formData.recurrence_frequency : undefined
+      };
+      
+      await keystoneService.updateKeystone(selectedKeystone.id, updateData);
       
       const updatedKeystones = await keystoneService.getKeystones();
       setKeystones(updatedKeystones);
@@ -252,6 +286,40 @@ const Keystones = () => {
             </Select>
           </div>
           
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="is_recurring">Recurring</Label>
+              <Switch
+                id="is_recurring"
+                checked={formData.is_recurring}
+                onCheckedChange={toggleRecurring}
+              />
+            </div>
+            
+            {formData.is_recurring && (
+              <div className="mt-2">
+                <Label htmlFor="recurrence_frequency">Frequency</Label>
+                <Select
+                  value={formData.recurrence_frequency}
+                  onValueChange={(value) => handleSelectChange("recurrence_frequency", value)}
+                >
+                  <SelectTrigger id="recurrence_frequency">
+                    <SelectValue placeholder="Select frequency" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Daily">Daily</SelectItem>
+                    <SelectItem value="Weekly">Weekly</SelectItem>
+                    <SelectItem value="Biweekly">Biweekly</SelectItem>
+                    <SelectItem value="Monthly">Monthly</SelectItem>
+                    <SelectItem value="Bimonthly">Bimonthly</SelectItem>
+                    <SelectItem value="Quarterly">Quarterly</SelectItem>
+                    <SelectItem value="Yearly">Yearly</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+          
           <div className="flex justify-end gap-2 pt-4">
             <Button
               type="button"
@@ -280,8 +348,9 @@ const Keystones = () => {
             <Label htmlFor="edit-title">Title*</Label>
             <Input
               id="edit-title"
-              value={selectedKeystone.title}
-              onChange={(e) => setSelectedKeystone({...selectedKeystone, title: e.target.value})}
+              name="title"
+              value={formData.title}
+              onChange={handleFormChange}
               required
             />
           </div>
@@ -290,12 +359,10 @@ const Keystones = () => {
             <Label htmlFor="edit-date">Date*</Label>
             <Input
               id="edit-date"
+              name="date"
               type="date"
-              value={new Date(selectedKeystone.date).toISOString().split('T')[0]}
-              onChange={(e) => setSelectedKeystone({
-                ...selectedKeystone, 
-                date: new Date(e.target.value).toISOString()
-              })}
+              value={formData.date}
+              onChange={handleFormChange}
               required
             />
           </div>
@@ -303,11 +370,8 @@ const Keystones = () => {
           <div className="space-y-2">
             <Label htmlFor="edit-category">Category</Label>
             <Select
-              value={selectedKeystone.category || ""}
-              onValueChange={(value) => setSelectedKeystone({
-                ...selectedKeystone, 
-                category: value || undefined
-              })}
+              value={formData.category || ""}
+              onValueChange={(value) => handleSelectChange("category", value)}
             >
               <SelectTrigger id="edit-category">
                 <SelectValue placeholder="Select category" />
@@ -326,11 +390,8 @@ const Keystones = () => {
           <div className="space-y-2">
             <Label htmlFor="edit-contact">Related Contact</Label>
             <Select
-              value={selectedKeystone.contact_id || ""}
-              onValueChange={(value) => setSelectedKeystone({
-                ...selectedKeystone, 
-                contact_id: value || undefined
-              })}
+              value={formData.contact_id || ""}
+              onValueChange={(value) => handleSelectChange("contact_id", value)}
             >
               <SelectTrigger id="edit-contact">
                 <SelectValue placeholder="Select contact" />
@@ -343,6 +404,40 @@ const Keystones = () => {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="edit_is_recurring">Recurring</Label>
+              <Switch
+                id="edit_is_recurring"
+                checked={formData.is_recurring}
+                onCheckedChange={toggleRecurring}
+              />
+            </div>
+            
+            {formData.is_recurring && (
+              <div className="mt-2">
+                <Label htmlFor="edit_recurrence_frequency">Frequency</Label>
+                <Select
+                  value={formData.recurrence_frequency}
+                  onValueChange={(value) => handleSelectChange("recurrence_frequency", value)}
+                >
+                  <SelectTrigger id="edit_recurrence_frequency">
+                    <SelectValue placeholder="Select frequency" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Daily">Daily</SelectItem>
+                    <SelectItem value="Weekly">Weekly</SelectItem>
+                    <SelectItem value="Biweekly">Biweekly</SelectItem>
+                    <SelectItem value="Monthly">Monthly</SelectItem>
+                    <SelectItem value="Bimonthly">Bimonthly</SelectItem>
+                    <SelectItem value="Quarterly">Quarterly</SelectItem>
+                    <SelectItem value="Yearly">Yearly</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
           
           <div className="flex justify-between gap-2 pt-4">
@@ -397,16 +492,32 @@ const Keystones = () => {
               className="cursor-pointer"
               onClick={() => handleKeystoneClick(keystone)}
             >
-              <KeystoneCard
-                keystone={{
-                  id: keystone.id,
-                  title: keystone.title,
-                  date: new Date(keystone.date),
-                  category: keystone.category,
-                  contactId: keystone.contact_id,
-                  contactName: getContactName(keystone.contact_id) || undefined
-                }}
-              />
+              <div className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
+                <div className="flex items-start gap-3">
+                  <div className="bg-blue-100 text-blue-800 p-2 rounded-md">
+                    <CalendarIcon size={18} />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between">
+                      <h3 className="font-medium">{keystone.title}</h3>
+                      {keystone.is_recurring && (
+                        <Badge variant="outline" className="ml-2 text-xs">
+                          {keystone.recurrence_frequency}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="text-sm text-muted-foreground mt-1">
+                      <span>{format(new Date(keystone.date), 'PPP')}</span>
+                      {keystone.category && <span className="ml-2">• {keystone.category}</span>}
+                    </div>
+                    {keystone.contact_id && (
+                      <div className="text-sm mt-1">
+                        Contact: {getContactName(keystone.contact_id)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           ))}
         </div>

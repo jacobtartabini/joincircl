@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { ContactCard } from "@/components/ui/contact-card";
 import { StatsCard } from "@/components/ui/stats-card";
@@ -7,16 +8,22 @@ import { Contact } from "@/types/contact";
 import { contactService } from "@/services/contactService";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ContactForm from "@/components/contact/ContactForm";
+import InteractionForm from "@/components/interaction/InteractionForm";
 import { Plus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import NetworkRecommendations from "@/components/home/NetworkRecommendations";
 
 const Home = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { user, profile, hasSeenTutorial, setHasSeenTutorial } = useAuth();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isAddNoteDialogOpen, setIsAddNoteDialogOpen] = useState(false);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [followUpStats, setFollowUpStats] = useState({
     due: 0,
     trend: { value: 0, isPositive: true },
@@ -120,24 +127,16 @@ const Home = () => {
   ).length;
 
   const handleAddNote = (contact: Contact) => {
-    toast({
-      title: "Add Note",
-      description: `Adding a note for ${contact.name}`,
-    });
+    setSelectedContact(contact);
+    setIsAddNoteDialogOpen(true);
   };
 
   const handleViewInsights = (contact: Contact) => {
-    toast({
-      title: "View Insights",
-      description: `Viewing insights for ${contact.name}`,
-    });
+    navigate(`/contacts/${contact.id}#insights`);
   };
 
-  const handleMarkComplete = (contact: Contact) => {
-    toast({
-      title: "View Contact",
-      description: `Viewing contact details for ${contact.name}`,
-    });
+  const handleViewContact = (contact: Contact) => {
+    navigate(`/contacts/${contact.id}`);
   };
 
   const handleContactAdded = async () => {
@@ -148,6 +147,21 @@ const Home = () => {
       toast({
         title: "Success",
         description: "Contact added successfully.",
+      });
+    } catch (error) {
+      console.error("Error refreshing contacts:", error);
+    }
+  };
+
+  const handleInteractionAdded = async () => {
+    try {
+      const data = await contactService.getContacts();
+      setContacts(data);
+      setIsAddNoteDialogOpen(false);
+      setSelectedContact(null);
+      toast({
+        title: "Success",
+        description: "Interaction logged successfully.",
       });
     } catch (error) {
       console.error("Error refreshing contacts:", error);
@@ -187,36 +201,42 @@ const Home = () => {
         />
       </div>
 
-      <div>
-        <h2 className="text-xl font-medium mb-4">Recent Contacts</h2>
-        {isLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-          </div>
-        ) : recentContacts.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {recentContacts.map((contact) => (
-              <ContactCard
-                key={contact.id}
-                contact={contact}
-                onAddNote={handleAddNote}
-                onViewInsights={handleViewInsights}
-                onMarkComplete={handleMarkComplete}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-8 border rounded-md bg-muted/30">
-            <p className="text-muted-foreground">No contacts added yet.</p>
-            <Button 
-              variant="link" 
-              className="mt-2"
-              onClick={() => setIsAddDialogOpen(true)}
-            >
-              Add your first contact
-            </Button>
-          </div>
-        )}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <h2 className="text-xl font-medium mb-4">Recent Contacts</h2>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+            </div>
+          ) : recentContacts.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {recentContacts.map((contact) => (
+                <ContactCard
+                  key={contact.id}
+                  contact={contact}
+                  onAddNote={handleAddNote}
+                  onViewInsights={handleViewInsights}
+                  onMarkComplete={handleViewContact}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 border rounded-md bg-muted/30">
+              <p className="text-muted-foreground">No contacts added yet.</p>
+              <Button 
+                variant="link" 
+                className="mt-2"
+                onClick={() => setIsAddDialogOpen(true)}
+              >
+                Add your first contact
+              </Button>
+            </div>
+          )}
+        </div>
+
+        <div>
+          <NetworkRecommendations />
+        </div>
       </div>
 
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
@@ -228,6 +248,26 @@ const Home = () => {
             onSuccess={handleContactAdded}
             onCancel={() => setIsAddDialogOpen(false)}
           />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isAddNoteDialogOpen} onOpenChange={setIsAddNoteDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedContact ? `Log Interaction with ${selectedContact.name}` : 'Log Interaction'}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedContact && (
+            <InteractionForm 
+              contact={selectedContact}
+              onSuccess={handleInteractionAdded}
+              onCancel={() => {
+                setIsAddNoteDialogOpen(false);
+                setSelectedContact(null);
+              }}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>
