@@ -43,6 +43,18 @@ export interface Interaction {
   created_at: string;
 }
 
+export interface ContactMedia {
+  id: string;
+  user_id: string;
+  contact_id: string;
+  file_name: string;
+  file_type: string;
+  storage_path: string;
+  url?: string;
+  is_image: boolean;
+  created_at: string;
+}
+
 export type ConnectionStrength = {
   level: 'weak' | 'moderate' | 'strong';
   score: number; // 0-100

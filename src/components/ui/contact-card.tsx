@@ -8,11 +8,12 @@ import { Contact } from "@/types/contact";
 import { Link } from "react-router-dom";
 import { format, isToday, isYesterday } from "date-fns";
 
-interface ContactCardProps {
+export interface ContactCardProps {
   contact: Contact;
   className?: string;
   onAddInteraction?: (contact: Contact) => void;
   onViewInsights?: (contact: Contact) => void;
+  onMarkComplete?: (contact: Contact) => void;
 }
 
 export const ContactCard = ({
@@ -20,6 +21,7 @@ export const ContactCard = ({
   className,
   onAddInteraction,
   onViewInsights,
+  onMarkComplete,
 }: ContactCardProps) => {
   const daysSinceLastContact = contact.last_contact
     ? getFormattedLastContact(new Date(contact.last_contact))
@@ -107,7 +109,7 @@ export const ContactCard = ({
             variant="outline"
             size="sm"
             className="flex-1"
-            onClick={() => window.location.href = `/contacts/${contact.id}`}
+            onClick={() => onMarkComplete && onMarkComplete(contact)}
           >
             <Eye size={16} className="mr-1" /> View
           </Button>

@@ -14,7 +14,7 @@ import ForgotPassword from "./pages/auth/ForgotPassword";
 import CallbackPage from "./pages/auth/CallbackPage";
 import ContactDetail from "./pages/contact/ContactDetail";
 import { Toaster } from "./components/ui/toaster";
-import RequireAuth from "./components/guards/RequireAuth";
+import { RequireAuth } from "./components/guards/RequireAuth";
 import Index from "./pages/Index";
 import { AuthProvider } from "./contexts/AuthContext";
 import Help from "./pages/resources/Help";

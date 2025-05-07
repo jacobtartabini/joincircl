@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { ContactCard } from "@/components/ui/contact-card";
 import { StatsCard } from "@/components/ui/stats-card";
@@ -217,7 +216,7 @@ const Home = () => {
                 <ContactCard
                   key={contact.id}
                   contact={contact}
-                  onAddNote={() => handleAddNote(contact)}
+                  onAddInteraction={() => handleAddNote(contact)}
                   onViewInsights={() => handleViewInsights(contact)}
                   onMarkComplete={() => handleViewContact(contact)}
                 />
