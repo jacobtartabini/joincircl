@@ -30,7 +30,7 @@ export interface Contact {
   last_contact?: string;
   created_at?: string;
   updated_at?: string;
-  connection_strength?: number;
+  connection_strength?: ConnectionStrength;
 }
 
 export interface Interaction {

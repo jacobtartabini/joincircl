@@ -11,6 +11,7 @@ import ContactForm from "@/components/contact/ContactForm";
 import InteractionForm from "@/components/interaction/InteractionForm";
 import { Plus } from "lucide-react";
 import ConnectionInsights from "@/components/contact/ConnectionInsights";
+import { calculateConnectionStrength } from "@/utils/connectionStrength";
 
 const Circles = () => {
   const { toast } = useToast();
@@ -274,8 +275,13 @@ const Circles = () => {
           <DialogHeader>
             <DialogTitle>Connection Insights</DialogTitle>
           </DialogHeader>
-          {selectedContact && selectedContact.connection_strength && (
-            <ConnectionInsights strength={selectedContact.connection_strength} />
+          {selectedContact && (
+            <ConnectionInsights 
+              strength={
+                selectedContact.connection_strength || 
+                calculateConnectionStrength(selectedContact)
+              } 
+            />
           )}
         </DialogContent>
       </Dialog>

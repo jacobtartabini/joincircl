@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import NetworkRecommendations from "@/components/home/NetworkRecommendations";
 import ConnectionInsights from "@/components/contact/ConnectionInsights";
+import { calculateConnectionStrength } from "@/utils/connectionStrength";
 
 const Home = () => {
   const { toast } = useToast();
@@ -279,8 +280,13 @@ const Home = () => {
           <DialogHeader>
             <DialogTitle>Connection Insights</DialogTitle>
           </DialogHeader>
-          {selectedContact && selectedContact.connection_strength && (
-            <ConnectionInsights strength={selectedContact.connection_strength} />
+          {selectedContact && (
+            <ConnectionInsights 
+              strength={
+                selectedContact.connection_strength || 
+                calculateConnectionStrength(selectedContact)
+              } 
+            />
           )}
         </DialogContent>
       </Dialog>
