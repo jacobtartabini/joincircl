@@ -679,7 +679,16 @@ export default function ContactDetail() {
         isOpen={isInteractionDetailOpen}
         onOpenChange={setIsInteractionDetailOpen}
         onEdit={handleEditInteraction}
-        onDelete={handleDeleteInteraction}
+        onDelete={() => {
+          handleDeleteInteraction().catch(error => {
+            console.error("Error in delete interaction handler:", error);
+            toast({
+              title: "Error",
+              description: "Failed to delete interaction. Please try again.",
+              variant: "destructive"
+            });
+          });
+        }}
       />
     </div>;
 }
