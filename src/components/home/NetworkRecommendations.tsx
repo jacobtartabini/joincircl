@@ -7,9 +7,7 @@ import { format, differenceInDays, differenceInMonths } from "date-fns";
 import { ArrowUpCircle, ArrowDownCircle, AlertCircle, RefreshCcw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { contactService } from "@/services/contactService";
-
 type RecommendationType = "reconnect" | "circle-upgrade" | "circle-downgrade" | "birthday-coming";
-
 interface Recommendation {
   type: RecommendationType;
   contact: Contact;
@@ -17,7 +15,6 @@ interface Recommendation {
   priority: number; // 1-10, 10 being highest
   actionLabel: string;
 }
-
 export default function NetworkRecommendations() {
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -182,8 +179,7 @@ export default function NetworkRecommendations() {
   const handleActionClick = (contact: Contact) => {
     navigate(`/contacts/${contact.id}`);
   };
-  return (
-    <Card>
+  return <Card>
       <CardHeader>
         <CardTitle className="text-lg font-medium">Network Recommendations</CardTitle>
       </CardHeader>
@@ -215,6 +211,5 @@ export default function NetworkRecommendations() {
             <p className="text-sm mt-1">Add more contacts and log interactions to get personalized suggestions.</p>
           </div>}
       </CardContent>
-    </Card>
-  );
+    </Card>;
 }

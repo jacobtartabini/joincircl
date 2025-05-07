@@ -1,4 +1,3 @@
-
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -14,7 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useNavigate } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
 import { LogOut, HelpCircle, MailQuestion, Bug, Scale } from "lucide-react";
-import { v4 as uuidv4 } from 'uuid';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const Settings = () => {
   const { toast } = useToast();
@@ -34,7 +33,10 @@ const Settings = () => {
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isGoogleUser, setIsGoogleUser] = useState(false);
-  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
+  const [helpDialogOpen, setHelpDialogOpen] = useState(false);
+  const [contactDialogOpen, setContactDialogOpen] = useState(false);
+  const [bugsDialogOpen, setBugsDialogOpen] = useState(false);
+  const [legalDialogOpen, setLegalDialogOpen] = useState(false);
 
   useEffect(() => {
     if (user && profile) {
@@ -81,7 +83,7 @@ const Settings = () => {
 
     const file = event.target.files[0];
     const fileExt = file.name.split('.').pop();
-    const filePath = `${uuidv4()}.${fileExt}`;
+    const filePath = `${user.id}-${Math.random()}.${fileExt}`;
 
     setUploading(true);
 
@@ -111,7 +113,7 @@ const Settings = () => {
       }
 
       // Upload the file
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError, data: uploadData } = await supabase.storage
         .from('avatars')
         .upload(filePath, file, {
           upsert: true,
@@ -217,7 +219,7 @@ const Settings = () => {
       
       toast({
         title: "Delete Failed",
-        description: error.message || "We couldn't delete your account. Please contact support for assistance.",
+        description: "We couldn't delete your account. Please contact support for assistance.",
         variant: "destructive"
       });
     } finally {
@@ -225,7 +227,7 @@ const Settings = () => {
     }
   };
   
-  const handleLogoutConfirm = async () => {
+  const handleLogout = async () => {
     try {
       await signOut();
       navigate("/auth/sign-in");
@@ -236,25 +238,7 @@ const Settings = () => {
         description: "There was a problem signing out.",
         variant: "destructive"
       });
-    } finally {
-      setIsLogoutDialogOpen(false);
     }
-  };
-  
-  const navigateToHelp = () => {
-    navigate("/help");
-  };
-  
-  const navigateToContact = () => {
-    navigate("/contact");
-  };
-  
-  const navigateToBugs = () => {
-    navigate("/bugs");
-  };
-  
-  const navigateToLegal = () => {
-    navigate("/legal");
   };
 
   return (
@@ -410,29 +394,14 @@ const Settings = () => {
               <Separator className="my-4" />
               <div className="space-y-4">
                 <h3 className="font-medium">Account Actions</h3>
-                <AlertDialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
-                  <AlertDialogTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      className="w-full flex items-center justify-center gap-2"
-                    >
-                      <LogOut size={16} />
-                      Log Out
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Are you sure you want to log out?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        You will need to sign in again to access your account.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleLogoutConfirm}>Log Out</AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                <Button 
+                  onClick={handleLogout} 
+                  variant="outline" 
+                  className="w-full flex items-center justify-center gap-2"
+                >
+                  <LogOut size={16} />
+                  Log Out
+                </Button>
               </div>
             </CardContent>
             <CardFooter className="flex flex-col items-start border-t pt-6">
@@ -526,7 +495,7 @@ const Settings = () => {
                 <Button 
                   variant="outline" 
                   className="justify-start text-left h-auto py-3"
-                  onClick={navigateToHelp}
+                  onClick={() => setHelpDialogOpen(true)}
                 >
                   <HelpCircle className="mr-2 h-4 w-4" />
                   <div>
@@ -538,7 +507,7 @@ const Settings = () => {
                 <Button 
                   variant="outline" 
                   className="justify-start text-left h-auto py-3"
-                  onClick={navigateToContact}
+                  onClick={() => setContactDialogOpen(true)}
                 >
                   <MailQuestion className="mr-2 h-4 w-4" />
                   <div>
@@ -550,7 +519,7 @@ const Settings = () => {
                 <Button 
                   variant="outline" 
                   className="justify-start text-left h-auto py-3"
-                  onClick={navigateToBugs}
+                  onClick={() => setBugsDialogOpen(true)}
                 >
                   <Bug className="mr-2 h-4 w-4" />
                   <div>
@@ -562,7 +531,7 @@ const Settings = () => {
                 <Button 
                   variant="outline" 
                   className="justify-start text-left h-auto py-3"
-                  onClick={navigateToLegal}
+                  onClick={() => setLegalDialogOpen(true)}
                 >
                   <Scale className="mr-2 h-4 w-4" />
                   <div>
@@ -579,6 +548,138 @@ const Settings = () => {
       <footer className="border-t pt-6 pb-8 text-center text-sm text-muted-foreground">
         © 2025 Jacob Tartabini. All rights reserved. Unauthorized reproduction or distribution of any content is prohibited.
       </footer>
+
+      {/* Help Dialog */}
+      <Dialog open={helpDialogOpen} onOpenChange={setHelpDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Help Center</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <h3 className="font-medium">Getting Started</h3>
+            <p className="text-sm text-muted-foreground">
+              Welcome to Circl! This help center provides guides and resources to help you get the most out of your relationship management.
+            </p>
+            
+            <h3 className="font-medium">Frequently Asked Questions</h3>
+            <div className="space-y-2">
+              <div className="border p-3 rounded-md">
+                <h4 className="text-sm font-medium">How do I add a new contact?</h4>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Click the "Add Contact" button on the Home or Circles page to create a new contact. Fill out the form with contact details and assign them to a circle.
+                </p>
+              </div>
+              <div className="border p-3 rounded-md">
+                <h4 className="text-sm font-medium">What are Keystones?</h4>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Keystones are important events or reminders related to your contacts. Use them to keep track of birthdays, follow-ups, or other significant dates.
+                </p>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Contact Dialog */}
+      <Dialog open={contactDialogOpen} onOpenChange={setContactDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Contact Support</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Need help with something specific? Our support team is here to assist you.
+            </p>
+            
+            <div className="space-y-2">
+              <Label htmlFor="subject">Subject</Label>
+              <Input id="subject" placeholder="What's this about?" />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="message">Message</Label>
+              <textarea 
+                id="message" 
+                className="w-full min-h-[100px] p-2 border rounded-md" 
+                placeholder="How can we help you?"
+              />
+            </div>
+            
+            <Button className="w-full">Submit Request</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bugs Dialog */}
+      <Dialog open={bugsDialogOpen} onOpenChange={setBugsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Report a Bug</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Found something that's not working correctly? Let us know so we can fix it.
+            </p>
+            
+            <div className="space-y-2">
+              <Label htmlFor="bug-type">Bug Type</Label>
+              <select id="bug-type" className="w-full p-2 border rounded-md">
+                <option>UI/Display Issue</option>
+                <option>Performance Problem</option>
+                <option>Feature Not Working</option>
+                <option>Other</option>
+              </select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="bug-description">Bug Description</Label>
+              <textarea 
+                id="bug-description" 
+                className="w-full min-h-[100px] p-2 border rounded-md" 
+                placeholder="Please describe what happened and steps to reproduce the issue..."
+              />
+            </div>
+            
+            <Button className="w-full">Submit Report</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Legal Dialog */}
+      <Dialog open={legalDialogOpen} onOpenChange={setLegalDialogOpen}>
+        <DialogContent className="max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Legal Information</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <h3 className="font-medium">Terms of Service</h3>
+            <p className="text-sm text-muted-foreground">
+              By using Circl, you agree to these terms which govern your use of and access to our services.
+            </p>
+            <div className="text-xs space-y-2 border-l-2 border-gray-200 pl-3">
+              <p>Last updated: May 6, 2025</p>
+              <p>
+                These Terms of Service ("Terms") govern your access to and use of Circl ("we," "us," or "our") 
+                website, applications, and other products and services (collectively, the "Services"). 
+                By accessing or using our Services, you agree to be bound by these Terms.
+              </p>
+            </div>
+            
+            <h3 className="font-medium mt-6">Privacy Policy</h3>
+            <p className="text-sm text-muted-foreground">
+              Our Privacy Policy describes how we handle the information you provide to us.
+            </p>
+            <div className="text-xs space-y-2 border-l-2 border-gray-200 pl-3">
+              <p>Last updated: May 6, 2025</p>
+              <p>
+                This Privacy Policy describes how Circl ("we," "us," or "our") collects, uses, and shares 
+                information in connection with your use of our websites, applications, and other services. 
+                This Privacy Policy does not apply to information we collect from our employees or contractors.
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

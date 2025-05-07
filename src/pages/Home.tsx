@@ -1,287 +1,286 @@
+
 import { Button } from "@/components/ui/button";
 import { ContactCard } from "@/components/ui/contact-card";
 import { StatsCard } from "@/components/ui/stats-card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { contactService } from "@/services/contactService";
+import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from "react";
 import { Contact } from "@/types/contact";
+import { contactService } from "@/services/contactService";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import ContactForm from "@/components/contact/ContactForm";
 import InteractionForm from "@/components/interaction/InteractionForm";
-import ConnectionInsights from "@/components/contact/ConnectionInsights";
-import NetworkRecommendations from "@/components/home/NetworkRecommendations";
+import { Plus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import UserOnboarding from "@/components/UserOnboarding";
-import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { CircleBadge } from "@/components/ui/circle-badge";
-import { BarChart3, BadgeCheck, RefreshCw, UserCheck, UserPlus } from "lucide-react";
-
-const tabBadges = {
-  upcoming: { icon: RefreshCw, color: "text-amber-500" },
-  recent: { icon: UserCheck, color: "text-green-500" },
-  new: { icon: UserPlus, color: "text-blue-500" },
-  due: { icon: BadgeCheck, color: "text-red-500" },
-};
+import NetworkRecommendations from "@/components/home/NetworkRecommendations";
+import ConnectionInsights from "@/components/contact/ConnectionInsights";
 
 const Home = () => {
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const { user, profile, hasSeenTutorial, setHasSeenTutorial } = useAuth();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isAddNoteDialogOpen, setIsAddNoteDialogOpen] = useState(false);
+  const [isInsightsDialogOpen, setIsInsightsDialogOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
-  const [showInteractionModal, setShowInteractionModal] = useState(false);
-  const [showInsightsModal, setShowInsightsModal] = useState(false);
-  const { user, hasSeenTutorial, setHasSeenTutorial } = useAuth();
-  const navigate = useNavigate();
+  const [followUpStats, setFollowUpStats] = useState({
+    due: 0,
+    trend: { value: 0, isPositive: true },
+  });
 
   useEffect(() => {
-    const loadContacts = async () => {
-      setIsLoading(true);
+    const fetchContacts = async () => {
       try {
-        const contactsData = await contactService.getContacts();
-        setContacts(contactsData);
+        setIsLoading(true);
+        const data = await contactService.getContacts();
+        setContacts(data);
+        calculateFollowUpStats(data);
       } catch (error) {
-        console.error("Error loading contacts:", error);
+        console.error("Error fetching contacts:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load contacts. Please try again.",
+          variant: "destructive",
+        });
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadContacts();
-  }, []);
+    fetchContacts();
+    
+    // Save that the user has seen the tutorial
+    if (!hasSeenTutorial && user) {
+      const updateUserTutorialStatus = async () => {
+        try {
+          // Safely update the profile with the has_seen_tutorial property
+          const { error } = await supabase
+            .from('profiles')
+            .update({ has_seen_tutorial: true })
+            .eq('id', user.id);
+            
+          if (!error) {
+            setHasSeenTutorial(true);
+          } else {
+            console.error("Error updating tutorial status:", error);
+          }
+        } catch (error) {
+          console.error("Error updating tutorial status:", error);
+        }
+      };
+      
+      updateUserTutorialStatus();
+    }
+  }, [toast, user, hasSeenTutorial, setHasSeenTutorial]);
+  
+  const calculateFollowUpStats = (contactsData: Contact[]) => {
+    // Calculate number of follow-ups due
+    const followUpsDue = contactsData.filter(contact => {
+      if (!contact.last_contact) return true; // If never contacted, a follow-up is due
+      
+      const lastContactDate = new Date(contact.last_contact);
+      const today = new Date();
+      const daysSinceLastContact = Math.floor((today.getTime() - lastContactDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      // Determine follow-up frequency based on circle
+      let followUpFrequency = 30; // Default (outer circle)
+      if (contact.circle === "inner") followUpFrequency = 7;
+      else if (contact.circle === "middle") followUpFrequency = 14;
+      
+      return daysSinceLastContact >= followUpFrequency;
+    }).length;
+    
+    // Calculate trend (comparing to previous week)
+    // This is a simplified calculation - in a real app you'd compare to historical data
+    const previousFollowUps = contactsData.length > 0 ? Math.round(contactsData.length * 0.15) : 0;
+    const changePercent = previousFollowUps > 0 
+      ? Math.round(((followUpsDue - previousFollowUps) / previousFollowUps) * 100)
+      : 0;
+    
+    setFollowUpStats({
+      due: followUpsDue,
+      trend: {
+        value: Math.abs(changePercent),
+        isPositive: changePercent <= 0,
+      }
+    });
+  };
 
-  const recentContacts = contacts
-    .filter((contact) => contact.last_contact)
+  // Get the most recent contacts (limited to 4)
+  const recentContacts = [...contacts]
     .sort((a, b) => {
-      return (
-        new Date(b.last_contact!).getTime() - new Date(a.last_contact!).getTime()
-      );
+      const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return dateB - dateA;
     })
-    .slice(0, 6);
+    .slice(0, 4);
 
-  const newContacts = contacts
-    .sort((a, b) => {
-      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-    })
-    .slice(0, 6);
+  const innerCircleCount = contacts.filter(
+    (contact) => contact.circle === "inner"
+  ).length;
+  const middleCircleCount = contacts.filter(
+    (contact) => contact.circle === "middle"
+  ).length;
+  const outerCircleCount = contacts.filter(
+    (contact) => contact.circle === "outer"
+  ).length;
 
-  const getContactsDueForFollowUp = () => {
-    // Simple logic for demo: contacts without recent interaction
-    return contacts
-      .filter((contact) => !contact.last_contact || isOlderThanDays(contact.last_contact, 30))
-      .slice(0, 6);
-  };
-
-  const getUpcomingInteractions = () => {
-    // Simple logic for demo: contacts with strong connections that haven't been contacted recently
-    return contacts
-      .filter((contact) => contact.connection_strength?.level === "strong")
-      .filter((contact) => !contact.last_contact || isOlderThanDays(contact.last_contact, 14))
-      .slice(0, 6);
-  };
-
-  const isOlderThanDays = (dateString: string, days: number): boolean => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = now.getTime() - date.getTime();
-    const diffDays = diffTime / (1000 * 60 * 60 * 24);
-    return diffDays >= days;
-  };
-
-  const handleAddInteraction = (contact: Contact) => {
+  const handleAddNote = (contact: Contact) => {
     setSelectedContact(contact);
-    setShowInteractionModal(true);
+    setIsAddNoteDialogOpen(true);
   };
 
   const handleViewInsights = (contact: Contact) => {
     setSelectedContact(contact);
-    setShowInsightsModal(true);
+    setIsInsightsDialogOpen(true);
   };
-  
+
   const handleViewContact = (contact: Contact) => {
     navigate(`/contacts/${contact.id}`);
   };
 
-  const closeInteractionModal = () => {
-    setShowInteractionModal(false);
-    setSelectedContact(null);
-  };
-
-  const closeInsightsModal = () => {
-    setShowInsightsModal(false);
-    setSelectedContact(null);
-  };
-
-  const onInteractionAdded = async () => {
-    // Refresh contacts data after adding an interaction
+  const handleContactAdded = async () => {
     try {
-      const updatedContacts = await contactService.getContacts();
-      setContacts(updatedContacts);
+      const data = await contactService.getContacts();
+      setContacts(data);
+      setIsAddDialogOpen(false);
+      toast({
+        title: "Success",
+        description: "Contact added successfully.",
+      });
     } catch (error) {
       console.error("Error refreshing contacts:", error);
     }
-    closeInteractionModal();
   };
 
-  if (!hasSeenTutorial && user) {
-    return <UserOnboarding onComplete={() => setHasSeenTutorial(true)} />;
-  }
+  const handleInteractionAdded = async () => {
+    try {
+      const data = await contactService.getContacts();
+      setContacts(data);
+      setIsAddNoteDialogOpen(false);
+      setSelectedContact(null);
+      toast({
+        title: "Success",
+        description: "Interaction logged successfully.",
+      });
+    } catch (error) {
+      console.error("Error refreshing contacts:", error);
+    }
+  };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Overview of your network and pending interactions
-        </p>
+    <div className="space-y-6 animate-fade-in">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Welcome to Circl</h1>
+          <p className="text-muted-foreground">
+            Your personal relationship manager
+          </p>
+        </div>
+        <Button size="sm" onClick={() => setIsAddDialogOpen(true)}>
+          <Plus size={16} className="mr-1" /> Add Contact
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatsCard
           title="Total Contacts"
           value={contacts.length}
-          description="People in your network"
-          icon={<BarChart3 className="h-4 w-4" />}
+          description="All your connections"
         />
         <StatsCard
-          title="Due for Follow-up"
-          value={getContactsDueForFollowUp().length}
-          description="Need your attention"
-          icon={<RefreshCw className="h-4 w-4 text-amber-500" />}
+          title="Circle Distribution"
+          value={`${innerCircleCount}/${middleCircleCount}/${outerCircleCount}`}
+          description="Inner/Middle/Outer"
         />
         <StatsCard
-          title="Recent Interactions"
-          value={
-            contacts.filter(
-              (c) => c.last_contact && !isOlderThanDays(c.last_contact, 7)
-            ).length
-          }
-          description="In the past week"
-          icon={<BarChart3 className="h-4 w-4 text-blue-500" />}
+          title="Follow-ups Due"
+          value={String(followUpStats.due)}
+          description="Based on contact frequency"
+          trend={followUpStats.due > 0 ? followUpStats.trend : undefined}
         />
       </div>
 
-      <NetworkRecommendations />
-
-      <Tabs defaultValue="upcoming" className="w-full">
-        <TabsList className="grid grid-cols-4">
-          {Object.entries(tabBadges).map(([key, { icon: Icon, color }]) => (
-            <TabsTrigger value={key} key={key} className="flex items-center gap-2">
-              <Icon size={16} className={color} />
-              <span className="capitalize">{key}</span>
-            </TabsTrigger>
-          ))}
-        </TabsList>
-        <TabsContent value="upcoming" className="mt-4">
-          <h2 className="text-xl font-semibold mb-4">Upcoming Follow-ups</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {getUpcomingInteractions().length > 0 ? (
-              getUpcomingInteractions().map((contact) => (
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <h2 className="text-xl font-medium mb-4">Recent Contacts</h2>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+            </div>
+          ) : recentContacts.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {recentContacts.map((contact) => (
                 <ContactCard
                   key={contact.id}
                   contact={contact}
-                  onAddInteraction={() => handleAddInteraction(contact)}
+                  onAddNote={() => handleAddNote(contact)}
                   onViewInsights={() => handleViewInsights(contact)}
                   onMarkComplete={() => handleViewContact(contact)}
                 />
-              ))
-            ) : (
-              <div className="col-span-3 text-center py-8">
-                <p className="text-muted-foreground">No upcoming follow-ups</p>
-              </div>
-            )}
-          </div>
-        </TabsContent>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 border rounded-md bg-muted/30">
+              <p className="text-muted-foreground">No contacts added yet.</p>
+              <Button 
+                variant="link" 
+                className="mt-2"
+                onClick={() => setIsAddDialogOpen(true)}
+              >
+                Add your first contact
+              </Button>
+            </div>
+          )}
+        </div>
 
-        <TabsContent value="recent" className="mt-4">
-          <h2 className="text-xl font-semibold mb-4">Recently Contacted</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {recentContacts.length > 0 ? (
-              recentContacts.map((contact) => (
-                <ContactCard
-                  key={contact.id}
-                  contact={contact}
-                  onAddInteraction={() => handleAddInteraction(contact)}
-                  onViewInsights={() => handleViewInsights(contact)}
-                  onMarkComplete={() => handleViewContact(contact)}
-                />
-              ))
-            ) : (
-              <div className="col-span-3 text-center py-8">
-                <p className="text-muted-foreground">No recent contacts</p>
-              </div>
-            )}
-          </div>
-        </TabsContent>
+        <div>
+          <NetworkRecommendations />
+        </div>
+      </div>
 
-        <TabsContent value="new" className="mt-4">
-          <h2 className="text-xl font-semibold mb-4">New Contacts</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {newContacts.length > 0 ? (
-              newContacts.map((contact) => (
-                <ContactCard
-                  key={contact.id}
-                  contact={contact}
-                  onAddInteraction={() => handleAddInteraction(contact)}
-                  onViewInsights={() => handleViewInsights(contact)}
-                  onMarkComplete={() => handleViewContact(contact)}
-                />
-              ))
-            ) : (
-              <div className="col-span-3 text-center py-8">
-                <p className="text-muted-foreground">No new contacts</p>
-              </div>
-            )}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="due" className="mt-4">
-          <h2 className="text-xl font-semibold mb-4">Due for Follow-up</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {getContactsDueForFollowUp().length > 0 ? (
-              getContactsDueForFollowUp().map((contact) => (
-                <ContactCard
-                  key={contact.id}
-                  contact={contact}
-                  onAddInteraction={() => handleAddInteraction(contact)}
-                  onViewInsights={() => handleViewInsights(contact)}
-                  onMarkComplete={() => handleViewContact(contact)}
-                />
-              ))
-            ) : (
-              <div className="col-span-3 text-center py-8">
-                <p className="text-muted-foreground">No follow-ups due</p>
-              </div>
-            )}
-          </div>
-        </TabsContent>
-      </Tabs>
-
-      <Dialog open={showInteractionModal} onOpenChange={closeInteractionModal}>
-        <DialogContent className="sm:max-w-md">
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Add Interaction</DialogTitle>
+            <DialogTitle>Add New Contact</DialogTitle>
+          </DialogHeader>
+          <ContactForm 
+            onSuccess={handleContactAdded}
+            onCancel={() => setIsAddDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isAddNoteDialogOpen} onOpenChange={setIsAddNoteDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedContact ? `Log Interaction with ${selectedContact.name}` : 'Log Interaction'}
+            </DialogTitle>
           </DialogHeader>
           {selectedContact && (
-            <InteractionForm
+            <InteractionForm 
               contact={selectedContact}
-              onSuccess={onInteractionAdded}
-              onCancel={closeInteractionModal}
+              onSuccess={handleInteractionAdded}
+              onCancel={() => {
+                setIsAddNoteDialogOpen(false);
+                setSelectedContact(null);
+              }}
             />
           )}
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showInsightsModal} onOpenChange={closeInsightsModal}>
-        <DialogContent className="sm:max-w-md">
+      <Dialog open={isInsightsDialogOpen} onOpenChange={setIsInsightsDialogOpen}>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Connection Insights</DialogTitle>
           </DialogHeader>
-          {selectedContact && (
-            <ConnectionInsights
-              strength={selectedContact.connection_strength || { 
-                level: 'weak', 
-                score: 30, 
-                suggestions: ['Reach out more regularly', 'Schedule a follow-up meeting', 'Connect on social media'] 
-              }}
-            />
+          {selectedContact && selectedContact.connection_strength && (
+            <ConnectionInsights strength={selectedContact.connection_strength} />
           )}
         </DialogContent>
       </Dialog>

@@ -64,16 +64,7 @@ const Keystones = () => {
     setIsEditDialogOpen(true);
   };
 
-  const mapKeystoneToProps = (keystone: Keystone) => ({
-    id: keystone.id,
-    title: keystone.title,
-    date: keystone.due_date || keystone.date,
-    category: keystone.category || "Event",
-    contactId: keystone.contact_id || "",
-    contactName: keystone.contact_name || "No Contact"
-  });
-
-  // Group keystones by date
+  // Use date property if due_date doesn't exist
   const upcomingKeystones = keystones.filter(
     (k) => new Date(k.due_date || k.date) >= new Date()
   );
@@ -111,7 +102,14 @@ const Keystones = () => {
               {upcomingKeystones.map((keystone) => (
                 <KeystoneCard
                   key={keystone.id}
-                  keystone={mapKeystoneToProps(keystone)}
+                  keystone={{
+                    id: keystone.id,
+                    title: keystone.title,
+                    date: keystone.due_date || keystone.date, // Use due_date if available, fall back to date
+                    category: keystone.category || "Event",
+                    contactId: keystone.contact_id || "",
+                    contactName: keystone.contact_name || "No Contact"
+                  }}
                   onEdit={() => handleEditKeystone(keystone)}
                 />
               ))}
@@ -140,7 +138,14 @@ const Keystones = () => {
               {pastKeystones.map((keystone) => (
                 <KeystoneCard
                   key={keystone.id}
-                  keystone={mapKeystoneToProps(keystone)}
+                  keystone={{
+                    id: keystone.id,
+                    title: keystone.title,
+                    date: keystone.due_date || keystone.date, // Use due_date if available, fall back to date
+                    category: keystone.category || "Event",
+                    contactId: keystone.contact_id || "",
+                    contactName: keystone.contact_name || "No Contact"
+                  }}
                   onEdit={() => handleEditKeystone(keystone)}
                   isPast
                 />

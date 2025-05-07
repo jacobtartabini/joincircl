@@ -24,8 +24,8 @@ import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Keystone } from "@/types/keystone";
 import { Contact } from "@/types/contact";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
-import { contactService } from "@/services/contactService";
 
 interface KeystoneFormProps {
   keystone?: Keystone;
@@ -69,22 +69,18 @@ export default function KeystoneForm({
   useEffect(() => {
     const fetchContacts = async () => {
       try {
-        const data = await contactService.getContacts();
+        const response = await fetch("/api/contacts");
+        const data = await response.json();
         setContacts(data);
       } catch (error) {
         console.error("Error fetching contacts:", error);
-        toast({
-          title: "Error loading contacts",
-          description: "Could not retrieve your contacts. Please try again.",
-          variant: "destructive"
-        });
       }
     };
 
     if (!contact) {
       fetchContacts();
     }
-  }, [contact, toast]);
+  }, [contact]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>

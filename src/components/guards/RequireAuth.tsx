@@ -1,9 +1,13 @@
 
 import { ReactNode, useEffect, useState } from "react";
-import { Navigate, Outlet, useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
-export function RequireAuth() {
+interface RequireAuthProps {
+  children: ReactNode;
+}
+
+export function RequireAuth({ children }: RequireAuthProps) {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [isChecking, setIsChecking] = useState(true);
@@ -31,5 +35,5 @@ export function RequireAuth() {
     );
   }
 
-  return user ? <Outlet /> : <Navigate to="/auth/sign-in" replace />;
+  return user ? <>{children}</> : <Navigate to="/auth/sign-in" replace />;
 }
