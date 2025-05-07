@@ -131,7 +131,6 @@ export default function ContactDetail() {
   const handleDeleteInteraction = async () => {
     if (!selectedInteraction?.id) return;
     try {
-      // Assuming you have a deleteInteraction method in your service
       await contactService.deleteInteraction(selectedInteraction.id);
       setInteractions(interactions.filter(i => i.id !== selectedInteraction.id));
       setIsDeleteInteractionDialogOpen(false);

@@ -27,7 +27,7 @@ interface InteractionDetailModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onEdit: () => void;
-  onDelete: () => void | Promise<void>; // Updated to accept Promise<void> as well
+  onDelete: () => void | Promise<void>; // Accept either void or Promise<void>
 }
 
 export default function InteractionDetailModal({
