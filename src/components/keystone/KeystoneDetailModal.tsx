@@ -28,7 +28,7 @@ interface KeystoneDetailModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onEdit: () => void;
-  onDelete: () => void;
+  onDelete: () => void | Promise<void>; // Updated to accept Promise<void> as well
 }
 
 export default function KeystoneDetailModal({
@@ -41,6 +41,11 @@ export default function KeystoneDetailModal({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   if (!keystone) return null;
+  
+  const handleDelete = async () => {
+    setIsDeleteDialogOpen(false);
+    await onDelete(); // Handle as async to properly work with Promise<void>
+  };
 
   return (
     <>
@@ -97,10 +102,7 @@ export default function KeystoneDetailModal({
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction 
-              onClick={() => {
-                setIsDeleteDialogOpen(false);
-                onDelete();
-              }}
+              onClick={handleDelete}
               className="bg-red-600 hover:bg-red-700"
             >
               Delete
