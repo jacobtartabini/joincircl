@@ -41,6 +41,11 @@ export default function InteractionDetailModal({
 
   if (!interaction) return null;
 
+  const handleDelete = async () => {
+    setIsDeleteDialogOpen(false);
+    await onDelete(); // Handle as async to properly work with Promise<void>
+  };
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -89,10 +94,7 @@ export default function InteractionDetailModal({
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction 
-              onClick={() => {
-                setIsDeleteDialogOpen(false);
-                onDelete();
-              }}
+              onClick={handleDelete}
               className="bg-red-600 hover:bg-red-700"
             >
               Delete
