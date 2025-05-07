@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { keystoneService } from "@/services/keystoneService";
+import { contactService } from "@/services/contactService";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -24,7 +25,6 @@ import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Keystone } from "@/types/keystone";
 import { Contact } from "@/types/contact";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 
 interface KeystoneFormProps {
@@ -42,6 +42,7 @@ export default function KeystoneForm({
 }: KeystoneFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [isLoadingContacts, setIsLoadingContacts] = useState(false);
   const [formData, setFormData] = useState<{
     title: string;
     date: Date;
@@ -69,18 +70,25 @@ export default function KeystoneForm({
   useEffect(() => {
     const fetchContacts = async () => {
       try {
-        const response = await fetch("/api/contacts");
-        const data = await response.json();
-        setContacts(data);
+        setIsLoadingContacts(true);
+        const contactsData = await contactService.getContacts();
+        setContacts(contactsData);
       } catch (error) {
         console.error("Error fetching contacts:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load contacts",
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoadingContacts(false);
       }
     };
 
     if (!contact) {
       fetchContacts();
     }
-  }, [contact]);
+  }, [contact, toast]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -224,7 +232,7 @@ export default function KeystoneForm({
             onValueChange={(value) => handleSelectChange("contact_id", value)}
           >
             <SelectTrigger id="contact">
-              <SelectValue placeholder="Select contact" />
+              <SelectValue placeholder={isLoadingContacts ? "Loading contacts..." : "Select contact"} />
             </SelectTrigger>
             <SelectContent>
               {contacts.map(contact => (

@@ -1,5 +1,6 @@
 
 import { cn } from "@/lib/utils";
+import { Users, UserRound, User } from "lucide-react";
 
 type CircleType = "inner" | "middle" | "outer";
 
@@ -46,4 +47,11 @@ export const CircleBadge = ({ type, className }: CircleBadgeProps) => {
       {type.charAt(0).toUpperCase()}
     </span>
   );
+};
+
+// Add the Icons export
+export const Icons = {
+  inner: UserRound,
+  middle: User,
+  outer: Users
 };

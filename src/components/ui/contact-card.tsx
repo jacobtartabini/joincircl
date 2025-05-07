@@ -2,10 +2,10 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CircleBadge, getCircleName } from "./circle-badge";
-import { Eye, BarChart, FileText, MapPin, Briefcase } from "lucide-react";
+import { Eye, BarChart, MessageSquare, MapPin, Briefcase } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Contact } from "@/types/contact";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { format, isToday, isYesterday } from "date-fns";
 
 interface ContactCardProps {
@@ -23,9 +23,14 @@ export const ContactCard = ({
   onViewInsights,
   onMarkComplete,
 }: ContactCardProps) => {
+  const navigate = useNavigate();
   const daysSinceLastContact = contact.last_contact
     ? getFormattedLastContact(new Date(contact.last_contact))
     : null;
+
+  const handleViewContact = () => {
+    navigate(`/contacts/${contact.id}`);
+  };
 
   return (
     <Card className={cn("overflow-hidden card-hover", className)}>
@@ -109,7 +114,7 @@ export const ContactCard = ({
             variant="outline"
             size="sm"
             className="flex-1"
-            onClick={() => onMarkComplete && onMarkComplete(contact)}
+            onClick={handleViewContact}
           >
             <Eye size={16} className="mr-1" /> View
           </Button>
@@ -127,7 +132,7 @@ export const ContactCard = ({
             className="flex-1"
             onClick={() => onAddNote && onAddNote(contact)}
           >
-            <FileText size={16} className="mr-1" /> Note
+            <MessageSquare size={16} className="mr-1" /> Interaction
           </Button>
         </div>
       </CardContent>

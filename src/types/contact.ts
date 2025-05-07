@@ -1,23 +1,20 @@
 
 export interface Contact {
   id: string;
-  user_id: string;
   name: string;
-  personal_email?: string;
-  mobile_phone?: string;
-  avatar_url?: string;
-  circle: 'inner' | 'middle' | 'outer';
-  last_contact?: string; // Date stored as string to match Supabase
+  user_id: string;
+  circle: "inner" | "middle" | "outer";
   notes?: string;
   tags?: string[];
-  // Added fields
-  website?: string;
-  birthday?: string; // Date stored as string to match Supabase
+  avatar_url?: string;
+  personal_email?: string;
+  mobile_phone?: string;
   location?: string;
+  website?: string;
   linkedin?: string;
   facebook?: string;
-  twitter?: string; // Added field
-  instagram?: string; // Added field
+  twitter?: string;
+  instagram?: string;
   company_name?: string;
   job_title?: string;
   industry?: string;
@@ -27,37 +24,32 @@ export interface Contact {
   major?: string;
   minor?: string;
   graduation_year?: number;
+  birthday?: string;
   how_met?: string;
-  hobbies_interests?: string; // Added field
-  created_at: string;
-  updated_at: string;
-  connection_strength?: ConnectionStrength; // Added missing property
+  hobbies_interests?: string;
+  last_contact?: string;
+  created_at?: string;
+  updated_at?: string;
+  connection_strength?: number;
 }
 
 export interface Interaction {
   id: string;
-  contact_id: string;
   user_id: string;
+  contact_id: string;
   type: string;
   notes?: string;
-  date: string; // Changed from Date to string to match Supabase
-  created_at: string;
-}
-
-export interface ConnectionStrength {
-  score: number;
-  level: 'weak' | 'moderate' | 'strong';
-  suggestions: string[];
+  date: string;
+  created_at?: string;
 }
 
 export interface ContactMedia {
   id: string;
+  user_id: string; 
   contact_id: string;
-  user_id: string;
   file_name: string;
-  file_type: string;
   storage_path: string;
+  file_type: string;
   is_image: boolean;
-  created_at: string;
-  url?: string; // Client-side URL for display
+  created_at?: string;
 }

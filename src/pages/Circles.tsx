@@ -18,7 +18,7 @@ const Circles = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isNoteDialogOpen, setIsNoteDialogOpen] = useState(false);
+  const [isInteractionDialogOpen, setIsInteractionDialogOpen] = useState(false);
   const [isInsightsDialogOpen, setIsInsightsDialogOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
 
@@ -48,9 +48,9 @@ const Circles = () => {
     setIsEditDialogOpen(true);
   };
 
-  const handleAddNote = (contact: Contact) => {
+  const handleAddInteraction = (contact: Contact) => {
     setSelectedContact(contact);
-    setIsNoteDialogOpen(true);
+    setIsInteractionDialogOpen(true);
   };
 
   const handleViewInsights = (contact: Contact) => {
@@ -61,12 +61,13 @@ const Circles = () => {
   const handleDialogSuccess = () => {
     setIsAddDialogOpen(false);
     setIsEditDialogOpen(false);
-    setIsNoteDialogOpen(false);
+    setIsInteractionDialogOpen(false);
     setSelectedContact(null);
     fetchContacts();
   };
 
   // Group contacts by circle
+  const allContacts = contacts;
   const innerCircleContacts = contacts.filter(c => c.circle === "inner");
   const middleCircleContacts = contacts.filter(c => c.circle === "middle");
   const outerCircleContacts = contacts.filter(c => c.circle === "outer");
@@ -85,12 +86,44 @@ const Circles = () => {
         </Button>
       </div>
 
-      <Tabs defaultValue="inner">
+      <Tabs defaultValue="all">
         <TabsList>
-          <TabsTrigger value="inner">Inner Circle ({innerCircleContacts.length})</TabsTrigger>
-          <TabsTrigger value="middle">Middle Circle ({middleCircleContacts.length})</TabsTrigger>
-          <TabsTrigger value="outer">Outer Circle ({outerCircleContacts.length})</TabsTrigger>
+          <TabsTrigger value="all">All</TabsTrigger>
+          <TabsTrigger value="inner">Inner Circle</TabsTrigger>
+          <TabsTrigger value="middle">Middle Circle</TabsTrigger>
+          <TabsTrigger value="outer">Outer Circle</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="all" className="mt-4">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+            </div>
+          ) : allContacts.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {allContacts.map((contact) => (
+                <ContactCard
+                  key={contact.id}
+                  contact={contact}
+                  onAddNote={() => handleAddInteraction(contact)}
+                  onViewInsights={() => handleViewInsights(contact)}
+                  onMarkComplete={() => handleEditContact(contact)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 border rounded-md bg-muted/30">
+              <p className="text-muted-foreground">No contacts yet.</p>
+              <Button 
+                variant="link" 
+                className="mt-2"
+                onClick={() => setIsAddDialogOpen(true)}
+              >
+                Add your first contact
+              </Button>
+            </div>
+          )}
+        </TabsContent>
 
         <TabsContent value="inner" className="mt-4">
           {isLoading ? (
@@ -103,7 +136,7 @@ const Circles = () => {
                 <ContactCard
                   key={contact.id}
                   contact={contact}
-                  onAddNote={() => handleAddNote(contact)}
+                  onAddNote={() => handleAddInteraction(contact)}
                   onViewInsights={() => handleViewInsights(contact)}
                   onMarkComplete={() => handleEditContact(contact)}
                 />
@@ -134,7 +167,7 @@ const Circles = () => {
                 <ContactCard
                   key={contact.id}
                   contact={contact}
-                  onAddNote={() => handleAddNote(contact)}
+                  onAddNote={() => handleAddInteraction(contact)}
                   onViewInsights={() => handleViewInsights(contact)}
                   onMarkComplete={() => handleEditContact(contact)}
                 />
@@ -165,7 +198,7 @@ const Circles = () => {
                 <ContactCard
                   key={contact.id}
                   contact={contact}
-                  onAddNote={() => handleAddNote(contact)}
+                  onAddNote={() => handleAddInteraction(contact)}
                   onViewInsights={() => handleViewInsights(contact)}
                   onMarkComplete={() => handleEditContact(contact)}
                 />
@@ -216,7 +249,7 @@ const Circles = () => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isNoteDialogOpen} onOpenChange={setIsNoteDialogOpen}>
+      <Dialog open={isInteractionDialogOpen} onOpenChange={setIsInteractionDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
@@ -228,7 +261,7 @@ const Circles = () => {
               contact={selectedContact}
               onSuccess={handleDialogSuccess}
               onCancel={() => {
-                setIsNoteDialogOpen(false);
+                setIsInteractionDialogOpen(false);
                 setSelectedContact(null);
               }}
             />

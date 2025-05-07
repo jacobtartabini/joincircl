@@ -18,6 +18,10 @@ import ContactDetail from "./pages/contact/ContactDetail";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { RequireAuth } from "@/components/guards/RequireAuth";
 import UserOnboarding from "./components/UserOnboarding";
+import Help from "./pages/Help";
+import Contact from "./pages/Contact";
+import Bugs from "./pages/Bugs";
+import Legal from "./pages/Legal";
 
 const queryClient = new QueryClient();
 
@@ -83,6 +87,48 @@ const App = () => (
                 <RequireAuth>
                   <MainLayout>
                     <Settings />
+                  </MainLayout>
+                </RequireAuth>
+              }
+            />
+            
+            {/* Resource pages */}
+            <Route
+              path="/help"
+              element={
+                <RequireAuth>
+                  <MainLayout>
+                    <Help />
+                  </MainLayout>
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/contact"
+              element={
+                <RequireAuth>
+                  <MainLayout>
+                    <Contact />
+                  </MainLayout>
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/bugs"
+              element={
+                <RequireAuth>
+                  <MainLayout>
+                    <Bugs />
+                  </MainLayout>
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/legal"
+              element={
+                <RequireAuth>
+                  <MainLayout>
+                    <Legal />
                   </MainLayout>
                 </RequireAuth>
               }
