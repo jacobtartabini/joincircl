@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -7,7 +6,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Check, Linkedin, Phone, Users } from 'lucide-react';
 
-export default function UserOnboarding() {
+interface UserOnboardingProps {
+  onComplete: () => void;
+}
+
+export default function UserOnboarding({ onComplete }: UserOnboardingProps) {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("welcome");
@@ -29,6 +32,7 @@ export default function UserOnboarding() {
   const handleClose = () => {
     localStorage.setItem('hasSeenOnboarding', 'true');
     setIsOpen(false);
+    onComplete();
   };
   
   const nextStep = (nextTab: string) => {

@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { ContactCard } from "@/components/ui/contact-card";
 import { StatsCard } from "@/components/ui/stats-card";
@@ -6,15 +5,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { contactService } from "@/services/contactService";
 import { Contact } from "@/types/contact";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { InteractionForm } from "@/components/interaction/InteractionForm";
-import { ConnectionInsights } from "@/components/contact/ConnectionInsights";
-import { NetworkRecommendations } from "@/components/home/NetworkRecommendations";
+import InteractionForm from "@/components/interaction/InteractionForm";
+import ConnectionInsights from "@/components/contact/ConnectionInsights";
+import NetworkRecommendations from "@/components/home/NetworkRecommendations";
 import { useAuth } from "@/contexts/AuthContext";
-import { UserOnboarding } from "@/components/UserOnboarding";
+import UserOnboarding from "@/components/UserOnboarding";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Icons } from "@/components/ui/circle-badge";
-import { BadgeCheck, BarChart3, RefreshCw, UserCheck, UserPlus } from "lucide-react";
+import { CircleBadge } from "@/components/ui/circle-badge";
+import { BarChart3, BadgeCheck, RefreshCw, UserCheck, UserPlus } from "lucide-react";
 
 const tabBadges = {
   upcoming: { icon: RefreshCw, color: "text-amber-500" },
@@ -86,7 +85,7 @@ const Home = () => {
     return diffDays >= days;
   };
 
-  const handleAddNote = (contact: Contact) => {
+  const handleAddInteraction = (contact: Contact) => {
     setSelectedContact(contact);
     setShowInteractionModal(true);
   };
@@ -139,14 +138,13 @@ const Home = () => {
           title="Total Contacts"
           value={contacts.length}
           description="People in your network"
-          icon={Icons.contacts}
+          icon={<BarChart3 className="h-4 w-4" />}
         />
         <StatsCard
           title="Due for Follow-up"
           value={getContactsDueForFollowUp().length}
           description="Need your attention"
-          icon={Icons.clock}
-          iconColor="text-amber-500"
+          icon={<RefreshCw className="h-4 w-4 text-amber-500" />}
         />
         <StatsCard
           title="Recent Interactions"
@@ -156,8 +154,7 @@ const Home = () => {
             ).length
           }
           description="In the past week"
-          icon={Icons.chart}
-          iconColor="text-blue-500"
+          icon={<BarChart3 className="h-4 w-4 text-blue-500" />}
         />
       </div>
 
@@ -180,7 +177,7 @@ const Home = () => {
                 <ContactCard
                   key={contact.id}
                   contact={contact}
-                  onAddInteraction={() => handleAddNote(contact)}
+                  onAddInteraction={() => handleAddInteraction(contact)}
                   onViewInsights={() => handleViewInsights(contact)}
                   onMarkComplete={() => handleViewContact(contact)}
                 />
@@ -201,7 +198,7 @@ const Home = () => {
                 <ContactCard
                   key={contact.id}
                   contact={contact}
-                  onAddInteraction={() => handleAddNote(contact)}
+                  onAddInteraction={() => handleAddInteraction(contact)}
                   onViewInsights={() => handleViewInsights(contact)}
                   onMarkComplete={() => handleViewContact(contact)}
                 />
@@ -222,7 +219,7 @@ const Home = () => {
                 <ContactCard
                   key={contact.id}
                   contact={contact}
-                  onAddInteraction={() => handleAddNote(contact)}
+                  onAddInteraction={() => handleAddInteraction(contact)}
                   onViewInsights={() => handleViewInsights(contact)}
                   onMarkComplete={() => handleViewContact(contact)}
                 />
@@ -243,7 +240,7 @@ const Home = () => {
                 <ContactCard
                   key={contact.id}
                   contact={contact}
-                  onAddInteraction={() => handleAddNote(contact)}
+                  onAddInteraction={() => handleAddInteraction(contact)}
                   onViewInsights={() => handleViewInsights(contact)}
                   onMarkComplete={() => handleViewContact(contact)}
                 />
@@ -264,8 +261,9 @@ const Home = () => {
           </DialogHeader>
           {selectedContact && (
             <InteractionForm
-              contactId={selectedContact.id}
+              contact={selectedContact}
               onSuccess={onInteractionAdded}
+              onCancel={closeInteractionModal}
             />
           )}
         </DialogContent>
@@ -277,7 +275,13 @@ const Home = () => {
             <DialogTitle>Connection Insights</DialogTitle>
           </DialogHeader>
           {selectedContact && (
-            <ConnectionInsights contactId={selectedContact.id} />
+            <ConnectionInsights
+              strength={selectedContact.connection_strength || { 
+                level: 'weak', 
+                score: 30, 
+                suggestions: ['Reach out more regularly', 'Schedule a follow-up meeting', 'Connect on social media'] 
+              }}
+            />
           )}
         </DialogContent>
       </Dialog>
