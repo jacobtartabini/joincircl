@@ -52,4 +52,11 @@ export interface ContactMedia {
   file_type: string;
   is_image: boolean;
   created_at?: string;
+  url?: string; // Add the url property
+}
+
+export interface ConnectionStrength {
+  score: number;
+  level: 'weak' | 'moderate' | 'strong';
+  suggestions: string[];
 }
