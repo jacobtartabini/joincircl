@@ -117,5 +117,16 @@ export const contactService = {
     }
 
     return data as Interaction;
+  },
+
+  async deleteInteraction(id: string): Promise<void> {
+    const { error } = await supabase
+      .from("interactions")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      throw new Error(error.message);
+    }
   }
 };

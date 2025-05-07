@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Trash } from "lucide-react";
 import { keystoneService } from "@/services/keystoneService";
 import { useToast } from "@/hooks/use-toast";
 import { KeystoneCard } from "@/components/ui/keystone-card";
@@ -10,6 +10,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import KeystoneForm from "@/components/keystone/KeystoneForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "react-router-dom";
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle 
+} from "@/components/ui/alert-dialog";
 
 const Keystones = () => {
   const [keystones, setKeystones] = useState<Keystone[]>([]);
@@ -17,6 +27,7 @@ const Keystones = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedKeystone, setSelectedKeystone] = useState<Keystone | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -62,6 +73,33 @@ const Keystones = () => {
   const handleEditKeystone = (keystone: Keystone) => {
     setSelectedKeystone(keystone);
     setIsEditDialogOpen(true);
+  };
+
+  const handleDeleteClick = () => {
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!selectedKeystone) return;
+    
+    try {
+      await keystoneService.deleteKeystone(selectedKeystone.id);
+      setIsDeleteDialogOpen(false);
+      setIsEditDialogOpen(false);
+      setSelectedKeystone(null);
+      fetchKeystones();
+      toast({
+        title: "Success",
+        description: "Keystone deleted successfully.",
+      });
+    } catch (error) {
+      console.error("Error deleting keystone:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete keystone. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Use date property if due_date doesn't exist
@@ -177,17 +215,49 @@ const Keystones = () => {
             <DialogTitle>Edit Keystone</DialogTitle>
           </DialogHeader>
           {selectedKeystone && (
-            <KeystoneForm
-              keystone={selectedKeystone}
-              onSuccess={handleEditSuccess}
-              onCancel={() => {
-                setIsEditDialogOpen(false);
-                setSelectedKeystone(null);
-              }}
-            />
+            <>
+              <KeystoneForm
+                keystone={selectedKeystone}
+                onSuccess={handleEditSuccess}
+                onCancel={() => {
+                  setIsEditDialogOpen(false);
+                  setSelectedKeystone(null);
+                }}
+              />
+              <div className="mt-4 pt-4 border-t flex justify-end">
+                <Button 
+                  variant="destructive" 
+                  size="sm"
+                  onClick={handleDeleteClick}
+                  className="flex items-center gap-1"
+                >
+                  <Trash size={16} />
+                  Delete Keystone
+                </Button>
+              </div>
+            </>
           )}
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this keystone. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

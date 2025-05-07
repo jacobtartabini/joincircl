@@ -20,6 +20,9 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Calendar, Mail, Phone, Edit, Trash, PlusCircle, Briefcase, GraduationCap, MapPin, Instagram, Twitter, FileImage, File, ChevronDown, ChevronUp } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import KeystoneDetailModal from "@/components/keystone/KeystoneDetailModal";
+import InteractionDetailModal from "@/components/interaction/InteractionDetailModal";
+
 export default function ContactDetail() {
   const {
     id
@@ -41,9 +44,15 @@ export default function ContactDetail() {
   const [isEditKeystoneDialogOpen, setIsEditKeystoneDialogOpen] = useState(false);
   const [selectedKeystone, setSelectedKeystone] = useState<Keystone | null>(null);
   const [isAddInteractionDialogOpen, setIsAddInteractionDialogOpen] = useState(false);
+  const [isEditInteractionDialogOpen, setIsEditInteractionDialogOpen] = useState(false);
+  const [selectedInteraction, setSelectedInteraction] = useState<Interaction | null>(null);
   const [expandedKeystoneId, setExpandedKeystoneId] = useState<string | null>(null);
   const [expandedInteractionId, setExpandedInteractionId] = useState<string | null>(null);
   const [isDeleteKeystoneDialogOpen, setIsDeleteKeystoneDialogOpen] = useState(false);
+  const [isDeleteInteractionDialogOpen, setIsDeleteInteractionDialogOpen] = useState(false);
+  const [isKeystoneDetailOpen, setIsKeystoneDetailOpen] = useState(false);
+  const [isInteractionDetailOpen, setIsInteractionDetailOpen] = useState(false);
+
   useEffect(() => {
     async function loadContactData() {
       if (!id) return;
@@ -77,6 +86,7 @@ export default function ContactDetail() {
     }
     loadContactData();
   }, [id, navigate, toast]);
+  
   const handleDelete = async () => {
     if (!contact?.id) return;
     try {
@@ -95,12 +105,14 @@ export default function ContactDetail() {
       });
     }
   };
+  
   const handleDeleteKeystone = async () => {
     if (!selectedKeystone?.id) return;
     try {
       await keystoneService.deleteKeystone(selectedKeystone.id);
       setKeystones(keystones.filter(k => k.id !== selectedKeystone.id));
       setIsDeleteKeystoneDialogOpen(false);
+      setIsKeystoneDetailOpen(false);
       setSelectedKeystone(null);
       toast({
         title: "Keystone deleted",
@@ -115,16 +127,104 @@ export default function ContactDetail() {
       });
     }
   };
-  const handleContactUpdate = async () => {
+  
+  const handleDeleteInteraction = async () => {
+    if (!selectedInteraction?.id) return;
+    try {
+      // Assuming you have a deleteInteraction method in your service
+      await contactService.deleteInteraction(selectedInteraction.id);
+      setInteractions(interactions.filter(i => i.id !== selectedInteraction.id));
+      setIsDeleteInteractionDialogOpen(false);
+      setIsInteractionDetailOpen(false);
+      setSelectedInteraction(null);
+      toast({
+        title: "Interaction deleted",
+        description: "The interaction has been successfully deleted."
+      });
+    } catch (error) {
+      console.error("Error deleting interaction:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete interaction. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  const handleContactUpdate = async (updatedContact: Contact, previousBirthday: string | undefined | null) => {
     if (!id) return;
     try {
-      const updatedContact = await contactService.getContact(id);
-      setContact(updatedContact);
+      const refreshedContact = await contactService.getContact(id);
+      setContact(refreshedContact);
       setIsEditDialogOpen(false);
+      
+      // Check if birthday was added or changed
+      if (updatedContact.birthday && (!previousBirthday || updatedContact.birthday !== previousBirthday)) {
+        // Check if there's already a birthday keystone for this contact
+        const existingBirthdayKeystone = keystones.find(
+          k => k.category === "Birthday" && k.contact_id === contact?.id
+        );
+        
+        if (!existingBirthdayKeystone) {
+          try {
+            const birthdayDate = new Date(updatedContact.birthday);
+            const currentYear = new Date().getFullYear();
+            birthdayDate.setFullYear(currentYear);
+            
+            // If birthday has already passed this year, set for next year
+            if (birthdayDate < new Date()) {
+              birthdayDate.setFullYear(currentYear + 1);
+            }
+            
+            await keystoneService.createKeystone({
+              title: `${updatedContact.name}'s Birthday`,
+              date: birthdayDate.toISOString(),
+              contact_id: updatedContact.id,
+              category: "Birthday",
+              is_recurring: true,
+              recurrence_frequency: "Yearly"
+            });
+            
+            // Refresh keystones
+            const updatedKeystones = await keystoneService.getKeystonesByContactId(id);
+            setKeystones(updatedKeystones);
+            
+            toast({
+              title: "Birthday reminder created",
+              description: `A yearly reminder for ${updatedContact.name}'s birthday has been added.`
+            });
+          } catch (error) {
+            console.error("Error creating birthday keystone:", error);
+          }
+        } else {
+          // Update existing birthday keystone if date changed
+          if (previousBirthday && updatedContact.birthday !== previousBirthday) {
+            try {
+              const birthdayDate = new Date(updatedContact.birthday);
+              const existingDate = new Date(existingBirthdayKeystone.date);
+              
+              // Keep same month/day but update to current year
+              birthdayDate.setFullYear(existingDate.getFullYear());
+              
+              await keystoneService.updateKeystone(existingBirthdayKeystone.id, {
+                title: `${updatedContact.name}'s Birthday`,
+                date: birthdayDate.toISOString()
+              });
+              
+              // Refresh keystones
+              const updatedKeystones = await keystoneService.getKeystonesByContactId(id);
+              setKeystones(updatedKeystones);
+            } catch (error) {
+              console.error("Error updating birthday keystone:", error);
+            }
+          }
+        }
+      }
     } catch (error) {
       console.error("Error refreshing contact:", error);
     }
   };
+  
   const handleKeystoneAdded = async () => {
     if (!id) return;
     try {
@@ -137,6 +237,7 @@ export default function ContactDetail() {
       console.error("Error refreshing keystones:", error);
     }
   };
+  
   const handleInteractionAdded = async () => {
     if (!id) return;
     try {
@@ -149,21 +250,30 @@ export default function ContactDetail() {
       console.error("Error refreshing interactions:", error);
     }
   };
-  const handleKeystoneClick = (keystoneId: string) => {
-    setExpandedKeystoneId(expandedKeystoneId === keystoneId ? null : keystoneId);
-  };
-  const handleInteractionClick = (interactionId: string) => {
-    setExpandedInteractionId(expandedInteractionId === interactionId ? null : interactionId);
-  };
-  const handleEditKeystone = (keystone: Keystone) => {
+
+  const handleKeystoneClick = (keystone: Keystone) => {
     setSelectedKeystone(keystone);
+    setIsKeystoneDetailOpen(true);
+  };
+  
+  const handleInteractionClick = (interaction: Interaction) => {
+    setSelectedInteraction(interaction);
+    setIsInteractionDetailOpen(true);
+  };
+  
+  const handleEditKeystone = () => {
+    setIsKeystoneDetailOpen(false);
     setIsEditKeystoneDialogOpen(true);
   };
-  const handleDeleteKeystoneConfirmation = (keystone: Keystone) => {
-    setSelectedKeystone(keystone);
-    setIsDeleteKeystoneDialogOpen(true);
+  
+  const handleEditInteraction = () => {
+    setIsInteractionDetailOpen(false);
+    setIsEditInteractionDialogOpen(true);
+    // Implement edit interaction logic
   };
+  
   const connectionStrength = contact ? calculateConnectionStrength(contact, interactions) : null;
+  
   if (loading) {
     return <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
@@ -172,6 +282,7 @@ export default function ContactDetail() {
         </div>
       </div>;
   }
+  
   if (!contact) {
     return <div className="text-center py-12">
         <h2 className="text-2xl font-semibold mb-2">Contact not found</h2>
@@ -185,6 +296,7 @@ export default function ContactDetail() {
   // Group media by type for display
   const images = contactMedia.filter(media => media.is_image);
   const documents = contactMedia.filter(media => !media.is_image);
+  
   return <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
         <Link to="/circles" className="text-sm text-blue-600 hover:underline flex items-center">
@@ -419,36 +531,27 @@ export default function ContactDetail() {
                   <p>No keystones added yet.</p>
                   <p className="text-sm">Add important events or milestones for this contact.</p>
                 </div> : <div className="space-y-4">
-                  {keystones.map(keystone => <Collapsible key={keystone.id} open={expandedKeystoneId === keystone.id} onOpenChange={() => handleKeystoneClick(keystone.id)}>
-                      <CollapsibleTrigger className="flex w-full gap-3 items-start hover:bg-muted/50 p-2 rounded-md transition-colors cursor-pointer">
-                        <div className="bg-blue-100 text-blue-800 p-2 rounded-md flex-shrink-0">
-                          <Calendar size={16} />
+                  {keystones.map(keystone => 
+                    <div 
+                      key={keystone.id}
+                      className="flex gap-3 items-start hover:bg-muted/50 p-2 rounded-md transition-colors cursor-pointer"
+                      onClick={() => handleKeystoneClick(keystone)}
+                    >
+                      <div className="bg-blue-100 text-blue-800 p-2 rounded-md flex-shrink-0">
+                        <Calendar size={16} />
+                      </div>
+                      <div className="flex-grow">
+                        <div className="flex justify-between items-start">
+                          <p className="font-medium">{keystone.title}</p>
                         </div>
-                        <div className="flex-grow">
-                          <div className="flex justify-between items-start">
-                            <p className="font-medium">{keystone.title}</p>
-                            {expandedKeystoneId === keystone.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                          </div>
-                          <p className="text-sm text-muted-foreground">
-                            {format(new Date(keystone.date), 'PPP')}
-                            {keystone.category && ` · ${keystone.category}`}
-                            {keystone.is_recurring && ` · Recurring (${keystone.recurrence_frequency})`}
-                          </p>
-                        </div>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="ml-10 pl-3 border-l mt-2 space-y-2">
-                        <div className="flex gap-2 mt-2">
-                          <Button variant="outline" size="sm" onClick={() => handleEditKeystone(keystone)}>
-                            <Edit size={14} className="mr-1" />
-                            Edit
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => handleDeleteKeystoneConfirmation(keystone)} className="text-red-600 hover:text-red-700">
-                            <Trash size={14} className="mr-1" />
-                            Delete
-                          </Button>
-                        </div>
-                      </CollapsibleContent>
-                    </Collapsible>)}
+                        <p className="text-sm text-muted-foreground">
+                          {format(new Date(keystone.date), 'PPP')}
+                          {keystone.category && ` · ${keystone.category}`}
+                          {keystone.is_recurring && ` · Recurring (${keystone.recurrence_frequency})`}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>}
             </CardContent>
           </Card>
@@ -467,20 +570,21 @@ export default function ContactDetail() {
                   <p>No interactions logged yet.</p>
                   <p className="text-sm">Log calls, emails, meetings, or any other interactions.</p>
                 </div> : <div className="space-y-4">
-                  {interactions.map(interaction => <Collapsible key={interaction.id} open={expandedInteractionId === interaction.id} onOpenChange={() => handleInteractionClick(interaction.id)}>
-                      <CollapsibleTrigger className="flex w-full justify-between items-start hover:bg-muted/50 p-2 rounded-md transition-colors cursor-pointer">
-                        <div className="flex items-start">
-                          <p className="font-medium capitalize">{interaction.type}</p>
-                          <p className="text-sm text-muted-foreground ml-2 py-[2px]">
-                            {format(new Date(interaction.date), 'PPP')}
-                          </p>
-                        </div>
-                        {expandedInteractionId === interaction.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="mt-2 ml-2 pl-3 border-l">
-                        {interaction.notes && <p className="text-sm mb-3 whitespace-pre-wrap">{interaction.notes}</p>}
-                      </CollapsibleContent>
-                    </Collapsible>)}
+                  {interactions.map(interaction => 
+                    <div 
+                      key={interaction.id}
+                      className="flex w-full justify-between items-start hover:bg-muted/50 p-2 rounded-md transition-colors cursor-pointer"
+                      onClick={() => handleInteractionClick(interaction)}
+                    >
+                      <div className="flex items-start">
+                        <p className="font-medium capitalize">{interaction.type}</p>
+                        <p className="text-sm text-muted-foreground ml-2 py-[2px]">
+                          {format(new Date(interaction.date), 'PPP')}
+                        </p>
+                      </div>
+                      <ChevronDown size={16} />
+                    </div>
+                  )}
                 </div>}
             </CardContent>
           </Card>
@@ -500,7 +604,11 @@ export default function ContactDetail() {
           <DialogHeader>
             <DialogTitle>Edit Contact</DialogTitle>
           </DialogHeader>
-          <ContactForm contact={contact} onSuccess={handleContactUpdate} onCancel={() => setIsEditDialogOpen(false)} />
+          <ContactForm 
+            contact={contact} 
+            onSuccess={(updatedContact) => handleContactUpdate(updatedContact, contact.birthday)} 
+            onCancel={() => setIsEditDialogOpen(false)} 
+          />
         </DialogContent>
       </Dialog>
       
@@ -521,9 +629,9 @@ export default function ContactDetail() {
             <DialogTitle>Edit Keystone</DialogTitle>
           </DialogHeader>
           <KeystoneForm keystone={selectedKeystone || undefined} contact={contact} onSuccess={handleKeystoneAdded} onCancel={() => {
-          setIsEditKeystoneDialogOpen(false);
-          setSelectedKeystone(null);
-        }} />
+            setIsEditKeystoneDialogOpen(false);
+            setSelectedKeystone(null);
+          }} />
         </DialogContent>
       </Dialog>
       
@@ -556,27 +664,22 @@ export default function ContactDetail() {
         </AlertDialogContent>
       </AlertDialog>
       
-      {/* Delete Keystone Confirmation Dialog */}
-      <AlertDialog open={isDeleteKeystoneDialogOpen} onOpenChange={setIsDeleteKeystoneDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete this keystone?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete this keystone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => {
-            setIsDeleteKeystoneDialogOpen(false);
-            setSelectedKeystone(null);
-          }}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteKeystone} className="bg-red-600 hover:bg-red-700">
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Keystone Detail Modal */}
+      <KeystoneDetailModal
+        keystone={selectedKeystone}
+        isOpen={isKeystoneDetailOpen}
+        onOpenChange={setIsKeystoneDetailOpen}
+        onEdit={handleEditKeystone}
+        onDelete={handleDeleteKeystone}
+      />
+      
+      {/* Interaction Detail Modal */}
+      <InteractionDetailModal
+        interaction={selectedInteraction}
+        isOpen={isInteractionDetailOpen}
+        onOpenChange={setIsInteractionDetailOpen}
+        onEdit={handleEditInteraction}
+        onDelete={handleDeleteInteraction}
+      />
     </div>;
 }
