@@ -106,6 +106,33 @@ export default function ContactDetail() {
     }
   };
   
+  const handleDeleteKeystoneSync = () => {
+    if (!selectedKeystone?.id) return;
+    
+    // Close modals first
+    setIsDeleteKeystoneDialogOpen(false);
+    setIsKeystoneDetailOpen(false);
+    
+    // Then perform the async operation
+    keystoneService.deleteKeystone(selectedKeystone.id)
+      .then(() => {
+        setKeystones(keystones.filter(k => k.id !== selectedKeystone.id));
+        setSelectedKeystone(null);
+        toast({
+          title: "Keystone deleted",
+          description: "The keystone has been successfully deleted."
+        });
+      })
+      .catch(error => {
+        console.error("Error deleting keystone:", error);
+        toast({
+          title: "Error",
+          description: "Failed to delete keystone. Please try again.",
+          variant: "destructive"
+        });
+      });
+  };
+  
   const handleDeleteKeystone = async () => {
     if (!selectedKeystone?.id) return;
     try {
@@ -126,6 +153,33 @@ export default function ContactDetail() {
         variant: "destructive"
       });
     }
+  };
+  
+  const handleDeleteInteractionSync = () => {
+    if (!selectedInteraction?.id) return;
+    
+    // Close modals first
+    setIsDeleteInteractionDialogOpen(false);
+    setIsInteractionDetailOpen(false);
+    
+    // Then perform the async operation
+    contactService.deleteInteraction(selectedInteraction.id)
+      .then(() => {
+        setInteractions(interactions.filter(i => i.id !== selectedInteraction.id));
+        setSelectedInteraction(null);
+        toast({
+          title: "Interaction deleted",
+          description: "The interaction has been successfully deleted."
+        });
+      })
+      .catch(error => {
+        console.error("Error deleting interaction:", error);
+        toast({
+          title: "Error",
+          description: "Failed to delete interaction. Please try again.",
+          variant: "destructive"
+        });
+      });
   };
   
   const handleDeleteInteraction = async () => {
@@ -313,7 +367,9 @@ export default function ContactDetail() {
         </div>
       </div>
       
+      {/* Main content grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Left column (2/3 width) */}
         <div className="md:col-span-2 space-y-6">
           {/* Basic Information Card */}
           <Card>
@@ -589,6 +645,7 @@ export default function ContactDetail() {
           </Card>
         </div>
         
+        {/* Right column (1/3 width) */}
         <div>
           {/* Connection Insights */}
           {connectionStrength && <ConnectionInsights strength={connectionStrength} />}
@@ -669,7 +726,7 @@ export default function ContactDetail() {
         isOpen={isKeystoneDetailOpen}
         onOpenChange={setIsKeystoneDetailOpen}
         onEdit={handleEditKeystone}
-        onDelete={handleDeleteKeystone}
+        onDelete={handleDeleteKeystoneSync} // Use the synchronous wrapper here
       />
       
       {/* Interaction Detail Modal */}
@@ -678,7 +735,7 @@ export default function ContactDetail() {
         isOpen={isInteractionDetailOpen}
         onOpenChange={setIsInteractionDetailOpen}
         onEdit={handleEditInteraction}
-        onDelete={handleDeleteInteraction}
+        onDelete={handleDeleteInteractionSync} // Use the synchronous wrapper here
       />
     </div>;
 }
