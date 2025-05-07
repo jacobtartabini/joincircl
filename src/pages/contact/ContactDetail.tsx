@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -680,7 +681,16 @@ export default function ContactDetail() {
         onOpenChange={setIsInteractionDetailOpen}
         onEdit={handleEditInteraction}
         onDelete={() => {
-          handleDeleteInteraction();
+          // Fix: Wrap the async function call in a synchronous function
+          // This ensures we return void instead of Promise<void>
+          handleDeleteInteraction().catch(error => {
+            console.error("Error in delete interaction handler:", error);
+            toast({
+              title: "Error",
+              description: "Failed to delete interaction. Please try again.",
+              variant: "destructive"
+            });
+          });
         }}
       />
     </div>;
