@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CircleBadge, getCircleName } from "./circle-badge";
-import { Eye, BarChart, FileText, MapPin, Briefcase } from "lucide-react";
+import { Eye, BarChart, MessageSquare, MapPin, Briefcase } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Contact } from "@/types/contact";
 import { Link } from "react-router-dom";
@@ -11,17 +11,15 @@ import { format, isToday, isYesterday } from "date-fns";
 interface ContactCardProps {
   contact: Contact;
   className?: string;
-  onAddNote?: (contact: Contact) => void;
+  onAddInteraction?: (contact: Contact) => void;
   onViewInsights?: (contact: Contact) => void;
-  onMarkComplete?: (contact: Contact) => void;
 }
 
 export const ContactCard = ({
   contact,
   className,
-  onAddNote,
+  onAddInteraction,
   onViewInsights,
-  onMarkComplete,
 }: ContactCardProps) => {
   const daysSinceLastContact = contact.last_contact
     ? getFormattedLastContact(new Date(contact.last_contact))
@@ -109,7 +107,7 @@ export const ContactCard = ({
             variant="outline"
             size="sm"
             className="flex-1"
-            onClick={() => onMarkComplete && onMarkComplete(contact)}
+            onClick={() => window.location.href = `/contacts/${contact.id}`}
           >
             <Eye size={16} className="mr-1" /> View
           </Button>
@@ -125,9 +123,9 @@ export const ContactCard = ({
             variant="outline"
             size="sm"
             className="flex-1"
-            onClick={() => onAddNote && onAddNote(contact)}
+            onClick={() => onAddInteraction && onAddInteraction(contact)}
           >
-            <FileText size={16} className="mr-1" /> Note
+            <MessageSquare size={16} className="mr-1" /> Interaction
           </Button>
         </div>
       </CardContent>

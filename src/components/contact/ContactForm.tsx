@@ -1,3 +1,4 @@
+
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,13 +70,6 @@ export default function ContactForm({
   const [birthday, setBirthday] = useState<Date | undefined>(
     formData.birthday ? new Date(formData.birthday) : undefined
   );
-  const [birthdayYear, setBirthdayYear] = useState<number | undefined>(
-    birthday ? birthday.getFullYear() : undefined
-  );
-  const [birthdayMonth, setBirthdayMonth] = useState<number | undefined>(
-    birthday ? birthday.getMonth() : undefined
-  );
-  const [calendarView, setCalendarView] = useState<"days" | "months" | "years">("days");
   
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [documentFiles, setDocumentFiles] = useState<File[]>([]);
@@ -123,60 +117,10 @@ export default function ContactForm({
     }));
   };
 
-  const handleBirthdayYearChange = (year: number) => {
-    setBirthdayYear(year);
-    
-    // If we have a month and year, update the date
-    if (birthdayMonth !== undefined) {
-      const newDate = new Date();
-      newDate.setFullYear(year);
-      newDate.setMonth(birthdayMonth);
-      // Keep the day or set to 1 if invalid date
-      const day = birthday ? Math.min(birthday.getDate(), new Date(year, birthdayMonth + 1, 0).getDate()) : 1;
-      newDate.setDate(day);
-      newDate.setHours(0, 0, 0, 0);
-      setBirthday(newDate);
-      
-      setFormData(prev => ({
-        ...prev,
-        birthday: newDate.toISOString()
-      }));
-    }
-    
-    // After selecting a year, move to month view
-    setCalendarView("months");
-  };
-
-  const handleBirthdayMonthChange = (month: number) => {
-    setBirthdayMonth(month);
-    
-    // If we have a year and month, update the date
-    if (birthdayYear !== undefined) {
-      const newDate = new Date();
-      newDate.setFullYear(birthdayYear);
-      newDate.setMonth(month);
-      // Set to the 1st day of month initially
-      newDate.setDate(1);
-      newDate.setHours(0, 0, 0, 0);
-      setBirthday(newDate);
-      
-      setFormData(prev => ({
-        ...prev,
-        birthday: newDate.toISOString()
-      }));
-    }
-    
-    // After selecting a month, move to day view
-    setCalendarView("days");
-  };
-
-  const handleBirthdayDayChange = (date: Date | undefined) => {
+  const handleBirthdayChange = (date: Date | undefined) => {
     setBirthday(date);
     
     if (date) {
-      setBirthdayYear(date.getFullYear());
-      setBirthdayMonth(date.getMonth());
-      
       setFormData(prev => ({
         ...prev,
         birthday: date.toISOString()
@@ -296,80 +240,13 @@ export default function ContactForm({
     }
   };
 
-  // Render calendar content based on the current view
-  const renderCalendarContent = () => {
-    if (calendarView === "years") {
-      const currentYear = new Date().getFullYear();
-      const startYear = currentYear - 70; // Show 70 years in the past
-      const years = Array.from({ length: 100 }, (_, i) => startYear + i);
-      
-      return (
-        <div className="p-2 h-[240px] overflow-y-auto">
-          <div className="grid grid-cols-4 gap-1 text-center">
-            {years.map(year => (
-              <button
-                key={year}
-                type="button"
-                className={cn(
-                  "p-2 rounded hover:bg-accent",
-                  birthdayYear === year ? "bg-primary text-primary-foreground" : ""
-                )}
-                onClick={() => handleBirthdayYearChange(year)}
-              >
-                {year}
-              </button>
-            ))}
-          </div>
-        </div>
-      );
-    }
-    
-    if (calendarView === "months") {
-      const months = [
-        "Jan", "Feb", "Mar", "Apr", "May", "Jun", 
-        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-      ];
-      
-      return (
-        <div className="p-2">
-          <div className="grid grid-cols-3 gap-2 text-center">
-            {months.map((month, index) => (
-              <button
-                key={month}
-                type="button"
-                className={cn(
-                  "p-2 rounded hover:bg-accent",
-                  birthdayMonth === index ? "bg-primary text-primary-foreground" : ""
-                )}
-                onClick={() => handleBirthdayMonthChange(index)}
-              >
-                {month}
-              </button>
-            ))}
-          </div>
-        </div>
-      );
-    }
-    
-    return (
-      <Calendar
-        mode="single"
-        selected={birthday}
-        onSelect={handleBirthdayDayChange}
-        initialFocus
-        className="p-3 pointer-events-auto"
-      />
-    );
-  };
-
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
       <Tabs defaultValue="basic" className="w-full">
-        <TabsList className="grid grid-cols-5 mb-4">
+        <TabsList className="grid grid-cols-4 mb-4">
           <TabsTrigger value="basic">Basic</TabsTrigger>
           <TabsTrigger value="professional">Professional</TabsTrigger>
           <TabsTrigger value="education">Education</TabsTrigger>
-          <TabsTrigger value="files">Files</TabsTrigger>
           <TabsTrigger value="other">Other</TabsTrigger>
         </TabsList>
         
@@ -434,33 +311,13 @@ export default function ContactForm({
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <div className="p-2 flex border-b">
-                  <Button 
-                    type="button"
-                    variant={calendarView === "days" ? "default" : "outline"} 
-                    className="mr-1 flex-1 text-xs"
-                    onClick={() => setCalendarView("days")}
-                  >
-                    Day
-                  </Button>
-                  <Button 
-                    type="button"
-                    variant={calendarView === "months" ? "default" : "outline"} 
-                    className="mr-1 flex-1 text-xs"
-                    onClick={() => setCalendarView("months")}
-                  >
-                    Month
-                  </Button>
-                  <Button 
-                    type="button"
-                    variant={calendarView === "years" ? "default" : "outline"} 
-                    className="flex-1 text-xs"
-                    onClick={() => setCalendarView("years")}
-                  >
-                    Year
-                  </Button>
-                </div>
-                {renderCalendarContent()}
+                <Calendar
+                  mode="single"
+                  selected={birthday}
+                  onSelect={handleBirthdayChange}
+                  initialFocus
+                  className="p-3 pointer-events-auto"
+                />
               </PopoverContent>
             </Popover>
           </div>
@@ -639,87 +496,6 @@ export default function ContactForm({
           </div>
         </TabsContent>
         
-        <TabsContent value="files" className="space-y-4">
-          <div className="space-y-2">
-            <Label>Images</Label>
-            <div className="border-2 border-dashed rounded-md p-4 cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => imageInputRef.current?.click()}>
-              <div className="text-center">
-                <FileImage className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                <p className="text-sm font-medium">Click to upload images</p>
-                <p className="text-xs text-muted-foreground">PNG, JPG, WEBP up to 10MB each</p>
-              </div>
-              <input
-                ref={imageInputRef}
-                type="file"
-                accept="image/*"
-                multiple
-                className="hidden"
-                onChange={handleImageUpload}
-              />
-            </div>
-            
-            {imageFiles.length > 0 && (
-              <div className="grid grid-cols-3 gap-2 mt-2">
-                {imageFiles.map((file, index) => (
-                  <div key={index} className="relative">
-                    <img
-                      src={URL.createObjectURL(file)}
-                      alt={`Upload ${index}`}
-                      className="h-20 w-full object-cover rounded"
-                    />
-                    <button
-                      type="button"
-                      className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5"
-                      onClick={() => handleRemoveImage(index)}
-                    >
-                      <X size={12} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          
-          <div className="space-y-2">
-            <Label>Documents</Label>
-            <div className="border-2 border-dashed rounded-md p-4 cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => documentInputRef.current?.click()}>
-              <div className="text-center">
-                <File className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                <p className="text-sm font-medium">Click to upload documents</p>
-                <p className="text-xs text-muted-foreground">PDF, DOC, TXT up to 10MB each</p>
-              </div>
-              <input
-                ref={documentInputRef}
-                type="file"
-                accept=".pdf,.doc,.docx,.txt"
-                multiple
-                className="hidden"
-                onChange={handleDocumentUpload}
-              />
-            </div>
-            
-            {documentFiles.length > 0 && (
-              <div className="space-y-2 mt-2">
-                {documentFiles.map((file, index) => (
-                  <div key={index} className="flex justify-between items-center bg-muted p-2 rounded">
-                    <div className="flex items-center">
-                      <File size={16} className="mr-2" />
-                      <span className="text-sm truncate max-w-[200px]">{file.name}</span>
-                    </div>
-                    <button
-                      type="button"
-                      className="text-red-500 hover:text-red-700"
-                      onClick={() => handleRemoveDocument(index)}
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </TabsContent>
-        
         <TabsContent value="other" className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="how_met">How You Met</Label>
@@ -798,6 +574,85 @@ export default function ContactForm({
                 </div>
               ))}
             </div>
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Images</Label>
+            <div className="border-2 border-dashed rounded-md p-4 cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => imageInputRef.current?.click()}>
+              <div className="text-center">
+                <FileImage className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                <p className="text-sm font-medium">Click to upload images</p>
+                <p className="text-xs text-muted-foreground">PNG, JPG, WEBP up to 10MB each</p>
+              </div>
+              <input
+                ref={imageInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handleImageUpload}
+              />
+            </div>
+            
+            {imageFiles.length > 0 && (
+              <div className="grid grid-cols-3 gap-2 mt-2">
+                {imageFiles.map((file, index) => (
+                  <div key={index} className="relative">
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt={`Upload ${index}`}
+                      className="h-20 w-full object-cover rounded"
+                    />
+                    <button
+                      type="button"
+                      className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5"
+                      onClick={() => handleRemoveImage(index)}
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Documents</Label>
+            <div className="border-2 border-dashed rounded-md p-4 cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => documentInputRef.current?.click()}>
+              <div className="text-center">
+                <File className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                <p className="text-sm font-medium">Click to upload documents</p>
+                <p className="text-xs text-muted-foreground">PDF, DOC, TXT up to 10MB each</p>
+              </div>
+              <input
+                ref={documentInputRef}
+                type="file"
+                accept=".pdf,.doc,.docx,.txt"
+                multiple
+                className="hidden"
+                onChange={handleDocumentUpload}
+              />
+            </div>
+            
+            {documentFiles.length > 0 && (
+              <div className="space-y-2 mt-2">
+                {documentFiles.map((file, index) => (
+                  <div key={index} className="flex justify-between items-center bg-muted p-2 rounded">
+                    <div className="flex items-center">
+                      <File size={16} className="mr-2" />
+                      <span className="text-sm truncate max-w-[200px]">{file.name}</span>
+                    </div>
+                    <button
+                      type="button"
+                      className="text-red-500 hover:text-red-700"
+                      onClick={() => handleRemoveDocument(index)}
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </TabsContent>
       </Tabs>
