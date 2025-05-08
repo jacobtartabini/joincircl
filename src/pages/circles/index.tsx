@@ -26,7 +26,7 @@ const Circles = () => {
   // Search and filter states
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [availableTags, setAvailableTags] = useState<{value: string, label: string}[]>([]);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
 
   useEffect(() => {
     fetchContacts();
@@ -36,21 +36,21 @@ const Circles = () => {
     try {
       setIsLoading(true);
       const data = await contactService.getContacts();
-      setContacts(data);
+      setContacts(data || []);
       
       // Extract unique tags from all contacts, safely handling undefined tags
       const allTags = new Set<string>();
-      data.forEach(contact => {
-        if (contact.tags && Array.isArray(contact.tags)) {
-          contact.tags.forEach(tag => {
-            if (tag) allTags.add(tag);
-          });
-        }
-      });
+      if (Array.isArray(data)) {
+        data.forEach(contact => {
+          if (contact.tags && Array.isArray(contact.tags)) {
+            contact.tags.forEach(tag => {
+              if (tag) allTags.add(tag);
+            });
+          }
+        });
+      }
       
-      setAvailableTags(
-        Array.from(allTags).map(tag => ({ value: tag, label: tag }))
-      );
+      setAvailableTags(Array.from(allTags));
     } catch (error) {
       console.error("Error fetching contacts:", error);
       toast({
@@ -86,8 +86,8 @@ const Circles = () => {
     fetchContacts();
   };
 
-  // Ensure we have an array of tag values even if availableTags is undefined
-  const tagValues = availableTags ? availableTags.map(tag => tag.value) : [];
+  // Ensure we have an array of tag values
+  const tagValues = availableTags || [];
 
   return (
     <div className="space-y-6 animate-fade-in">

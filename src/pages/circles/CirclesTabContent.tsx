@@ -18,7 +18,7 @@ interface CirclesTabContentProps {
 
 export const CirclesTabContent = ({
   value,
-  contacts,
+  contacts = [],  // Provide default empty array
   searchQuery = "",  // Provide default empty string
   selectedTags = [],  // Provide default empty array
   isLoading,
@@ -26,15 +26,20 @@ export const CirclesTabContent = ({
   onViewInsights,
   onAddContact
 }: CirclesTabContentProps) => {
+  // Ensure contacts is an array
+  const safeContacts = Array.isArray(contacts) ? contacts : [];
+  // Ensure selectedTags is an array
+  const safeSelectedTags = Array.isArray(selectedTags) ? selectedTags : [];
+  
   const filteredContacts = useMemo(() => {
-    return contacts.filter(contact => {
+    return safeContacts.filter(contact => {
       // First filter by circle if not "all"
       if (value !== "all" && contact.circle !== value) {
         return false;
       }
       
       // Check if contact matches search query
-      const searchTerms = searchQuery.toLowerCase();
+      const searchTerms = (searchQuery || "").toLowerCase();
       const matchesSearch = searchQuery === "" || 
         contact.name.toLowerCase().includes(searchTerms) ||
         (contact.personal_email && contact.personal_email.toLowerCase().includes(searchTerms)) ||
@@ -45,12 +50,12 @@ export const CirclesTabContent = ({
       
       // Check if contact has all selected tags - safely handle undefined tags
       const contactTags = contact.tags || [];
-      const matchesTags = selectedTags.length === 0 || 
-        selectedTags.every(tag => Array.isArray(contactTags) && contactTags.includes(tag));
+      const matchesTags = safeSelectedTags.length === 0 || 
+        safeSelectedTags.every(tag => Array.isArray(contactTags) && contactTags.includes(tag));
       
       return matchesSearch && matchesTags;
     });
-  }, [contacts, value, searchQuery, selectedTags]);
+  }, [safeContacts, value, searchQuery, safeSelectedTags]);
 
   const circleTypeName = value === "all" ? "" : `${value} circle `;
   
@@ -62,7 +67,7 @@ export const CirclesTabContent = ({
         <ContactGrid contacts={filteredContacts} onAddInteraction={onAddInteraction} onViewInsights={onViewInsights} />
       ) : (
         <EmptyState 
-          searchActive={searchQuery !== "" || selectedTags.length > 0} 
+          searchActive={searchQuery !== "" || safeSelectedTags.length > 0} 
           circleType={value}
           onAddContact={onAddContact}
         />

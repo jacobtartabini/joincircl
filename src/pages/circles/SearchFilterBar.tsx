@@ -29,25 +29,25 @@ export default function SearchFilterBar({
 }: SearchFilterBarProps) {
   const [open, setOpen] = useState(false);
 
+  // Safe list of tags - ensure allTags is always an array
+  const safeAllTags = Array.isArray(allTags) ? allTags : [];
+  // Safe list of selected tags - ensure selectedTags is always an array
+  const safeSelectedTags = Array.isArray(selectedTags) ? selectedTags : [];
+
   const handleTagSelect = (tag: string) => {
-    if (!selectedTags.includes(tag)) {
-      onTagsChange([...selectedTags, tag]);
+    if (!safeSelectedTags.includes(tag)) {
+      onTagsChange([...safeSelectedTags, tag]);
     }
     setOpen(false);
   };
 
   const handleTagRemove = (tag: string) => {
-    onTagsChange(selectedTags.filter((t) => t !== tag));
+    onTagsChange(safeSelectedTags.filter((t) => t !== tag));
   };
 
   const handleClearTags = () => {
     onTagsChange([]);
   };
-
-  // Safe list of tags - ensure allTags is always an array
-  const safeAllTags = Array.isArray(allTags) ? allTags : [];
-  // Safe list of selected tags - ensure selectedTags is always an array
-  const safeSelectedTags = Array.isArray(selectedTags) ? selectedTags : [];
 
   return (
     <div className="flex flex-col gap-4">
@@ -57,7 +57,7 @@ export default function SearchFilterBar({
           <Input
             placeholder="Search contacts..."
             className="pl-8"
-            value={searchQuery}
+            value={searchQuery || ""}
             onChange={(e) => onSearchChange(e.target.value)}
           />
           {searchQuery && (
@@ -94,7 +94,7 @@ export default function SearchFilterBar({
                     .map((tag) => (
                       <CommandItem
                         key={tag}
-                        value={tag}
+                        value={tag || " "}
                         onSelect={() => handleTagSelect(tag)}
                       >
                         {tag}
