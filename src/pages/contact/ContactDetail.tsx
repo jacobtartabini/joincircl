@@ -371,14 +371,7 @@ return (
     {isEditDialogOpen && <ContactForm onClose={() => setIsEditDialogOpen(false)} />}
   </div>
 )
-Make sure ContactForm.tsx accepts an onClose prop if needed.
 
-✅ Option 2: Navigating to a Route for ContactForm
-If ContactForm is a separate route:
-
-tsx
-Copy
-Edit
 import { useNavigate } from 'react-router-dom'
 
 const navigate = useNavigate()
