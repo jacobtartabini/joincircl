@@ -13,6 +13,7 @@ import Settings from "./pages/Settings";
 import SignIn from "./pages/auth/SignIn";
 import SignUp from "./pages/auth/SignUp";
 import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 import CallbackPage from "./pages/auth/CallbackPage";
 import ContactDetail from "./pages/contact/ContactDetail";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/auth/sign-in" element={<SignIn />} />
             <Route path="/auth/sign-up" element={<SignUp />} />
             <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+            <Route path="/auth/reset-password" element={<ResetPassword />} />
             <Route path="/auth/callback" element={<CallbackPage />} />
             
             {/* Protected routes */}

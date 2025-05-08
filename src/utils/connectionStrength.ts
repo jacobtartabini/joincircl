@@ -6,7 +6,7 @@ export function calculateConnectionStrength(contact: Contact, interactions: Inte
   let score = 0;
   const suggestions: string[] = [];
   
-  // Factor 1: Circle type - weighted more heavily than before
+  // Factor 1: Circle type - weighted more heavily
   if (contact.circle === "inner") score += 30;
   else if (contact.circle === "middle") score += 20;
   else if (contact.circle === "outer") score += 10;
@@ -21,13 +21,13 @@ export function calculateConnectionStrength(contact: Contact, interactions: Inte
     else if (daysSinceLastContact < 90) score += 8;
   }
   
-  // Factor 3: Number of interactions - revised to ensure more interactions always help
+  // Factor 3: Number of interactions - make sure more interactions always help
   const numInteractions = interactions.length;
-  // Logarithmic scale to prevent diminishing returns after a reasonable point
-  const interactionScore = Math.min(25, Math.round(15 * Math.log10(numInteractions + 1)));
+  // Ensure more interactions always improve the score, with diminishing returns
+  const interactionScore = Math.min(30, Math.round(5 * Math.log10(numInteractions * 5 + 1)));
   score += interactionScore;
   
-  // Factor 4: Consistency of interactions
+  // Factor 4: Consistency of interactions - based on expected frequency by circle
   if (interactions.length >= 2) {
     const sortedInteractions = [...interactions].sort((a, b) => 
       new Date(a.date).getTime() - new Date(b.date).getTime()
@@ -45,16 +45,19 @@ export function calculateConnectionStrength(contact: Contact, interactions: Inte
     // Average time between interactions
     const avgGapDays = totalGapDays / (sortedInteractions.length - 1);
     
-    // Reward consistency based on circle
-    if (contact.circle === "inner") {
-      if (avgGapDays <= 14) score += 15;
-      else if (avgGapDays <= 30) score += 10;
-    } else if (contact.circle === "middle") {
-      if (avgGapDays <= 30) score += 15;
-      else if (avgGapDays <= 60) score += 10;
-    } else { // outer circle
-      if (avgGapDays <= 60) score += 15;
-      else if (avgGapDays <= 90) score += 10;
+    // Expected gap based on circle
+    let expectedGapDays = 30; // Default for outer circle
+    if (contact.circle === "inner") expectedGapDays = 7;
+    else if (contact.circle === "middle") expectedGapDays = 14;
+    
+    // Reward consistency relative to expectations
+    const consistencyRatio = expectedGapDays / (avgGapDays || expectedGapDays);
+    const consistencyScore = Math.min(15, Math.round(consistencyRatio * 15));
+    score += consistencyScore;
+    
+    // High interaction frequency should be strongly rewarded
+    if (numInteractions >= 5 && avgGapDays <= expectedGapDays * 1.5) {
+      score += 10;
     }
   }
 
@@ -71,7 +74,14 @@ export function calculateConnectionStrength(contact: Contact, interactions: Inte
   // Cap the detail score
   score += Math.min(10, detailScore);
   
-  // Determine strength level
+  // Interaction diversity bonus
+  if (interactions.length > 0) {
+    const uniqueTypes = new Set(interactions.map(i => i.type)).size;
+    const diversityBonus = Math.min(5, uniqueTypes * 2);
+    score += diversityBonus;
+  }
+  
+  // Determine strength level with adjusted thresholds
   let level: 'weak' | 'moderate' | 'strong';
   
   if (score >= 70) {
@@ -138,6 +148,21 @@ export function calculateConnectionStrength(contact: Contact, interactions: Inte
   // Special suggestions for inner circle
   if (contact.circle === "inner" && (!contact.notes || contact.notes.length < 50)) {
     suggestions.push("Add more detailed notes about this important relationship");
+  }
+
+  // Activity-based suggestions
+  if (interactions.length === 0) {
+    suggestions.push("Log your first interaction to start building connection history");
+  } else if (interactions.length < 3) {
+    suggestions.push("More regular interactions will strengthen this connection");
+  }
+
+  // Add circle-specific expectations
+  if (contact.circle === "inner" && interactions.length > 0) {
+    const lastInteractionDate = new Date(interactions[0].date);
+    if (differenceInDays(today, lastInteractionDate) > 14) {
+      suggestions.push("Inner circle contacts benefit from frequent communication");
+    }
   }
 
   // Limit to most important 5 suggestions

@@ -6,12 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Link, Navigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEmailSent, setIsEmailSent] = useState(false);
-  const { resetPassword, user } = useAuth();
+  const { user } = useAuth();
 
   // If user is already signed in, redirect to home page
   if (user) {
@@ -25,7 +26,10 @@ export default function ForgotPassword() {
     
     setIsSubmitting(true);
     try {
-      await resetPassword(email);
+      // Use Supabase auth resetPassword with redirectTo pointing to our new reset password page
+      await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      });
       setIsEmailSent(true);
     } catch (error) {
       console.error("Error resetting password:", error);
@@ -39,7 +43,7 @@ export default function ForgotPassword() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
-            <div className="w-12 h-12 rounded-full bg-circl-blue flex items-center justify-center text-white font-serif text-2xl">C</div>
+            <div className="w-12 h-12 rounded-full bg-circl-blue flex items-center justify-center text-white font-sans text-2xl">C</div>
           </div>
           <CardTitle className="text-2xl font-bold">Forgot Password</CardTitle>
           <CardDescription>
