@@ -738,7 +738,10 @@ export default function ContactDetail() {
           {contact && (
             <ContactForm
               contact={contact}
-              onSuccess={(updatedContact, prevBirthday) => handleContactUpdate(updatedContact, prevBirthday)}
+              onSuccess={(updatedContact, prevBirthday) => {
+                // Use void to ignore the promise returned by handleContactUpdate
+                void handleContactUpdate(updatedContact, prevBirthday);
+              }}
               onCancel={() => setIsEditDialogOpen(false)}
             />
           )}
