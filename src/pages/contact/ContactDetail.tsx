@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,14 +9,13 @@ import { contactMediaService } from "@/services/contactMediaService";
 import { useToast } from "@/hooks/use-toast";
 import ConnectionInsights from "@/components/contact/ConnectionInsights";
 import { calculateConnectionStrength } from "@/utils/connectionStrength";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import ContactForm from "@/components/contact/ContactForm";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Edit, Trash } from "lucide-react";
 import ContactInfo from "@/components/contact/ContactInfo";
 import ContactKeystones from "@/components/contact/ContactKeystones";
 import ContactInteractions from "@/components/contact/ContactInteractions";
 import ContactMediaSection from "@/components/contact/ContactMediaSection";
+import EditContactDialog from "@/components/dialogs/EditContactDialog";
+import DeleteContactDialog from "@/components/dialogs/DeleteContactDialog";
 
 export default function ContactDetail() {
   const { id } = useParams<{ id: string }>();
@@ -261,41 +259,20 @@ export default function ContactDetail() {
       </div>
       
       {/* Edit Contact Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Edit Contact</DialogTitle>
-          </DialogHeader>
-          {contact && (
-            <ContactForm
-              contact={contact}
-              onSuccess={(updatedContact, prevBirthday) => {
-                void handleContactUpdate(updatedContact, prevBirthday);
-              }}
-              onCancel={() => setIsEditDialogOpen(false)}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+      <EditContactDialog
+        contact={contact}
+        isOpen={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        onContactUpdate={handleContactUpdate}
+      />
       
-      {/* Delete Contact Confirmation Dialog */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the
-              contact "{contact.name}" and all associated data.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Delete Contact Dialog */}
+      <DeleteContactDialog
+        contact={contact}
+        isOpen={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onDelete={handleDelete}
+      />
     </div>
   );
 }
