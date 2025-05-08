@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -269,7 +270,6 @@ export default function ContactDetail() {
             <ContactForm
               contact={contact}
               onSuccess={(updatedContact, prevBirthday) => {
-                // Use void to ignore the promise returned by handleContactUpdate
                 void handleContactUpdate(updatedContact, prevBirthday);
               }}
               onCancel={() => setIsEditDialogOpen(false)}
