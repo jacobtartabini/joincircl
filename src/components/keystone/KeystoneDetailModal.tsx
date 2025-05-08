@@ -22,13 +22,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface KeystoneDetailModalProps {
   keystone: Keystone | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onEdit: () => void;
-  onDelete: () => void | Promise<void>; // Updated to accept Promise<void> as well
+  onDelete: () => void | Promise<void>;
 }
 
 export default function KeystoneDetailModal({
@@ -44,13 +45,13 @@ export default function KeystoneDetailModal({
   
   const handleDelete = async () => {
     setIsDeleteDialogOpen(false);
-    await onDelete(); // Handle as async to properly work with Promise<void>
+    await onDelete();
   };
 
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>{keystone.title}</DialogTitle>
             <DialogDescription>
@@ -58,35 +59,44 @@ export default function KeystoneDetailModal({
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4">
-            <div className="flex flex-wrap gap-2">
-              {keystone.category && (
-                <Badge variant="outline" className="flex items-center gap-1">
-                  <Calendar size={14} />
-                  {keystone.category}
-                </Badge>
-              )}
+          <ScrollArea className="pr-4 max-h-[60vh]">
+            <div className="space-y-4">
+              <div className="flex flex-wrap gap-2">
+                {keystone.category && (
+                  <Badge variant="outline" className="flex items-center gap-1">
+                    <Calendar size={14} />
+                    {keystone.category}
+                  </Badge>
+                )}
+                
+                {keystone.is_recurring && (
+                  <Badge variant="outline" className="flex items-center gap-1">
+                    <Repeat size={14} />
+                    Recurring {keystone.recurrence_frequency && `(${keystone.recurrence_frequency})`}
+                  </Badge>
+                )}
+              </div>
               
-              {keystone.is_recurring && (
-                <Badge variant="outline" className="flex items-center gap-1">
-                  <Repeat size={14} />
-                  Recurring {keystone.recurrence_frequency && `(${keystone.recurrence_frequency})`}
-                </Badge>
+              {keystone.notes && (
+                <div className="mt-4">
+                  <h4 className="text-sm font-medium mb-1">Notes</h4>
+                  <p className="text-sm whitespace-pre-wrap">{keystone.notes}</p>
+                </div>
               )}
             </div>
-
-            <div className="flex justify-end gap-2 pt-4">
-              <Button variant="outline" onClick={onEdit} className="flex gap-1 items-center">
-                <Edit size={16} /> Edit
-              </Button>
-              <Button 
-                variant="destructive" 
-                onClick={() => setIsDeleteDialogOpen(true)}
-                className="flex gap-1 items-center"
-              >
-                <Trash size={16} /> Delete
-              </Button>
-            </div>
+          </ScrollArea>
+          
+          <div className="flex justify-end gap-2 pt-4 mt-auto">
+            <Button variant="outline" onClick={onEdit} className="flex gap-1 items-center">
+              <Edit size={16} /> Edit
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={() => setIsDeleteDialogOpen(true)}
+              className="flex gap-1 items-center"
+            >
+              <Trash size={16} /> Delete
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

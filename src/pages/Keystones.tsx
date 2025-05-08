@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash } from "lucide-react";
@@ -19,9 +20,12 @@ import {
   AlertDialogHeader, 
   AlertDialogTitle 
 } from "@/components/ui/alert-dialog";
+import { contactService } from "@/services/contactService";
+import { Contact } from "@/types/contact";
 
 const Keystones = () => {
   const [keystones, setKeystones] = useState<Keystone[]>([]);
+  const [contacts, setContacts] = useState<{[id: string]: Contact}>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -38,6 +42,16 @@ const Keystones = () => {
       setIsLoading(true);
       const data = await keystoneService.getKeystones();
       setKeystones(data);
+      
+      // Fetch contacts for keystone cards
+      const contactIds = data
+        .filter(k => k.contact_id)
+        .map(k => k.contact_id) as string[];
+      
+      if (contactIds.length > 0) {
+        const uniqueContactIds = [...new Set(contactIds)];
+        await fetchContacts(uniqueContactIds);
+      }
     } catch (error) {
       console.error("Error fetching keystones:", error);
       toast({
@@ -47,6 +61,25 @@ const Keystones = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+  
+  const fetchContacts = async (contactIds: string[]) => {
+    try {
+      const contactMap: {[id: string]: Contact} = {};
+      
+      for (const id of contactIds) {
+        try {
+          const contact = await contactService.getContact(id);
+          contactMap[id] = contact;
+        } catch (e) {
+          console.error(`Failed to fetch contact with ID ${id}:`, e);
+        }
+      }
+      
+      setContacts(contactMap);
+    } catch (error) {
+      console.error("Error fetching contacts:", error);
     }
   };
 
@@ -136,20 +169,26 @@ const Keystones = () => {
             </div>
           ) : upcomingKeystones.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {upcomingKeystones.map((keystone) => (
-                <KeystoneCard
-                  key={keystone.id}
-                  keystone={{
-                    id: keystone.id,
-                    title: keystone.title,
-                    date: keystone.due_date || keystone.date, // Use due_date if available, fall back to date
-                    category: keystone.category || "Event",
-                    contactId: keystone.contact_id || "",
-                    contactName: keystone.contact_name || "No Contact"
-                  }}
-                  onEdit={() => handleEditKeystone(keystone)}
-                />
-              ))}
+              {upcomingKeystones.map((keystone) => {
+                // Get contact details for this keystone
+                const contactDetails = keystone.contact_id && contacts[keystone.contact_id];
+                
+                return (
+                  <KeystoneCard
+                    key={keystone.id}
+                    keystone={{
+                      id: keystone.id,
+                      title: keystone.title,
+                      date: keystone.due_date || keystone.date,
+                      category: keystone.category || "Event",
+                      contactId: keystone.contact_id || "",
+                      contactName: contactDetails?.name || keystone.contact_name || "",
+                      contactAvatar: contactDetails?.avatar_url
+                    }}
+                    onEdit={() => handleEditKeystone(keystone)}
+                  />
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-8 border rounded-md bg-muted/30">
@@ -172,21 +211,27 @@ const Keystones = () => {
             </div>
           ) : pastKeystones.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {pastKeystones.map((keystone) => (
-                <KeystoneCard
-                  key={keystone.id}
-                  keystone={{
-                    id: keystone.id,
-                    title: keystone.title,
-                    date: keystone.due_date || keystone.date, // Use due_date if available, fall back to date
-                    category: keystone.category || "Event",
-                    contactId: keystone.contact_id || "",
-                    contactName: keystone.contact_name || "No Contact"
-                  }}
-                  onEdit={() => handleEditKeystone(keystone)}
-                  isPast
-                />
-              ))}
+              {pastKeystones.map((keystone) => {
+                // Get contact details for this keystone
+                const contactDetails = keystone.contact_id && contacts[keystone.contact_id];
+                
+                return (
+                  <KeystoneCard
+                    key={keystone.id}
+                    keystone={{
+                      id: keystone.id,
+                      title: keystone.title,
+                      date: keystone.due_date || keystone.date,
+                      category: keystone.category || "Event",
+                      contactId: keystone.contact_id || "",
+                      contactName: contactDetails?.name || keystone.contact_name || "",
+                      contactAvatar: contactDetails?.avatar_url
+                    }}
+                    onEdit={() => handleEditKeystone(keystone)}
+                    isPast
+                  />
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-8 border rounded-md bg-muted/30">
@@ -214,25 +259,15 @@ const Keystones = () => {
             <DialogTitle>Edit Keystone</DialogTitle>
           </DialogHeader>
           {selectedKeystone && (
-            <>
-              <KeystoneForm
-                keystone={selectedKeystone}
-                onSuccess={handleEditSuccess}
-                onCancel={() => {
-                  setIsEditDialogOpen(false);
-                  setSelectedKeystone(null);
-                }}
-              />
-              <Button 
-                variant="destructive" 
-                size="sm"
-                onClick={handleDeleteClick}
-                className="mt-4 flex items-center gap-1 ml-auto"
-              >
-                <Trash size={16} />
-                Delete Keystone
-              </Button>
-            </>
+            <KeystoneForm
+              keystone={selectedKeystone}
+              onSuccess={handleEditSuccess}
+              onCancel={() => {
+                setIsEditDialogOpen(false);
+                setSelectedKeystone(null);
+              }}
+              onDelete={handleDeleteClick}
+            />
           )}
         </DialogContent>
       </Dialog>
@@ -254,7 +289,7 @@ const Keystones = () => {
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
-      </AlertDialog>
+      </Dialog>
     </div>
   );
 };

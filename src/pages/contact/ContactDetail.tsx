@@ -384,6 +384,17 @@ export default function ContactDetail() {
                 <div>
                   <h1 className="text-2xl font-bold">{contact.name}</h1>
                   <p className="text-muted-foreground">{getCircleName(contact.circle)} Circle</p>
+                  
+                  {/* Moved tags below name and above Basic Information */}
+                  {contact.tags && contact.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {contact.tags.map(tag => (
+                        <span key={tag} className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </CardHeader>
@@ -454,12 +465,6 @@ export default function ContactDetail() {
                       Instagram
                     </a>}
                 </div>
-                
-                {contact.tags && contact.tags.length > 0 && <div className="flex flex-wrap gap-2 mt-3">
-                    {contact.tags.map(tag => <span key={tag} className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                        {tag}
-                      </span>)}
-                  </div>}
               </div>
               
               {/* Professional Information */}
@@ -723,5 +728,21 @@ export default function ContactDetail() {
         onEdit={handleEditInteraction}
         onDelete={handleDeleteInteractionSync} // Use the synchronous wrapper here
       />
+      
+      {/* Edit Contact Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Edit Contact</DialogTitle>
+          </DialogHeader>
+          {contact && (
+            <ContactForm
+              contact={contact}
+              onSuccess={handleContactUpdate}
+              onCancel={() => setIsEditDialogOpen(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>;
 }

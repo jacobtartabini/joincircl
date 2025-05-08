@@ -1,8 +1,20 @@
 
 import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar as CalendarIcon, Loader2, Trash } from "lucide-react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
@@ -10,28 +22,50 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { keystoneService } from "@/services/keystoneService";
-import { contactService } from "@/services/contactService";
-import { useToast } from "@/hooks/use-toast";
-import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Keystone } from "@/types/keystone";
-import { Contact } from "@/types/contact";
+import { Calendar } from "@/components/ui/calendar";
 import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
+import { Contact } from "@/types/contact";
+import { Keystone } from "@/types/keystone";
+import { keystoneService } from "@/services/keystoneService";
+import { contactService } from "@/services/contactService";
+import { useToast } from "@/hooks/use-toast";
+
+const formSchema = z.object({
+  id: z.string().optional(),
+  title: z.string().min(3, "Title must be at least 3 characters"),
+  date: z.date(),
+  notes: z.string().optional(),
+  contact_id: z.string().optional(),
+  category: z.string().min(1, "Category is required"),
+  is_recurring: z.boolean().default(false),
+  recurrence_frequency: z.string().optional(),
+  due_date: z.date().optional(),
+});
+
+const categories = [
+  "Birthday",
+  "Anniversary",
+  "Follow-up",
+  "Meeting",
+  "Event",
+  "Reminder",
+  "Other",
+];
 
 interface KeystoneFormProps {
   keystone?: Keystone;
   contact?: Contact;
   onSuccess: () => void;
   onCancel: () => void;
+  onDelete?: () => void;
 }
 
 export default function KeystoneForm({
@@ -39,263 +73,299 @@ export default function KeystoneForm({
   contact,
   onSuccess,
   onCancel,
+  onDelete,
 }: KeystoneFormProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
   const [contacts, setContacts] = useState<Contact[]>([]);
-  const [isLoadingContacts, setIsLoadingContacts] = useState(false);
-  const [formData, setFormData] = useState<{
-    title: string;
-    date: Date;
-    category?: string;
-    contact_id?: string;
-    is_recurring: boolean;
-    recurrence_frequency?: string;
-  }>({
-    title: keystone?.title || "",
-    date: keystone ? new Date(keystone.date) : new Date(),
-    category: keystone?.category || "",
-    contact_id: keystone?.contact_id || contact?.id,
-    is_recurring: keystone?.is_recurring || false,
-    recurrence_frequency: keystone?.recurrence_frequency || "",
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      title: keystone?.title || "",
+      date: keystone?.date ? new Date(keystone.date) : new Date(),
+      notes: keystone?.notes || "",
+      contact_id: keystone?.contact_id || contact?.id || "",
+      category: keystone?.category || "Reminder",
+      is_recurring: keystone?.is_recurring || false,
+      recurrence_frequency: keystone?.recurrence_frequency || "Monthly",
+    },
   });
 
-  const { toast } = useToast();
+  const isRecurring = form.watch("is_recurring");
 
   useEffect(() => {
-    if (contact) {
-      setFormData((prev) => ({ ...prev, contact_id: contact.id }));
-    }
-  }, [contact]);
-
-  useEffect(() => {
-    const fetchContacts = async () => {
+    const loadContacts = async () => {
       try {
-        setIsLoadingContacts(true);
-        const contactsData = await contactService.getContacts();
-        setContacts(contactsData);
+        const data = await contactService.getContacts();
+        setContacts(data);
       } catch (error) {
-        console.error("Error fetching contacts:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load contacts",
-          variant: "destructive"
-        });
-      } finally {
-        setIsLoadingContacts(false);
+        console.error("Error loading contacts:", error);
       }
     };
 
-    if (!contact) {
-      fetchContacts();
-    }
-  }, [contact, toast]);
+    loadContacts();
+  }, []);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value || undefined }));
-  };
-
-  const handleDateChange = (date: Date | undefined) => {
-    if (date) {
-      setFormData((prev) => ({ ...prev, date }));
-    }
-  };
-
-  const toggleRecurring = () => {
-    setFormData((prev) => ({
-      ...prev,
-      is_recurring: !prev.is_recurring,
-      recurrence_frequency: !prev.is_recurring ? "Monthly" : undefined
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.title) {
-      toast({
-        title: "Missing title",
-        description: "Please enter a title for this keystone",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    setLoading(true);
     try {
-      setIsSubmitting(true);
-      
-      const keystoneData = {
-        title: formData.title,
-        date: formData.date.toISOString(),
-        category: formData.category,
-        contact_id: formData.contact_id,
-        is_recurring: formData.is_recurring,
-        recurrence_frequency: formData.is_recurring ? formData.recurrence_frequency : undefined
-      };
-      
       if (keystone?.id) {
-        await keystoneService.updateKeystone(keystone.id, keystoneData);
+        await keystoneService.updateKeystone(keystone.id, {
+          title: values.title,
+          date: values.date,
+          notes: values.notes,
+          contact_id: values.contact_id,
+          category: values.category,
+          is_recurring: values.is_recurring,
+          recurrence_frequency: values.is_recurring
+            ? values.recurrence_frequency
+            : undefined,
+        });
+
         toast({
           title: "Keystone updated",
-          description: "The keystone has been successfully updated."
+          description: "Your keystone has been updated successfully.",
         });
       } else {
-        await keystoneService.createKeystone(keystoneData);
+        await keystoneService.createKeystone({
+          title: values.title,
+          date: values.date.toISOString(),
+          notes: values.notes,
+          contact_id: values.contact_id,
+          category: values.category,
+          is_recurring: values.is_recurring,
+          recurrence_frequency: values.is_recurring
+            ? values.recurrence_frequency
+            : undefined,
+        });
+
         toast({
           title: "Keystone created",
-          description: "The keystone has been successfully created."
+          description: "Your new keystone has been created successfully.",
         });
       }
-      
+
       onSuccess();
     } catch (error: any) {
+      console.error("Error saving keystone:", error);
       toast({
         title: "Error",
-        description: error.message || "Something went wrong",
+        description: error.message || "Failed to save keystone. Please try again.",
         variant: "destructive",
       });
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="title">Title*</Label>
-        <Input
-          id="title"
-          name="title"
-          value={formData.title}
-          onChange={handleChange}
-          required
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="date">Date*</Label>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant={"outline"}
-              className={cn(
-                "w-full justify-start text-left font-normal",
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {formData.date ? format(formData.date, "PPP") : <span>Pick a date</span>}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={formData.date}
-              onSelect={handleDateChange}
-              initialFocus
-              className="p-3 pointer-events-auto"
-            />
-          </PopoverContent>
-        </Popover>
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="category">Category</Label>
-        <Select
-          value={formData.category}
-          onValueChange={(value) => handleSelectChange("category", value)}
-        >
-          <SelectTrigger id="category">
-            <SelectValue placeholder="Select category" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Birthday">Birthday</SelectItem>
-            <SelectItem value="Anniversary">Anniversary</SelectItem>
-            <SelectItem value="Work">Work</SelectItem>
-            <SelectItem value="Personal">Personal</SelectItem>
-            <SelectItem value="Holiday">Holiday</SelectItem>
-            <SelectItem value="Other">Other</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      
-      {!contact && (
-        <div className="space-y-2">
-          <Label htmlFor="contact">Related Contact</Label>
-          <Select
-            value={formData.contact_id}
-            onValueChange={(value) => handleSelectChange("contact_id", value)}
-          >
-            <SelectTrigger id="contact">
-              <SelectValue placeholder={isLoadingContacts ? "Loading contacts..." : "Select contact"} />
-            </SelectTrigger>
-            <SelectContent>
-              {contacts.map(contact => (
-                <SelectItem key={contact.id} value={contact.id}>
-                  {contact.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
-      
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="is_recurring">Recurring</Label>
-          <Switch
-            id="is_recurring"
-            checked={formData.is_recurring}
-            onCheckedChange={toggleRecurring}
+    <div className="max-h-[80vh] overflow-y-auto">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="title"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Title</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter keystone title" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </div>
-        
-        {formData.is_recurring && (
-          <div className="mt-2">
-            <Label htmlFor="recurrence_frequency">Frequency</Label>
-            <Select
-              value={formData.recurrence_frequency}
-              onValueChange={(value) => handleSelectChange("recurrence_frequency", value)}
-            >
-              <SelectTrigger id="recurrence_frequency">
-                <SelectValue placeholder="Select frequency" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Daily">Daily</SelectItem>
-                <SelectItem value="Weekly">Weekly</SelectItem>
-                <SelectItem value="Biweekly">Biweekly</SelectItem>
-                <SelectItem value="Monthly">Monthly</SelectItem>
-                <SelectItem value="Bimonthly">Bimonthly</SelectItem>
-                <SelectItem value="Quarterly">Quarterly</SelectItem>
-                <SelectItem value="Yearly">Yearly</SelectItem>
-              </SelectContent>
-            </Select>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="date"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Date</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, "PPP")
+                          ) : (
+                            <span>Pick a date</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a category" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category} value={category}>
+                          {category}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
-        )}
-      </div>
-      
-      <div className="flex justify-end gap-2 pt-4">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
-          disabled={isSubmitting}
-        >
-          Cancel
-        </Button>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting
-            ? "Saving..."
-            : keystone?.id
-            ? "Update Keystone"
-            : "Create Keystone"}
-        </Button>
-      </div>
-    </form>
+
+          <FormField
+            control={form.control}
+            name="contact_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Contact (Optional)</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value || ""}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a contact" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="">None</SelectItem>
+                    {contacts.map((contact) => (
+                      <SelectItem key={contact.id} value={contact.id}>
+                        {contact.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="is_recurring"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                <div className="space-y-0.5">
+                  <FormLabel>Recurring Event</FormLabel>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
+          {isRecurring && (
+            <FormField
+              control={form.control}
+              name="recurrence_frequency"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Frequency</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select frequency" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Daily">Daily</SelectItem>
+                      <SelectItem value="Weekly">Weekly</SelectItem>
+                      <SelectItem value="Monthly">Monthly</SelectItem>
+                      <SelectItem value="Quarterly">Quarterly</SelectItem>
+                      <SelectItem value="Yearly">Yearly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
+          <FormField
+            control={form.control}
+            name="notes"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Notes (Optional)</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Add any additional notes"
+                    className="resize-none"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="flex flex-col gap-4">
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={onCancel}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={loading}>
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {keystone?.id ? "Update" : "Create"} Keystone
+              </Button>
+            </div>
+            
+            {keystone?.id && onDelete && (
+              <Button 
+                type="button" 
+                variant="destructive" 
+                onClick={onDelete}
+                className="mt-2 flex items-center gap-1 w-full sm:w-auto sm:self-end"
+              >
+                <Trash size={16} />
+                Delete Keystone
+              </Button>
+            )}
+          </div>
+        </form>
+      </Form>
+    </div>
   );
 }

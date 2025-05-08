@@ -1,4 +1,3 @@
-
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -13,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useNavigate } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
-import { LogOut, HelpCircle, MailQuestion, Bug, Scale } from "lucide-react";
+import { LogOut, HelpCircle, MailQuestion, Bug, Scale, Upload } from "lucide-react";
 
 const Settings = () => {
   const { toast } = useToast();
@@ -86,17 +85,6 @@ const Settings = () => {
     setUploading(true);
 
     try {
-      // Check if avatars bucket exists, create if not
-      const { data: buckets } = await supabase.storage.listBuckets();
-      const avatarsBucketExists = buckets?.some(bucket => bucket.name === 'avatars');
-      
-      if (!avatarsBucketExists) {
-        await supabase.storage.createBucket('avatars', {
-          public: true,
-          fileSizeLimit: 1024 * 1024 * 2 // 2MB limit
-        });
-      }
-
       // Delete old avatar if exists
       if (profile?.avatar_url) {
         try {
@@ -292,11 +280,14 @@ const Settings = () => {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="cursor-pointer" 
+                      className="cursor-pointer flex items-center gap-1" 
                       disabled={uploading}
-                      onClick={() => document.getElementById('avatar-upload')?.click()}
+                      asChild
                     >
-                      {uploading ? "Uploading..." : "Upload Photo"}
+                      <span>
+                        <Upload size={16} />
+                        {uploading ? "Uploading..." : "Upload Photo"}
+                      </span>
                     </Button>
                   </label>
                 </div>

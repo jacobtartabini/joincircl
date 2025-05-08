@@ -1,91 +1,73 @@
 
-import { Card, CardContent } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { forwardRef } from "react";
 import { format } from "date-fns";
-
-export interface KeystoneProps {
-  id: string;
-  title: string;
-  date: string;  // Changed from Date to string to match backend
-  category: string;
-  contactId: string;
-  contactName: string;
-  contactAvatar?: string;
-}
+import { cn } from "@/lib/utils";
+import { Calendar } from "lucide-react";
 
 interface KeystoneCardProps {
-  keystone: KeystoneProps;
+  keystone: {
+    id: string;
+    title: string;
+    date: string;
+    category?: string;
+    contactId?: string;
+    contactName?: string;
+    contactAvatar?: string;
+  };
   className?: string;
-  onClick?: (keystone: KeystoneProps) => void;
-  onEdit?: () => void;
   isPast?: boolean;
+  onEdit?: () => void;
 }
 
-export function KeystoneCard({
-  keystone,
-  className,
-  onClick,
-  onEdit,
-  isPast,
-}: KeystoneCardProps) {
-  const handleClick = () => {
-    if (onClick) onClick(keystone);
-    else if (onEdit) onEdit();
-  };
-
-  // Parse the string date to a Date object for formatting
-  const dateObject = new Date(keystone.date);
-  
-  // Display a hyphen if contactName is "No Contact" or empty
-  const displayContactName = (!keystone.contactName || keystone.contactName === "No Contact") 
-    ? "-" 
-    : keystone.contactName;
+export const KeystoneCard = forwardRef<HTMLDivElement, KeystoneCardProps>((props, ref) => {
+  const { keystone, isPast, className, onEdit } = props;
 
   return (
-    <Card
+    <div
+      ref={ref}
       className={cn(
-        "overflow-hidden card-hover cursor-pointer", 
-        isPast && "opacity-70",
+        "relative border rounded-md p-4 bg-white hover:bg-gray-50 transition-colors cursor-pointer",
+        isPast && "bg-gray-50/50",
         className
       )}
-      onClick={handleClick}
+      onClick={onEdit}
     >
-      <CardContent className="p-4">
-        <div className="flex gap-3">
-          <div className="min-w-12 text-center">
-            <div className="text-sm font-medium text-muted-foreground">
-              {format(dateObject, "MMM")}
-            </div>
-            <div className="text-2xl font-bold">
-              {format(dateObject, "d")}
-            </div>
+      <div className="flex justify-between gap-2">
+        <div className="flex-1">
+          <h3 className={cn("font-medium mb-1", isPast && "text-muted-foreground")}>
+            {keystone.title}
+          </h3>
+          <div className="flex items-center text-xs text-muted-foreground mb-3">
+            <Calendar className="h-3 w-3 mr-1" />
+            <span>{format(new Date(keystone.date), "PPP")}</span>
           </div>
-          <div>
-            <div className="font-medium">{keystone.title}</div>
-            <div className="flex items-center gap-2 mt-1">
-              <div className="w-5 h-5 bg-circl-lightBlue/20 rounded-full flex items-center justify-center text-circl-blue text-xs">
+          
+          {keystone.contactId && (
+            <div className="flex items-center gap-2 mt-2">
+              <div className="h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center text-xs text-blue-700 overflow-hidden">
                 {keystone.contactAvatar ? (
-                  <img
-                    src={keystone.contactAvatar}
-                    alt={displayContactName}
-                    className="w-full h-full object-cover rounded-full"
+                  <img 
+                    src={keystone.contactAvatar} 
+                    alt={keystone.contactName || "Contact"} 
+                    className="w-full h-full object-cover"
                   />
                 ) : (
-                  displayContactName.charAt(0)
+                  keystone.contactName?.charAt(0) || "C"
                 )}
               </div>
-              <div className="text-sm text-muted-foreground">
-                {displayContactName}
-              </div>
+              <span className="text-sm">{keystone.contactName}</span>
             </div>
-            <div className="mt-2">
-              <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs">
-                {keystone.category}
-              </span>
-            </div>
-          </div>
+          )}
         </div>
-      </CardContent>
-    </Card>
+        
+        {keystone.category && (
+          <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+            {keystone.category}
+          </span>
+        )}
+      </div>
+    </div>
   );
-}
+});
+
+KeystoneCard.displayName = "KeystoneCard";
