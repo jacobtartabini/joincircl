@@ -350,13 +350,47 @@ export default function ContactDetail() {
   const images = contactMedia.filter(media => media.is_image);
   const documents = contactMedia.filter(media => !media.is_image);
   
-  return <div className="space-y-6 animate-fade-in">
+return (
+  <div className="space-y-6 animate-fade-in">
+    <div className="flex justify-between items-center">
+      <Link to="/circles" className="text-sm text-blue-600 hover:underline flex items-center">
+        ← Back to Contacts
+      </Link>
+      <div className="flex gap-2">
+        <Button variant="outline" size="sm" onClick={() => setIsEditDialogOpen(true)}>
+          <Edit size={16} className="mr-1" />
+          Edit
+        </Button>
+        <Button variant="destructive" size="sm" onClick={() => setIsDeleteDialogOpen(true)}>
+          <Trash size={16} className="mr-1" />
+          Delete
+        </Button>
+      </div>
+    </div>
+
+    {isEditDialogOpen && <ContactForm onClose={() => setIsEditDialogOpen(false)} />}
+  </div>
+)
+Make sure ContactForm.tsx accepts an onClose prop if needed.
+
+✅ Option 2: Navigating to a Route for ContactForm
+If ContactForm is a separate route:
+
+tsx
+Copy
+Edit
+import { useNavigate } from 'react-router-dom'
+
+const navigate = useNavigate()
+
+  return (
+    <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
         <Link to="/circles" className="text-sm text-blue-600 hover:underline flex items-center">
           ← Back to Contacts
         </Link>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => setIsEditDialogOpen(true)}>
+          <Button variant="outline" size="sm" onClick={() => navigate('/edit-contact')}>
             <Edit size={16} className="mr-1" />
             Edit
           </Button>
@@ -366,6 +400,8 @@ export default function ContactDetail() {
           </Button>
         </div>
       </div>
+    </div>
+  )
       
       {/* Main content grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
