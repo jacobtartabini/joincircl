@@ -38,11 +38,13 @@ const Circles = () => {
       const data = await contactService.getContacts();
       setContacts(data);
       
-      // Extract unique tags from all contacts
+      // Extract unique tags from all contacts, safely handling undefined tags
       const allTags = new Set<string>();
       data.forEach(contact => {
         if (contact.tags && Array.isArray(contact.tags)) {
-          contact.tags.forEach(tag => allTags.add(tag));
+          contact.tags.forEach(tag => {
+            if (tag) allTags.add(tag);
+          });
         }
       });
       
@@ -84,6 +86,9 @@ const Circles = () => {
     fetchContacts();
   };
 
+  // Ensure we have an array of tag values even if availableTags is undefined
+  const tagValues = availableTags ? availableTags.map(tag => tag.value) : [];
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
@@ -99,7 +104,7 @@ const Circles = () => {
       </div>
 
       <SearchFilterBar 
-        allTags={availableTags.map(tag => tag.value)}
+        allTags={tagValues}
         selectedTags={selectedTags}
         onTagsChange={setSelectedTags}
         onAddContact={() => setIsAddDialogOpen(true)}

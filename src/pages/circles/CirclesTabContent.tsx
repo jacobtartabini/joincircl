@@ -19,8 +19,8 @@ interface CirclesTabContentProps {
 export const CirclesTabContent = ({
   value,
   contacts,
-  searchQuery,
-  selectedTags,
+  searchQuery = "",  // Provide default empty string
+  selectedTags = [],  // Provide default empty array
   isLoading,
   onAddInteraction,
   onViewInsights,
@@ -34,17 +34,19 @@ export const CirclesTabContent = ({
       }
       
       // Check if contact matches search query
+      const searchTerms = searchQuery.toLowerCase();
       const matchesSearch = searchQuery === "" || 
-        contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (contact.personal_email && contact.personal_email.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (contact.mobile_phone && contact.mobile_phone.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (contact.company_name && contact.company_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (contact.job_title && contact.job_title.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (contact.notes && contact.notes.toLowerCase().includes(searchQuery.toLowerCase()));
+        contact.name.toLowerCase().includes(searchTerms) ||
+        (contact.personal_email && contact.personal_email.toLowerCase().includes(searchTerms)) ||
+        (contact.mobile_phone && contact.mobile_phone.toLowerCase().includes(searchTerms)) ||
+        (contact.company_name && contact.company_name.toLowerCase().includes(searchTerms)) ||
+        (contact.job_title && contact.job_title.toLowerCase().includes(searchTerms)) ||
+        (contact.notes && contact.notes.toLowerCase().includes(searchTerms));
       
-      // Check if contact has all selected tags
+      // Check if contact has all selected tags - safely handle undefined tags
+      const contactTags = contact.tags || [];
       const matchesTags = selectedTags.length === 0 || 
-        (contact.tags && selectedTags.every(tag => contact.tags?.includes(tag)));
+        selectedTags.every(tag => Array.isArray(contactTags) && contactTags.includes(tag));
       
       return matchesSearch && matchesTags;
     });

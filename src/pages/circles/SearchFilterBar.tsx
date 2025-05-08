@@ -19,12 +19,12 @@ interface SearchFilterBarProps {
 }
 
 export default function SearchFilterBar({
-  allTags,
-  selectedTags,
+  allTags = [],  // Provide default empty array
+  selectedTags = [],  // Provide default empty array
   onTagsChange,
   onAddContact,
   onRefresh,
-  searchQuery,
+  searchQuery = "",  // Provide default empty string
   onSearchChange
 }: SearchFilterBarProps) {
   const [open, setOpen] = useState(false);
@@ -43,6 +43,9 @@ export default function SearchFilterBar({
   const handleClearTags = () => {
     onTagsChange([]);
   };
+
+  // Safe list of tags - ensure allTags is always an array
+  const safeAllTags = Array.isArray(allTags) ? allTags : [];
 
   return (
     <div className="flex flex-col gap-4">
@@ -97,7 +100,7 @@ export default function SearchFilterBar({
           </>
         )}
 
-        {allTags.length > 0 && (
+        {safeAllTags.length > 0 && (
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
               <Button
@@ -113,10 +116,8 @@ export default function SearchFilterBar({
                 <CommandInput placeholder="Search tags..." />
                 <CommandEmpty>No tags found.</CommandEmpty>
                 <CommandGroup className="max-h-60 overflow-auto">
-                  {allTags
-                    .filter(
-                      (tag) => !selectedTags.includes(tag)
-                    )
+                  {safeAllTags
+                    .filter(tag => !selectedTags.includes(tag))
                     .map((tag) => (
                       <CommandItem
                         key={tag}
