@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -14,9 +13,11 @@ import ConnectionInsights from "@/components/contact/ConnectionInsights";
 import { calculateConnectionStrength } from "@/utils/connectionStrength";
 import { SearchBar, MultiSelect, FilterOption } from "@/components/ui/search-filter";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { useNavigate } from "react-router-dom";
 
 const Circles = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -77,6 +78,10 @@ const Circles = () => {
   const handleViewInsights = (contact: Contact) => {
     setSelectedContact(contact);
     setIsInsightsDialogOpen(true);
+  };
+
+  const handleViewContact = (contact: Contact) => {
+    navigate(`/contacts/${contact.id}`);
   };
 
   const handleDialogSuccess = () => {
@@ -189,7 +194,7 @@ const Circles = () => {
                   contact={contact}
                   onAddNote={() => handleAddInteraction(contact)}
                   onViewInsights={() => handleViewInsights(contact)}
-                  onMarkComplete={() => handleEditContact(contact)}
+                  onMarkComplete={() => handleViewContact(contact)}
                 />
               ))}
             </div>
@@ -227,7 +232,7 @@ const Circles = () => {
                   contact={contact}
                   onAddNote={() => handleAddInteraction(contact)}
                   onViewInsights={() => handleViewInsights(contact)}
-                  onMarkComplete={() => handleEditContact(contact)}
+                  onMarkComplete={() => handleViewContact(contact)}
                 />
               ))}
             </div>
@@ -264,7 +269,7 @@ const Circles = () => {
                   contact={contact}
                   onAddNote={() => handleAddInteraction(contact)}
                   onViewInsights={() => handleViewInsights(contact)}
-                  onMarkComplete={() => handleEditContact(contact)}
+                  onMarkComplete={() => handleViewContact(contact)}
                 />
               ))}
             </div>
@@ -301,7 +306,7 @@ const Circles = () => {
                   contact={contact}
                   onAddNote={() => handleAddInteraction(contact)}
                   onViewInsights={() => handleViewInsights(contact)}
-                  onMarkComplete={() => handleEditContact(contact)}
+                  onMarkComplete={() => handleViewContact(contact)}
                 />
               ))}
             </div>
