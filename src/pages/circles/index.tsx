@@ -6,7 +6,7 @@ import { contactService } from "@/services/contactService";
 import { Contact } from "@/types/contact";
 import { Plus } from "lucide-react";
 import { CirclesTabContent } from "./CirclesTabContent";
-import { SearchFilterBar } from "./SearchFilterBar";
+import SearchFilterBar from "./SearchFilterBar";
 import { CirclesTabs } from "./CirclesTabs";
 import { AddContactDialog } from "./dialogs/AddContactDialog";
 import { EditContactDialog } from "./dialogs/EditContactDialog";
@@ -99,11 +99,13 @@ const Circles = () => {
       </div>
 
       <SearchFilterBar 
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
+        allTags={availableTags.map(tag => tag.value)}
         selectedTags={selectedTags}
-        setSelectedTags={setSelectedTags}
-        availableTags={availableTags}
+        onTagsChange={setSelectedTags}
+        onAddContact={() => setIsAddDialogOpen(true)}
+        onRefresh={fetchContacts}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
       />
 
       <CirclesTabs>
