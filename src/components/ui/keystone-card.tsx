@@ -35,6 +35,11 @@ export function KeystoneCard({
 
   // Parse the string date to a Date object for formatting
   const dateObject = new Date(keystone.date);
+  
+  // Display a hyphen if contactName is "No Contact" or empty
+  const displayContactName = (!keystone.contactName || keystone.contactName === "No Contact") 
+    ? "-" 
+    : keystone.contactName;
 
   return (
     <Card
@@ -62,15 +67,15 @@ export function KeystoneCard({
                 {keystone.contactAvatar ? (
                   <img
                     src={keystone.contactAvatar}
-                    alt={keystone.contactName}
+                    alt={displayContactName}
                     className="w-full h-full object-cover rounded-full"
                   />
                 ) : (
-                  keystone.contactName.charAt(0)
+                  displayContactName.charAt(0)
                 )}
               </div>
               <div className="text-sm text-muted-foreground">
-                {keystone.contactName}
+                {displayContactName}
               </div>
             </div>
             <div className="mt-2">

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash } from "lucide-react";
@@ -224,17 +223,15 @@ const Keystones = () => {
                   setSelectedKeystone(null);
                 }}
               />
-              <div className="mt-4 pt-4 border-t flex justify-end">
-                <Button 
-                  variant="destructive" 
-                  size="sm"
-                  onClick={handleDeleteClick}
-                  className="flex items-center gap-1"
-                >
-                  <Trash size={16} />
-                  Delete Keystone
-                </Button>
-              </div>
+              <Button 
+                variant="destructive" 
+                size="sm"
+                onClick={handleDeleteClick}
+                className="mt-4 flex items-center gap-1 ml-auto"
+              >
+                <Trash size={16} />
+                Delete Keystone
+              </Button>
             </>
           )}
         </DialogContent>

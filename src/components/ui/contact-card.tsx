@@ -1,3 +1,4 @@
+
 import { Contact } from "@/types/contact";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -39,13 +40,27 @@ export const ContactCard = ({
         </div>
 
         <div className="grid grid-cols-1 gap-2">
-          <Button variant="outline" size="sm" onClick={onAddNote}>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={onAddNote}
+            className="w-full text-sm whitespace-nowrap"
+          >
             Log Interaction
           </Button>
-          <Button variant="outline" size="sm" onClick={onViewInsights}>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={onViewInsights}
+            className="w-full text-sm whitespace-nowrap"
+          >
             View Insights
           </Button>
-          <Button size="sm" onClick={onMarkComplete}>
+          <Button 
+            size="sm" 
+            onClick={onMarkComplete}
+            className="w-full text-sm whitespace-nowrap"
+          >
             View Contact
           </Button>
         </div>

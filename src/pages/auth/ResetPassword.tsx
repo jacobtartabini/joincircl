@@ -19,8 +19,13 @@ export default function ResetPassword() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleUser, setIsGoogleUser] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasAccessToken, setHasAccessToken] = useState(false);
 
   useEffect(() => {
+    // Check if there's an access token in the URL (from password reset email)
+    const hasToken = window.location.hash.includes("#access_token=");
+    setHasAccessToken(hasToken);
+    
     const checkGoogleUser = async () => {
       if (!user) return;
       
@@ -37,7 +42,7 @@ export default function ResetPassword() {
   }, [user]);
 
   // If user is already signed in and it's not a password reset flow, redirect to home
-  if (user && !window.location.hash.includes("#access_token=")) {
+  if (user && !hasAccessToken) {
     return <Navigate to="/" replace />;
   }
 

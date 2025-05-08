@@ -26,7 +26,7 @@ export default function ForgotPassword() {
     
     setIsSubmitting(true);
     try {
-      // Use Supabase auth resetPassword with redirectTo pointing to our new reset password page
+      // Use Supabase auth resetPassword with redirectTo pointing to our reset password page
       await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth/reset-password`,
       });
