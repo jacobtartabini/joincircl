@@ -94,7 +94,7 @@ export default function SearchFilterBar({
                     .map((tag) => (
                       <CommandItem
                         key={tag}
-                        value={tag || " "}
+                        value={tag || "placeholder"}
                         onSelect={() => handleTagSelect(tag)}
                       >
                         {tag}

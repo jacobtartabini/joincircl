@@ -30,6 +30,8 @@ export const CirclesTabContent = ({
   const safeContacts = Array.isArray(contacts) ? contacts : [];
   // Ensure selectedTags is an array
   const safeSelectedTags = Array.isArray(selectedTags) ? selectedTags : [];
+  // Ensure searchQuery is a string
+  const safeSearchQuery = typeof searchQuery === 'string' ? searchQuery : '';
   
   const filteredContacts = useMemo(() => {
     return safeContacts.filter(contact => {
@@ -39,8 +41,8 @@ export const CirclesTabContent = ({
       }
       
       // Check if contact matches search query
-      const searchTerms = (searchQuery || "").toLowerCase();
-      const matchesSearch = searchQuery === "" || 
+      const searchTerms = safeSearchQuery.toLowerCase();
+      const matchesSearch = safeSearchQuery === "" || 
         contact.name.toLowerCase().includes(searchTerms) ||
         (contact.personal_email && contact.personal_email.toLowerCase().includes(searchTerms)) ||
         (contact.mobile_phone && contact.mobile_phone.toLowerCase().includes(searchTerms)) ||
@@ -55,7 +57,7 @@ export const CirclesTabContent = ({
       
       return matchesSearch && matchesTags;
     });
-  }, [safeContacts, value, searchQuery, safeSelectedTags]);
+  }, [safeContacts, value, safeSearchQuery, safeSelectedTags]);
 
   const circleTypeName = value === "all" ? "" : `${value} circle `;
   
@@ -67,7 +69,7 @@ export const CirclesTabContent = ({
         <ContactGrid contacts={filteredContacts} onAddInteraction={onAddInteraction} onViewInsights={onViewInsights} />
       ) : (
         <EmptyState 
-          searchActive={searchQuery !== "" || safeSelectedTags.length > 0} 
+          searchActive={safeSearchQuery !== "" || safeSelectedTags.length > 0} 
           circleType={value}
           onAddContact={onAddContact}
         />

@@ -36,19 +36,18 @@ const Circles = () => {
     try {
       setIsLoading(true);
       const data = await contactService.getContacts();
-      setContacts(data || []);
+      const safeData = Array.isArray(data) ? data : [];
+      setContacts(safeData);
       
       // Extract unique tags from all contacts, safely handling undefined tags
       const allTags = new Set<string>();
-      if (Array.isArray(data)) {
-        data.forEach(contact => {
-          if (contact.tags && Array.isArray(contact.tags)) {
-            contact.tags.forEach(tag => {
-              if (tag) allTags.add(tag);
-            });
-          }
-        });
-      }
+      safeData.forEach(contact => {
+        if (contact.tags && Array.isArray(contact.tags)) {
+          contact.tags.forEach(tag => {
+            if (tag) allTags.add(tag);
+          });
+        }
+      });
       
       setAvailableTags(Array.from(allTags));
     } catch (error) {
@@ -87,7 +86,8 @@ const Circles = () => {
   };
 
   // Ensure we have an array of tag values
-  const tagValues = availableTags || [];
+  const tagValues = Array.isArray(availableTags) ? availableTags : [];
+  const safeSelectedTags = Array.isArray(selectedTags) ? selectedTags : [];
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -105,7 +105,7 @@ const Circles = () => {
 
       <SearchFilterBar 
         allTags={tagValues}
-        selectedTags={selectedTags}
+        selectedTags={safeSelectedTags}
         onTagsChange={setSelectedTags}
         onAddContact={() => setIsAddDialogOpen(true)}
         onRefresh={fetchContacts}
@@ -118,7 +118,7 @@ const Circles = () => {
           value="all" 
           contacts={contacts}
           searchQuery={searchQuery}
-          selectedTags={selectedTags}
+          selectedTags={safeSelectedTags}
           isLoading={isLoading}
           onAddInteraction={handleAddInteraction}
           onViewInsights={handleViewInsights}
@@ -128,7 +128,7 @@ const Circles = () => {
           value="inner" 
           contacts={contacts}
           searchQuery={searchQuery}
-          selectedTags={selectedTags}
+          selectedTags={safeSelectedTags}
           isLoading={isLoading}
           onAddInteraction={handleAddInteraction}
           onViewInsights={handleViewInsights}
@@ -138,7 +138,7 @@ const Circles = () => {
           value="middle" 
           contacts={contacts}
           searchQuery={searchQuery}
-          selectedTags={selectedTags}
+          selectedTags={safeSelectedTags}
           isLoading={isLoading}
           onAddInteraction={handleAddInteraction}
           onViewInsights={handleViewInsights}
@@ -148,7 +148,7 @@ const Circles = () => {
           value="outer" 
           contacts={contacts}
           searchQuery={searchQuery}
-          selectedTags={selectedTags}
+          selectedTags={safeSelectedTags}
           isLoading={isLoading}
           onAddInteraction={handleAddInteraction}
           onViewInsights={handleViewInsights}
