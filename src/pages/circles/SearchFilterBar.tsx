@@ -46,6 +46,8 @@ export default function SearchFilterBar({
 
   // Safe list of tags - ensure allTags is always an array
   const safeAllTags = Array.isArray(allTags) ? allTags : [];
+  // Safe list of selected tags - ensure selectedTags is always an array
+  const safeSelectedTags = Array.isArray(selectedTags) ? selectedTags : [];
 
   return (
     <div className="flex flex-col gap-4">
@@ -88,7 +90,7 @@ export default function SearchFilterBar({
                 <CommandEmpty>No tags found.</CommandEmpty>
                 <CommandGroup className="max-h-60 overflow-auto">
                   {safeAllTags
-                    .filter(tag => !selectedTags.includes(tag))
+                    .filter(tag => !safeSelectedTags.includes(tag))
                     .map((tag) => (
                       <CommandItem
                         key={tag}
@@ -108,10 +110,10 @@ export default function SearchFilterBar({
       </div>
 
       <div className="flex items-center gap-2">
-        {selectedTags.length > 0 && (
+        {safeSelectedTags.length > 0 && (
           <>
             <div className="flex flex-wrap gap-1 items-center">
-              {selectedTags.map((tag) => (
+              {safeSelectedTags.map((tag) => (
                 <Badge key={tag} variant="secondary" className="flex items-center gap-1">
                   {tag}
                   <X
