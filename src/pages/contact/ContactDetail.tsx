@@ -654,20 +654,6 @@ export default function ContactDetail() {
         </div>
       </div>
       
-      {/* Edit Contact Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit Contact</DialogTitle>
-          </DialogHeader>
-          <ContactForm 
-            contact={contact} 
-            onSuccess={(updatedContact) => handleContactUpdate(updatedContact, contact.birthday)} 
-            onCancel={() => setIsEditDialogOpen(false)} 
-          />
-        </DialogContent>
-      </Dialog>
-      
       {/* Add Keystone Dialog */}
       <Dialog open={isAddKeystoneDialogOpen} onOpenChange={setIsAddKeystoneDialogOpen}>
         <DialogContent className="max-w-md">
