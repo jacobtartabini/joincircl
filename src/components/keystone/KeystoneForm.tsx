@@ -254,7 +254,7 @@ export default function KeystoneForm({
                 <FormLabel>Contact (Optional)</FormLabel>
                 <Select
                   onValueChange={field.onChange}
-                  defaultValue={field.value || ""}
+                  defaultValue={field.value || "none"}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -262,7 +262,7 @@ export default function KeystoneForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {contacts.map((contact) => (
                       <SelectItem key={contact.id} value={contact.id}>
                         {contact.name}

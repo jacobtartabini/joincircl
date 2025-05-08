@@ -157,7 +157,7 @@ export const ContactFormBasicTab = ({
       <div className="space-y-2">
         <Label htmlFor="circle">Circle</Label>
         <Select
-          value={formData.circle}
+          value={formData.circle || "outer"}
           onValueChange={handleCircleChange}
         >
           <SelectTrigger id="circle">
