@@ -204,7 +204,7 @@ export default function ContactDetail() {
     }
   };
   
-  const handleContactUpdate = async (updatedContact: Contact, previousBirthday: string | undefined | null) => {
+  const handleContactUpdate = async (updatedContact: Contact, previousBirthday?: string | null) => {
     if (!id) return;
     try {
       const refreshedContact = await contactService.getContact(id);
@@ -738,7 +738,7 @@ export default function ContactDetail() {
           {contact && (
             <ContactForm
               contact={contact}
-              onSuccess={handleContactUpdate}
+              onSuccess={(updatedContact, prevBirthday) => handleContactUpdate(updatedContact, prevBirthday)}
               onCancel={() => setIsEditDialogOpen(false)}
             />
           )}

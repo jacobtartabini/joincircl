@@ -10,6 +10,7 @@ export interface Keystone {
   user_id: string;
   is_recurring?: boolean;
   recurrence_frequency?: string;
+  notes?: string; // Add the missing notes property
   created_at: string;
   updated_at: string;
 }

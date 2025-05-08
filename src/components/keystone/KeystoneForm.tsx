@@ -113,7 +113,7 @@ export default function KeystoneForm({
       if (keystone?.id) {
         await keystoneService.updateKeystone(keystone.id, {
           title: values.title,
-          date: values.date,
+          date: values.date.toISOString(), // Convert Date to string
           notes: values.notes,
           contact_id: values.contact_id,
           category: values.category,

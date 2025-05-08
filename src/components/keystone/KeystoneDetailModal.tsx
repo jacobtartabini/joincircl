@@ -1,4 +1,3 @@
-
 import { Keystone } from "@/types/keystone";
 import {
   Dialog,
@@ -92,7 +91,7 @@ export default function KeystoneDetailModal({
             </Button>
             <Button 
               variant="destructive" 
-              onClick={() => setIsDeleteDialogOpen(true)}
+              onClick={() => onDelete()}
               className="flex gap-1 items-center"
             >
               <Trash size={16} /> Delete
