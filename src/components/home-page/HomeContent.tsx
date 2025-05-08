@@ -1,20 +1,21 @@
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ContactForm from "@/components/contact/ContactForm";
 import { Plus } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import NetworkRecommendations from "@/components/home/NetworkRecommendations";
+import { useAuth } from "@/contexts/AuthContext";
 import { useContacts } from "@/hooks/use-contacts";
+import NetworkRecommendations from "@/components/home/NetworkRecommendations";
 import { RecentContacts } from "@/components/home/RecentContacts";
 import { ContactStats } from "@/components/home/ContactStats";
+import { WelcomeBanner } from "./WelcomeBanner";
+import { useWelcomeTutorial } from "./hooks/use-welcome-tutorial";
 
-const Home = () => {
+const HomeContent = () => {
   const { toast } = useToast();
-  const { user, hasSeenTutorial, setHasSeenTutorial } = useAuth();
+  const { user } = useAuth();
   const { 
     contacts, 
     isLoading, 
@@ -30,30 +31,8 @@ const Home = () => {
   const recentContacts = getRecentContacts(4);
   const distribution = getContactDistribution();
 
-  useEffect(() => {
-    // Save that the user has seen the tutorial
-    if (!hasSeenTutorial && user) {
-      const updateUserTutorialStatus = async () => {
-        try {
-          // Safely update the profile with the has_seen_tutorial property
-          const { error } = await supabase
-            .from('profiles')
-            .update({ has_seen_tutorial: true })
-            .eq('id', user.id);
-            
-          if (!error) {
-            setHasSeenTutorial(true);
-          } else {
-            console.error("Error updating tutorial status:", error);
-          }
-        } catch (error) {
-          console.error("Error updating tutorial status:", error);
-        }
-      };
-      
-      updateUserTutorialStatus();
-    }
-  }, [user, hasSeenTutorial, setHasSeenTutorial]);
+  // Handle the welcome tutorial
+  useWelcomeTutorial();
 
   const handleContactAdded = async () => {
     try {
@@ -70,17 +49,7 @@ const Home = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Welcome to Circl</h1>
-          <p className="text-muted-foreground">
-            Your personal relationship manager
-          </p>
-        </div>
-        <Button size="sm" onClick={() => setIsAddDialogOpen(true)}>
-          <Plus size={16} className="mr-1" /> Add Contact
-        </Button>
-      </div>
+      <WelcomeBanner onAddContact={() => setIsAddDialogOpen(true)} />
 
       <ContactStats 
         totalContacts={contacts.length}
@@ -118,4 +87,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default HomeContent;
