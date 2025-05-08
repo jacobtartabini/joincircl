@@ -1,4 +1,3 @@
-
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -264,7 +263,7 @@ const Settings = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex flex-col items-center gap-2 mb-4">
+              <div className="flex flex-col items-start gap-2 mb-4">
                 <Avatar className="w-20 h-20">
                   <AvatarImage src={avatarUrl || ''} />
                   <AvatarFallback className="text-lg">

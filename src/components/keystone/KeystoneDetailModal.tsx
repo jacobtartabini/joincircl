@@ -1,3 +1,4 @@
+
 import { Keystone } from "@/types/keystone";
 import {
   Dialog,
@@ -47,6 +48,11 @@ export default function KeystoneDetailModal({
     await onDelete();
   };
 
+  const handleEdit = () => {
+    onOpenChange(false); // Close the detail modal first
+    onEdit(); // Then open edit modal
+  };
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -86,12 +92,12 @@ export default function KeystoneDetailModal({
           </ScrollArea>
           
           <div className="flex justify-end gap-2 pt-4 mt-auto">
-            <Button variant="outline" onClick={onEdit} className="flex gap-1 items-center">
+            <Button variant="outline" onClick={handleEdit} className="flex gap-1 items-center">
               <Edit size={16} /> Edit
             </Button>
             <Button 
               variant="destructive" 
-              onClick={() => onDelete()}
+              onClick={() => setIsDeleteDialogOpen(true)}
               className="flex gap-1 items-center"
             >
               <Trash size={16} /> Delete

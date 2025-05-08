@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, Tags, X } from "lucide-react";
+import { Search, Tags, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
@@ -69,10 +69,42 @@ export default function SearchFilterBar({
             </Button>
           )}
         </div>
+
+        {/* Filter button moved here, before import buttons */}
+        {safeAllTags.length > 0 && (
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 px-3 text-sm flex items-center"
+              >
+                <Tags className="h-4 w-4 mr-1" /> Filter
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-60 p-0" align="start">
+              <Command>
+                <CommandInput placeholder="Search tags..." />
+                <CommandEmpty>No tags found.</CommandEmpty>
+                <CommandGroup className="max-h-60 overflow-auto">
+                  {safeAllTags
+                    .filter(tag => !selectedTags.includes(tag))
+                    .map((tag) => (
+                      <CommandItem
+                        key={tag}
+                        value={tag}
+                        onSelect={() => handleTagSelect(tag)}
+                      >
+                        {tag}
+                      </CommandItem>
+                    ))}
+                </CommandGroup>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        )}
+        
         <CircleImportButtons onImportSuccess={onRefresh} />
-        <Button size="sm" onClick={onAddContact} className="whitespace-nowrap">
-          <Plus size={16} className="mr-1" /> Add Contact
-        </Button>
       </div>
 
       <div className="flex items-center gap-2">
@@ -98,39 +130,6 @@ export default function SearchFilterBar({
               Clear
             </Button>
           </>
-        )}
-
-        {safeAllTags.length > 0 && (
-          <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 px-2 text-xs border text-muted-foreground flex items-center"
-              >
-                <Tags className="h-3 w-3 mr-1" /> Filter by Tag
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-60 p-0" align="start">
-              <Command>
-                <CommandInput placeholder="Search tags..." />
-                <CommandEmpty>No tags found.</CommandEmpty>
-                <CommandGroup className="max-h-60 overflow-auto">
-                  {safeAllTags
-                    .filter(tag => !selectedTags.includes(tag))
-                    .map((tag) => (
-                      <CommandItem
-                        key={tag}
-                        value={tag}
-                        onSelect={() => handleTagSelect(tag)}
-                      >
-                        {tag}
-                      </CommandItem>
-                    ))}
-                </CommandGroup>
-              </Command>
-            </PopoverContent>
-          </Popover>
         )}
       </div>
     </div>
