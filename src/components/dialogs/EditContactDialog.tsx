@@ -1,5 +1,4 @@
 
-import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ContactForm from "@/components/contact/ContactForm";
 import { Contact } from "@/types/contact";
@@ -27,7 +26,10 @@ export default function EditContactDialog({
           <ContactForm
             contact={contact}
             onSuccess={(updatedContact, prevBirthday) => {
-              void onContactUpdate(updatedContact, prevBirthday);
+              if (updatedContact) {
+                void onContactUpdate(updatedContact, prevBirthday);
+              }
+              onOpenChange(false);
             }}
             onCancel={() => onOpenChange(false)}
           />
