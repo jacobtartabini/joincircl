@@ -61,7 +61,7 @@ export const KeystoneCard = forwardRef<HTMLDivElement, KeystoneCardProps>((props
         </div>
         
         {keystone.category && (
-          <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+          <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full h-fit whitespace-nowrap">
             {keystone.category}
           </span>
         )}

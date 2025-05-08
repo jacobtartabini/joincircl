@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash } from "lucide-react";
+import { Plus } from "lucide-react";
 import { keystoneService } from "@/services/keystoneService";
 import { useToast } from "@/hooks/use-toast";
 import { KeystoneCard } from "@/components/ui/keystone-card";
@@ -9,16 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import KeystoneForm from "@/components/keystone/KeystoneForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "react-router-dom";
-import { 
-  AlertDialog, 
-  AlertDialogAction, 
-  AlertDialogCancel, 
-  AlertDialogContent, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogHeader, 
-  AlertDialogTitle 
-} from "@/components/ui/alert-dialog";
+import KeystoneDetailModal from "@/components/keystone/KeystoneDetailModal";
 import { contactService } from "@/services/contactService";
 import { Contact } from "@/types/contact";
 
@@ -30,6 +21,7 @@ const Keystones = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedKeystone, setSelectedKeystone] = useState<Keystone | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isKeystoneDetailOpen, setIsKeystoneDetailOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -101,8 +93,13 @@ const Keystones = () => {
     });
   };
 
-  const handleEditKeystone = (keystone: Keystone) => {
+  const handleKeystoneClick = (keystone: Keystone) => {
     setSelectedKeystone(keystone);
+    setIsKeystoneDetailOpen(true);
+  };
+
+  const handleEditKeystone = () => {
+    setIsKeystoneDetailOpen(false);
     setIsEditDialogOpen(true);
   };
 
@@ -110,12 +107,13 @@ const Keystones = () => {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteKeystone = async () => {
     if (!selectedKeystone) return;
     
     try {
       await keystoneService.deleteKeystone(selectedKeystone.id);
       setIsDeleteDialogOpen(false);
+      setIsKeystoneDetailOpen(false);
       setIsEditDialogOpen(false);
       setSelectedKeystone(null);
       fetchKeystones();
@@ -179,12 +177,12 @@ const Keystones = () => {
                       id: keystone.id,
                       title: keystone.title,
                       date: keystone.due_date || keystone.date,
-                      category: keystone.category || "Event",
+                      category: keystone.category || undefined,
                       contactId: keystone.contact_id || "",
                       contactName: contactDetails?.name || keystone.contact_name || "",
                       contactAvatar: contactDetails?.avatar_url
                     }}
-                    onEdit={() => handleEditKeystone(keystone)}
+                    onEdit={() => handleKeystoneClick(keystone)}
                   />
                 );
               })}
@@ -221,12 +219,12 @@ const Keystones = () => {
                       id: keystone.id,
                       title: keystone.title,
                       date: keystone.due_date || keystone.date,
-                      category: keystone.category || "Event",
+                      category: keystone.category || undefined,
                       contactId: keystone.contact_id || "",
                       contactName: contactDetails?.name || keystone.contact_name || "",
                       contactAvatar: contactDetails?.avatar_url
                     }}
-                    onEdit={() => handleEditKeystone(keystone)}
+                    onEdit={() => handleKeystoneClick(keystone)}
                     isPast
                   />
                 );
@@ -271,24 +269,14 @@ const Keystones = () => {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete this keystone. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-red-600 hover:bg-red-700">
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Add KeystoneDetailModal for viewing keystone details */}
+      <KeystoneDetailModal
+        keystone={selectedKeystone}
+        isOpen={isKeystoneDetailOpen}
+        onOpenChange={setIsKeystoneDetailOpen}
+        onEdit={handleEditKeystone}
+        onDelete={handleDeleteKeystone}
+      />
     </div>
   );
 };

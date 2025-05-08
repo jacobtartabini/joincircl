@@ -1,84 +1,137 @@
 
-import { Filter } from "lucide-react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { SearchBar, MultiSelect, FilterOption } from "@/components/ui/search-filter";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
+import { Search, Plus, Tags, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import CircleImportButtons from "@/components/circles/CircleImportButtons";
 
 interface SearchFilterBarProps {
+  allTags: string[];
+  selectedTags: string[];
+  onTagsChange: (tags: string[]) => void;
+  onAddContact: () => void;
+  onRefresh: () => void;
   searchQuery: string;
-  setSearchQuery: (query: string) => void;
-  selectedTags: string[];
-  setSelectedTags: (tags: string[]) => void;
-  availableTags: FilterOption[];
+  onSearchChange: (query: string) => void;
 }
 
-export const SearchFilterBar = ({
+export default function SearchFilterBar({
+  allTags,
+  selectedTags,
+  onTagsChange,
+  onAddContact,
+  onRefresh,
   searchQuery,
-  setSearchQuery,
-  selectedTags,
-  setSelectedTags,
-  availableTags
-}: SearchFilterBarProps) => {
-  return (
-    <div className="grid gap-4 md:grid-cols-[1fr_auto]">
-      <SearchBar 
-        onSearch={setSearchQuery} 
-        placeholder="Search contacts..." 
-      />
-      <FiltersPopover
-        selectedTags={selectedTags}
-        setSelectedTags={setSelectedTags}
-        availableTags={availableTags}
-      />
-    </div>
-  );
-};
+  onSearchChange
+}: SearchFilterBarProps) {
+  const [open, setOpen] = useState(false);
 
-interface FiltersPopoverProps {
-  selectedTags: string[];
-  setSelectedTags: (tags: string[]) => void;
-  availableTags: FilterOption[];
-}
+  const handleTagSelect = (tag: string) => {
+    if (!selectedTags.includes(tag)) {
+      onTagsChange([...selectedTags, tag]);
+    }
+    setOpen(false);
+  };
 
-const FiltersPopover = ({
-  selectedTags,
-  setSelectedTags,
-  availableTags
-}: FiltersPopoverProps) => {
+  const handleTagRemove = (tag: string) => {
+    onTagsChange(selectedTags.filter((t) => t !== tag));
+  };
+
+  const handleClearTags = () => {
+    onTagsChange([]);
+  };
+
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="outline" className="flex gap-2 items-center">
-          <Filter size={16} />
-          <span className="hidden md:inline">Filters</span>
-          {selectedTags.length > 0 && (
-            <span className="bg-primary text-primary-foreground text-xs rounded-full px-2 py-0.5">
-              {selectedTags.length}
-            </span>
-          )}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-80">
-        <div className="space-y-4">
-          <h4 className="font-medium">Filter by tags</h4>
-          <MultiSelect
-            options={availableTags}
-            selected={selectedTags}
-            onChange={setSelectedTags}
-            placeholder="Select tags..."
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-4">
+        <div className="relative flex-grow">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search contacts..."
+            className="pl-8"
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
           />
-          {selectedTags.length > 0 && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => setSelectedTags([])} 
-              className="text-sm text-muted-foreground"
+          {searchQuery && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-1 top-1 h-7 w-7 p-0"
+              onClick={() => onSearchChange("")}
             >
-              Clear filters
+              <X className="h-4 w-4" />
             </Button>
           )}
         </div>
-      </PopoverContent>
-    </Popover>
+        <CircleImportButtons onImportSuccess={onRefresh} />
+        <Button size="sm" onClick={onAddContact} className="whitespace-nowrap">
+          <Plus size={16} className="mr-1" /> Add Contact
+        </Button>
+      </div>
+
+      <div className="flex items-center gap-2">
+        {selectedTags.length > 0 && (
+          <>
+            <div className="flex flex-wrap gap-1 items-center">
+              {selectedTags.map((tag) => (
+                <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+                  {tag}
+                  <X
+                    className="h-3 w-3 cursor-pointer"
+                    onClick={() => handleTagRemove(tag)}
+                  />
+                </Badge>
+              ))}
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 px-1 text-xs text-muted-foreground"
+              onClick={handleClearTags}
+            >
+              Clear
+            </Button>
+          </>
+        )}
+
+        {allTags.length > 0 && (
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 text-xs border text-muted-foreground flex items-center"
+              >
+                <Tags className="h-3 w-3 mr-1" /> Filter by Tag
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-60 p-0" align="start">
+              <Command>
+                <CommandInput placeholder="Search tags..." />
+                <CommandEmpty>No tags found.</CommandEmpty>
+                <CommandGroup className="max-h-60 overflow-auto">
+                  {allTags
+                    .filter(
+                      (tag) => !selectedTags.includes(tag)
+                    )
+                    .map((tag) => (
+                      <CommandItem
+                        key={tag}
+                        value={tag}
+                        onSelect={() => handleTagSelect(tag)}
+                      >
+                        {tag}
+                      </CommandItem>
+                    ))}
+                </CommandGroup>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        )}
+      </div>
+    </div>
   );
-};
+}

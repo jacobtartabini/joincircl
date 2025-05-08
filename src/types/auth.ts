@@ -13,6 +13,7 @@ export interface Profile {
   full_name?: string;
   avatar_url?: string;
   bio?: string;
+  phone_number?: string;
   has_seen_tutorial?: boolean;
   created_at?: string;
   updated_at?: string;

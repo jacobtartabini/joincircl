@@ -1,3 +1,4 @@
+
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -13,6 +14,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useNavigate } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
 import { LogOut, HelpCircle, MailQuestion, Bug, Scale, Upload } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 
 const Settings = () => {
   const { toast } = useToast();
@@ -21,6 +23,7 @@ const Settings = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [bio, setBio] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -39,6 +42,7 @@ const Settings = () => {
       setName(profile.full_name || "");
       setEmail(user.email || "");
       setBio(profile.bio || "");
+      setPhoneNumber(profile.phone_number || "");
       setAvatarUrl(profile.avatar_url || null);
       
       // Check if the user signed in with Google
@@ -53,7 +57,8 @@ const Settings = () => {
     try {
       await updateProfile({
         full_name: name,
-        bio: bio
+        bio: bio,
+        phone_number: phoneNumber
       });
 
       toast({
@@ -259,16 +264,14 @@ const Settings = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex flex-col md:flex-row gap-4 md:items-center">
-                <div className="flex-shrink-0">
-                  <Avatar className="w-20 h-20">
-                    <AvatarImage src={avatarUrl || ''} />
-                    <AvatarFallback className="text-lg">
-                      {name ? name.charAt(0).toUpperCase() : "?"}
-                    </AvatarFallback>
-                  </Avatar>
-                </div>
-                <div className="flex-1">
+              <div className="flex flex-col items-center gap-2 mb-4">
+                <Avatar className="w-20 h-20">
+                  <AvatarImage src={avatarUrl || ''} />
+                  <AvatarFallback className="text-lg">
+                    {name ? name.charAt(0).toUpperCase() : "?"}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
                   <Input 
                     id="avatar-upload" 
                     type="file"
@@ -280,12 +283,12 @@ const Settings = () => {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="cursor-pointer flex items-center gap-1" 
+                      className="cursor-pointer flex items-center gap-1 mt-2" 
                       disabled={uploading}
                       asChild
                     >
                       <span>
-                        <Upload size={16} />
+                        <Upload size={16} className="mr-1" />
                         {uploading ? "Uploading..." : "Upload Photo"}
                       </span>
                     </Button>
@@ -302,12 +305,22 @@ const Settings = () => {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="bio">Bio</Label>
+                  <Label htmlFor="phoneNumber">Phone Number</Label>
                   <Input
+                    id="phoneNumber"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    placeholder="Your phone number"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="bio">Bio</Label>
+                  <Textarea
                     id="bio"
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
                     placeholder="Tell us a bit about yourself"
+                    rows={4}
                   />
                 </div>
                 <Button onClick={handleSaveProfile} disabled={saving}>
