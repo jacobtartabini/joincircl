@@ -90,18 +90,23 @@ interface ContactGridProps {
   onViewInsights: (contact: Contact) => void;
 }
 
-const ContactGrid = ({ contacts, onAddInteraction, onViewInsights }: ContactGridProps) => (
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-    {contacts.map((contact) => (
-      <ContactCard
-        key={contact.id}
-        contact={contact}
-        onAddNote={() => onAddInteraction(contact)}
-        onViewInsights={() => onViewInsights(contact)}
-      />
-    ))}
-  </div>
-);
+const ContactGrid = ({ contacts, onAddInteraction, onViewInsights }: ContactGridProps) => {
+  // Ensure contacts is an array
+  const safeContacts = Array.isArray(contacts) ? contacts : [];
+  
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {safeContacts.map((contact) => (
+        <ContactCard
+          key={contact.id}
+          contact={contact}
+          onAddNote={() => onAddInteraction(contact)}
+          onViewInsights={() => onViewInsights(contact)}
+        />
+      ))}
+    </div>
+  );
+};
 
 interface EmptyStateProps {
   searchActive: boolean;

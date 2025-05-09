@@ -118,6 +118,8 @@ const CommandItem = React.forwardRef<
 >(({ className, value = "", children, ...props }, ref) => {
   // Ensure value is never undefined, null, or empty
   const safeValue = value || "placeholder-value";
+  // Ensure children always has a fallback
+  const safeChildren = children || safeValue;
   
   return (
     <CommandPrimitive.Item
@@ -129,7 +131,7 @@ const CommandItem = React.forwardRef<
       )}
       {...props}
     >
-      {children || safeValue}
+      {safeChildren}
     </CommandPrimitive.Item>
   );
 })

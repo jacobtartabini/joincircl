@@ -23,7 +23,7 @@ const Circles = () => {
   const [isInsightsDialogOpen, setIsInsightsDialogOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   
-  // Search and filter states - ensure they're initialized with safe defaults
+  // Search and filter states - initialize with safe defaults
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
@@ -85,6 +85,12 @@ const Circles = () => {
     fetchContacts();
   };
 
+  // Ensure we have safe values for props
+  const safeSelectedTags = Array.isArray(selectedTags) ? selectedTags : [];
+  const safeAvailableTags = Array.isArray(availableTags) ? availableTags : [];
+  const safeSearchQuery = typeof searchQuery === 'string' ? searchQuery : '';
+  const safeContacts = Array.isArray(contacts) ? contacts : [];
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
@@ -100,21 +106,21 @@ const Circles = () => {
       </div>
 
       <SearchFilterBar 
-        allTags={availableTags || []}
-        selectedTags={selectedTags || []}
+        allTags={safeAvailableTags}
+        selectedTags={safeSelectedTags}
         onTagsChange={setSelectedTags}
         onAddContact={() => setIsAddDialogOpen(true)}
         onRefresh={fetchContacts}
-        searchQuery={searchQuery || ""}
+        searchQuery={safeSearchQuery}
         onSearchChange={setSearchQuery}
       />
 
       <CirclesTabs>
         <CirclesTabContent 
           value="all" 
-          contacts={contacts}
-          searchQuery={searchQuery}
-          selectedTags={selectedTags}
+          contacts={safeContacts}
+          searchQuery={safeSearchQuery}
+          selectedTags={safeSelectedTags}
           isLoading={isLoading}
           onAddInteraction={handleAddInteraction}
           onViewInsights={handleViewInsights}
@@ -122,9 +128,9 @@ const Circles = () => {
         />
         <CirclesTabContent 
           value="inner" 
-          contacts={contacts}
-          searchQuery={searchQuery}
-          selectedTags={selectedTags}
+          contacts={safeContacts}
+          searchQuery={safeSearchQuery}
+          selectedTags={safeSelectedTags}
           isLoading={isLoading}
           onAddInteraction={handleAddInteraction}
           onViewInsights={handleViewInsights}
@@ -132,9 +138,9 @@ const Circles = () => {
         />
         <CirclesTabContent 
           value="middle" 
-          contacts={contacts}
-          searchQuery={searchQuery}
-          selectedTags={selectedTags}
+          contacts={safeContacts}
+          searchQuery={safeSearchQuery}
+          selectedTags={safeSelectedTags}
           isLoading={isLoading}
           onAddInteraction={handleAddInteraction}
           onViewInsights={handleViewInsights}
@@ -142,9 +148,9 @@ const Circles = () => {
         />
         <CirclesTabContent 
           value="outer" 
-          contacts={contacts}
-          searchQuery={searchQuery}
-          selectedTags={selectedTags}
+          contacts={safeContacts}
+          searchQuery={safeSearchQuery}
+          selectedTags={safeSelectedTags}
           isLoading={isLoading}
           onAddInteraction={handleAddInteraction}
           onViewInsights={handleViewInsights}

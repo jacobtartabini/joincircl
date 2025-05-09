@@ -33,6 +33,8 @@ export default function SearchFilterBar({
   const safeAllTags = Array.isArray(allTags) ? allTags : [];
   // Safe list of selected tags - ensure selectedTags is always an array
   const safeSelectedTags = Array.isArray(selectedTags) ? selectedTags : [];
+  // Safe search query - ensure searchQuery is always a string
+  const safeSearchQuery = typeof searchQuery === 'string' ? searchQuery : "";
 
   const handleTagSelect = (tag: string) => {
     if (!safeSelectedTags.includes(tag)) {
@@ -60,10 +62,10 @@ export default function SearchFilterBar({
           <Input
             placeholder="Search contacts..."
             className="pl-8"
-            value={searchQuery || ""}
+            value={safeSearchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
           />
-          {searchQuery && (
+          {safeSearchQuery && (
             <Button
               variant="ghost"
               size="sm"
@@ -94,11 +96,11 @@ export default function SearchFilterBar({
                 <CommandGroup className="max-h-60 overflow-auto">
                   {availableTags.length > 0 ? availableTags.map((tag) => (
                     <CommandItem
-                      key={tag || "placeholder"}
-                      value={tag || "placeholder"}
+                      key={tag || "placeholder-key"}
+                      value={tag || "placeholder-value"}
                       onSelect={() => handleTagSelect(tag)}
                     >
-                      {tag}
+                      {tag || ""}
                     </CommandItem>
                   )) : (
                     <div className="py-2 px-2 text-sm text-muted-foreground">
@@ -119,8 +121,8 @@ export default function SearchFilterBar({
           <>
             <div className="flex flex-wrap gap-1 items-center">
               {safeSelectedTags.map((tag) => (
-                <Badge key={tag || "placeholder"} variant="secondary" className="flex items-center gap-1">
-                  {tag}
+                <Badge key={tag || "placeholder-key"} variant="secondary" className="flex items-center gap-1">
+                  {tag || ""}
                   <X
                     className="h-3 w-3 cursor-pointer"
                     onClick={() => handleTagRemove(tag)}
