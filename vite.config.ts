@@ -19,16 +19,34 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["favicon.png", "robots.txt", "lovable-uploads/*.png"],
       manifest: {
-        id: "app.circl.pwa", // Valid id string
+        id: "app.circl.pwa",
         name: "Circl - Your Personal Relationship Manager",
         short_name: "Circl",
         description: "Circl helps you organize, update, and strengthen your professional and personal relationships.",
         theme_color: "#1E88E5",
         background_color: "#ffffff",
         display: "standalone",
-        display_override: ["window-controls-overlay", "standalone"], // Enhanced native look & feel
+        display_override: ["window-controls-overlay", "standalone"],
         orientation: "portrait",
         start_url: "/",
+        dir: "ltr",
+        categories: ["productivity", "business", "social", "utilities"],
+        iarc_rating_id: "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
+        prefer_related_applications: false,
+        related_applications: [
+          {
+            platform: "webapp",
+            url: "https://circl.app"
+          },
+          {
+            platform: "play",
+            url: "https://play.google.com/store/apps/details?id=app.circl.pwa",
+            id: "app.circl.pwa"
+          }
+        ],
+        scope_extensions: [
+          { origin: "https://app.circl.com" }
+        ],
         // App Shortcuts
         shortcuts: [
           {
@@ -188,7 +206,21 @@ export default defineConfig(({ mode }) => ({
               }
             }
           }
-        ]
+        ],
+        // Enable background sync
+        backgroundSync: {
+          name: 'circl-sync-queue',
+          options: {
+            maxRetentionTime: 24 * 60 // Retry for up to 24 hours (in minutes)
+          }
+        }
+      },
+      // Add support for periodic background sync
+      periodicSyncForUpdates: 'circl-periodic-sync',
+      // Enable push notifications
+      devOptions: {
+        enabled: true,
+        type: 'module'
       }
     }),
   ].filter(Boolean),
