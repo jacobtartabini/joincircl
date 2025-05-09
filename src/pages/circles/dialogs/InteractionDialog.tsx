@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Contact } from "@/types/contact";
-import { createInteraction } from "@/services/interactionService";
+import { contactService } from "@/services/contactService";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -54,10 +54,11 @@ export function InteractionDialog({
     
     try {
       setIsSubmitting(true);
-      await createInteraction({
+      await contactService.addInteraction({
         contact_id: contact.id,
         type: selectedTab,
         notes: notes,
+        date: new Date().toISOString()
       });
       
       toast({

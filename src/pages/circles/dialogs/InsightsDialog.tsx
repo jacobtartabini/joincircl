@@ -2,7 +2,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Contact } from "@/types/contact";
-import { ConnectionInsights } from "@/components/contact/ConnectionInsights";
+import ConnectionInsights from "@/components/contact/ConnectionInsights";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface InsightsDialogProps {
@@ -32,7 +32,7 @@ export function InsightsDialog({
             </SheetDescription>
           </SheetHeader>
           <div className="mt-4">
-            <ConnectionInsights contact={contact} />
+            <ConnectionInsights strength={contact.connection_strength} />
           </div>
         </SheetContent>
       </Sheet>
@@ -49,7 +49,7 @@ export function InsightsDialog({
             View your connection insights with {contact.name}
           </DialogDescription>
         </DialogHeader>
-        <ConnectionInsights contact={contact} />
+        <ConnectionInsights strength={contact.connection_strength} />
       </DialogContent>
     </Dialog>
   );
