@@ -216,8 +216,6 @@ export default defineConfig(({ mode }) => ({
       strategies: 'injectManifest',
       srcDir: 'src',
       filename: 'sw.js',
-      // Add support for periodic background sync
-      periodicSyncForUpdates: 24 * 60, // 24 hours in minutes
       // Enable push notifications
       devOptions: {
         enabled: true,
