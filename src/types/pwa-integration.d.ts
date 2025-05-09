@@ -1,6 +1,11 @@
 
 // Type definitions for PWA integration features
 
+// Extend PermissionName to include 'periodic-background-sync'
+interface PermissionDescriptor {
+  name: PermissionName | 'periodic-background-sync';
+}
+
 // Extend ServiceWorkerRegistration with periodicSync
 interface PeriodicSyncManager {
   register(tag: string, options?: { minInterval: number }): Promise<void>;

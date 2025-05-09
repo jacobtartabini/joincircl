@@ -40,7 +40,9 @@ const updateSW = registerSW({
       
       // Register for periodic sync if supported
       if ('periodicSync' in registration) {
-        navigator.permissions.query({ name: 'periodic-background-sync' })
+        // Use a type assertion for the permission name since it's a newer API
+        // that might not be included in the current TypeScript definitions
+        navigator.permissions.query({ name: 'periodic-background-sync' as PermissionName })
           .then((status) => {
             if (status.state === 'granted') {
               // @ts-ignore - Periodic sync is not yet in all TypeScript definitions

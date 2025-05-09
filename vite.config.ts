@@ -47,7 +47,7 @@ export default defineConfig(({ mode }) => ({
         scope_extensions: [
           { origin: "https://app.circl.com" }
         ],
-        // App Shortcuts & Widgets
+        // App Shortcuts
         shortcuts: [
           {
             name: "Add New Contact",
@@ -69,55 +69,6 @@ export default defineConfig(({ mode }) => ({
             description: "Manage your relationship keystones",
             url: "/keystones",
             icons: [{ src: "lovable-uploads/12af9685-d6d3-4f9d-87cf-0aa29d9c78f8.png", sizes: "192x192" }]
-          }
-        ],
-        // Widget definition (for platforms that support it)
-        widgets: [
-          {
-            name: "Recent Contacts",
-            description: "Quick access to your most recently contacted people",
-            tag: "recent-contacts",
-            msAnchor: "top",
-            data: {
-              type: "recents",
-              maxItems: 5
-            },
-            screenshots: [
-              {
-                src: "lovable-uploads/12af9685-d6d3-4f9d-87cf-0aa29d9c78f8.png",
-                sizes: "540x400",
-                label: "Recent Contacts Widget"
-              }
-            ],
-            icons: [
-              {
-                src: "lovable-uploads/12af9685-d6d3-4f9d-87cf-0aa29d9c78f8.png",
-                sizes: "64x64"
-              }
-            ]
-          },
-          {
-            name: "Upcoming Follow-ups",
-            description: "View your upcoming follow-ups and reminders",
-            tag: "follow-ups",
-            msAnchor: "top",
-            data: {
-              type: "followups",
-              maxItems: 3
-            },
-            screenshots: [
-              {
-                src: "lovable-uploads/12af9685-d6d3-4f9d-87cf-0aa29d9c78f8.png",
-                sizes: "540x400",
-                label: "Follow-ups Widget"
-              }
-            ],
-            icons: [
-              {
-                src: "lovable-uploads/12af9685-d6d3-4f9d-87cf-0aa29d9c78f8.png", 
-                sizes: "64x64"
-              }
-            ]
           }
         ],
         // Screenshot array for better app store presence
