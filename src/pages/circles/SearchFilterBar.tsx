@@ -52,7 +52,8 @@ export default function SearchFilterBar({
   };
 
   // Filter out available tags that aren't already selected
-  const availableTags = safeAllTags.filter(tag => !safeSelectedTags.includes(tag));
+  // Make sure to handle any undefined values
+  const availableTags = safeAllTags.filter(tag => tag && !safeSelectedTags.includes(tag));
 
   return (
     <div className="flex flex-col gap-4">
@@ -90,6 +91,7 @@ export default function SearchFilterBar({
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-60 p-0" align="start">
+              {/* Wrap the Command component in a check to ensure it won't receive undefined values */}
               <Command>
                 <CommandInput placeholder="Search tags..." />
                 <CommandEmpty>No tags found.</CommandEmpty>
