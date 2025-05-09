@@ -49,6 +49,9 @@ export default function SearchFilterBar({
     onTagsChange([]);
   };
 
+  // Filter out available tags that aren't already selected
+  const availableTags = safeAllTags.filter(tag => !safeSelectedTags.includes(tag));
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-4">
@@ -72,7 +75,7 @@ export default function SearchFilterBar({
           )}
         </div>
 
-        {/* Filter button moved here, before import buttons */}
+        {/* Only show filter button if there are tags available */}
         {safeAllTags.length > 0 && (
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
@@ -89,17 +92,19 @@ export default function SearchFilterBar({
                 <CommandInput placeholder="Search tags..." />
                 <CommandEmpty>No tags found.</CommandEmpty>
                 <CommandGroup className="max-h-60 overflow-auto">
-                  {safeAllTags
-                    .filter(tag => !safeSelectedTags.includes(tag))
-                    .map((tag) => (
-                      <CommandItem
-                        key={tag}
-                        value={tag || "placeholder"}
-                        onSelect={() => handleTagSelect(tag)}
-                      >
-                        {tag}
-                      </CommandItem>
-                    ))}
+                  {availableTags.length > 0 ? availableTags.map((tag) => (
+                    <CommandItem
+                      key={tag || "placeholder"}
+                      value={tag || "placeholder"}
+                      onSelect={() => handleTagSelect(tag)}
+                    >
+                      {tag}
+                    </CommandItem>
+                  )) : (
+                    <div className="py-2 px-2 text-sm text-muted-foreground">
+                      No more tags available
+                    </div>
+                  )}
                 </CommandGroup>
               </Command>
             </PopoverContent>
@@ -114,7 +119,7 @@ export default function SearchFilterBar({
           <>
             <div className="flex flex-wrap gap-1 items-center">
               {safeSelectedTags.map((tag) => (
-                <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+                <Badge key={tag || "placeholder"} variant="secondary" className="flex items-center gap-1">
                   {tag}
                   <X
                     className="h-3 w-3 cursor-pointer"

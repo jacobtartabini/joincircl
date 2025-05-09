@@ -23,7 +23,7 @@ const Circles = () => {
   const [isInsightsDialogOpen, setIsInsightsDialogOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   
-  // Search and filter states
+  // Search and filter states - ensure they're initialized with safe defaults
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
@@ -85,10 +85,6 @@ const Circles = () => {
     fetchContacts();
   };
 
-  // Ensure we have an array of tag values
-  const tagValues = Array.isArray(availableTags) ? availableTags : [];
-  const safeSelectedTags = Array.isArray(selectedTags) ? selectedTags : [];
-
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
@@ -104,12 +100,12 @@ const Circles = () => {
       </div>
 
       <SearchFilterBar 
-        allTags={tagValues}
-        selectedTags={safeSelectedTags}
+        allTags={availableTags || []}
+        selectedTags={selectedTags || []}
         onTagsChange={setSelectedTags}
         onAddContact={() => setIsAddDialogOpen(true)}
         onRefresh={fetchContacts}
-        searchQuery={searchQuery}
+        searchQuery={searchQuery || ""}
         onSearchChange={setSearchQuery}
       />
 
@@ -118,7 +114,7 @@ const Circles = () => {
           value="all" 
           contacts={contacts}
           searchQuery={searchQuery}
-          selectedTags={safeSelectedTags}
+          selectedTags={selectedTags}
           isLoading={isLoading}
           onAddInteraction={handleAddInteraction}
           onViewInsights={handleViewInsights}
@@ -128,7 +124,7 @@ const Circles = () => {
           value="inner" 
           contacts={contacts}
           searchQuery={searchQuery}
-          selectedTags={safeSelectedTags}
+          selectedTags={selectedTags}
           isLoading={isLoading}
           onAddInteraction={handleAddInteraction}
           onViewInsights={handleViewInsights}
@@ -138,7 +134,7 @@ const Circles = () => {
           value="middle" 
           contacts={contacts}
           searchQuery={searchQuery}
-          selectedTags={safeSelectedTags}
+          selectedTags={selectedTags}
           isLoading={isLoading}
           onAddInteraction={handleAddInteraction}
           onViewInsights={handleViewInsights}
@@ -148,7 +144,7 @@ const Circles = () => {
           value="outer" 
           contacts={contacts}
           searchQuery={searchQuery}
-          selectedTags={safeSelectedTags}
+          selectedTags={selectedTags}
           isLoading={isLoading}
           onAddInteraction={handleAddInteraction}
           onViewInsights={handleViewInsights}

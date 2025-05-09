@@ -45,7 +45,7 @@ const CommandInput = React.forwardRef<
     <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
     <CommandPrimitive.Input
       ref={ref}
-      value={value}
+      value={value || ""}
       className={cn(
         "flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
         className
@@ -111,7 +111,7 @@ const CommandSeparator = React.forwardRef<
 ))
 CommandSeparator.displayName = CommandPrimitive.Separator.displayName
 
-// Ensure CommandItem has non-empty value prop
+// Ensure CommandItem has non-empty value prop and all children are properly handled
 const CommandItem = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item>
@@ -129,7 +129,7 @@ const CommandItem = React.forwardRef<
       )}
       {...props}
     >
-      {children}
+      {children || safeValue}
     </CommandPrimitive.Item>
   );
 })
