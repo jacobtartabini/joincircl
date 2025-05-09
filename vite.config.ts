@@ -19,14 +19,55 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["favicon.png", "robots.txt", "lovable-uploads/*.png"],
       manifest: {
+        id: "app.circl.pwa", // Valid id string
         name: "Circl - Your Personal Relationship Manager",
         short_name: "Circl",
         description: "Circl helps you organize, update, and strengthen your professional and personal relationships.",
         theme_color: "#1E88E5",
         background_color: "#ffffff",
         display: "standalone",
+        display_override: ["window-controls-overlay", "standalone"], // Enhanced native look & feel
         orientation: "portrait",
         start_url: "/",
+        // App Shortcuts
+        shortcuts: [
+          {
+            name: "Add New Contact",
+            short_name: "New Contact",
+            description: "Create a new contact in your network",
+            url: "/circles?action=add",
+            icons: [{ src: "lovable-uploads/12af9685-d6d3-4f9d-87cf-0aa29d9c78f8.png", sizes: "192x192" }]
+          },
+          {
+            name: "My Circles",
+            short_name: "Circles",
+            description: "View your relationship circles",
+            url: "/circles",
+            icons: [{ src: "lovable-uploads/12af9685-d6d3-4f9d-87cf-0aa29d9c78f8.png", sizes: "192x192" }]
+          },
+          {
+            name: "Keystones",
+            short_name: "Keystones",
+            description: "Manage your relationship keystones",
+            url: "/keystones",
+            icons: [{ src: "lovable-uploads/12af9685-d6d3-4f9d-87cf-0aa29d9c78f8.png", sizes: "192x192" }]
+          }
+        ],
+        // Screenshot array for better app store presence
+        screenshots: [
+          {
+            src: "lovable-uploads/12af9685-d6d3-4f9d-87cf-0aa29d9c78f8.png",
+            sizes: "1280x720",
+            type: "image/png",
+            label: "Circl Home Screen"
+          },
+          {
+            src: "lovable-uploads/12af9685-d6d3-4f9d-87cf-0aa29d9c78f8.png", 
+            sizes: "1280x720",
+            type: "image/png",
+            label: "Relationship Management"
+          }
+        ],
         icons: [
           {
             src: "lovable-uploads/12af9685-d6d3-4f9d-87cf-0aa29d9c78f8.png",
@@ -46,7 +87,51 @@ export default defineConfig(({ mode }) => ({
             type: "image/png",
             purpose: "maskable"
           }
-        ]
+        ],
+        // Launch handler configuration
+        launch_handler: {
+          client_mode: ["focus-existing", "auto"]
+        },
+        // Edge side panel integration
+        edge_side_panel: {
+          preferred_width: 400
+        },
+        // File handling capabilities
+        file_handlers: [
+          {
+            action: "/import",
+            accept: {
+              "text/csv": [".csv"],
+              "application/vcard+json": [".vcf", ".vcard"]
+            }
+          }
+        ],
+        // Link handling
+        handle_links: "preferred",
+        // Protocol handler
+        protocol_handlers: [
+          {
+            protocol: "circl",
+            url: "/%s"
+          }
+        ],
+        // Share target capabilities
+        share_target: {
+          action: "/share-target",
+          method: "POST",
+          enctype: "multipart/form-data",
+          params: {
+            title: "title",
+            text: "text",
+            url: "url",
+            files: [
+              {
+                name: "contacts",
+                accept: ["text/csv", "text/vcard", ".vcf", ".csv"]
+              }
+            ]
+          }
+        }
       },
       workbox: {
         runtimeCaching: [

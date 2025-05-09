@@ -23,6 +23,7 @@ import Help from "./pages/Help";
 import Contact from "./pages/Contact";
 import Bugs from "./pages/Bugs";
 import Legal from "./pages/Legal";
+import ShareTarget from "./pages/ShareTarget";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,18 @@ const App = () => (
             <Route path="/auth/forgot-password" element={<ForgotPassword />} />
             <Route path="/auth/reset-password" element={<ResetPassword />} />
             <Route path="/auth/callback" element={<CallbackPage />} />
+            
+            {/* Share target route */}
+            <Route
+              path="/share-target"
+              element={
+                <RequireAuth>
+                  <MainLayout>
+                    <ShareTarget />
+                  </MainLayout>
+                </RequireAuth>
+              }
+            />
             
             {/* Protected routes */}
             <Route
