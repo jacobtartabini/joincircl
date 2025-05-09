@@ -1,0 +1,83 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offline - Circl</title>
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background-color: #f9fafb;
+      color: #111827;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      padding: 1rem;
+      text-align: center;
+    }
+    .logo {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 2rem;
+    }
+    .container {
+      background-color: white;
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      max-width: 28rem;
+      width: 100%;
+    }
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: #1E88E5;
+    }
+    p {
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+    .button {
+      display: inline-block;
+      background-color: #1E88E5;
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: background-color 0.2s;
+    }
+    .button:hover {
+      background-color: #1976D2;
+    }
+  </style>
+</head>
+<body>
+  <img src="/lovable-uploads/12af9685-d6d3-4f9d-87cf-0aa29d9c78f8.png" alt="Circl Logo" class="logo">
+  <div class="container">
+    <h1>You're offline</h1>
+    <p>It looks like you're not connected to the internet. Some features of Circl may not be available while offline.</p>
+    <p>Please check your connection and try again.</p>
+    <a href="/" class="button" id="retry-button">Try again</a>
+  </div>
+  
+  <script>
+    // Check connectivity when "Try again" is clicked
+    document.getElementById('retry-button').addEventListener('click', function(e) {
+      if (!navigator.onLine) {
+        e.preventDefault();
+        alert('You are still offline. Please check your connection and try again.');
+      }
+    });
+    
+    // Auto-reload when connection is restored
+    window.addEventListener('online', function() {
+      window.location.reload();
+    });
+  </script>
+</body>
+</html>

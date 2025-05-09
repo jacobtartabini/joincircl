@@ -95,10 +95,10 @@ export function InteractionDialog({
     <form onSubmit={handleSubmit}>
       <div className="py-4">
         <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-          <TabsList className={`grid ${isMobile ? 'grid-cols-3' : 'grid-cols-3'} w-full`}>
-            <TabsTrigger value="note">Note</TabsTrigger>
-            <TabsTrigger value="call">Call</TabsTrigger>
-            <TabsTrigger value="meeting">Meeting</TabsTrigger>
+          <TabsList className="grid grid-cols-3 w-full">
+            <TabsTrigger value="note" className={isMobile ? "py-3" : ""}>Note</TabsTrigger>
+            <TabsTrigger value="call" className={isMobile ? "py-3" : ""}>Call</TabsTrigger>
+            <TabsTrigger value="meeting" className={isMobile ? "py-3" : ""}>Meeting</TabsTrigger>
           </TabsList>
           <TabsContent value="note" className="mt-4">
             <Textarea
@@ -133,10 +133,15 @@ export function InteractionDialog({
           variant="outline"
           onClick={handleCancel}
           disabled={isSubmitting}
+          className={isMobile ? "min-h-12 py-3 px-4" : ""}
         >
           Cancel
         </Button>
-        <Button type="submit" disabled={isSubmitting}>
+        <Button 
+          type="submit" 
+          disabled={isSubmitting}
+          className={isMobile ? "min-h-12 py-3 px-4" : ""}
+        >
           {isSubmitting ? "Saving..." : "Save Interaction"}
         </Button>
       </div>
@@ -147,10 +152,10 @@ export function InteractionDialog({
   if (isMobile) {
     return (
       <Sheet open={isOpen} onOpenChange={onOpenChange}>
-        <SheetContent side="bottom" className="h-[80vh]">
-          <SheetHeader>
-            <SheetTitle>Add Interaction</SheetTitle>
-            <SheetDescription>
+        <SheetContent side="bottom" className="h-[80vh] pb-safe-area-bottom pt-6">
+          <SheetHeader className="space-y-2">
+            <SheetTitle className="text-xl">Add Interaction</SheetTitle>
+            <SheetDescription className="text-base">
               Record an interaction with {contact.name}
             </SheetDescription>
           </SheetHeader>

@@ -3,11 +3,19 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Circl - Your Personal Relationship Manager</title>
     <meta name="description" content="Circl helps you organize, update, and strengthen your professional and personal relationships." />
     <meta name="author" content="Circl" />
 
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#1E88E5" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Circl" />
+    <link rel="apple-touch-icon" href="/lovable-uploads/12af9685-d6d3-4f9d-87cf-0aa29d9c78f8.png" />
+    
+    <!-- Open Graph -->
     <meta property="og:title" content="Circl - Your Personal Relationship Manager" />
     <meta property="og:description" content="Circl helps you organize, update, and strengthen your professional and personal relationships." />
     <meta property="og:type" content="website" />
@@ -21,5 +29,11 @@
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
+    <noscript>
+      <div style="padding: 2rem; text-align: center;">
+        <h1>JavaScript Required</h1>
+        <p>This app requires JavaScript to function properly. Please enable JavaScript in your browser settings.</p>
+      </div>
+    </noscript>
   </body>
 </html>

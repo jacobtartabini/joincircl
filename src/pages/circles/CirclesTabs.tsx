@@ -12,11 +12,11 @@ export function CirclesTabs({ children }: CirclesTabsProps) {
 
   return (
     <Tabs defaultValue="all">
-      <TabsList className={isMobile ? "w-full grid grid-cols-4 mb-2" : ""}>
-        <TabsTrigger value="all">All</TabsTrigger>
-        <TabsTrigger value="inner">Inner</TabsTrigger>
-        <TabsTrigger value="middle">Middle</TabsTrigger>
-        <TabsTrigger value="outer">Outer</TabsTrigger>
+      <TabsList className={isMobile ? "w-full grid grid-cols-4 mb-2 sticky top-0 z-10 bg-background" : ""}>
+        <TabsTrigger value="all" className={isMobile ? "py-3" : ""}>All</TabsTrigger>
+        <TabsTrigger value="inner" className={isMobile ? "py-3" : ""}>Inner</TabsTrigger>
+        <TabsTrigger value="middle" className={isMobile ? "py-3" : ""}>Middle</TabsTrigger>
+        <TabsTrigger value="outer" className={isMobile ? "py-3" : ""}>Outer</TabsTrigger>
       </TabsList>
       {children}
     </Tabs>
