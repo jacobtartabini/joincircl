@@ -39,14 +39,17 @@ const updateSW = registerSW({
       }
       
       // Register for periodic sync if supported
-      if (registration.periodicSync) {
-        navigator.serviceWorker.ready
-          .then((reg) => {
-            // @ts-ignore - Periodic sync is not yet in all TypeScript definitions
-            reg.periodicSync.register('content-sync', {
-              minInterval: 24 * 60 * 60 * 1000, // Once per day
-            }).catch((error) => console.error('Periodic Sync could not be registered!', error))
+      if ('periodicSync' in registration) {
+        navigator.permissions.query({ name: 'periodic-background-sync' })
+          .then((status) => {
+            if (status.state === 'granted') {
+              // @ts-ignore - Periodic sync is not yet in all TypeScript definitions
+              registration.periodicSync.register('content-sync', {
+                minInterval: 24 * 60 * 60 * 1000, // Once per day
+              }).catch((error) => console.error('Periodic Sync could not be registered!', error))
+            }
           })
+          .catch(err => console.warn('Periodic sync permission check failed:', err))
       }
     }
   },
@@ -66,6 +69,21 @@ if ('registerProtocolHandler' in navigator) {
   } catch (e) {
     console.warn('Protocol handler registration failed', e)
   }
+}
+
+// Initialize widget API if supported
+// Note: Web Widgets API is still in development and may not be fully supported
+// This is for future compatibility
+if ('widgets' in window) {
+  // @ts-ignore - Widgets API may not be in TypeScript definitions yet
+  window.widgets?.register('recent-contacts', {
+    // The widget configuration would go here
+    onUpdate: async (data) => {
+      // Logic to update widget with recent contacts data
+      console.log('Widget update requested', data);
+      return { success: true };
+    }
+  }).catch(e => console.warn('Widget registration failed:', e));
 }
 
 createRoot(document.getElementById("root")!).render(<App />);

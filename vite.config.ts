@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => ({
     componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.png", "robots.txt", "lovable-uploads/*.png"],
+      includeAssets: ["favicon.png", "robots.txt", "lovable-uploads/*.png", "offline.html"],
       manifest: {
         id: "app.circl.pwa",
         name: "Circl - Your Personal Relationship Manager",
@@ -47,7 +47,7 @@ export default defineConfig(({ mode }) => ({
         scope_extensions: [
           { origin: "https://app.circl.com" }
         ],
-        // App Shortcuts
+        // App Shortcuts & Widgets
         shortcuts: [
           {
             name: "Add New Contact",
@@ -69,6 +69,55 @@ export default defineConfig(({ mode }) => ({
             description: "Manage your relationship keystones",
             url: "/keystones",
             icons: [{ src: "lovable-uploads/12af9685-d6d3-4f9d-87cf-0aa29d9c78f8.png", sizes: "192x192" }]
+          }
+        ],
+        // Widget definition (for platforms that support it)
+        widgets: [
+          {
+            name: "Recent Contacts",
+            description: "Quick access to your most recently contacted people",
+            tag: "recent-contacts",
+            msAnchor: "top",
+            data: {
+              type: "recents",
+              maxItems: 5
+            },
+            screenshots: [
+              {
+                src: "lovable-uploads/12af9685-d6d3-4f9d-87cf-0aa29d9c78f8.png",
+                sizes: "540x400",
+                label: "Recent Contacts Widget"
+              }
+            ],
+            icons: [
+              {
+                src: "lovable-uploads/12af9685-d6d3-4f9d-87cf-0aa29d9c78f8.png",
+                sizes: "64x64"
+              }
+            ]
+          },
+          {
+            name: "Upcoming Follow-ups",
+            description: "View your upcoming follow-ups and reminders",
+            tag: "follow-ups",
+            msAnchor: "top",
+            data: {
+              type: "followups",
+              maxItems: 3
+            },
+            screenshots: [
+              {
+                src: "lovable-uploads/12af9685-d6d3-4f9d-87cf-0aa29d9c78f8.png",
+                sizes: "540x400",
+                label: "Follow-ups Widget"
+              }
+            ],
+            icons: [
+              {
+                src: "lovable-uploads/12af9685-d6d3-4f9d-87cf-0aa29d9c78f8.png", 
+                sizes: "64x64"
+              }
+            ]
           }
         ],
         // Screenshot array for better app store presence
@@ -205,14 +254,38 @@ export default defineConfig(({ mode }) => ({
                 statuses: [0, 200]
               }
             }
+          },
+          // Add offline fallback
+          {
+            urlPattern: /^https:\/\/.*$/,
+            handler: 'NetworkOnly',
+            options: {
+              plugins: [{
+                cacheWillUpdate: async () => null // Never cache responses
+              }],
+              cacheName: 'offline-fallback',
+              networkTimeoutSeconds: 10
+            }
+          },
+          // Cache pages for offline access
+          {
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'pages-cache',
+              expiration: {
+                maxEntries: 30,
+                maxAgeSeconds: 60 * 60 * 24 // 1 day
+              },
+              networkTimeoutSeconds: 5
+            }
           }
         ],
-        // Instead of using backgroundSync directly, we configure it through Workbox recipes
-        // This is standard way to register background sync in Workbox
+        // Configure with InjectManifest for more control
         clientsClaim: true,
         skipWaiting: true,
       },
-      // Separate configuration for periodic background sync
+      // Configure custom service worker
       strategies: 'injectManifest',
       srcDir: 'src',
       filename: 'sw.js',

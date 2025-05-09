@@ -1,6 +1,7 @@
+
 import { precacheAndRoute } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
-import { CacheFirst, NetworkFirst } from 'workbox-strategies';
+import { CacheFirst, NetworkFirst, StaleWhileRevalidate } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
 import { BackgroundSyncPlugin } from 'workbox-background-sync';
 
@@ -26,6 +27,50 @@ registerRoute(
     ]
   }),
   'POST'
+);
+
+// Cache API responses for offline use
+registerRoute(
+  /\/api\/contacts$/,
+  new StaleWhileRevalidate({
+    cacheName: 'contacts-list-cache',
+    plugins: [
+      new ExpirationPlugin({
+        maxEntries: 100,
+        maxAgeSeconds: 24 * 60 * 60 // 24 hours
+      })
+    ]
+  }),
+  'GET'
+);
+
+// Cache individual contact details
+registerRoute(
+  /\/api\/contacts\/[a-zA-Z0-9-]+$/,
+  new StaleWhileRevalidate({
+    cacheName: 'contact-details-cache',
+    plugins: [
+      new ExpirationPlugin({
+        maxEntries: 200,
+        maxAgeSeconds: 24 * 60 * 60 // 24 hours
+      })
+    ]
+  }),
+  'GET'
+);
+
+// Serve offline page when network requests fail for uncached routes
+registerRoute(
+  ({ request }) => request.mode === 'navigate',
+  async ({ event }) => {
+    try {
+      // Try to get the response from the network
+      return await fetch(event.request);
+    } catch (error) {
+      // If network fails, serve the offline page
+      return caches.match('/offline.html');
+    }
+  }
 );
 
 // Listen for the sync event
@@ -86,3 +131,18 @@ async function updateContent() {
   // Implement your periodic sync logic here
   // For example, fetch updated contacts or notifications
 }
+
+// Cache resources needed for widgets and offline use
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open('circl-widget-resources').then((cache) => {
+      return cache.addAll([
+        '/offline.html',
+        '/lovable-uploads/12af9685-d6d3-4f9d-87cf-0aa29d9c78f8.png',
+        '/favicon.png',
+        '/manifest.webmanifest',
+        '/index.html'
+      ]);
+    })
+  );
+});

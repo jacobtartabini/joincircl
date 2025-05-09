@@ -54,29 +54,148 @@
     .button:hover {
       background-color: #1976D2;
     }
+    .content-section {
+      margin-top: 2rem;
+      text-align: left;
+    }
+    .content-title {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+    .cached-contacts {
+      list-style: none;
+      padding: 0;
+      margin-top: 1rem;
+    }
+    .cached-contacts li {
+      padding: 0.5rem;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .status-indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 0.5rem;
+    }
+    .status-offline {
+      background-color: #EF4444;
+    }
+    .status-online {
+      background-color: #10B981;
+    }
   </style>
 </head>
 <body>
   <img src="/lovable-uploads/12af9685-d6d3-4f9d-87cf-0aa29d9c78f8.png" alt="Circl Logo" class="logo">
   <div class="container">
-    <h1>You're offline</h1>
-    <p>It looks like you're not connected to the internet. Some features of Circl may not be available while offline.</p>
-    <p>Please check your connection and try again.</p>
-    <a href="/" class="button" id="retry-button">Try again</a>
+    <div class="status-bar">
+      <span id="status-indicator" class="status-indicator status-offline"></span>
+      <span id="connection-status">You're offline</span>
+    </div>
+    
+    <h1>Circl - Offline Mode</h1>
+    <p>You're currently offline. You can still access some features of Circl that have been cached for offline use.</p>
+    
+    <div id="offline-content" class="content-section">
+      <div class="content-title">Recently Viewed Contacts</div>
+      <p id="cached-content-message">Loading cached contacts...</p>
+      <ul id="cached-contacts" class="cached-contacts"></ul>
+    </div>
+    
+    <p>When your connection is restored, your changes will be synchronized automatically.</p>
+    <a href="/" class="button" id="retry-button">Try reconnecting</a>
   </div>
   
   <script>
+    // Check if the Cache API is supported
+    const cacheSupported = 'caches' in window;
+    
+    // Update the connection status
+    function updateConnectionStatus() {
+      const statusIndicator = document.getElementById('status-indicator');
+      const connectionStatus = document.getElementById('connection-status');
+      
+      if (navigator.onLine) {
+        statusIndicator.classList.remove('status-offline');
+        statusIndicator.classList.add('status-online');
+        connectionStatus.textContent = "You're back online!";
+      } else {
+        statusIndicator.classList.remove('status-online');
+        statusIndicator.classList.add('status-offline');
+        connectionStatus.textContent = "You're offline";
+      }
+    }
+    
+    // Try to load cached contacts
+    async function loadCachedContacts() {
+      if (!cacheSupported) {
+        document.getElementById('cached-content-message').textContent = 
+          "Your browser doesn't support offline cache.";
+        return;
+      }
+      
+      try {
+        const cache = await caches.open('contacts-list-cache');
+        const cachedResponses = await cache.keys();
+        
+        if (cachedResponses.length === 0) {
+          document.getElementById('cached-content-message').textContent = 
+            "No cached contacts available.";
+          return;
+        }
+        
+        // Hide the message
+        document.getElementById('cached-content-message').style.display = 'none';
+        
+        // Process up to 5 cached contacts
+        const contactsList = document.getElementById('cached-contacts');
+        
+        for (let i = 0; i < Math.min(5, cachedResponses.length); i++) {
+          const response = await cache.match(cachedResponses[i]);
+          
+          if (response) {
+            try {
+              const data = await response.json();
+              
+              // Create contact list item
+              const li = document.createElement('li');
+              li.textContent = data.name || data.full_name || "Contact";
+              contactsList.appendChild(li);
+            } catch (e) {
+              console.error('Error parsing cached contact:', e);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error accessing cache:', error);
+        document.getElementById('cached-content-message').textContent = 
+          "Could not access cached contacts.";
+      }
+    }
+    
+    // Initial setup
+    updateConnectionStatus();
+    loadCachedContacts();
+    
+    // Event listeners
+    window.addEventListener('online', function() {
+      updateConnectionStatus();
+      // Redirect after a short delay to allow the user to see the status change
+      setTimeout(() => window.location.reload(), 1500);
+    });
+    
+    window.addEventListener('offline', updateConnectionStatus);
+    
     // Check connectivity when "Try again" is clicked
     document.getElementById('retry-button').addEventListener('click', function(e) {
       if (!navigator.onLine) {
         e.preventDefault();
-        alert('You are still offline. Please check your connection and try again.');
+        alert('Still offline. Please check your connection and try again.');
+      } else {
+        window.location.reload();
       }
-    });
-    
-    // Auto-reload when connection is restored
-    window.addEventListener('online', function() {
-      window.location.reload();
     });
   </script>
 </body>

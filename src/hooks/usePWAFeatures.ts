@@ -9,6 +9,8 @@ export interface PWAFeaturesState {
   supportsPush: boolean;
   supportsProtocolHandler: boolean;
   supportsShareTarget: boolean;
+  supportsWidgets: boolean;
+  isOffline: boolean;
   deferredPrompt: any | null;
 }
 
@@ -21,6 +23,8 @@ export const usePWAFeatures = () => {
     supportsPush: false,
     supportsProtocolHandler: false,
     supportsShareTarget: false,
+    supportsWidgets: false,
+    isOffline: !navigator.onLine,
     deferredPrompt: null,
   });
 
@@ -36,6 +40,7 @@ export const usePWAFeatures = () => {
     const supportsPush = 'serviceWorker' in navigator && 'PushManager' in window;
     const supportsProtocolHandler = 'registerProtocolHandler' in navigator;
     const supportsShareTarget = 'share' in navigator;
+    const supportsWidgets = 'widgets' in window;
     
     setFeatures(prev => ({
       ...prev,
@@ -45,6 +50,7 @@ export const usePWAFeatures = () => {
       supportsPush,
       supportsProtocolHandler,
       supportsShareTarget,
+      supportsWidgets,
     }));
 
     // Save the beforeinstallprompt event to use later
@@ -53,7 +59,14 @@ export const usePWAFeatures = () => {
       setFeatures(prev => ({ ...prev, isInstallable: true, deferredPrompt: e }));
     };
 
+    // Handle online/offline events
+    const handleOnlineStatusChange = () => {
+      setFeatures(prev => ({ ...prev, isOffline: !navigator.onLine }));
+    };
+
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('online', handleOnlineStatusChange);
+    window.addEventListener('offline', handleOnlineStatusChange);
     
     // Detect when the app gets installed
     window.addEventListener('appinstalled', () => {
@@ -62,6 +75,8 @@ export const usePWAFeatures = () => {
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('online', handleOnlineStatusChange);
+      window.removeEventListener('offline', handleOnlineStatusChange);
     };
   }, []);
 
@@ -83,6 +98,14 @@ export const usePWAFeatures = () => {
     
     return choiceResult.outcome === 'accepted';
   }, [features.deferredPrompt]);
+
+  // Check if we need to show offline warning
+  useEffect(() => {
+    if (features.isOffline) {
+      console.log('App is offline. Some features may be limited.');
+      // You could show an offline banner or toast here
+    }
+  }, [features.isOffline]);
 
   return {
     ...features,
