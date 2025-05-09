@@ -16,24 +16,34 @@ const updateSW = registerSW({
   },
   onRegistered(registration) {
     // Setup background sync when registration is successful
-    if (registration && 'sync' in registration) {
-      console.log('Background sync supported')
+    if (registration) {
+      console.log('Service Worker registered successfully')
+      
+      // Register for background sync if supported
+      if ('sync' in registration) {
+        console.log('Background sync supported')
+        // Register a sync event
+        registration.sync.register('sync-data')
+          .then(() => console.log('Sync registered'))
+          .catch(err => console.error('Sync registration failed:', err))
+      }
       
       // Register for push notifications if supported
       if ('Notification' in window && 'PushManager' in window) {
         Notification.requestPermission().then((permission) => {
           if (permission === 'granted') {
             console.log('Notification permission granted')
+            // Here you would subscribe to push service
           }
         })
       }
       
       // Register for periodic sync if supported
-      if ('periodicSync' in registration) {
+      if (registration.periodicSync) {
         navigator.serviceWorker.ready
-          .then((registration) => {
+          .then((reg) => {
             // @ts-ignore - Periodic sync is not yet in all TypeScript definitions
-            registration.periodicSync.register('content-sync', {
+            reg.periodicSync.register('content-sync', {
               minInterval: 24 * 60 * 60 * 1000, // Once per day
             }).catch((error) => console.error('Periodic Sync could not be registered!', error))
           })
@@ -49,7 +59,7 @@ const updateSW = registerSW({
 if ('registerProtocolHandler' in navigator) {
   try {
     navigator.registerProtocolHandler(
-      'circl',
+      'web+circl',
       window.location.origin + '/%s',
       'Circl App'
     )

@@ -129,7 +129,7 @@ export default defineConfig(({ mode }) => ({
         // Protocol handler
         protocol_handlers: [
           {
-            protocol: "circl",
+            protocol: "web+circl",
             url: "/%s"
           }
         ],
@@ -207,16 +207,17 @@ export default defineConfig(({ mode }) => ({
             }
           }
         ],
-        // Enable background sync
-        backgroundSync: {
-          name: 'circl-sync-queue',
-          options: {
-            maxRetentionTime: 24 * 60 // Retry for up to 24 hours (in minutes)
-          }
-        }
+        // Instead of using backgroundSync directly, we configure it through Workbox recipes
+        // This is standard way to register background sync in Workbox
+        clientsClaim: true,
+        skipWaiting: true,
       },
+      // Separate configuration for periodic background sync
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.js',
       // Add support for periodic background sync
-      periodicSyncForUpdates: 'circl-periodic-sync',
+      periodicSyncForUpdates: 24 * 60, // 24 hours in minutes
       // Enable push notifications
       devOptions: {
         enabled: true,
