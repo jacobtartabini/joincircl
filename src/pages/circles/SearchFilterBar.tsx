@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
 import CircleImportButtons from "@/components/circles/CircleImportButtons";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface SearchFilterBarProps {
   allTags: string[];
@@ -28,6 +29,7 @@ export default function SearchFilterBar({
   onSearchChange
 }: SearchFilterBarProps) {
   const [open, setOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   // Safe list of tags - ensure allTags is always an array
   const safeAllTags = Array.isArray(allTags) ? allTags : [];
@@ -52,17 +54,18 @@ export default function SearchFilterBar({
   };
 
   // Filter out available tags that aren't already selected
-  // Make sure to handle any undefined values
-  const availableTags = safeAllTags.filter(tag => tag && !safeSelectedTags.includes(tag));
+  // Make sure to handle any undefined values and filter out null/empty tags
+  const availableTags = safeAllTags
+    .filter(tag => tag && typeof tag === 'string' && tag.trim() !== '' && !safeSelectedTags.includes(tag));
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-4">
+    <div className="flex flex-col gap-3">
+      <div className={`flex ${isMobile ? 'flex-col' : 'items-center'} gap-3`}>
         <div className="relative flex-grow">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search contacts..."
-            className="pl-8"
+            className="pl-8 h-10"
             value={safeSearchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
           />
@@ -78,46 +81,56 @@ export default function SearchFilterBar({
           )}
         </div>
 
-        {/* Only show filter button if there are tags available */}
-        {safeAllTags.length > 0 && (
-          <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-9 px-3 text-sm flex items-center"
+        <div className={`flex gap-2 ${isMobile ? 'w-full' : ''}`}>
+          {/* Only show filter button if there are tags available */}
+          {safeAllTags.length > 0 && (
+            <Popover open={open} onOpenChange={setOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={`h-10 px-3 text-sm flex items-center ${isMobile ? 'flex-1' : ''}`}
+                >
+                  <Tags className="h-4 w-4 mr-1" /> Filter
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent 
+                className="w-60 p-0" 
+                align={isMobile ? "center" : "start"}
+                sideOffset={isMobile ? 8 : 4}
               >
-                <Tags className="h-4 w-4 mr-1" /> Filter
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-60 p-0" align="start">
-              {/* Wrap the Command component in a check to ensure it won't receive undefined values */}
-              <Command>
-                <CommandInput placeholder="Search tags..." />
-                <CommandEmpty>No tags found.</CommandEmpty>
-                <CommandGroup className="max-h-60 overflow-auto">
-                  {availableTags.length > 0 ? (
-                    availableTags.map((tag) => (
-                      <CommandItem
-                        key={tag || "placeholder-key"}
-                        value={tag || "placeholder-value"}
-                        onSelect={() => handleTagSelect(tag)}
-                      >
-                        {tag || ""}
-                      </CommandItem>
-                    ))
-                  ) : (
-                    <div className="py-2 px-2 text-sm text-muted-foreground">
-                      No more tags available
-                    </div>
-                  )}
-                </CommandGroup>
-              </Command>
-            </PopoverContent>
-          </Popover>
-        )}
-        
-        <CircleImportButtons onImportSuccess={onRefresh} />
+                {Array.isArray(availableTags) && (
+                  <Command>
+                    <CommandInput placeholder="Search tags..." />
+                    <CommandEmpty>No tags found.</CommandEmpty>
+                    <CommandGroup className="max-h-60 overflow-auto">
+                      {availableTags.length > 0 ? (
+                        availableTags.map((tag) => (
+                          <CommandItem
+                            key={tag || "placeholder-key"}
+                            value={tag || "placeholder-value"}
+                            onSelect={() => handleTagSelect(tag)}
+                          >
+                            {tag || ""}
+                          </CommandItem>
+                        ))
+                      ) : (
+                        <div className="py-2 px-2 text-sm text-muted-foreground">
+                          No more tags available
+                        </div>
+                      )}
+                    </CommandGroup>
+                  </Command>
+                )}
+              </PopoverContent>
+            </Popover>
+          )}
+          
+          <CircleImportButtons 
+            onImportSuccess={onRefresh} 
+            className={isMobile ? "flex-1" : ""}
+          />
+        </div>
       </div>
 
       <div className="flex items-center gap-2">

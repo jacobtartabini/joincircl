@@ -12,6 +12,7 @@ import { AddContactDialog } from "./dialogs/AddContactDialog";
 import { EditContactDialog } from "./dialogs/EditContactDialog";
 import { InteractionDialog } from "./dialogs/InteractionDialog";
 import { InsightsDialog } from "./dialogs/InsightsDialog";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Circles = () => {
   const { toast } = useToast();
@@ -22,6 +23,7 @@ const Circles = () => {
   const [isInteractionDialogOpen, setIsInteractionDialogOpen] = useState(false);
   const [isInsightsDialogOpen, setIsInsightsDialogOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const isMobile = useIsMobile();
   
   // Search and filter states - initialize with safe defaults
   const [searchQuery, setSearchQuery] = useState("");
@@ -93,16 +95,18 @@ const Circles = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex justify-between items-center">
+      <div className={`flex ${isMobile ? 'flex-col gap-4' : 'justify-between items-center'}`}>
         <div>
-          <h1 className="text-3xl font-bold">Circles</h1>
-          <p className="text-muted-foreground">
+          <h1 className={`text-2xl md:text-3xl font-bold ${isMobile ? 'mb-1' : ''}`}>Circles</h1>
+          <p className="text-muted-foreground text-sm md:text-base">
             Organize your network in concentric circles of connection
           </p>
         </div>
-        <Button size="sm" onClick={() => setIsAddDialogOpen(true)}>
-          <Plus size={16} className="mr-1" /> Add Contact
-        </Button>
+        {!isMobile && (
+          <Button size="sm" onClick={() => setIsAddDialogOpen(true)}>
+            <Plus size={16} className="mr-1" /> Add Contact
+          </Button>
+        )}
       </div>
 
       <SearchFilterBar 

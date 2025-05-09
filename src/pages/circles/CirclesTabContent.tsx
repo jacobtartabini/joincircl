@@ -4,6 +4,7 @@ import { Contact } from "@/types/contact";
 import { TabsContent } from "@/components/ui/tabs";
 import { ContactCard } from "@/components/ui/contact-card";
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CirclesTabContentProps {
   value: "all" | "inner" | "middle" | "outer";
@@ -32,6 +33,8 @@ export const CirclesTabContent = ({
   const safeSelectedTags = Array.isArray(selectedTags) ? selectedTags : [];
   // Ensure searchQuery is a string
   const safeSearchQuery = typeof searchQuery === 'string' ? searchQuery : '';
+  
+  const isMobile = useIsMobile();
   
   const filteredContacts = useMemo(() => {
     return safeContacts.filter(contact => {
@@ -93,9 +96,10 @@ interface ContactGridProps {
 const ContactGrid = ({ contacts, onAddInteraction, onViewInsights }: ContactGridProps) => {
   // Ensure contacts is an array
   const safeContacts = Array.isArray(contacts) ? contacts : [];
+  const isMobile = useIsMobile();
   
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className={`grid grid-cols-1 ${isMobile ? '' : 'md:grid-cols-2'} gap-4`}>
       {safeContacts.map((contact) => (
         <ContactCard
           key={contact.id}
@@ -116,6 +120,7 @@ interface EmptyStateProps {
 
 const EmptyState = ({ searchActive, circleType, onAddContact }: EmptyStateProps) => {
   const circleMessage = circleType === "all" ? "" : `${circleType} circle `;
+  const isMobile = useIsMobile();
   
   return (
     <div className="text-center py-8 border rounded-md bg-muted/30">

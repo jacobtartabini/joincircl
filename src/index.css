@@ -52,6 +52,26 @@
   .container {
     @apply px-4 md:px-6;
   }
+  
+  /* Improve touch targets for mobile */
+  @media (max-width: 768px) {
+    button, a, [role="button"], input[type="button"], input[type="submit"], input[type="reset"] {
+      @apply min-h-10 min-w-8;
+    }
+    
+    input, select, textarea {
+      @apply text-base;
+    }
+    
+    .form-label {
+      @apply text-sm mb-1;
+    }
+  }
+  
+  /* Prevent body scrolling when modal/sheet is open */
+  body.modal-open {
+    @apply overflow-hidden;
+  }
 }
 
 @layer components {
@@ -73,5 +93,23 @@
   
   .circle-outer {
     @apply bg-blue-500 text-white;
+  }
+  
+  /* Mobile optimized sheet styles */
+  .sheet-mobile {
+    @apply rounded-t-3xl px-6 pt-8 pb-10;
+  }
+  
+  .mobile-full {
+    @apply fixed inset-0 z-50 flex flex-col bg-background p-0;
+  }
+  
+  .mobile-bottom-drawer {
+    @apply fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl bg-background pb-8;
+  }
+  
+  /* Mobile friendly tap targets */
+  .mobile-tap-target {
+    @apply min-h-12 min-w-12 p-3;
   }
 }
