@@ -64,7 +64,7 @@ const MobileNav = () => {
                   <Link
                     to="#"
                     className={`flex flex-col items-center justify-center w-full h-full ${
-                      isActive ? "text-circl-blue" : "text-gray-500"
+                      isActive ? "text-primary" : "text-gray-500"
                     }`}
                     onClick={handleAddButtonClick}
                   >
@@ -108,7 +108,7 @@ const MobileNav = () => {
               to={item.path}
               key={item.path}
               className={`flex flex-col items-center justify-center w-full h-full ${
-                isActive ? "text-circl-blue" : "text-gray-500"
+                isActive ? "text-primary" : "text-gray-500"
               }`}
             >
               <item.icon size={20} />

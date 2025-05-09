@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Tags, X } from "lucide-react";
+import { Search, Filter, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
@@ -88,10 +88,10 @@ export default function SearchFilterBar({
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  size="sm"
-                  className={`h-10 px-3 text-sm flex items-center ${isMobile ? 'flex-1' : ''}`}
+                  size="icon"
+                  className={`h-10 w-10 flex items-center justify-center ${isMobile ? '' : ''}`}
                 >
-                  <Tags className="h-4 w-4 mr-1" /> Filter
+                  <Filter className="h-4 w-4" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent 

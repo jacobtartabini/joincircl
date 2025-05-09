@@ -38,7 +38,7 @@ const DesktopNav = () => {
                   to={item.path}
                   key={item.path}
                   className={`flex flex-col items-center justify-center ${
-                    isActive ? "text-circl-blue" : "text-gray-500"
+                    isActive ? "text-primary" : "text-gray-500"
                   }`}
                 >
                   <item.icon size={24} />
