@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { TableName, DataRecord } from "./types";
+import { TableName, DataRecord, UserOwnedRecord } from "./types";
 import { isValidUuid, sanitizeDataObject, validateOwnership } from "./validators";
 import { contactsRateLimiter, generalRateLimiter, checkRateLimit } from "./rateLimiting";
 import { handleDataOperationError } from "./errorHandling";
@@ -20,7 +20,7 @@ export const secureApiService = {
    * @param userId The user ID for rate limiting and access control
    * @returns Promise with the data or error
    */
-  async fetchData<T extends object = DataRecord>(table: TableName, userId: string | undefined): Promise<T[]> {
+  async fetchData<T extends DataRecord>(table: TableName, userId: string | undefined): Promise<T[]> {
     if (!userId) {
       throw new Error("Authentication required");
     }
@@ -49,7 +49,7 @@ export const secureApiService = {
    * @param data The data to insert
    * @returns Promise with the inserted data or error
    */
-  async insertData<T extends object = DataRecord>(table: TableName, userId: string | undefined, data: AnyRecord): Promise<T> {
+  async insertData<T extends DataRecord>(table: TableName, userId: string | undefined, data: AnyRecord): Promise<T> {
     if (!userId) {
       throw new Error("Authentication required");
     }
@@ -64,10 +64,10 @@ export const secureApiService = {
     sanitizedData.user_id = userId;
     
     try {
-      // Insert a single object, not an array
+      // Insert a single object
       const { data: insertedData, error } = await supabase
         .from(table)
-        .insert(sanitizedData) // Pass a single object as Supabase accepts both formats
+        .insert(sanitizedData)
         .select();
         
       if (error) throw error;
@@ -90,7 +90,7 @@ export const secureApiService = {
    * @param data The data to update
    * @returns Promise with the updated data or error
    */
-  async updateData<T extends object = DataRecord>(table: TableName, userId: string | undefined, id: string, data: AnyRecord): Promise<T> {
+  async updateData<T extends DataRecord>(table: TableName, userId: string | undefined, id: string, data: AnyRecord): Promise<T> {
     if (!userId) {
       throw new Error("Authentication required");
     }
@@ -123,11 +123,8 @@ export const secureApiService = {
         throw new Error("Resource not found");
       }
       
-      // Safely access user_id - ensure existingData is properly typed
-      const existingRecord = existingData as { user_id: string };
-      if (!existingRecord.user_id) {
-        throw new Error("Invalid resource data structure");
-      }
+      // Type assertion to access user_id safely
+      const existingRecord = existingData as UserOwnedRecord;
       
       // Validate ownership
       if (!validateOwnership(existingRecord.user_id, userId)) {
@@ -187,11 +184,8 @@ export const secureApiService = {
         throw new Error("Resource not found");
       }
       
-      // Safely access user_id - ensure existingData is properly typed
-      const existingRecord = existingData as { user_id: string };
-      if (!existingRecord.user_id) {
-        throw new Error("Invalid resource data structure");
-      }
+      // Type assertion to access user_id safely
+      const existingRecord = existingData as UserOwnedRecord;
       
       // Validate ownership
       if (!validateOwnership(existingRecord.user_id, userId)) {

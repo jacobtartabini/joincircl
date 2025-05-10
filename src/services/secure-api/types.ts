@@ -24,3 +24,11 @@ export interface ApiError {
   code?: string;
   details?: unknown;
 }
+
+/**
+ * Database record with user_id
+ */
+export interface UserOwnedRecord {
+  user_id: string;
+  [key: string]: any;
+}
