@@ -4,7 +4,6 @@ import { applyRateLimiting } from "../rateLimiting";
 import { handleApiError } from "../errorHandling";
 import { DataRecord, FetchOptions, QueryResult, TableName } from "../types";
 import { validateQueryParams } from "../validators";
-import { PostgrestFilterBuilder } from "@supabase/supabase-js";
 
 export async function fetchAdapter<T extends DataRecord>(
   table: TableName,
@@ -17,8 +16,8 @@ export async function fetchAdapter<T extends DataRecord>(
     // Validate query parameters
     validateQueryParams(options);
 
-    // Initialize query with explicit type annotation to avoid deep instantiation
-    let query: PostgrestFilterBuilder<any> = supabase.from(table).select('*', { count: 'exact' });
+    // Initialize query with a type assertion to avoid deep instantiation
+    let query = supabase.from(table).select('*', { count: 'exact' }) as any;
     
     // Apply filters if provided
     if (options.filters) {
@@ -38,8 +37,8 @@ export async function fetchAdapter<T extends DataRecord>(
     
     // Apply offset if provided - safely applying offset
     if (options.offset !== undefined) {
-      // Cast to any to bypass type checking for offset
-      (query as any) = (query as any).offset(options.offset);
+      // Use type assertion instead of importing the specific type
+      query = query.offset(options.offset);
     }
     
     // Apply ordering if provided
