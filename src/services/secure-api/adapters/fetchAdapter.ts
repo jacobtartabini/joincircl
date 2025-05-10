@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { TableName, DataRecord } from "../types";
 import { checkRateLimit } from "../rateLimiting";
@@ -29,9 +30,8 @@ export const fetchAdapter = {
 
       if (error) throw error;
 
-      // Ensure a consistent array is returned and simplify casting
-      const safeData = (data ?? []) as T[];
-      return safeData;
+      // Use a simple cast to avoid deep type instantiation
+      return (data || []) as unknown as T[];
     } catch (error: any) {
       throw handleDataOperationError("fetching from", table, error);
     }
