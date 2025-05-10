@@ -31,10 +31,10 @@ export const insertAdapter = {
     sanitizedData.user_id = userId;
     
     try {
-      // Use correct typing for the insert operation
+      // Use type assertion for the insert operation to avoid type errors
       const { data: insertedData, error } = await supabase
         .from(table)
-        .insert([sanitizedData])
+        .insert(sanitizedData as any)
         .select();
         
       if (error) throw error;
@@ -43,7 +43,7 @@ export const insertAdapter = {
         throw new Error("Failed to insert data: No data returned");
       }
       
-      // Use safer type conversion approach
+      // Use direct any casting to avoid excessive type depth
       return insertedData[0] as any as T;
     } catch (error: any) {
       throw handleDataOperationError('inserting into', table, error);

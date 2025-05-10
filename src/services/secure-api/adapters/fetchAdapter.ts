@@ -27,9 +27,9 @@ export const fetchAdapter = {
         
       if (error) throw error;
       
-      // Use a two-step type assertion to avoid excessive depth issues
-      // First convert to unknown, then to the target type
-      return data ? (data as any[]).map(item => item as T) : [];
+      // Avoid excessive type nesting by using any[] as an intermediate step
+      if (!data) return [];
+      return data.map(item => item) as any as T[];
     } catch (error: any) {
       throw handleDataOperationError('fetching from', table, error);
     }
