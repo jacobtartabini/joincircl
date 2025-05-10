@@ -61,7 +61,7 @@ export const secureApiService = {
     try {
       const { data: insertedData, error } = await supabase
         .from(table)
-        .insert(sanitizedData)
+        .insert([sanitizedData])
         .select();
         
       if (error) throw error;
