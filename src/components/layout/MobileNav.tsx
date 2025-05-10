@@ -1,9 +1,10 @@
 
-import { Home, Circle, Calendar, Settings } from "lucide-react";
+import { Home, Circle, Calendar, Settings, Bell } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { useNotifications } from "@/hooks/use-notifications";
 
 const MobileNav = () => {
   const location = useLocation();
@@ -11,6 +12,7 @@ const MobileNav = () => {
   const isMobile = useIsMobile();
   const [lastScrollY, setLastScrollY] = useState(0);
   const [showNav, setShowNav] = useState(true);
+  const { unreadCount } = useNotifications();
 
   // Hide navbar on scroll down, show on scroll up (mobile only)
   useEffect(() => {
@@ -30,6 +32,12 @@ const MobileNav = () => {
     { icon: Home, label: "Home", path: "/" },
     { icon: Circle, label: "Circles", path: "/circles" },
     { icon: Calendar, label: "Keystones", path: "/keystones" },
+    { 
+      icon: Bell, 
+      label: "Notifications", 
+      path: "/notifications",
+      badge: unreadCount > 0 ? unreadCount : null
+    },
     { icon: Settings, label: "Settings", path: "/settings" },
   ];
 
@@ -55,7 +63,14 @@ const MobileNav = () => {
                 isActive ? "text-primary" : "text-gray-500"
               }`}
             >
-              <item.icon size={20} />
+              <div className="relative">
+                <item.icon size={20} />
+                {item.badge && (
+                  <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center bg-primary rounded-full text-white text-xs min-w-3.5 h-3.5">
+                    {item.badge > 9 ? '9+' : item.badge}
+                  </span>
+                )}
+              </div>
               <span className="text-xs mt-1">{item.label}</span>
             </Link>
           );

@@ -24,6 +24,7 @@ import Contact from "./pages/Contact";
 import Bugs from "./pages/Bugs";
 import Legal from "./pages/Legal";
 import ShareTarget from "./pages/ShareTarget";
+import Notifications from "./pages/Notifications";
 
 const queryClient = new QueryClient();
 
@@ -102,6 +103,16 @@ const App = () => (
                 <RequireAuth>
                   <MainLayout>
                     <Settings />
+                  </MainLayout>
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/notifications"
+              element={
+                <RequireAuth>
+                  <MainLayout>
+                    <Notifications />
                   </MainLayout>
                 </RequireAuth>
               }

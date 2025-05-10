@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { CalendarDays, PlusCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import MobileHeader from './MobileHeader';
 
 const HomeContent: React.FC = () => {
   const isMobile = useIsMobile();
@@ -52,6 +53,8 @@ const HomeContent: React.FC = () => {
   
   return (
     <div className="space-y-6 animate-fade-in">
+      {isMobile && <MobileHeader />}
+      
       <WelcomeBanner onAddContact={handleAddContact} />
       
       {/* Main dashboard stats */}

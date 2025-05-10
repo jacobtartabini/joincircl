@@ -1,6 +1,7 @@
 
 import { Home, Circle, Calendar, Settings } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import NotificationBell from "@/components/notifications/NotificationBell";
 
 const DesktopNav = () => {
   const location = useLocation();
@@ -46,6 +47,19 @@ const DesktopNav = () => {
                 </Link>
               );
             })}
+            
+            {/* Add Notifications Link */}
+            <Link
+              to="/notifications"
+              className={`flex flex-col items-center justify-center ${
+                currentPath.startsWith("/notifications") ? "text-primary" : "text-gray-500"
+              }`}
+            >
+              <div className="relative">
+                <NotificationBell variant="ghost" size="sm" showCount={false} />
+              </div>
+              <span className="text-xs mt-1">Notifications</span>
+            </Link>
           </div>
         </div>
       </div>

@@ -1,4 +1,3 @@
-
 import { precacheAndRoute } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
 import { CacheFirst, NetworkFirst, StaleWhileRevalidate } from 'workbox-strategies';
@@ -105,16 +104,29 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   
+  // Try to get the notification data
+  const notificationData = event.notification.data;
+  
+  // Default URL to open
+  let urlToOpen = '/notifications';
+  
+  // If we have custom notification data with a URL, use it
+  if (notificationData && notificationData.url) {
+    urlToOpen = notificationData.url;
+  }
+  
   event.waitUntil(
     clients.matchAll({type: 'window'})
       .then((clientList) => {
-        // If a window client is already open, focus it
-        if (clientList.length > 0) {
-          return clientList[0].focus();
+        // If a window client is already open, focus it and navigate
+        for (const client of clientList) {
+          if ('navigate' in client && 'focus' in client) {
+            client.focus();
+            return client.navigate(urlToOpen);
+          }
         }
-        
         // Otherwise open a new window
-        return clients.openWindow('/');
+        return clients.openWindow(urlToOpen);
       })
   );
 });
@@ -123,13 +135,21 @@ self.addEventListener('notificationclick', (event) => {
 self.addEventListener('periodicsync', (event) => {
   if (event.tag === 'content-sync') {
     event.waitUntil(updateContent());
+  } else if (event.tag === 'notifications-sync') {
+    event.waitUntil(syncNotifications());
   }
 });
 
 async function updateContent() {
-  console.log('Performing periodic sync');
+  console.log('Performing periodic content sync');
   // Implement your periodic sync logic here
   // For example, fetch updated contacts or notifications
+}
+
+async function syncNotifications() {
+  console.log('Syncing notifications');
+  // Implement notification sync logic
+  // This could fetch new notifications from the server
 }
 
 // Cache resources needed for widgets and offline use
