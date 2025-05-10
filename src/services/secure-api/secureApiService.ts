@@ -6,17 +6,7 @@ import { contactsRateLimiter, generalRateLimiter, checkRateLimit } from "./rateL
 import { handleDataOperationError } from "./errorHandling";
 import { Database } from "@/integrations/supabase/types";
 
-// Define more specific types for different tables
-type TableRecords = {
-  contacts: Database['public']['Tables']['contacts']['Row'];
-  interactions: Database['public']['Tables']['interactions']['Row'];
-  keystones: Database['public']['Tables']['keystones']['Row'];
-  profiles: Database['public']['Tables']['profiles']['Row'];
-  contact_media: Database['public']['Tables']['contact_media']['Row'];
-  user_calendar_tokens: Database['public']['Tables']['user_calendar_tokens']['Row'];
-};
-
-// Type for a record from any table, using a less complex type
+// Simplify the type system to avoid deep type instantiation
 type AnyRecord = Record<string, any>;
 
 /**
@@ -46,8 +36,8 @@ export const secureApiService = {
         
       if (error) throw error;
       
-      // Use double type assertion to avoid excessive type depth
-      return (data || []) as unknown as T[];
+      // Use simple type assertion
+      return (data || []) as T[];
     } catch (error: any) {
       throw handleDataOperationError('fetching from', table, error);
     }
@@ -75,10 +65,10 @@ export const secureApiService = {
     sanitizedData.user_id = userId;
     
     try {
-      // Use a typed object for the insert rather than an array
+      // Insert as an array with one object (correct format for Supabase)
       const { data: insertedData, error } = await supabase
         .from(table)
-        .insert(sanitizedData)
+        .insert([sanitizedData]) // Use array syntax for insertion
         .select();
         
       if (error) throw error;
@@ -87,8 +77,8 @@ export const secureApiService = {
         throw new Error("Failed to insert data: No data returned");
       }
       
-      // Use double type assertion to avoid deep type instantiation issues
-      return insertedData[0] as unknown as T;
+      // Use simple type assertion
+      return insertedData[0] as T;
     } catch (error: any) {
       throw handleDataOperationError('inserting into', table, error);
     }
@@ -135,16 +125,20 @@ export const secureApiService = {
         throw new Error("Resource not found");
       }
       
-      // Runtime check to ensure user_id exists on the data
-      if (typeof existingData !== 'object' || !existingData || !('user_id' in existingData)) {
+      // Runtime check to ensure existingData is an object with user_id
+      if (typeof existingData !== 'object' || !existingData) {
         throw new Error("Invalid resource data structure");
       }
       
-      // After runtime check, we can safely assert the type
-      const ownershipId = (existingData as { user_id: string }).user_id;
+      // Runtime check to ensure user_id exists
+      if (!('user_id' in existingData)) {
+        throw new Error("Invalid resource structure: missing user_id");
+      }
+      
+      const resourceUserId = (existingData as { user_id: string }).user_id;
       
       // Validate ownership
-      if (!validateOwnership(ownershipId, userId)) {
+      if (!validateOwnership(resourceUserId, userId)) {
         throw new Error("You don't have permission to update this resource");
       }
       
@@ -161,8 +155,8 @@ export const secureApiService = {
         throw new Error("Failed to update data: No data returned");
       }
       
-      // Use double type assertion to avoid deep type instantiation issues
-      return updatedData[0] as unknown as T;
+      // Use simple type assertion
+      return updatedData[0] as T;
     } catch (error: any) {
       throw handleDataOperationError('updating', table, error);
     }
@@ -202,16 +196,20 @@ export const secureApiService = {
         throw new Error("Resource not found");
       }
       
-      // Runtime check to ensure user_id exists on the data
-      if (typeof existingData !== 'object' || !existingData || !('user_id' in existingData)) {
+      // Runtime check to ensure existingData is an object with user_id
+      if (typeof existingData !== 'object' || !existingData) {
         throw new Error("Invalid resource data structure");
       }
       
-      // After runtime check, we can safely assert the type
-      const ownershipId = (existingData as { user_id: string }).user_id;
+      // Runtime check to ensure user_id exists
+      if (!('user_id' in existingData)) {
+        throw new Error("Invalid resource structure: missing user_id");
+      }
+      
+      const resourceUserId = (existingData as { user_id: string }).user_id;
       
       // Validate ownership
-      if (!validateOwnership(ownershipId, userId)) {
+      if (!validateOwnership(resourceUserId, userId)) {
         throw new Error("You don't have permission to delete this resource");
       }
       
