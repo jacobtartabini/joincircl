@@ -27,8 +27,9 @@ export const fetchAdapter = {
         
       if (error) throw error;
       
-      // Fix type conversion by using unknown as intermediate type
-      return (data || []) as unknown as T[];
+      // Use a two-step type assertion to avoid excessive depth issues
+      // First convert to unknown, then to the target type
+      return data ? (data as any[]).map(item => item as T) : [];
     } catch (error: any) {
       throw handleDataOperationError('fetching from', table, error);
     }
