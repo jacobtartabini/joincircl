@@ -54,9 +54,9 @@ export const CirclesTabContent = ({
         (contact.notes && contact.notes.toLowerCase().includes(searchTerms));
       
       // Check if contact has all selected tags - safely handle undefined tags
-      const contactTags = contact.tags || [];
+      const contactTags = Array.isArray(contact.tags) ? contact.tags : [];
       const matchesTags = safeSelectedTags.length === 0 || 
-        safeSelectedTags.every(tag => Array.isArray(contactTags) && contactTags.includes(tag));
+        safeSelectedTags.every(tag => contactTags.includes(tag));
       
       return matchesSearch && matchesTags;
     });

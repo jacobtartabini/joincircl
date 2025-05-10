@@ -39,14 +39,16 @@ export default function SearchFilterBar({
   const safeSearchQuery = typeof searchQuery === 'string' ? searchQuery : "";
 
   const handleTagSelect = (tag: string) => {
-    if (!safeSelectedTags.includes(tag)) {
+    if (tag && !safeSelectedTags.includes(tag)) {
       onTagsChange([...safeSelectedTags, tag]);
     }
     setOpen(false);
   };
 
   const handleTagRemove = (tag: string) => {
-    onTagsChange(safeSelectedTags.filter((t) => t !== tag));
+    if (tag) {
+      onTagsChange(safeSelectedTags.filter((t) => t !== tag));
+    }
   };
 
   const handleClearTags = () => {
@@ -99,7 +101,6 @@ export default function SearchFilterBar({
                 align={isMobile ? "center" : "start"}
                 sideOffset={isMobile ? 8 : 4}
               >
-                {/* Ensure we're always passing an array to Command components */}
                 <Command>
                   <CommandInput placeholder="Search tags..." />
                   <CommandEmpty>No tags found.</CommandEmpty>
