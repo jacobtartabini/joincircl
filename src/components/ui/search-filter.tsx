@@ -30,17 +30,21 @@ interface MultiSelectProps {
 }
 
 export function MultiSelect({
-  options,
-  selected,
+  options = [],  // Default to empty array
+  selected = [],  // Default to empty array
   onChange,
   placeholder = "Select items...",
 }: MultiSelectProps) {
   const [open, setOpen] = React.useState(false);
+  
+  // Ensure options and selected are arrays
+  const safeOptions = Array.isArray(options) ? options : [];
+  const safeSelected = Array.isArray(selected) ? selected : [];
 
   const handleSelect = (value: string) => {
-    const newSelected = selected.includes(value)
-      ? selected.filter((item) => item !== value)
-      : [...selected, value];
+    const newSelected = safeSelected.includes(value)
+      ? safeSelected.filter((item) => item !== value)
+      : [...safeSelected, value];
     
     onChange(newSelected);
   };
@@ -54,9 +58,9 @@ export function MultiSelect({
           aria-expanded={open}
           className="w-full justify-between"
         >
-          {selected.length === 0
+          {safeSelected.length === 0
             ? placeholder
-            : `${selected.length} selected`}
+            : `${safeSelected.length} selected`}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -65,7 +69,7 @@ export function MultiSelect({
           <CommandInput placeholder="Search..." />
           <CommandEmpty>No item found.</CommandEmpty>
           <CommandGroup className="max-h-64 overflow-auto">
-            {options.map((option) => (
+            {safeOptions.map((option) => (
               <CommandItem
                 key={option.value}
                 value={option.value}
@@ -74,7 +78,7 @@ export function MultiSelect({
                 <Check
                   className={cn(
                     "mr-2 h-4 w-4",
-                    selected.includes(option.value) ? "opacity-100" : "opacity-0"
+                    safeSelected.includes(option.value) ? "opacity-100" : "opacity-0"
                   )}
                 />
                 {option.label}
