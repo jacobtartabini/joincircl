@@ -31,10 +31,10 @@ export const insertAdapter = {
     sanitizedData.user_id = userId;
     
     try {
-      // Insert as an array with one object (correct format for Supabase)
+      // Fix: Use the correct Supabase insert syntax with array
       const { data: insertedData, error } = await supabase
         .from(table)
-        .insert([sanitizedData]) // Use array syntax for insertion
+        .insert([sanitizedData])
         .select();
         
       if (error) throw error;
@@ -43,8 +43,8 @@ export const insertAdapter = {
         throw new Error("Failed to insert data: No data returned");
       }
       
-      // Use type assertion with unknown intermediate to avoid type depth issues
-      return insertedData[0] as unknown as T;
+      // Simplify type assertion to avoid excessive depth
+      return insertedData[0] as T;
     } catch (error: any) {
       throw handleDataOperationError('inserting into', table, error);
     }

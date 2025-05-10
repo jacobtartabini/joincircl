@@ -27,8 +27,8 @@ export const fetchAdapter = {
         
       if (error) throw error;
       
-      // Use type assertion with unknown intermediate to avoid type depth issues
-      return (data || []) as unknown as T[];
+      // Simplify type assertion to avoid excessive depth
+      return (data || []) as T[];
     } catch (error: any) {
       throw handleDataOperationError('fetching from', table, error);
     }
