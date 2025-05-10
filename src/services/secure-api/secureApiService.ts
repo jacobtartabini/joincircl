@@ -4,6 +4,7 @@ import { TableName, DataRecord } from "./types";
 import { isValidUuid, sanitizeDataObject, validateOwnership } from "./validators";
 import { contactsRateLimiter, generalRateLimiter, checkRateLimit } from "./rateLimiting";
 import { handleDataOperationError } from "./errorHandling";
+import { Tables } from "@/integrations/supabase/types";
 
 /**
  * A secure service for making API calls with proper validation,
@@ -16,7 +17,7 @@ export const secureApiService = {
    * @param userId The user ID for rate limiting and access control
    * @returns Promise with the data or error
    */
-  async fetchData(table: TableName, userId: string | undefined): Promise<DataRecord[]> {
+  async fetchData<T extends DataRecord = DataRecord>(table: TableName, userId: string | undefined): Promise<T[]> {
     if (!userId) {
       throw new Error("Authentication required");
     }
@@ -31,7 +32,7 @@ export const secureApiService = {
         .eq('user_id', userId);
         
       if (error) throw error;
-      return data || [];
+      return (data || []) as T[];
     } catch (error: any) {
       throw handleDataOperationError('fetching from', table, error);
     }
@@ -44,7 +45,7 @@ export const secureApiService = {
    * @param data The data to insert
    * @returns Promise with the inserted data or error
    */
-  async insertData(table: TableName, userId: string | undefined, data: Record<string, any>): Promise<DataRecord> {
+  async insertData<T extends DataRecord = DataRecord>(table: TableName, userId: string | undefined, data: Record<string, any>): Promise<T> {
     if (!userId) {
       throw new Error("Authentication required");
     }
@@ -59,9 +60,10 @@ export const secureApiService = {
     sanitizedData.user_id = userId;
     
     try {
+      // Use proper type for insert - must be a single object, not an array
       const { data: insertedData, error } = await supabase
         .from(table)
-        .insert([sanitizedData])
+        .insert(sanitizedData)
         .select();
         
       if (error) throw error;
@@ -70,7 +72,7 @@ export const secureApiService = {
         throw new Error("Failed to insert data: No data returned");
       }
       
-      return insertedData[0] as DataRecord;
+      return insertedData[0] as T;
     } catch (error: any) {
       throw handleDataOperationError('inserting into', table, error);
     }
@@ -84,7 +86,7 @@ export const secureApiService = {
    * @param data The data to update
    * @returns Promise with the updated data or error
    */
-  async updateData(table: TableName, userId: string | undefined, id: string, data: Record<string, any>): Promise<DataRecord> {
+  async updateData<T extends DataRecord = DataRecord>(table: TableName, userId: string | undefined, id: string, data: Record<string, any>): Promise<T> {
     if (!userId) {
       throw new Error("Authentication required");
     }
@@ -118,12 +120,19 @@ export const secureApiService = {
       }
       
       // Type check for existingData
-      if (typeof existingData !== 'object' || !('user_id' in existingData) || typeof existingData.user_id !== 'string') {
+      if (typeof existingData !== 'object') {
         throw new Error("Invalid resource data");
       }
       
+      // Safely access user_id with proper type checking
+      const resourceUserId = existingData.user_id;
+      
+      if (typeof resourceUserId !== 'string') {
+        throw new Error("Invalid resource user ID");
+      }
+      
       // Validate ownership with type-safe property access
-      if (!validateOwnership(existingData.user_id, userId)) {
+      if (!validateOwnership(resourceUserId, userId)) {
         throw new Error("You don't have permission to update this resource");
       }
       
@@ -140,7 +149,7 @@ export const secureApiService = {
         throw new Error("Failed to update data: No data returned");
       }
       
-      return updatedData[0] as DataRecord;
+      return updatedData[0] as T;
     } catch (error: any) {
       throw handleDataOperationError('updating', table, error);
     }
@@ -180,13 +189,15 @@ export const secureApiService = {
         throw new Error("Resource not found");
       }
       
-      // Type check for existingData
-      if (typeof existingData !== 'object' || !('user_id' in existingData) || typeof existingData.user_id !== 'string') {
-        throw new Error("Invalid resource data");
+      // Safely access user_id with proper type checking
+      const resourceUserId = existingData.user_id;
+      
+      if (typeof resourceUserId !== 'string') {
+        throw new Error("Invalid resource user ID");
       }
       
       // Validate ownership with type-safe property access
-      if (!validateOwnership(existingData.user_id, userId)) {
+      if (!validateOwnership(resourceUserId, userId)) {
         throw new Error("You don't have permission to delete this resource");
       }
       

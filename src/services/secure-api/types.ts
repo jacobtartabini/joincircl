@@ -8,6 +8,7 @@ export type TableName = "contacts" | "interactions" | "keystones" | "profiles" |
 
 /**
  * Common interface for returned data records
+ * All returned records must have an id and optionally a user_id
  */
 export interface DataRecord {
   id: string;
