@@ -22,17 +22,17 @@ export const fetchAdapter = {
     checkRateLimit(generalRateLimiter, userId);
 
     try {
-      const response = await supabase
+      const { data, error } = await supabase
         .from(table)
         .select("*")
         .eq("user_id", userId);
 
-      if (response.error) {
-        throw response.error;
+      if (error) {
+        throw error;
       }
 
-      // Use a simple cast to avoid type recursion issues
-      return (response.data || []) as unknown as T[];
+      // Simplify the type casting to avoid recursive type issues
+      return (data || []) as any as T[];
     } catch (err) {
       throw handleDataOperationError("fetching from", table, err);
     }
