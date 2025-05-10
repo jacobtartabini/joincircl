@@ -4,6 +4,10 @@ import { TableName, DataRecord } from "./types";
 import { isValidUuid, sanitizeDataObject, validateOwnership } from "./validators";
 import { contactsRateLimiter, generalRateLimiter, checkRateLimit } from "./rateLimiting";
 import { handleDataOperationError } from "./errorHandling";
+import { Database } from "@/integrations/supabase/types"; // Import Supabase types
+
+// Type for a record from any table
+type AnyRecord = Record<string, any>;
 
 /**
  * A secure service for making API calls with proper validation,
@@ -16,7 +20,7 @@ export const secureApiService = {
    * @param userId The user ID for rate limiting and access control
    * @returns Promise with the data or error
    */
-  async fetchData<T = DataRecord>(table: TableName, userId: string | undefined): Promise<T[]> {
+  async fetchData<T extends object = DataRecord>(table: TableName, userId: string | undefined): Promise<T[]> {
     if (!userId) {
       throw new Error("Authentication required");
     }
@@ -32,8 +36,7 @@ export const secureApiService = {
         
       if (error) throw error;
       
-      // First convert to unknown then to T[] to avoid deep type instantiation
-      return (data || []) as unknown as T[];
+      return (data || []) as T[];
     } catch (error: any) {
       throw handleDataOperationError('fetching from', table, error);
     }
@@ -46,7 +49,7 @@ export const secureApiService = {
    * @param data The data to insert
    * @returns Promise with the inserted data or error
    */
-  async insertData<T = DataRecord>(table: TableName, userId: string | undefined, data: Record<string, any>): Promise<T> {
+  async insertData<T extends object = DataRecord>(table: TableName, userId: string | undefined, data: AnyRecord): Promise<T> {
     if (!userId) {
       throw new Error("Authentication required");
     }
@@ -61,10 +64,10 @@ export const secureApiService = {
     sanitizedData.user_id = userId;
     
     try {
-      // Use the array format for insert as required by supabase
+      // Insert a single object, not an array
       const { data: insertedData, error } = await supabase
         .from(table)
-        .insert([sanitizedData]) // Use array format as expected by Supabase
+        .insert(sanitizedData) // Pass a single object as Supabase accepts both formats
         .select();
         
       if (error) throw error;
@@ -73,8 +76,7 @@ export const secureApiService = {
         throw new Error("Failed to insert data: No data returned");
       }
       
-      // First convert to unknown then to T to avoid deep type instantiation
-      return insertedData[0] as unknown as T;
+      return insertedData[0] as T;
     } catch (error: any) {
       throw handleDataOperationError('inserting into', table, error);
     }
@@ -88,7 +90,7 @@ export const secureApiService = {
    * @param data The data to update
    * @returns Promise with the updated data or error
    */
-  async updateData<T = DataRecord>(table: TableName, userId: string | undefined, id: string, data: Record<string, any>): Promise<T> {
+  async updateData<T extends object = DataRecord>(table: TableName, userId: string | undefined, id: string, data: AnyRecord): Promise<T> {
     if (!userId) {
       throw new Error("Authentication required");
     }
@@ -121,25 +123,14 @@ export const secureApiService = {
         throw new Error("Resource not found");
       }
       
-      // Type check for existingData
-      if (typeof existingData !== 'object') {
-        throw new Error("Invalid resource data");
-      }
-      
-      // Proper null check before accessing properties
-      if (!existingData || !('user_id' in existingData)) {
+      // Safely access user_id - ensure existingData is properly typed
+      const existingRecord = existingData as { user_id: string };
+      if (!existingRecord.user_id) {
         throw new Error("Invalid resource data structure");
       }
       
-      // Safely access user_id with proper type checking
-      const resourceUserId = existingData.user_id;
-      
-      if (typeof resourceUserId !== 'string') {
-        throw new Error("Invalid resource user ID");
-      }
-      
-      // Validate ownership with type-safe property access
-      if (!validateOwnership(resourceUserId, userId)) {
+      // Validate ownership
+      if (!validateOwnership(existingRecord.user_id, userId)) {
         throw new Error("You don't have permission to update this resource");
       }
       
@@ -156,8 +147,7 @@ export const secureApiService = {
         throw new Error("Failed to update data: No data returned");
       }
       
-      // First convert to unknown then to T to avoid deep type instantiation
-      return updatedData[0] as unknown as T;
+      return updatedData[0] as T;
     } catch (error: any) {
       throw handleDataOperationError('updating', table, error);
     }
@@ -197,20 +187,14 @@ export const secureApiService = {
         throw new Error("Resource not found");
       }
       
-      // Proper null check before accessing properties
-      if (!existingData || !('user_id' in existingData)) {
+      // Safely access user_id - ensure existingData is properly typed
+      const existingRecord = existingData as { user_id: string };
+      if (!existingRecord.user_id) {
         throw new Error("Invalid resource data structure");
       }
       
-      // Safely access user_id with proper type checking
-      const resourceUserId = existingData.user_id;
-      
-      if (typeof resourceUserId !== 'string') {
-        throw new Error("Invalid resource user ID");
-      }
-      
-      // Validate ownership with type-safe property access
-      if (!validateOwnership(resourceUserId, userId)) {
+      // Validate ownership
+      if (!validateOwnership(existingRecord.user_id, userId)) {
         throw new Error("You don't have permission to delete this resource");
       }
       
