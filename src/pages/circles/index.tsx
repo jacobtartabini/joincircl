@@ -1,92 +1,38 @@
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { contactService } from "@/services/contactService";
-import { Contact } from "@/types/contact";
-import { Plus } from "lucide-react";
+import { useCirclesState } from "./hooks/useCirclesState";
+import { CirclesHeader } from "./components/CirclesHeader";
+import { CircleDialogs } from "./components/CircleDialogs";
 import { CirclesTabContent } from "./CirclesTabContent";
-import SearchFilterBar from "./SearchFilterBar";
 import { CirclesTabs } from "./CirclesTabs";
-import { AddContactDialog } from "./dialogs/AddContactDialog";
-import { EditContactDialog } from "./dialogs/EditContactDialog";
-import { InteractionDialog } from "./dialogs/InteractionDialog";
-import { InsightsDialog } from "./dialogs/InsightsDialog";
+import SearchFilterBar from "./SearchFilterBar";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const Circles = () => {
-  const { toast } = useToast();
-  const [contacts, setContacts] = useState<Contact[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isInteractionDialogOpen, setIsInteractionDialogOpen] = useState(false);
-  const [isInsightsDialogOpen, setIsInsightsDialogOpen] = useState(false);
-  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const {
+    contacts,
+    isLoading,
+    searchQuery,
+    setSearchQuery,
+    selectedTags,
+    setSelectedTags,
+    availableTags,
+    isAddDialogOpen,
+    setIsAddDialogOpen,
+    isEditDialogOpen,
+    setIsEditDialogOpen,
+    isInteractionDialogOpen,
+    setIsInteractionDialogOpen,
+    isInsightsDialogOpen,
+    setIsInsightsDialogOpen,
+    selectedContact,
+    setSelectedContact,
+    fetchContacts,
+    handleAddInteraction,
+    handleViewInsights
+  } = useCirclesState();
+
   const isMobile = useIsMobile();
   
-  // Search and filter states - initialize with safe defaults
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [availableTags, setAvailableTags] = useState<string[]>([]);
-
-  useEffect(() => {
-    fetchContacts();
-  }, []);
-
-  const fetchContacts = async () => {
-    try {
-      setIsLoading(true);
-      const data = await contactService.getContacts();
-      const safeData = Array.isArray(data) ? data : [];
-      setContacts(safeData);
-      
-      // Extract unique tags from all contacts, safely handling undefined tags
-      const allTags = new Set<string>();
-      safeData.forEach(contact => {
-        if (contact.tags && Array.isArray(contact.tags)) {
-          contact.tags.forEach(tag => {
-            if (tag) allTags.add(tag);
-          });
-        }
-      });
-      
-      setAvailableTags(Array.from(allTags));
-    } catch (error) {
-      console.error("Error fetching contacts:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load contacts. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleEditContact = (contact: Contact) => {
-    setSelectedContact(contact);
-    setIsEditDialogOpen(true);
-  };
-
-  const handleAddInteraction = (contact: Contact) => {
-    setSelectedContact(contact);
-    setIsInteractionDialogOpen(true);
-  };
-
-  const handleViewInsights = (contact: Contact) => {
-    setSelectedContact(contact);
-    setIsInsightsDialogOpen(true);
-  };
-
-  const handleDialogSuccess = () => {
-    setIsAddDialogOpen(false);
-    setIsEditDialogOpen(false);
-    setIsInteractionDialogOpen(false);
-    setSelectedContact(null);
-    fetchContacts();
-  };
-
   // Ensure we have safe values for props
   const safeSelectedTags = Array.isArray(selectedTags) ? selectedTags : [];
   const safeAvailableTags = Array.isArray(availableTags) ? availableTags : [];
@@ -95,19 +41,7 @@ const Circles = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className={`flex ${isMobile ? 'flex-col gap-4' : 'justify-between items-center'}`}>
-        <div>
-          <h1 className={`text-2xl md:text-3xl font-bold ${isMobile ? 'mb-1' : ''}`}>Circles</h1>
-          <p className="text-muted-foreground text-sm md:text-base">
-            Organize your network in concentric circles of connection
-          </p>
-        </div>
-        {!isMobile && (
-          <Button size="sm" onClick={() => setIsAddDialogOpen(true)}>
-            <Plus size={16} className="mr-1" /> Add Contact
-          </Button>
-        )}
-      </div>
+      <CirclesHeader onAddContact={() => setIsAddDialogOpen(true)} />
 
       <SearchFilterBar 
         allTags={safeAvailableTags}
@@ -162,38 +96,18 @@ const Circles = () => {
         />
       </CirclesTabs>
 
-      <AddContactDialog 
-        isOpen={isAddDialogOpen} 
-        onOpenChange={setIsAddDialogOpen}
-        onSuccess={handleDialogSuccess}
-      />
-
-      <EditContactDialog 
-        isOpen={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
-        contact={selectedContact}
-        onSuccess={handleDialogSuccess}
-        onCancel={() => {
-          setIsEditDialogOpen(false);
-          setSelectedContact(null);
-        }}
-      />
-
-      <InteractionDialog 
-        isOpen={isInteractionDialogOpen}
-        onOpenChange={setIsInteractionDialogOpen}
-        contact={selectedContact}
-        onSuccess={handleDialogSuccess}
-        onCancel={() => {
-          setIsInteractionDialogOpen(false);
-          setSelectedContact(null);
-        }}
-      />
-
-      <InsightsDialog 
-        isOpen={isInsightsDialogOpen}
-        onOpenChange={setIsInsightsDialogOpen}
-        contact={selectedContact}
+      <CircleDialogs 
+        isAddDialogOpen={isAddDialogOpen}
+        setIsAddDialogOpen={setIsAddDialogOpen}
+        isEditDialogOpen={isEditDialogOpen}
+        setIsEditDialogOpen={setIsEditDialogOpen}
+        isInteractionDialogOpen={isInteractionDialogOpen}
+        setIsInteractionDialogOpen={setIsInteractionDialogOpen}
+        isInsightsDialogOpen={isInsightsDialogOpen}
+        setIsInsightsDialogOpen={setIsInsightsDialogOpen}
+        selectedContact={selectedContact}
+        setSelectedContact={setSelectedContact}
+        onFetchContacts={fetchContacts}
       />
     </div>
   );
