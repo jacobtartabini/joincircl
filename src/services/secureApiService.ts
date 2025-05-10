@@ -142,10 +142,12 @@ export const secureApiService = {
         throw new Error("Resource not found");
       }
       
-      // Use type assertion to tell TypeScript that existingData has user_id
-      const record = existingData as DataRecord;
+      // Check if existingData has the correct shape before using it
+      if (!existingData || typeof existingData !== 'object' || !('user_id' in existingData)) {
+        throw new Error("Invalid resource data");
+      }
       
-      if (record.user_id !== userId) {
+      if (existingData.user_id !== userId) {
         throw new Error("You don't have permission to update this resource");
       }
       
@@ -201,10 +203,12 @@ export const secureApiService = {
         throw new Error("Resource not found");
       }
       
-      // Use type assertion to tell TypeScript that existingData has user_id
-      const record = existingData as DataRecord;
+      // Check if existingData has the correct shape before using it
+      if (!existingData || typeof existingData !== 'object' || !('user_id' in existingData)) {
+        throw new Error("Invalid resource data");
+      }
       
-      if (record.user_id !== userId) {
+      if (existingData.user_id !== userId) {
         throw new Error("You don't have permission to delete this resource");
       }
       
