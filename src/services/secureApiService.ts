@@ -1,7 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { sanitizeInput, RateLimiter } from "@/utils/security";
-import type { PostgrestQueryBuilder } from "@supabase/supabase-js";
 
 // Create rate limiters for different API endpoints
 const contactsRateLimiter = new RateLimiter(20, 60); // 20 requests per minute
@@ -132,7 +131,11 @@ export const secureApiService = {
       if (fetchError) throw fetchError;
       
       // Double-check ownership (even though RLS would prevent this, it's a good practice)
-      if (!existingData || existingData.user_id !== userId) {
+      if (!existingData) {
+        throw new Error("Resource not found");
+      }
+      
+      if (existingData.user_id !== userId) {
         throw new Error("You don't have permission to update this resource");
       }
       
@@ -184,7 +187,11 @@ export const secureApiService = {
       if (fetchError) throw fetchError;
       
       // Double-check ownership
-      if (!existingData || existingData.user_id !== userId) {
+      if (!existingData) {
+        throw new Error("Resource not found");
+      }
+      
+      if (existingData.user_id !== userId) {
         throw new Error("You don't have permission to delete this resource");
       }
       
