@@ -9,6 +9,13 @@ const generalRateLimiter = new RateLimiter(50, 60); // 50 requests per minute
 // Helper type for allowed table names
 type TableName = "contacts" | "interactions" | "keystones" | "profiles" | "contact_media" | "user_calendar_tokens";
 
+// Define a common interface for returned data
+interface DataRecord {
+  id: string;
+  user_id?: string;
+  [key: string]: any;
+}
+
 /**
  * A secure service for making API calls with proper validation,
  * rate limiting, and error handling
@@ -135,7 +142,10 @@ export const secureApiService = {
         throw new Error("Resource not found");
       }
       
-      if (existingData.user_id !== userId) {
+      // Use type assertion to tell TypeScript that existingData has user_id
+      const record = existingData as DataRecord;
+      
+      if (record.user_id !== userId) {
         throw new Error("You don't have permission to update this resource");
       }
       
@@ -191,7 +201,10 @@ export const secureApiService = {
         throw new Error("Resource not found");
       }
       
-      if (existingData.user_id !== userId) {
+      // Use type assertion to tell TypeScript that existingData has user_id
+      const record = existingData as DataRecord;
+      
+      if (record.user_id !== userId) {
         throw new Error("You don't have permission to delete this resource");
       }
       
