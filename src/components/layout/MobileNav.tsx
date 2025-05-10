@@ -1,8 +1,6 @@
 
-import { Home, Circle, Plus, BookText, Settings, Calendar } from "lucide-react";
+import { Home, Circle, Calendar, Settings } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -31,17 +29,9 @@ const MobileNav = () => {
   const navItems = [
     { icon: Home, label: "Home", path: "/" },
     { icon: Circle, label: "Circles", path: "/circles" },
-    { icon: Plus, label: "Add", path: "#", action: true },
-    { icon: BookText, label: "Resources", path: "/help" },
+    { icon: Calendar, label: "Keystones", path: "/keystones" },
     { icon: Settings, label: "Settings", path: "/settings" },
   ];
-
-  const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
-
-  const handleAddButtonClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsAddMenuOpen(true);
-  };
 
   return (
     <motion.nav 
@@ -56,52 +46,6 @@ const MobileNav = () => {
             item.path === "/" 
               ? currentPath === "/" 
               : currentPath.startsWith(item.path);
-
-          if (item.action) {
-            return (
-              <Sheet key={item.label} open={isAddMenuOpen} onOpenChange={setIsAddMenuOpen}>
-                <SheetTrigger asChild>
-                  <Link
-                    to="#"
-                    className={`flex flex-col items-center justify-center w-full h-full ${
-                      isActive ? "text-primary" : "text-gray-500"
-                    }`}
-                    onClick={handleAddButtonClick}
-                  >
-                    <div className="flex items-center justify-center w-10 h-10 bg-primary rounded-full">
-                      <item.icon size={20} className="text-white" />
-                    </div>
-                    <span className="text-xs mt-1">{item.label}</span>
-                  </Link>
-                </SheetTrigger>
-                <SheetContent side="bottom" className="h-[40vh] rounded-t-xl">
-                  <div className="pt-6">
-                    <h3 className="font-medium text-lg mb-4">Add New</h3>
-                    <div className="grid grid-cols-2 gap-3">
-                      <Link to="/circles" onClick={() => setIsAddMenuOpen(false)}>
-                        <Button
-                          variant="outline" 
-                          className="w-full h-20 flex flex-col items-center justify-center gap-2"
-                        >
-                          <Circle size={24} />
-                          <span>Contact</span>
-                        </Button>
-                      </Link>
-                      <Link to="/keystones" onClick={() => setIsAddMenuOpen(false)}>
-                        <Button
-                          variant="outline"
-                          className="w-full h-20 flex flex-col items-center justify-center gap-2"
-                        >
-                          <Calendar size={24} />
-                          <span>Keystone</span>
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-                </SheetContent>
-              </Sheet>
-            );
-          }
               
           return (
             <Link

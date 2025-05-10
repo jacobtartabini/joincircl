@@ -81,7 +81,8 @@ export default function InteractionDetailModal({
   if (isMobile) {
     return (
       <Sheet open={isOpen} onOpenChange={onOpenChange}>
-        <SheetContent side="bottom" className="h-[70vh]">
+        <SheetContent side="bottom" className="sheet-mobile max-h-[85vh] overflow-y-auto">
+          <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-6" />
           {content}
         </SheetContent>
       </Sheet>

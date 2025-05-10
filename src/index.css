@@ -112,4 +112,75 @@
   .mobile-tap-target {
     @apply min-h-12 min-w-12 p-3;
   }
+  
+  /* Mobile modal and sheet animations */
+  .slide-in-bottom {
+    @apply animate-[slide-in-bottom_0.3s_ease-out_forwards];
+  }
+  
+  .slide-out-bottom {
+    @apply animate-[slide-out-bottom_0.3s_ease-out_forwards];
+  }
+  
+  .slide-in-right {
+    @apply animate-[slide-in-right_0.3s_ease-out_forwards];
+  }
+  
+  .slide-out-right {
+    @apply animate-[slide-out-right_0.3s_ease-out_forwards];
+  }
+  
+  /* Status bar styles */
+  .status-bar {
+    @apply h-14 flex items-center justify-center;
+  }
+  
+  .status-bar-accent {
+    @apply absolute top-0 left-0 right-0 h-1;
+  }
+}
+
+/* Add keyframes for slide animations */
+@keyframes slide-in-bottom {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-out-bottom {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-out-right {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
 }
