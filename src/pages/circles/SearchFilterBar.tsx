@@ -102,9 +102,9 @@ export default function SearchFilterBar({
                 sideOffset={isMobile ? 8 : 4}
               >
                 <Command>
-                  <CommandInput placeholder="Search tags..." value="" />
+                  <CommandInput placeholder="Search tags..." />
                   <CommandEmpty>No tags found.</CommandEmpty>
-                  <CommandGroup className="max-h-60 overflow-auto">
+                  <CommandGroup>
                     {availableTags.length > 0 ? (
                       availableTags.map((tag, index) => {
                         // Ensure we have a valid tag value

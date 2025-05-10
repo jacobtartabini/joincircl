@@ -11,11 +11,8 @@ const Command = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive>
 >(({ className, ...props }, ref) => {
-  // Ensure children prop is an array (if not already)
-  const safeProps = {
-    ...props,
-    children: React.Children.toArray(props.children || [])
-  };
+  // Ensure children prop is handled safely
+  const safeChildren = React.Children.toArray(props.children);
   
   return (
     <CommandPrimitive
@@ -24,7 +21,8 @@ const Command = React.forwardRef<
         "flex h-full w-full flex-col overflow-hidden rounded-md bg-popover text-popover-foreground",
         className
       )}
-      {...safeProps}
+      {...props}
+      children={safeChildren} // Explicitly pass the safe children
     />
   );
 })
@@ -79,8 +77,9 @@ const CommandList = React.forwardRef<
       ref={ref}
       className={cn("max-h-[300px] overflow-y-auto overflow-x-hidden", className)}
       {...props}
+      children={safeChildren} // Explicitly pass the safe children
     >
-      {safeChildren}
+      {/*safeChildren*/}
     </CommandPrimitive.List>
   )
 })
@@ -107,12 +106,6 @@ const CommandGroup = React.forwardRef<
   // Ensure children is always an array (even if undefined)
   const safeChildren = React.Children.toArray(children || []);
   
-  // Ensure we pass the safest possible props
-  const safeProps = {
-    ...props,
-    children: safeChildren,
-  };
-  
   return (
     <CommandPrimitive.Group
       ref={ref}
@@ -120,9 +113,10 @@ const CommandGroup = React.forwardRef<
         "overflow-hidden p-1 text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground",
         className
       )}
-      {...safeProps}
+      {...props}
+      children={safeChildren} // Explicitly pass the safe children
     >
-      {safeChildren}
+      {/*safeChildren*/}
     </CommandPrimitive.Group>
   )
 })
@@ -149,7 +143,7 @@ const CommandItem = React.forwardRef<
   // Ensure value is never undefined, null, or empty
   const safeValue = value || "placeholder-value";
   
-  // Ensure children always has a fallback 
+  // Ensure children always has a fallback
   const safeChildren = children ?? safeValue;
   
   // Create a safe onSelect that ensures we don't pass undefined/null to any handlers

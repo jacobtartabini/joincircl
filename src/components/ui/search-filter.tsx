@@ -68,9 +68,9 @@ export function MultiSelect({
       </PopoverTrigger>
       <PopoverContent className="w-full p-0">
         <Command>
-          <CommandInput placeholder="Search..." value="" />
+          <CommandInput placeholder="Search..." />
           <CommandEmpty>No item found.</CommandEmpty>
-          <CommandGroup className="max-h-64 overflow-auto">
+          <CommandGroup>
             {safeOptions.map((option, index) => {
               // Ensure both value and label are valid strings to prevent undefined issues
               const value = option?.value || `option-value-${index}`;
