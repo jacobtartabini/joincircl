@@ -1,38 +1,19 @@
 
-import { sanitizeInput } from "@/utils/security";
+import { FetchOptions } from "./types";
 
-/**
- * Validates UUID format
- * @param id The ID to validate
- * @returns Boolean indicating if valid
- */
-export function isValidUuid(id: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-}
+export function validateQueryParams(options: FetchOptions = {}): void {
+  // Validate limit
+  if (options.limit !== undefined && (typeof options.limit !== 'number' || options.limit <= 0)) {
+    throw new Error("Limit must be a positive number");
+  }
 
-/**
- * Sanitizes all string values in an object
- * @param data The data object to sanitize
- * @returns Sanitized data object
- */
-export function sanitizeDataObject(data: Record<string, any>): Record<string, any> {
-  const sanitizedData = { ...data };
-  
-  Object.keys(sanitizedData).forEach(key => {
-    if (typeof sanitizedData[key] === 'string') {
-      sanitizedData[key] = sanitizeInput(sanitizedData[key]);
-    }
-  });
-  
-  return sanitizedData;
-}
+  // Validate offset
+  if (options.offset !== undefined && (typeof options.offset !== 'number' || options.offset < 0)) {
+    throw new Error("Offset must be a non-negative number");
+  }
 
-/**
- * Validates ownership of a resource
- * @param resourceUserId The user ID on the resource
- * @param currentUserId The current user's ID
- * @returns Boolean indicating if the user owns the resource
- */
-export function validateOwnership(resourceUserId: string, currentUserId: string): boolean {
-  return resourceUserId === currentUserId;
+  // Validate orderBy
+  if (options.orderBy && !options.orderBy.column) {
+    throw new Error("Order by column must be specified");
+  }
 }

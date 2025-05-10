@@ -1,34 +1,32 @@
 
-// Types for the secure API service
+import { SupabaseClient } from "@supabase/supabase-js";
 
-/**
- * Allowed database table names
- */
-export type TableName = "contacts" | "interactions" | "keystones" | "profiles" | "contact_media" | "user_calendar_tokens";
+export type DataRecord = Record<string, any>;
 
-/**
- * Common interface for returned data records
- * All returned records must have an id and optionally a user_id
- */
-export interface DataRecord {
-  id: string;
-  user_id?: string;
-  [key: string]: any;
+export type TableName = 
+  | "contacts"
+  | "profiles"
+  | "interactions"
+  | "keystones"
+  | "contact_media"
+  | "user_calendar_tokens";
+
+export interface FetchOptions {
+  filters?: Record<string, any>;
+  limit?: number;
+  offset?: number;
+  orderBy?: {
+    column: string;
+    ascending?: boolean;
+  };
 }
 
-/**
- * Error response shape
- */
-export interface ApiError {
-  message: string;
-  code?: string;
-  details?: unknown;
+export interface QueryResult<T> {
+  data: T[];
+  count: number;
+  error?: any;
 }
 
-/**
- * Database record with user_id
- */
-export interface UserOwnedRecord {
-  user_id: string;
-  [key: string]: any;
+export interface SecureApiService {
+  fetch: <T extends DataRecord>(table: TableName, options?: FetchOptions) => Promise<QueryResult<T>>;
 }

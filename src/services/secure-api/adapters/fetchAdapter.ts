@@ -1,12 +1,12 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { FetchOptions, QueryResult, DataRecord } from "../types";
+import { FetchOptions, QueryResult, DataRecord, TableName } from "../types";
 import { validateQueryParams } from "../validators";
 import { handleApiError } from "../errorHandling";
 import { applyRateLimiting } from "../rateLimiting";
 
 export async function fetchAdapter<T extends DataRecord>(
-  tableName: string,
+  tableName: TableName,
   options: FetchOptions = {}
 ): Promise<QueryResult<T>> {
   try {
@@ -36,7 +36,7 @@ export async function fetchAdapter<T extends DataRecord>(
 
     // Return the result - fix the deep type instantiation error with a proper cast
     return {
-      data: (data as unknown) as T[],
+      data: (data || []) as unknown as T[],
       count: data?.length || 0,
     };
   } catch (error) {
