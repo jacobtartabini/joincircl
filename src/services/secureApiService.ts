@@ -1,10 +1,14 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { sanitizeInput, RateLimiter } from "@/utils/security";
+import type { PostgrestQueryBuilder } from "@supabase/supabase-js";
 
 // Create rate limiters for different API endpoints
 const contactsRateLimiter = new RateLimiter(20, 60); // 20 requests per minute
 const generalRateLimiter = new RateLimiter(50, 60); // 50 requests per minute
+
+// Helper type for allowed table names
+type TableName = "contacts" | "interactions" | "keystones" | "profiles" | "contact_media" | "user_calendar_tokens";
 
 /**
  * A secure service for making API calls with proper validation,
@@ -17,7 +21,7 @@ export const secureApiService = {
    * @param userId The user ID for rate limiting and access control
    * @returns Promise with the data or error
    */
-  async fetchData(table: string, userId: string | undefined) {
+  async fetchData(table: TableName, userId: string | undefined) {
     if (!userId) {
       throw new Error("Authentication required");
     }
@@ -25,11 +29,6 @@ export const secureApiService = {
     // Apply rate limiting
     if (!generalRateLimiter.allowRequest(userId || 'anonymous')) {
       throw new Error("Too many requests. Please try again later.");
-    }
-    
-    // Safe table name validation (only alphanumeric and underscores)
-    if (!/^[a-zA-Z0-9_]+$/.test(table)) {
-      throw new Error("Invalid table name");
     }
     
     try {
@@ -53,7 +52,7 @@ export const secureApiService = {
    * @param data The data to insert
    * @returns Promise with the inserted data or error
    */
-  async insertData(table: string, userId: string | undefined, data: any) {
+  async insertData(table: TableName, userId: string | undefined, data: any) {
     if (!userId) {
       throw new Error("Authentication required");
     }
@@ -61,11 +60,6 @@ export const secureApiService = {
     // Apply rate limiting
     if (!contactsRateLimiter.allowRequest(userId)) {
       throw new Error("Too many requests. Please try again later.");
-    }
-    
-    // Safe table name validation
-    if (!/^[a-zA-Z0-9_]+$/.test(table)) {
-      throw new Error("Invalid table name");
     }
     
     // Apply sanitization to string fields
@@ -101,7 +95,7 @@ export const secureApiService = {
    * @param data The data to update
    * @returns Promise with the updated data or error
    */
-  async updateData(table: string, userId: string | undefined, id: string, data: any) {
+  async updateData(table: TableName, userId: string | undefined, id: string, data: any) {
     if (!userId) {
       throw new Error("Authentication required");
     }
@@ -109,11 +103,6 @@ export const secureApiService = {
     // Apply rate limiting
     if (!contactsRateLimiter.allowRequest(userId)) {
       throw new Error("Too many requests. Please try again later.");
-    }
-    
-    // Safe table name validation
-    if (!/^[a-zA-Z0-9_]+$/.test(table)) {
-      throw new Error("Invalid table name");
     }
     
     // Safe ID validation (UUID format)
@@ -143,7 +132,7 @@ export const secureApiService = {
       if (fetchError) throw fetchError;
       
       // Double-check ownership (even though RLS would prevent this, it's a good practice)
-      if (existingData.user_id !== userId) {
+      if (!existingData || existingData.user_id !== userId) {
         throw new Error("You don't have permission to update this resource");
       }
       
@@ -169,7 +158,7 @@ export const secureApiService = {
    * @param id The record ID to delete
    * @returns Promise with success status
    */
-  async deleteData(table: string, userId: string | undefined, id: string) {
+  async deleteData(table: TableName, userId: string | undefined, id: string) {
     if (!userId) {
       throw new Error("Authentication required");
     }
@@ -177,11 +166,6 @@ export const secureApiService = {
     // Apply rate limiting
     if (!contactsRateLimiter.allowRequest(userId)) {
       throw new Error("Too many requests. Please try again later.");
-    }
-    
-    // Safe table name validation
-    if (!/^[a-zA-Z0-9_]+$/.test(table)) {
-      throw new Error("Invalid table name");
     }
     
     // Safe ID validation (UUID format)
@@ -200,7 +184,7 @@ export const secureApiService = {
       if (fetchError) throw fetchError;
       
       // Double-check ownership
-      if (existingData.user_id !== userId) {
+      if (!existingData || existingData.user_id !== userId) {
         throw new Error("You don't have permission to delete this resource");
       }
       
