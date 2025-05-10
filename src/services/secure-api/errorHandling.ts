@@ -13,3 +13,12 @@ export function handleApiError<T extends DataRecord>(error: any): QueryResult<T>
     }
   };
 }
+
+export function handleDataOperationError(operation: string, tableName: string, error: any): Error {
+  const errorMessage = error.message || 'An unexpected error occurred';
+  const errorDetails = error.details || '';
+  
+  console.error(`Error ${operation} ${tableName}:`, error);
+  
+  return new Error(`Failed ${operation} ${tableName}: ${errorMessage}${errorDetails ? ' - ' + errorDetails : ''}`);
+}
