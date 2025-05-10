@@ -30,8 +30,8 @@ export const fetchAdapter = {
 
       if (error) throw error;
 
-      // Use a simple cast to avoid deep type instantiation
-      return (data || []) as unknown as T[];
+      // Simplify type casting to avoid deep type instantiation issues
+      return (data || []) as any as T[];
     } catch (error: any) {
       throw handleDataOperationError("fetching from", table, error);
     }
