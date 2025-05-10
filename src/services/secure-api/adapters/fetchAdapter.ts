@@ -27,9 +27,11 @@ export const fetchAdapter = {
         
       if (error) throw error;
       
-      // Avoid excessive type nesting by using any[] as an intermediate step
+      // Handle the case when data is null
       if (!data) return [];
-      return data.map(item => item) as any as T[];
+      
+      // Use a simpler type casting approach to avoid excessive type nesting
+      return data as unknown as T[];
     } catch (error: any) {
       throw handleDataOperationError('fetching from', table, error);
     }
