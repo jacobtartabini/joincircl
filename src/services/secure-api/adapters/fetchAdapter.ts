@@ -1,41 +1,45 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { TableName, DataRecord } from "../types";
-import { checkRateLimit, generalRateLimiter } from "../rateLimiting";
-import { handleDataOperationError } from "../errorHandling";
+import { FetchOptions, QueryResult, DataRecord } from "../types";
+import { validateQueryParams } from "../validators";
+import { handleApiError } from "../errorHandling";
+import { applyRateLimiting } from "../rateLimiting";
 
-/**
- * Adapter for fetch operations
- */
-export const fetchAdapter = {
-  /**
-   * Securely fetch data from Supabase with rate limiting and validation
-   * @param table The table to fetch from
-   * @param userId The user ID for rate limiting and access control
-   * @returns Promise with the data or error
-   */
-  async fetchData<T extends DataRecord>(
-    table: TableName,
-    userId: string
-  ): Promise<T[]> {
-    // Apply rate limiting
-    checkRateLimit(generalRateLimiter, userId);
+export async function fetchAdapter<T extends DataRecord>(
+  tableName: string,
+  options: FetchOptions = {}
+): Promise<QueryResult<T>> {
+  try {
+    // Apply rate limiting before executing the query
+    await applyRateLimiting();
 
-    try {
-      const { data, error } = await supabase
-        .from(table)
-        .select("*")
-        .eq("user_id", userId);
+    // Validate query parameters
+    validateQueryParams(options);
 
-      if (error) {
-        throw error;
+    // Initialize query builder
+    let query = supabase.from(tableName).select();
+
+    // Apply filters if provided
+    if (options.filters) {
+      for (const [key, value] of Object.entries(options.filters)) {
+        query = query.eq(key, value);
       }
-
-      // First cast to unknown to break the deep type checking, 
-      // then cast to the desired type
-      return (data || []) as unknown as T[];
-    } catch (err) {
-      throw handleDataOperationError("fetching from", table, err);
     }
-  },
-};
+
+    // Execute the query
+    const { data, error } = await query;
+
+    // Handle errors
+    if (error) {
+      throw error;
+    }
+
+    // Return the result - fix the deep type instantiation error with a proper cast
+    return {
+      data: (data as unknown) as T[],
+      count: data?.length || 0,
+    };
+  } catch (error) {
+    return handleApiError<T>(error);
+  }
+}
