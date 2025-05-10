@@ -1,43 +1,43 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { FetchOptions, QueryResult, DataRecord, TableName } from "../types";
-import { validateQueryParams } from "../validators";
-import { handleApiError } from "../errorHandling";
 import { applyRateLimiting } from "../rateLimiting";
+import { handleApiError } from "../errorHandling";
+import { DataRecord, FetchOptions, QueryResult, TableName } from "../types";
 
 export async function fetchAdapter<T extends DataRecord>(
-  tableName: TableName,
+  table: TableName,
   options: FetchOptions = {}
 ): Promise<QueryResult<T>> {
   try {
-    // Apply rate limiting before executing the query
+    // Apply rate limiting
     await applyRateLimiting();
 
-    // Validate query parameters
-    validateQueryParams(options);
-
-    // Initialize query builder
-    let query = supabase.from(tableName).select();
-
+    // Initialize query
+    let query = supabase.from(table).select('*');
+    
     // Apply filters if provided
     if (options.filters) {
-      for (const [key, value] of Object.entries(options.filters)) {
-        query = query.eq(key, value);
+      for (const [field, value] of Object.entries(options.filters)) {
+        query = query.eq(field, value);
       }
     }
 
-    // Execute the query
-    const { data, error } = await query;
-
-    // Handle errors
-    if (error) {
-      throw error;
+    // Apply pagination if provided
+    if (options.page && options.pageSize) {
+      const start = (options.page - 1) * options.pageSize;
+      query = query.range(start, start + options.pageSize - 1);
     }
-
-    // Return the result - fix the deep type instantiation error with a proper cast
+    
+    // Execute the query
+    const { data, error, count } = await query.order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    
+    // Cast the data to the expected type and return
     return {
       data: (data || []) as unknown as T[],
-      count: data?.length || 0,
+      count: count || 0,
+      error: null
     };
   } catch (error) {
     return handleApiError<T>(error);
