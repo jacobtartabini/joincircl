@@ -36,7 +36,8 @@ export const secureApiService = {
         
       if (error) throw error;
       
-      return (data || []) as T[];
+      // Use type assertion to resolve the type mismatch
+      return (data || []) as unknown as T[];
     } catch (error: any) {
       throw handleDataOperationError('fetching from', table, error);
     }
@@ -64,10 +65,10 @@ export const secureApiService = {
     sanitizedData.user_id = userId;
     
     try {
-      // Insert a single object
+      // Insert a single object - using an array with a single object
       const { data: insertedData, error } = await supabase
         .from(table)
-        .insert(sanitizedData)
+        .insert([sanitizedData])
         .select();
         
       if (error) throw error;
@@ -76,7 +77,8 @@ export const secureApiService = {
         throw new Error("Failed to insert data: No data returned");
       }
       
-      return insertedData[0] as T;
+      // Use type assertion to resolve the type mismatch
+      return insertedData[0] as unknown as T;
     } catch (error: any) {
       throw handleDataOperationError('inserting into', table, error);
     }
@@ -123,8 +125,13 @@ export const secureApiService = {
         throw new Error("Resource not found");
       }
       
-      // Type assertion to access user_id safely
-      const existingRecord = existingData as UserOwnedRecord;
+      // Check if user_id property exists in the returned data
+      if (!('user_id' in existingData)) {
+        throw new Error("Invalid resource data structure");
+      }
+      
+      // Safe type assertion after the runtime check
+      const existingRecord = existingData as unknown as UserOwnedRecord;
       
       // Validate ownership
       if (!validateOwnership(existingRecord.user_id, userId)) {
@@ -144,7 +151,8 @@ export const secureApiService = {
         throw new Error("Failed to update data: No data returned");
       }
       
-      return updatedData[0] as T;
+      // Use type assertion to resolve the type mismatch
+      return updatedData[0] as unknown as T;
     } catch (error: any) {
       throw handleDataOperationError('updating', table, error);
     }
@@ -184,8 +192,13 @@ export const secureApiService = {
         throw new Error("Resource not found");
       }
       
-      // Type assertion to access user_id safely
-      const existingRecord = existingData as UserOwnedRecord;
+      // Check if user_id property exists in the returned data
+      if (!('user_id' in existingData)) {
+        throw new Error("Invalid resource data structure");
+      }
+      
+      // Safe type assertion after the runtime check
+      const existingRecord = existingData as unknown as UserOwnedRecord;
       
       // Validate ownership
       if (!validateOwnership(existingRecord.user_id, userId)) {
