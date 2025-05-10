@@ -31,10 +31,10 @@ export const insertAdapter = {
     sanitizedData.user_id = userId;
     
     try {
-      // Fix: Use the correct Supabase insert syntax with array
+      // Cast the sanitizedData to any to fix TypeScript error with insert
       const { data: insertedData, error } = await supabase
         .from(table)
-        .insert([sanitizedData])
+        .insert([sanitizedData] as any)
         .select();
         
       if (error) throw error;
@@ -43,8 +43,8 @@ export const insertAdapter = {
         throw new Error("Failed to insert data: No data returned");
       }
       
-      // Simplify type assertion to avoid excessive depth
-      return insertedData[0] as T;
+      // Fix type conversion by using unknown as intermediate type
+      return insertedData[0] as unknown as T;
     } catch (error: any) {
       throw handleDataOperationError('inserting into', table, error);
     }

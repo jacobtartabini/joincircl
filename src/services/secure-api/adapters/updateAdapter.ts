@@ -33,9 +33,6 @@ export const updateAdapter = {
     // Apply sanitization to string fields
     const sanitizedData = sanitizeDataObject(data);
     
-    // Never allow changing user_id
-    delete sanitizedData.user_id;
-    
     try {
       // First verify ownership
       const { data: existingData, error: fetchError } = await supabase
@@ -67,6 +64,10 @@ export const updateAdapter = {
         throw new Error("You don't have permission to update this resource");
       }
       
+      // Remove id and user_id from update data
+      delete sanitizedData.id;
+      delete sanitizedData.user_id;
+      
       // Proceed with update
       const { data: updatedData, error } = await supabase
         .from(table)
@@ -80,10 +81,10 @@ export const updateAdapter = {
         throw new Error("Failed to update data: No data returned");
       }
       
-      // Use type assertion with unknown intermediate to avoid type depth issues
+      // Fix type conversion by using unknown as intermediate type
       return updatedData[0] as unknown as T;
     } catch (error: any) {
-      throw handleDataOperationError('updating', table, error);
+      throw handleDataOperationError('updating in', table, error);
     }
   }
 };
