@@ -4,7 +4,6 @@ import { TableName, DataRecord } from "./types";
 import { isValidUuid, sanitizeDataObject, validateOwnership } from "./validators";
 import { contactsRateLimiter, generalRateLimiter, checkRateLimit } from "./rateLimiting";
 import { handleDataOperationError } from "./errorHandling";
-import { Tables } from "@/integrations/supabase/types";
 
 /**
  * A secure service for making API calls with proper validation,
@@ -17,7 +16,7 @@ export const secureApiService = {
    * @param userId The user ID for rate limiting and access control
    * @returns Promise with the data or error
    */
-  async fetchData<T extends DataRecord = DataRecord>(table: TableName, userId: string | undefined): Promise<T[]> {
+  async fetchData<T = DataRecord>(table: TableName, userId: string | undefined): Promise<T[]> {
     if (!userId) {
       throw new Error("Authentication required");
     }
@@ -32,7 +31,9 @@ export const secureApiService = {
         .eq('user_id', userId);
         
       if (error) throw error;
-      return (data || []) as T[];
+      
+      // First convert to unknown then to T[] to avoid deep type instantiation
+      return (data || []) as unknown as T[];
     } catch (error: any) {
       throw handleDataOperationError('fetching from', table, error);
     }
@@ -45,7 +46,7 @@ export const secureApiService = {
    * @param data The data to insert
    * @returns Promise with the inserted data or error
    */
-  async insertData<T extends DataRecord = DataRecord>(table: TableName, userId: string | undefined, data: Record<string, any>): Promise<T> {
+  async insertData<T = DataRecord>(table: TableName, userId: string | undefined, data: Record<string, any>): Promise<T> {
     if (!userId) {
       throw new Error("Authentication required");
     }
@@ -60,10 +61,10 @@ export const secureApiService = {
     sanitizedData.user_id = userId;
     
     try {
-      // Use proper type for insert - must be a single object, not an array
+      // Use the array format for insert as required by supabase
       const { data: insertedData, error } = await supabase
         .from(table)
-        .insert(sanitizedData)
+        .insert([sanitizedData]) // Use array format as expected by Supabase
         .select();
         
       if (error) throw error;
@@ -72,7 +73,8 @@ export const secureApiService = {
         throw new Error("Failed to insert data: No data returned");
       }
       
-      return insertedData[0] as T;
+      // First convert to unknown then to T to avoid deep type instantiation
+      return insertedData[0] as unknown as T;
     } catch (error: any) {
       throw handleDataOperationError('inserting into', table, error);
     }
@@ -86,7 +88,7 @@ export const secureApiService = {
    * @param data The data to update
    * @returns Promise with the updated data or error
    */
-  async updateData<T extends DataRecord = DataRecord>(table: TableName, userId: string | undefined, id: string, data: Record<string, any>): Promise<T> {
+  async updateData<T = DataRecord>(table: TableName, userId: string | undefined, id: string, data: Record<string, any>): Promise<T> {
     if (!userId) {
       throw new Error("Authentication required");
     }
@@ -124,6 +126,11 @@ export const secureApiService = {
         throw new Error("Invalid resource data");
       }
       
+      // Proper null check before accessing properties
+      if (!existingData || !('user_id' in existingData)) {
+        throw new Error("Invalid resource data structure");
+      }
+      
       // Safely access user_id with proper type checking
       const resourceUserId = existingData.user_id;
       
@@ -149,7 +156,8 @@ export const secureApiService = {
         throw new Error("Failed to update data: No data returned");
       }
       
-      return updatedData[0] as T;
+      // First convert to unknown then to T to avoid deep type instantiation
+      return updatedData[0] as unknown as T;
     } catch (error: any) {
       throw handleDataOperationError('updating', table, error);
     }
@@ -187,6 +195,11 @@ export const secureApiService = {
       
       if (!existingData) {
         throw new Error("Resource not found");
+      }
+      
+      // Proper null check before accessing properties
+      if (!existingData || !('user_id' in existingData)) {
+        throw new Error("Invalid resource data structure");
       }
       
       // Safely access user_id with proper type checking
