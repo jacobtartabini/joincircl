@@ -71,8 +71,8 @@ export function MultiSelect({
           <CommandGroup className="max-h-64 overflow-auto">
             {safeOptions.map((option) => (
               <CommandItem
-                key={option.value}
-                value={option.value}
+                key={option.value || "placeholder"}
+                value={option.value || "placeholder"}
                 onSelect={() => handleSelect(option.value)}
               >
                 <Check
@@ -81,7 +81,7 @@ export function MultiSelect({
                     safeSelected.includes(option.value) ? "opacity-100" : "opacity-0"
                   )}
                 />
-                {option.label}
+                {option.label || ""}
               </CommandItem>
             ))}
           </CommandGroup>

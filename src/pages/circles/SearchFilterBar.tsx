@@ -99,29 +99,28 @@ export default function SearchFilterBar({
                 align={isMobile ? "center" : "start"}
                 sideOffset={isMobile ? 8 : 4}
               >
-                {Array.isArray(availableTags) && (
-                  <Command>
-                    <CommandInput placeholder="Search tags..." />
-                    <CommandEmpty>No tags found.</CommandEmpty>
-                    <CommandGroup className="max-h-60 overflow-auto">
-                      {availableTags.length > 0 ? (
-                        availableTags.map((tag) => (
-                          <CommandItem
-                            key={tag || "placeholder-key"}
-                            value={tag || "placeholder-value"}
-                            onSelect={() => handleTagSelect(tag)}
-                          >
-                            {tag || ""}
-                          </CommandItem>
-                        ))
-                      ) : (
-                        <div className="py-2 px-2 text-sm text-muted-foreground">
-                          No more tags available
-                        </div>
-                      )}
-                    </CommandGroup>
-                  </Command>
-                )}
+                {/* Ensure we're always passing an array to Command components */}
+                <Command>
+                  <CommandInput placeholder="Search tags..." />
+                  <CommandEmpty>No tags found.</CommandEmpty>
+                  <CommandGroup className="max-h-60 overflow-auto">
+                    {availableTags.length > 0 ? (
+                      availableTags.map((tag) => (
+                        <CommandItem
+                          key={tag || "placeholder-key"}
+                          value={tag || "placeholder-value"}
+                          onSelect={() => handleTagSelect(tag)}
+                        >
+                          {tag || ""}
+                        </CommandItem>
+                      ))
+                    ) : (
+                      <div className="py-2 px-2 text-sm text-muted-foreground">
+                        No more tags available
+                      </div>
+                    )}
+                  </CommandGroup>
+                </Command>
               </PopoverContent>
             </Popover>
           )}
