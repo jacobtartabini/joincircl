@@ -31,8 +31,8 @@ export const fetchAdapter = {
         throw error;
       }
 
-      // Simplify the type casting to avoid recursive type issues
-      return (data || []) as any as T[];
+      // Fix the type casting to avoid infinite type instantiation
+      return (data || []) as unknown[] as T[];
     } catch (err) {
       throw handleDataOperationError("fetching from", table, err);
     }
