@@ -20,7 +20,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       
       {!isMobile && <DesktopNav />}
       {isMobile && <TopStatusBar />}
-      <main className={`flex-1 ${isMobile ? 'pb-16 pt-14' : 'pl-16'}`}>
+      <main className={`flex-1 ${isMobile ? 'pb-20 pt-14' : 'pl-16'}`}>
         <div className="container max-w-5xl mx-auto py-4 px-4 md:px-6 md:py-8">
           {children}
         </div>

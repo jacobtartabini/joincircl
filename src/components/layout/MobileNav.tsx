@@ -40,7 +40,7 @@ const MobileNav = () => {
       animate={{ y: showNav ? 0 : 100 }}
       transition={{ duration: 0.3 }}
     >
-      <div className="flex items-center justify-around h-16">
+      <div className="flex items-center justify-around h-16 pb-safe">
         {navItems.map((item) => {
           const isActive = 
             item.path === "/" 
@@ -51,7 +51,7 @@ const MobileNav = () => {
             <Link
               to={item.path}
               key={item.path}
-              className={`flex flex-col items-center justify-center w-full h-full ${
+              className={`flex flex-col items-center justify-center w-full h-full pt-2 ${
                 isActive ? "text-primary" : "text-gray-500"
               }`}
             >

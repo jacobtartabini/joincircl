@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { TableName, DataRecord } from "../types";
 import { checkRateLimit, generalRateLimiter } from "../rateLimiting";
@@ -22,7 +23,7 @@ export const fetchAdapter = {
 
     try {
       const response = await supabase
-        .from<T>(table)
+        .from(table)
         .select("*")
         .eq("user_id", userId);
 
@@ -30,11 +31,8 @@ export const fetchAdapter = {
         throw response.error;
       }
 
-      if (!response.data) {
-        return [];
-      }
-
-      return response.data;
+      // Use a simple cast to avoid type recursion issues
+      return (response.data || []) as unknown as T[];
     } catch (err) {
       throw handleDataOperationError("fetching from", table, err);
     }

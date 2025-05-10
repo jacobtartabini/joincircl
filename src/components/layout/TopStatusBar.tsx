@@ -26,19 +26,6 @@ const TopStatusBar = () => {
     
     return "Circl";
   };
-
-  // Get theme color based on current route
-  const getThemeColor = () => {
-    const path = location.pathname;
-    
-    if (path === "/") return "bg-blue-500";
-    if (path.startsWith("/circles")) return "bg-indigo-500";
-    if (path.startsWith("/keystones")) return "bg-amber-500";
-    if (path.startsWith("/settings")) return "bg-slate-500";
-    if (path.startsWith("/help")) return "bg-emerald-500";
-    
-    return "bg-blue-500";
-  };
   
   // Hide status bar on scroll down, show on scroll up (mobile only)
   useEffect(() => {
@@ -63,8 +50,7 @@ const TopStatusBar = () => {
       animate={{ y: showBar ? 0 : -60 }}
       transition={{ duration: 0.3 }}
     >
-      <div className="h-14 bg-white shadow-sm flex items-center justify-center relative">
-        <div className={`absolute top-0 left-0 right-0 h-1 ${getThemeColor()}`} />
+      <div className="h-14 bg-white shadow-sm flex items-center justify-center relative pt-safe">
         <h1 className="text-lg font-semibold">{getPageTitle()}</h1>
       </div>
     </motion.div>
