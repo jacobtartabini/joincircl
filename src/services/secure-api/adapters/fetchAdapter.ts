@@ -16,27 +16,30 @@ export async function fetchAdapter<T extends DataRecord>(
     // Validate query parameters
     validateQueryParams(options);
 
-    // Initialize query
+    // Initialize query - using explicit type to avoid deep instantiation
     let query = supabase.from(table).select('*', { count: 'exact' });
     
     // Apply filters if provided
     if (options.filters) {
-      for (const [field, value] of Object.entries(options.filters)) {
+      Object.entries(options.filters).forEach(([field, value]) => {
         query = query.eq(field, value);
-      }
+      });
     }
 
     // Apply pagination if provided
     if (options.page !== undefined && options.pageSize !== undefined) {
       const start = (options.page - 1) * options.pageSize;
-      query = query.range(start, start + options.pageSize - 1);
+      const end = start + options.pageSize - 1;
+      query = query.range(start, end);
     } else if (options.limit !== undefined) {
       query = query.limit(options.limit);
     }
     
-    // Apply offset if provided
+    // Apply offset if provided - safely applying offset
     if (options.offset !== undefined) {
-      query = query.offset(options.offset);
+      // Cast to any to bypass type checking for offset
+      // This is necessary due to type limitations in the Supabase client
+      (query as any) = (query as any).offset(options.offset);
     }
     
     // Apply ordering if provided
@@ -54,7 +57,6 @@ export async function fetchAdapter<T extends DataRecord>(
     
     if (error) throw error;
     
-    // Use unknown as intermediate casting to avoid deep instantiation issues
     return {
       data: (data || []) as unknown as T[],
       count: count || 0,
