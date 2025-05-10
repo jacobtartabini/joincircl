@@ -27,7 +27,7 @@ export const secureApiService = {
    * @param userId The user ID for rate limiting and access control
    * @returns Promise with the data or error
    */
-  async fetchData(table: TableName, userId: string | undefined) {
+  async fetchData(table: TableName, userId: string | undefined): Promise<any[]> {
     if (!userId) {
       throw new Error("Authentication required");
     }
@@ -44,7 +44,7 @@ export const secureApiService = {
         .eq('user_id', userId);
         
       if (error) throw error;
-      return data;
+      return data || [];
     } catch (error: any) {
       console.error(`Error fetching from ${table}:`, error);
       throw new Error(`Failed to fetch data: ${error.message || 'Unknown error'}`);
@@ -58,7 +58,7 @@ export const secureApiService = {
    * @param data The data to insert
    * @returns Promise with the inserted data or error
    */
-  async insertData(table: TableName, userId: string | undefined, data: any) {
+  async insertData(table: TableName, userId: string | undefined, data: any): Promise<any> {
     if (!userId) {
       throw new Error("Authentication required");
     }
@@ -101,7 +101,7 @@ export const secureApiService = {
    * @param data The data to update
    * @returns Promise with the updated data or error
    */
-  async updateData(table: TableName, userId: string | undefined, id: string, data: any) {
+  async updateData(table: TableName, userId: string | undefined, id: string, data: any): Promise<any> {
     if (!userId) {
       throw new Error("Authentication required");
     }
@@ -137,13 +137,12 @@ export const secureApiService = {
         
       if (fetchError) throw fetchError;
       
-      // Double-check ownership (even though RLS would prevent this, it's a good practice)
       if (!existingData) {
         throw new Error("Resource not found");
       }
       
-      // Check if existingData has the correct shape before using it
-      if (!existingData || typeof existingData !== 'object' || !('user_id' in existingData)) {
+      // Ensure the existingData is an object with a user_id property
+      if (typeof existingData !== 'object' || !existingData.user_id) {
         throw new Error("Invalid resource data");
       }
       
@@ -173,7 +172,7 @@ export const secureApiService = {
    * @param id The record ID to delete
    * @returns Promise with success status
    */
-  async deleteData(table: TableName, userId: string | undefined, id: string) {
+  async deleteData(table: TableName, userId: string | undefined, id: string): Promise<boolean> {
     if (!userId) {
       throw new Error("Authentication required");
     }
@@ -198,13 +197,12 @@ export const secureApiService = {
         
       if (fetchError) throw fetchError;
       
-      // Double-check ownership
       if (!existingData) {
         throw new Error("Resource not found");
       }
       
-      // Check if existingData has the correct shape before using it
-      if (!existingData || typeof existingData !== 'object' || !('user_id' in existingData)) {
+      // Ensure the existingData is an object with a user_id property
+      if (typeof existingData !== 'object' || !existingData.user_id) {
         throw new Error("Invalid resource data");
       }
       
