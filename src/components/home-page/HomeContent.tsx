@@ -2,66 +2,116 @@
 import React from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { WelcomeBanner } from './WelcomeBanner';
-import { ContactStats } from '../home/ContactStats';
+import { useContacts } from '@/hooks/use-contacts';
+import { DashboardStats } from './DashboardStats';
 import { RecentContacts } from '../home/RecentContacts';
 import NetworkRecommendations from '../home/NetworkRecommendations';
+import { UpcomingKeystones } from './UpcomingKeystones';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
+import { CalendarDays, PlusCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const HomeContent: React.FC = () => {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  const { 
+    contacts, 
+    isLoading, 
+    followUpStats, 
+    getContactDistribution, 
+    getRecentContacts 
+  } = useContacts();
   
   const handleAddContact = () => {
-    // This will be implemented when we add the functionality
-    console.log('Add contact button clicked');
+    navigate('/circles', { state: { openAddContact: true } });
   };
   
-  // Mock data for ContactStats
   const contactStatsData = {
-    totalContacts: 42,
-    distribution: {
-      innerCircleCount: 5,
-      middleCircleCount: 12,
-      outerCircleCount: 25,
-    },
-    followUpStats: {
-      due: 3,
-      trend: { value: 2, isPositive: false },
-    }
+    totalContacts: contacts.length,
+    distribution: getContactDistribution(),
+    followUpStats: followUpStats
   };
+
+  const recentContacts = getRecentContacts(3);
   
-  // Mock data for RecentContacts
   const recentContactsProps = {
-    contacts: [],
-    isLoading: false,
+    contacts: recentContacts,
+    isLoading: isLoading,
     onContactChange: () => console.log('Contact changed'),
     onAddContact: handleAddContact
   };
+
+  const handleViewAllContacts = () => {
+    navigate('/circles');
+  };
+  
+  const handleViewAllKeystones = () => {
+    navigate('/keystones');
+  };
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <WelcomeBanner onAddContact={handleAddContact} />
       
-      {/* Stats cards with better mobile layout */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Your Network</h2>
-        <ContactStats 
-          totalContacts={contactStatsData.totalContacts}
-          distribution={contactStatsData.distribution}
-          followUpStats={contactStatsData.followUpStats}
-        />
-      </div>
+      {/* Main dashboard stats */}
+      <DashboardStats 
+        totalContacts={contactStatsData.totalContacts}
+        distribution={contactStatsData.distribution}
+        followUpStats={contactStatsData.followUpStats}
+        isLoading={isLoading}
+      />
       
-      {/* Recent contacts section */}
-      <div className={`mt-8 ${isMobile ? 'space-y-6' : 'grid grid-cols-2 gap-6'}`}>
-        <div className="space-y-4">
-          <RecentContacts 
-            contacts={recentContactsProps.contacts}
-            isLoading={recentContactsProps.isLoading}
-            onContactChange={recentContactsProps.onContactChange}
-            onAddContact={recentContactsProps.onAddContact}
-          />
+      {/* Main content area with responsive layout */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Main column - 2/3 width on desktop */}
+        <div className="md:col-span-2 space-y-6">
+          {/* Recent Contacts Section */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <CardTitle className="text-xl font-medium">Recent Contacts</CardTitle>
+              <Button variant="ghost" size="sm" onClick={handleViewAllContacts}>
+                View all
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <RecentContacts 
+                contacts={recentContactsProps.contacts}
+                isLoading={recentContactsProps.isLoading}
+                onContactChange={recentContactsProps.onContactChange}
+                onAddContact={recentContactsProps.onAddContact}
+              />
+            </CardContent>
+          </Card>
+          
+          {/* Upcoming Keystones section */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <CardTitle className="text-xl font-medium">Upcoming Keystones</CardTitle>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => navigate('/keystones', { state: { openAddKeystone: true } })}
+                >
+                  <PlusCircle size={16} className="mr-1" />
+                  New
+                </Button>
+                <Button variant="ghost" size="sm" onClick={handleViewAllKeystones}>
+                  <CalendarDays size={16} className="mr-1" />
+                  View all
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <UpcomingKeystones />
+            </CardContent>
+          </Card>
         </div>
         
-        <div className="space-y-4">
+        {/* Side column - 1/3 width on desktop */}
+        <div className="space-y-6">
+          {/* Network Recommendations */}
           <NetworkRecommendations />
         </div>
       </div>
