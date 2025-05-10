@@ -106,8 +106,8 @@ const ContactGrid = ({ contacts, onAddInteraction, onViewInsights }: ContactGrid
         <ContactCard
           key={contact.id || `contact-${index}`}
           contact={contact}
-          onAddNote={() => onAddInteraction(contact)}
-          onViewInsights={() => onViewInsights(contact)}
+          onAddNote={onAddInteraction}
+          onViewInsights={onViewInsights}
         />
       ))}
     </div>

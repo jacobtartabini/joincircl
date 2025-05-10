@@ -1,1 +1,31 @@
+
+# This file controls the behavior of Supabase CLI.
+
 project_id = "ubxepyzyzctzwsxxzjot"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+
+[db]
+port = 54322
+
+[studio]
+port = 54323
+
+[functions.calendar-auth]
+verify_jwt = true
+
+[inbucket]
+enabled = true
+port = 54324
+
+[storage]
+enabled = true
+
+[vector]
+enabled = true
+
+[realtime]
+enabled = true

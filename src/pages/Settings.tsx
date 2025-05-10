@@ -12,8 +12,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useNavigate } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
-import { LogOut, HelpCircle, MailQuestion, Bug, Scale, Upload } from "lucide-react";
+import { LogOut, HelpCircle, MailQuestion, Bug, Scale, Upload, Calendar } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import { CalendarConnectionDialog } from "@/components/calendar/CalendarConnectionDialog";
 
 const Settings = () => {
   const { toast } = useToast();
@@ -35,6 +36,7 @@ const Settings = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const [isGoogleUser, setIsGoogleUser] = useState(false);
+  const [isCalendarDialogOpen, setIsCalendarDialogOpen] = useState(false);
 
   useEffect(() => {
     if (user && profile) {
@@ -567,9 +569,45 @@ const Settings = () => {
         </TabsContent>
       </Tabs>
       
+      <div className="space-y-6">
+        {/* Account settings sections */}
+        <div className="space-y-4">
+          <div>
+            <h2 className="text-xl font-medium">Calendar Integration</h2>
+            <p className="text-muted-foreground">
+              Connect your calendar to sync events and interactions
+            </p>
+          </div>
+          <div className="grid gap-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  <CardTitle className="text-base">Calendar Connection</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm">
+                  Connect your calendar to keep track of your connections and important events.
+                </p>
+                <Button onClick={() => setIsCalendarDialogOpen(true)}>
+                  Connect Calendar
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+      
       <footer className="border-t pt-6 pb-8 text-center text-sm text-muted-foreground">
         © 2025 Jacob Tartabini. All rights reserved. Unauthorized reproduction or distribution of any content is prohibited.
       </footer>
+      
+      {/* Calendar Connection Dialog */}
+      <CalendarConnectionDialog 
+        isOpen={isCalendarDialogOpen}
+        onOpenChange={setIsCalendarDialogOpen}
+      />
     </div>
   );
 };

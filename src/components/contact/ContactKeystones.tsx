@@ -4,11 +4,12 @@ import { Keystone } from "@/types/keystone";
 import { Contact } from "@/types/contact";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Calendar } from "lucide-react";
+import { PlusCircle, Calendar, CalendarPlus } from "lucide-react";
 import { format } from "date-fns";
 import KeystoneDetailModal from "@/components/keystone/KeystoneDetailModal";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import KeystoneForm from "@/components/keystone/KeystoneForm";
+import { CalendarExportDialog } from "@/components/calendar/CalendarExportDialog";
 
 interface ContactKeystonesProps {
   keystones: Keystone[];
@@ -21,6 +22,7 @@ export default function ContactKeystones({ keystones, contact, onKeystoneAdded }
   const [isEditKeystoneDialogOpen, setIsEditKeystoneDialogOpen] = useState(false);
   const [selectedKeystone, setSelectedKeystone] = useState<Keystone | null>(null);
   const [isKeystoneDetailOpen, setIsKeystoneDetailOpen] = useState(false);
+  const [isCalendarExportOpen, setIsCalendarExportOpen] = useState(false);
 
   const handleKeystoneClick = (keystone: Keystone) => {
     setSelectedKeystone(keystone);
@@ -41,6 +43,11 @@ export default function ContactKeystones({ keystones, contact, onKeystoneAdded }
     // Then perform refresh after delete
     await onKeystoneAdded();
     setSelectedKeystone(null);
+  };
+  
+  const handleCalendarExport = () => {
+    setIsKeystoneDetailOpen(false);
+    setIsCalendarExportOpen(true);
   };
 
   return (
@@ -80,6 +87,16 @@ export default function ContactKeystones({ keystones, contact, onKeystoneAdded }
                       {keystone.is_recurring && ` · Recurring (${keystone.recurrence_frequency})`}
                     </p>
                   </div>
+                  <button 
+                    className="p-1 text-muted-foreground hover:text-blue-600" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedKeystone(keystone);
+                      setIsCalendarExportOpen(true);
+                    }}
+                  >
+                    <CalendarPlus size={16} />
+                  </button>
                 </div>
               ))}
             </div>
@@ -122,6 +139,17 @@ export default function ContactKeystones({ keystones, contact, onKeystoneAdded }
         onOpenChange={setIsKeystoneDetailOpen}
         onEdit={handleEditKeystone}
         onDelete={handleDeleteKeystone}
+        onCalendarExport={handleCalendarExport}
+      />
+      
+      {/* Calendar Export Dialog */}
+      <CalendarExportDialog
+        isOpen={isCalendarExportOpen}
+        onOpenChange={setIsCalendarExportOpen}
+        eventType="keystone"
+        keystone={selectedKeystone || undefined}
+        contact={contact}
+        onSuccess={onKeystoneAdded}
       />
     </>
   );

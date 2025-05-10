@@ -1,35 +1,19 @@
 
-import { Keystone } from "@/types/keystone";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Keystone } from "@/types/keystone";
 import { format } from "date-fns";
-import { Edit, Trash, Calendar, Repeat } from "lucide-react";
-import { 
-  AlertDialog, 
-  AlertDialogAction, 
-  AlertDialogCancel, 
-  AlertDialogContent, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogHeader, 
-  AlertDialogTitle 
-} from "@/components/ui/alert-dialog";
-import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Calendar, CalendarPlus, Edit2, Trash2 } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface KeystoneDetailModalProps {
   keystone: Keystone | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onEdit: () => void;
-  onDelete: () => void | Promise<void>;
+  onDelete: () => void;
+  onCalendarExport?: () => void;
 }
 
 export default function KeystoneDetailModal({
@@ -38,93 +22,72 @@ export default function KeystoneDetailModal({
   onOpenChange,
   onEdit,
   onDelete,
+  onCalendarExport
 }: KeystoneDetailModalProps) {
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-
+  const isMobile = useIsMobile();
+  
   if (!keystone) return null;
   
-  const handleDelete = async () => {
-    setIsDeleteDialogOpen(false);
-    await onDelete();
-  };
-
-  const handleEdit = () => {
-    onOpenChange(false); // Close the detail modal first
-    onEdit(); // Then open edit modal
-  };
-
-  return (
-    <>
-      <Dialog open={isOpen} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-hidden flex flex-col">
-          <DialogHeader>
-            <DialogTitle>{keystone.title}</DialogTitle>
-            <DialogDescription>
-              {keystone.date && format(new Date(keystone.date), "PPP")}
-            </DialogDescription>
-          </DialogHeader>
+  const content = (
+    <div className="space-y-6">
+      <div className="flex items-start gap-4">
+        <div className="bg-blue-100 text-blue-800 p-3 rounded-md">
+          <Calendar size={24} />
+        </div>
+        
+        <div className="flex-1">
+          <h2 className="text-xl font-medium">{keystone.title}</h2>
+          <p className="text-muted-foreground">
+            {format(new Date(keystone.date), 'PPP')}
+            {keystone.category && ` · ${keystone.category}`}
+          </p>
           
-          <ScrollArea className="pr-4 max-h-[60vh]">
-            <div className="space-y-4">
-              <div className="flex flex-wrap gap-2">
-                {keystone.category && (
-                  <Badge variant="outline" className="flex items-center gap-1">
-                    <Calendar size={14} />
-                    {keystone.category}
-                  </Badge>
-                )}
-                
-                {keystone.is_recurring && (
-                  <Badge variant="outline" className="flex items-center gap-1">
-                    <Repeat size={14} />
-                    Recurring {keystone.recurrence_frequency && `(${keystone.recurrence_frequency})`}
-                  </Badge>
-                )}
-              </div>
-              
-              {keystone.notes && (
-                <div className="mt-4">
-                  <h4 className="text-sm font-medium mb-1">Notes</h4>
-                  <p className="text-sm whitespace-pre-wrap">{keystone.notes}</p>
-                </div>
-              )}
+          {keystone.is_recurring && (
+            <div className="mt-2 px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded inline-flex items-center">
+              Recurring: {keystone.recurrence_frequency}
             </div>
-          </ScrollArea>
-          
-          <div className="flex justify-end gap-2 pt-4 mt-auto">
-            <Button variant="outline" onClick={handleEdit} className="flex gap-1 items-center">
-              <Edit size={16} /> Edit
-            </Button>
-            <Button 
-              variant="destructive" 
-              onClick={() => setIsDeleteDialogOpen(true)}
-              className="flex gap-1 items-center"
-            >
-              <Trash size={16} /> Delete
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete this keystone?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete this keystone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDelete}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+          )}
+        </div>
+      </div>
+      
+      {keystone.notes && (
+        <div className="pt-4 border-t">
+          <h3 className="text-sm font-medium mb-2">Notes</h3>
+          <p className="text-sm whitespace-pre-wrap">{keystone.notes}</p>
+        </div>
+      )}
+      
+      <div className="flex gap-2 justify-end pt-4">
+        {onCalendarExport && (
+          <Button variant="outline" size="sm" onClick={onCalendarExport}>
+            <CalendarPlus size={16} className="mr-1" /> Add to Calendar
+          </Button>
+        )}
+        <Button variant="outline" size="sm" onClick={onEdit}>
+          <Edit2 size={16} className="mr-1" /> Edit
+        </Button>
+        <Button variant="outline" size="sm" className="text-red-600 hover:bg-red-50" onClick={onDelete}>
+          <Trash2 size={16} className="mr-1" /> Delete
+        </Button>
+      </div>
+    </div>
+  );
+  
+  if (isMobile) {
+    return (
+      <Sheet open={isOpen} onOpenChange={onOpenChange}>
+        <SheetContent side="bottom" className="h-[70vh]">
+          {content}
+        </SheetContent>
+      </Sheet>
+    );
+  }
+  
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        {content}
+      </DialogContent>
+    </Dialog>
   );
 }

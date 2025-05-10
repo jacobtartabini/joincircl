@@ -3,11 +3,12 @@ import { useState } from "react";
 import { Contact, Interaction } from "@/types/contact";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, ChevronDown } from "lucide-react";
+import { PlusCircle, ChevronDown, CalendarPlus } from "lucide-react";
 import { format } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import InteractionForm from "@/components/interaction/InteractionForm";
 import InteractionDetailModal from "@/components/interaction/InteractionDetailModal";
+import { CalendarExportDialog } from "@/components/calendar/CalendarExportDialog";
 
 interface ContactInteractionsProps {
   interactions: Interaction[];
@@ -20,6 +21,7 @@ export default function ContactInteractions({ interactions, contact, onInteracti
   const [isEditInteractionDialogOpen, setIsEditInteractionDialogOpen] = useState(false);
   const [selectedInteraction, setSelectedInteraction] = useState<Interaction | null>(null);
   const [isInteractionDetailOpen, setIsInteractionDetailOpen] = useState(false);
+  const [isCalendarExportOpen, setIsCalendarExportOpen] = useState(false);
 
   const handleInteractionClick = (interaction: Interaction) => {
     setSelectedInteraction(interaction);
@@ -40,6 +42,11 @@ export default function ContactInteractions({ interactions, contact, onInteracti
     // Then refresh interactions after delete
     await onInteractionAdded();
     setSelectedInteraction(null);
+  };
+  
+  const handleCalendarExport = () => {
+    setIsInteractionDetailOpen(false);
+    setIsCalendarExportOpen(true);
   };
 
   return (
@@ -64,15 +71,30 @@ export default function ContactInteractions({ interactions, contact, onInteracti
                 <div 
                   key={interaction.id}
                   className="flex w-full justify-between items-start hover:bg-muted/50 p-2 rounded-md transition-colors cursor-pointer"
-                  onClick={() => handleInteractionClick(interaction)}
                 >
-                  <div className="flex items-start">
+                  <div className="flex items-start flex-1" onClick={() => handleInteractionClick(interaction)}>
                     <p className="font-medium capitalize">{interaction.type}</p>
                     <p className="text-sm text-muted-foreground ml-2 py-[2px]">
                       {format(new Date(interaction.date), 'PPP')}
                     </p>
                   </div>
-                  <ChevronDown size={16} />
+                  <div className="flex items-center gap-2">
+                    <button 
+                      className="p-1 text-muted-foreground hover:text-blue-600" 
+                      onClick={() => {
+                        setSelectedInteraction(interaction);
+                        setIsCalendarExportOpen(true);
+                      }}
+                    >
+                      <CalendarPlus size={16} />
+                    </button>
+                    <button 
+                      className="p-1 text-muted-foreground"
+                      onClick={() => handleInteractionClick(interaction)}
+                    >
+                      <ChevronDown size={16} />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -121,6 +143,17 @@ export default function ContactInteractions({ interactions, contact, onInteracti
         onOpenChange={setIsInteractionDetailOpen}
         onEdit={handleEditInteraction}
         onDelete={handleDeleteInteraction}
+        onCalendarExport={handleCalendarExport}
+      />
+      
+      {/* Calendar Export Dialog */}
+      <CalendarExportDialog
+        isOpen={isCalendarExportOpen}
+        onOpenChange={setIsCalendarExportOpen}
+        eventType="interaction"
+        interaction={selectedInteraction || undefined}
+        contact={contact}
+        onSuccess={onInteractionAdded}
       />
     </>
   );
