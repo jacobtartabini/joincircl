@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Notification } from '@/types/notifications';
+import type { Notification } from '@/types/notifications';
 import { useToast } from '@/hooks/use-toast';
 import { mockNotifications } from '@/mock/notifications';
 import { useAuth } from '@/contexts/AuthContext';
@@ -44,7 +44,8 @@ export function useNotifications() {
     
     // Try to show a push notification if supported and permitted
     if (window.Notification && Notification.permission === 'granted') {
-      new Notification(notification.title, {
+      // Use window.Notification to avoid naming conflicts with the imported type
+      new window.Notification(notification.title, {
         body: notification.message,
         icon: '/lovable-uploads/12af9685-d6d3-4f9d-87cf-0aa29d9c78f8.png'
       });
