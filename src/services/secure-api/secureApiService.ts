@@ -16,7 +16,7 @@ export const secureApiService = {
    * @param userId The user ID for rate limiting and access control
    * @returns Promise with the data or error
    */
-  async fetchData(table: TableName, userId: string | undefined): Promise<any[]> {
+  async fetchData(table: TableName, userId: string | undefined): Promise<DataRecord[]> {
     if (!userId) {
       throw new Error("Authentication required");
     }
@@ -44,7 +44,7 @@ export const secureApiService = {
    * @param data The data to insert
    * @returns Promise with the inserted data or error
    */
-  async insertData(table: TableName, userId: string | undefined, data: any): Promise<any> {
+  async insertData(table: TableName, userId: string | undefined, data: Record<string, any>): Promise<DataRecord> {
     if (!userId) {
       throw new Error("Authentication required");
     }
@@ -61,11 +61,16 @@ export const secureApiService = {
     try {
       const { data: insertedData, error } = await supabase
         .from(table)
-        .insert([sanitizedData])
+        .insert(sanitizedData)
         .select();
         
       if (error) throw error;
-      return insertedData;
+      
+      if (!insertedData || insertedData.length === 0) {
+        throw new Error("Failed to insert data: No data returned");
+      }
+      
+      return insertedData[0] as DataRecord;
     } catch (error: any) {
       throw handleDataOperationError('inserting into', table, error);
     }
@@ -79,7 +84,7 @@ export const secureApiService = {
    * @param data The data to update
    * @returns Promise with the updated data or error
    */
-  async updateData(table: TableName, userId: string | undefined, id: string, data: any): Promise<any> {
+  async updateData(table: TableName, userId: string | undefined, id: string, data: Record<string, any>): Promise<DataRecord> {
     if (!userId) {
       throw new Error("Authentication required");
     }
@@ -112,13 +117,13 @@ export const secureApiService = {
         throw new Error("Resource not found");
       }
       
-      // Non-null assertion is safe here because we've checked above
-      if (typeof existingData !== 'object' || !existingData!.user_id) {
+      // Type check for existingData
+      if (typeof existingData !== 'object' || !('user_id' in existingData) || typeof existingData.user_id !== 'string') {
         throw new Error("Invalid resource data");
       }
       
-      // Non-null assertion is safe here
-      if (!validateOwnership(existingData!.user_id, userId)) {
+      // Validate ownership with type-safe property access
+      if (!validateOwnership(existingData.user_id, userId)) {
         throw new Error("You don't have permission to update this resource");
       }
       
@@ -130,7 +135,12 @@ export const secureApiService = {
         .select();
         
       if (error) throw error;
-      return updatedData;
+      
+      if (!updatedData || updatedData.length === 0) {
+        throw new Error("Failed to update data: No data returned");
+      }
+      
+      return updatedData[0] as DataRecord;
     } catch (error: any) {
       throw handleDataOperationError('updating', table, error);
     }
@@ -170,13 +180,13 @@ export const secureApiService = {
         throw new Error("Resource not found");
       }
       
-      // Non-null assertion is safe here because we've checked above
-      if (typeof existingData !== 'object' || !existingData!.user_id) {
+      // Type check for existingData
+      if (typeof existingData !== 'object' || !('user_id' in existingData) || typeof existingData.user_id !== 'string') {
         throw new Error("Invalid resource data");
       }
       
-      // Non-null assertion is safe here
-      if (!validateOwnership(existingData!.user_id, userId)) {
+      // Validate ownership with type-safe property access
+      if (!validateOwnership(existingData.user_id, userId)) {
         throw new Error("You don't have permission to delete this resource");
       }
       
