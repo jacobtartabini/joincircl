@@ -106,10 +106,10 @@ export default function SearchFilterBar({
                   <CommandEmpty>No tags found.</CommandEmpty>
                   <CommandGroup className="max-h-60 overflow-auto">
                     {availableTags.length > 0 ? (
-                      availableTags.map((tag) => (
+                      availableTags.map((tag, index) => (
                         <CommandItem
-                          key={tag || "placeholder-key"}
-                          value={tag || "placeholder-value"}
+                          key={tag || `placeholder-key-${index}`}
+                          value={tag || `placeholder-value-${index}`}
                           onSelect={() => handleTagSelect(tag)}
                         >
                           {tag || ""}
@@ -137,8 +137,8 @@ export default function SearchFilterBar({
         {safeSelectedTags.length > 0 && (
           <>
             <div className="flex flex-wrap gap-1 items-center">
-              {safeSelectedTags.map((tag) => (
-                <Badge key={tag || "placeholder-key"} variant="secondary" className="flex items-center gap-1">
+              {safeSelectedTags.map((tag, index) => (
+                <Badge key={tag || `tag-${index}`} variant="secondary" className="flex items-center gap-1">
                   {tag || ""}
                   <X
                     className="h-3 w-3 cursor-pointer"

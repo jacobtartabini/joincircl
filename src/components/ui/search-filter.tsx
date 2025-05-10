@@ -71,10 +71,10 @@ export function MultiSelect({
           <CommandInput placeholder="Search..." />
           <CommandEmpty>No item found.</CommandEmpty>
           <CommandGroup className="max-h-64 overflow-auto">
-            {safeOptions.map((option) => (
+            {safeOptions.map((option, index) => (
               <CommandItem
-                key={option.value || "placeholder"}
-                value={option.value || "placeholder"}
+                key={option.value || `option-${index}`}
+                value={option.value || `option-value-${index}`}
                 onSelect={() => handleSelect(option.value)}
               >
                 <Check

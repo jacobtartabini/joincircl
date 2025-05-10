@@ -38,6 +38,8 @@ export const CirclesTabContent = ({
   
   const filteredContacts = useMemo(() => {
     return safeContacts.filter(contact => {
+      if (!contact) return false; // Skip null/undefined contacts
+
       // First filter by circle if not "all"
       if (value !== "all" && contact.circle !== value) {
         return false;
@@ -46,7 +48,7 @@ export const CirclesTabContent = ({
       // Check if contact matches search query
       const searchTerms = safeSearchQuery.toLowerCase();
       const matchesSearch = safeSearchQuery === "" || 
-        contact.name.toLowerCase().includes(searchTerms) ||
+        (contact.name && contact.name.toLowerCase().includes(searchTerms)) ||
         (contact.personal_email && contact.personal_email.toLowerCase().includes(searchTerms)) ||
         (contact.mobile_phone && contact.mobile_phone.toLowerCase().includes(searchTerms)) ||
         (contact.company_name && contact.company_name.toLowerCase().includes(searchTerms)) ||
@@ -100,9 +102,9 @@ const ContactGrid = ({ contacts, onAddInteraction, onViewInsights }: ContactGrid
   
   return (
     <div className={`grid grid-cols-1 ${isMobile ? '' : 'md:grid-cols-2'} gap-4`}>
-      {safeContacts.map((contact) => (
+      {safeContacts.map((contact, index) => (
         <ContactCard
-          key={contact.id}
+          key={contact.id || `contact-${index}`}
           contact={contact}
           onAddNote={() => onAddInteraction(contact)}
           onViewInsights={() => onViewInsights(contact)}

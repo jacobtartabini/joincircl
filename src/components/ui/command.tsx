@@ -60,15 +60,20 @@ CommandInput.displayName = CommandPrimitive.Input.displayName
 const CommandList = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.List>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.List>
->(({ className, children, ...props }, ref) => (
-  <CommandPrimitive.List
-    ref={ref}
-    className={cn("max-h-[300px] overflow-y-auto overflow-x-hidden", className)}
-    {...props}
-  >
-    {React.Children.map(children || [], child => child) /* Ensure children is always iterable */}
-  </CommandPrimitive.List>
-))
+>(({ className, children, ...props }, ref) => {
+  // Ensure children is always defined and iterable
+  const safeChildren = React.Children.toArray(children || [])
+  
+  return (
+    <CommandPrimitive.List
+      ref={ref}
+      className={cn("max-h-[300px] overflow-y-auto overflow-x-hidden", className)}
+      {...props}
+    >
+      {safeChildren}
+    </CommandPrimitive.List>
+  )
+})
 
 CommandList.displayName = CommandPrimitive.List.displayName
 
@@ -88,18 +93,23 @@ CommandEmpty.displayName = CommandPrimitive.Empty.displayName
 const CommandGroup = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Group>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Group>
->(({ className, children, ...props }, ref) => (
-  <CommandPrimitive.Group
-    ref={ref}
-    className={cn(
-      "overflow-hidden p-1 text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground",
-      className
-    )}
-    {...props}
-  >
-    {React.Children.map(children || [], child => child) /* Ensure children is always iterable */}
-  </CommandPrimitive.Group>
-))
+>(({ className, children, ...props }, ref) => {
+  // Ensure children is always defined and iterable
+  const safeChildren = React.Children.toArray(children || [])
+  
+  return (
+    <CommandPrimitive.Group
+      ref={ref}
+      className={cn(
+        "overflow-hidden p-1 text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground",
+        className
+      )}
+      {...props}
+    >
+      {safeChildren}
+    </CommandPrimitive.Group>
+  )
+})
 
 CommandGroup.displayName = CommandPrimitive.Group.displayName
 
