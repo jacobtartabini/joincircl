@@ -31,8 +31,9 @@ export const fetchAdapter = {
         throw error;
       }
 
-      // Use a direct type assertion without intermediate steps
-      return data as T[] || [];
+      // First cast to unknown to break the deep type checking, 
+      // then cast to the desired type
+      return (data || []) as unknown as T[];
     } catch (err) {
       throw handleDataOperationError("fetching from", table, err);
     }
