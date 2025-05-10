@@ -68,24 +68,30 @@ export function MultiSelect({
       </PopoverTrigger>
       <PopoverContent className="w-full p-0">
         <Command>
-          <CommandInput placeholder="Search..." />
+          <CommandInput placeholder="Search..." value="" />
           <CommandEmpty>No item found.</CommandEmpty>
           <CommandGroup className="max-h-64 overflow-auto">
-            {safeOptions.map((option, index) => (
-              <CommandItem
-                key={option.value || `option-${index}`}
-                value={option.value || `option-value-${index}`}
-                onSelect={() => handleSelect(option.value)}
-              >
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    safeSelected.includes(option.value) ? "opacity-100" : "opacity-0"
-                  )}
-                />
-                {option.label || ""}
-              </CommandItem>
-            ))}
+            {safeOptions.map((option, index) => {
+              // Ensure both value and label are valid strings to prevent undefined issues
+              const value = option?.value || `option-value-${index}`;
+              const label = option?.label || `Option ${index}`;
+              
+              return (
+                <CommandItem
+                  key={value}
+                  value={value}
+                  onSelect={() => handleSelect(value)}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      safeSelected.includes(value) ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  {label}
+                </CommandItem>
+              );
+            })}
           </CommandGroup>
         </Command>
       </PopoverContent>

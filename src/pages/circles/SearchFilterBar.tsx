@@ -102,19 +102,23 @@ export default function SearchFilterBar({
                 sideOffset={isMobile ? 8 : 4}
               >
                 <Command>
-                  <CommandInput placeholder="Search tags..." />
+                  <CommandInput placeholder="Search tags..." value="" />
                   <CommandEmpty>No tags found.</CommandEmpty>
                   <CommandGroup className="max-h-60 overflow-auto">
                     {availableTags.length > 0 ? (
-                      availableTags.map((tag, index) => (
-                        <CommandItem
-                          key={tag || `placeholder-key-${index}`}
-                          value={tag || `placeholder-value-${index}`}
-                          onSelect={() => handleTagSelect(tag)}
-                        >
-                          {tag || ""}
-                        </CommandItem>
-                      ))
+                      availableTags.map((tag, index) => {
+                        // Ensure we have a valid tag value
+                        const safeTag = tag || `tag-${index}`;
+                        return (
+                          <CommandItem
+                            key={safeTag}
+                            value={safeTag}
+                            onSelect={() => handleTagSelect(safeTag)}
+                          >
+                            {safeTag}
+                          </CommandItem>
+                        );
+                      })
                     ) : (
                       <div className="py-2 px-2 text-sm text-muted-foreground">
                         No more tags available
@@ -137,15 +141,18 @@ export default function SearchFilterBar({
         {safeSelectedTags.length > 0 && (
           <>
             <div className="flex flex-wrap gap-1 items-center">
-              {safeSelectedTags.map((tag, index) => (
-                <Badge key={tag || `tag-${index}`} variant="secondary" className="flex items-center gap-1">
-                  {tag || ""}
-                  <X
-                    className="h-3 w-3 cursor-pointer"
-                    onClick={() => handleTagRemove(tag)}
-                  />
-                </Badge>
-              ))}
+              {safeSelectedTags.map((tag, index) => {
+                const safeTag = tag || `tag-${index}`;
+                return (
+                  <Badge key={safeTag} variant="secondary" className="flex items-center gap-1">
+                    {safeTag}
+                    <X
+                      className="h-3 w-3 cursor-pointer"
+                      onClick={() => handleTagRemove(safeTag)}
+                    />
+                  </Badge>
+                );
+              })}
             </div>
             <Button
               variant="ghost"
