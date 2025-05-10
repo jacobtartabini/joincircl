@@ -4,10 +4,26 @@ import { ConnectionStrength } from "@/types/contact";
 import { ArrowUpCircle, MinusCircle, ArrowDownCircle } from "lucide-react";
 
 interface ConnectionInsightsProps {
-  strength: ConnectionStrength;
+  strength?: ConnectionStrength;
 }
 
 export default function ConnectionInsights({ strength }: ConnectionInsightsProps) {
+  // If no strength data is provided, show a message
+  if (!strength) {
+    return (
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg font-medium">Connection Insights</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-sm text-muted-foreground">
+            No connection data available. Add interactions to generate insights.
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader className="pb-2">

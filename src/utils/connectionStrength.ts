@@ -3,6 +3,9 @@ import { Contact, ConnectionStrength, Interaction } from "@/types/contact";
 import { differenceInDays, differenceInMonths } from "date-fns";
 
 export function calculateConnectionStrength(contact: Contact, interactions: Interaction[] = []): ConnectionStrength {
+  // Ensure interactions is always an array
+  const safeInteractions = Array.isArray(interactions) ? interactions : [];
+  
   let score = 0;
   const suggestions: string[] = [];
   
@@ -22,14 +25,14 @@ export function calculateConnectionStrength(contact: Contact, interactions: Inte
   }
   
   // Factor 3: Number of interactions - make sure more interactions always help
-  const numInteractions = interactions.length;
+  const numInteractions = safeInteractions.length;
   // Ensure more interactions always improve the score, with diminishing returns
   const interactionScore = Math.min(30, Math.round(5 * Math.log10(numInteractions * 5 + 1)));
   score += interactionScore;
   
   // Factor 4: Consistency of interactions - based on expected frequency by circle
-  if (interactions.length >= 2) {
-    const sortedInteractions = [...interactions].sort((a, b) => 
+  if (safeInteractions.length >= 2) {
+    const sortedInteractions = [...safeInteractions].sort((a, b) => 
       new Date(a.date).getTime() - new Date(b.date).getTime()
     );
     
@@ -75,8 +78,8 @@ export function calculateConnectionStrength(contact: Contact, interactions: Inte
   score += Math.min(10, detailScore);
   
   // Interaction diversity bonus
-  if (interactions.length > 0) {
-    const uniqueTypes = new Set(interactions.map(i => i.type)).size;
+  if (safeInteractions.length > 0) {
+    const uniqueTypes = new Set(safeInteractions.map(i => i.type)).size;
     const diversityBonus = Math.min(5, uniqueTypes * 2);
     score += diversityBonus;
   }
@@ -131,7 +134,7 @@ export function calculateConnectionStrength(contact: Contact, interactions: Inte
 
   // Suggestions based on interaction patterns
   if (numInteractions >= 2) {
-    const interactionTypes = new Set(interactions.map(i => i.type));
+    const interactionTypes = new Set(safeInteractions.map(i => i.type));
     if (interactionTypes.size === 1) {
       suggestions.push("Try different types of interactions for a more balanced connection");
     }
@@ -151,15 +154,15 @@ export function calculateConnectionStrength(contact: Contact, interactions: Inte
   }
 
   // Activity-based suggestions
-  if (interactions.length === 0) {
+  if (safeInteractions.length === 0) {
     suggestions.push("Log your first interaction to start building connection history");
-  } else if (interactions.length < 3) {
+  } else if (safeInteractions.length < 3) {
     suggestions.push("More regular interactions will strengthen this connection");
   }
 
   // Add circle-specific expectations
-  if (contact.circle === "inner" && interactions.length > 0) {
-    const lastInteractionDate = new Date(interactions[0].date);
+  if (contact.circle === "inner" && safeInteractions.length > 0) {
+    const lastInteractionDate = new Date(safeInteractions[0].date);
     if (differenceInDays(today, lastInteractionDate) > 14) {
       suggestions.push("Inner circle contacts benefit from frequent communication");
     }
