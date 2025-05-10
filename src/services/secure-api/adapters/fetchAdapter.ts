@@ -1,8 +1,6 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { TableName, DataRecord } from "../types";
-import { checkRateLimit } from "../rateLimiting";
-import { generalRateLimiter } from "../rateLimiting";
+import { checkRateLimit, generalRateLimiter } from "../rateLimiting";
 import { handleDataOperationError } from "../errorHandling";
 
 /**
@@ -23,17 +21,22 @@ export const fetchAdapter = {
     checkRateLimit(generalRateLimiter, userId);
 
     try {
-      const { data, error } = await supabase
-        .from(table)
+      const response = await supabase
+        .from<T>(table)
         .select("*")
         .eq("user_id", userId);
 
-      if (error) throw error;
+      if (response.error) {
+        throw response.error;
+      }
 
-      // Simplify type casting to avoid deep type instantiation issues
-      return (data || []) as any as T[];
-    } catch (error: any) {
-      throw handleDataOperationError("fetching from", table, error);
+      if (!response.data) {
+        return [];
+      }
+
+      return response.data;
+    } catch (err) {
+      throw handleDataOperationError("fetching from", table, err);
     }
   },
 };
