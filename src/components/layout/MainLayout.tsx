@@ -4,6 +4,7 @@ import MobileNav from "./MobileNav";
 import TopStatusBar from "./TopStatusBar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import DesktopNav from "./DesktopNav";
+import { SecureHeaders } from "@/components/security/SecureHeaders";
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -14,6 +15,9 @@ const MainLayout = ({ children }: MainLayoutProps) => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      {/* Apply security headers */}
+      <SecureHeaders />
+      
       {!isMobile && <DesktopNav />}
       {isMobile && <TopStatusBar />}
       <main className={`flex-1 ${isMobile ? 'pb-16 pt-14' : 'pl-16'}`}>

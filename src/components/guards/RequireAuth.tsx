@@ -1,27 +1,56 @@
 
 import { ReactNode, useEffect, useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { validateSession } from "@/utils/security";
 
 interface RequireAuthProps {
   children: ReactNode;
+  requiredPermission?: string; // Optional permission required to access the route
 }
 
-export function RequireAuth({ children }: RequireAuthProps) {
-  const { user, loading } = useAuth();
+export function RequireAuth({ children, requiredPermission }: RequireAuthProps) {
+  const { user, loading, hasPermission } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    // If not loading and user is not authenticated, redirect to login
-    if (!loading) {
-      setIsChecking(false);
-      
-      if (!user) {
-        navigate("/auth/sign-in", { replace: true });
+    const checkAuth = async () => {
+      if (!loading) {
+        if (!user) {
+          // User is not authenticated, redirect to login
+          navigate("/auth/sign-in", { 
+            replace: true,
+            state: { from: location.pathname } // Remember where they were trying to go
+          });
+          return;
+        }
+        
+        // Verify session is still valid
+        const isValidSession = await validateSession();
+        if (!isValidSession) {
+          // Session expired, redirect to login
+          navigate("/auth/sign-in", {
+            replace: true,
+            state: { from: location.pathname }
+          });
+          return;
+        }
+        
+        // Check permission if specified
+        if (requiredPermission && !hasPermission(requiredPermission)) {
+          // User doesn't have the required permission
+          navigate("/", { replace: true });
+          return;
+        }
+        
+        setIsChecking(false);
       }
-    }
-  }, [user, loading, navigate]);
+    };
+    
+    checkAuth();
+  }, [user, loading, navigate, location.pathname, requiredPermission, hasPermission]);
 
   // Show a loading state while checking authentication
   if (loading || isChecking) {
