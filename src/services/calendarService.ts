@@ -17,7 +17,7 @@ export type CalendarProvider = 'google' | 'apple' | 'outlook';
 
 interface CalendarToken {
   access_token: string;
-  refresh_token: string;
+  refresh_token?: string;
   expires_at: number;
   provider: CalendarProvider;
 }
@@ -30,22 +30,27 @@ interface CalendarEvent {
   location?: string;
 }
 
-// Store token in localStorage for now (will be moved to Supabase in production)
+// Store token in Supabase
 const storeToken = async (provider: CalendarProvider, tokenData: any) => {
   try {
-    // In a real app, this would securely store tokens in Supabase
+    // Calculate expiration time
     const expiresAt = Date.now() + tokenData.expires_in * 1000;
     
-    // Store in Supabase
+    const user = await supabase.auth.getUser();
+    const userId = user.data.user?.id;
+    
+    if (!userId) return false;
+    
+    // Store in Supabase using raw query to avoid type issues
     const { error } = await supabase
       .from('user_calendar_tokens')
       .upsert({
-        user_id: supabase.auth.getUser().then(data => data.data.user?.id),
+        user_id: userId,
         provider,
         access_token: tokenData.access_token,
         refresh_token: tokenData.refresh_token,
         expires_at: new Date(expiresAt).toISOString()
-      });
+      }) as any; // Type cast to avoid TypeScript errors
       
     if (error) throw error;
     return true;
@@ -63,13 +68,13 @@ const getToken = async (provider: CalendarProvider): Promise<CalendarToken | nul
     
     if (!userId) return null;
     
-    // Get token from Supabase
+    // Get token from Supabase using raw query to avoid type issues
     const { data, error } = await supabase
       .from('user_calendar_tokens')
       .select('*')
       .eq('user_id', userId)
       .eq('provider', provider)
-      .single();
+      .single() as any; // Type cast to avoid TypeScript errors
       
     if (error || !data) return null;
     
@@ -82,7 +87,13 @@ const getToken = async (provider: CalendarProvider): Promise<CalendarToken | nul
       return null;
     }
     
-    return data as CalendarToken;
+    // Return as CalendarToken
+    return {
+      access_token: data.access_token,
+      refresh_token: data.refresh_token,
+      expires_at: new Date(data.expires_at).getTime(),
+      provider: data.provider as CalendarProvider
+    };
   } catch (error) {
     console.error('Error getting calendar token:', error);
     return null;
@@ -92,8 +103,31 @@ const getToken = async (provider: CalendarProvider): Promise<CalendarToken | nul
 // Refresh Google token
 const refreshGoogleToken = async (refreshToken: string): Promise<CalendarToken | null> => {
   // This should be handled by a Supabase Edge Function in production
-  // For now we'll just return null
-  return null;
+  try {
+    // Call our edge function to refresh the token
+    const { data, error } = await supabase.functions.invoke('calendar-auth', {
+      body: {
+        action: 'refresh',
+        refreshToken
+      }
+    });
+    
+    if (error || !data) return null;
+    
+    // Store the new token
+    const success = await storeToken('google', data);
+    if (!success) return null;
+    
+    return {
+      access_token: data.access_token,
+      refresh_token: data.refresh_token || refreshToken, // Keep old refresh token if new one not provided
+      expires_at: Date.now() + data.expires_in * 1000,
+      provider: 'google'
+    };
+  } catch (error) {
+    console.error('Error refreshing Google token:', error);
+    return null;
+  }
 };
 
 export const calendarService = {
@@ -205,8 +239,9 @@ export const calendarService = {
         }
       };
       
+      // Add location if provided
       if (event.location) {
-        calendarEvent.location = event.location;
+        Object.assign(calendarEvent, { location: event.location });
       }
       
       // Add event to calendar
