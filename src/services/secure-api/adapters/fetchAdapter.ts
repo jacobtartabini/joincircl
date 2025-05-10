@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { TableName, DataRecord } from "../types";
 import { checkRateLimit } from "../rateLimiting";
@@ -15,25 +14,26 @@ export const fetchAdapter = {
    * @param userId The user ID for rate limiting and access control
    * @returns Promise with the data or error
    */
-  async fetchData<T extends DataRecord>(table: TableName, userId: string): Promise<T[]> {
+  async fetchData<T extends DataRecord>(
+    table: TableName,
+    userId: string
+  ): Promise<T[]> {
     // Apply rate limiting
     checkRateLimit(generalRateLimiter, userId);
-    
+
     try {
       const { data, error } = await supabase
         .from(table)
-        .select('*')
-        .eq('user_id', userId);
-        
+        .select("*")
+        .eq("user_id", userId);
+
       if (error) throw error;
-      
-      // Handle the case when data is null
-      if (!data) return [];
-      
-      // Use a simpler type casting approach to avoid excessive type nesting
-      return data as unknown as T[];
+
+      // Ensure a consistent array is returned and simplify casting
+      const safeData = (data ?? []) as T[];
+      return safeData;
     } catch (error: any) {
-      throw handleDataOperationError('fetching from', table, error);
+      throw handleDataOperationError("fetching from", table, error);
     }
-  }
+  },
 };
