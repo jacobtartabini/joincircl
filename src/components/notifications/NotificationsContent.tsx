@@ -5,8 +5,6 @@ import NotificationsList from './NotificationsList';
 import { Button } from '@/components/ui/button';
 import { Bell } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import NotificationPreferences from './NotificationPreferences';
 
 const NotificationsContent = () => {
   const { 
@@ -35,43 +33,30 @@ const NotificationsContent = () => {
 
   return (
     <div className="space-y-4">
-      <Tabs defaultValue="all">
-        <div className="flex items-center justify-between">
-          <TabsList>
-            <TabsTrigger value="all">All Notifications</TabsTrigger>
-            <TabsTrigger value="preferences">Preferences</TabsTrigger>
-          </TabsList>
-          
-          <div className="flex gap-2">
-            {hasUnread && (
-              <Button variant="outline" size="sm" onClick={handleMarkAllRead}>
-                Mark all as read
-              </Button>
-            )}
-            <Button variant="outline" size="sm" onClick={handleClearAll}>
-              Clear all
+      {notifications.length > 0 && (
+        <div className="flex justify-end gap-2">
+          {hasUnread && (
+            <Button variant="outline" size="sm" onClick={handleMarkAllRead}>
+              Mark all as read
             </Button>
-          </div>
-        </div>
-        
-        <TabsContent value="all" className="mt-6">
-          {notifications.length > 0 ? (
-            <NotificationsList />
-          ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Bell size={48} className="text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium">No notifications</h3>
-              <p className="text-muted-foreground mt-2">
-                When you receive notifications, they will appear here
-              </p>
-            </div>
           )}
-        </TabsContent>
-        
-        <TabsContent value="preferences" className="mt-6">
-          <NotificationPreferences />
-        </TabsContent>
-      </Tabs>
+          <Button variant="outline" size="sm" onClick={handleClearAll}>
+            Clear all
+          </Button>
+        </div>
+      )}
+      
+      {notifications.length > 0 ? (
+        <NotificationsList />
+      ) : (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <Bell size={48} className="text-muted-foreground mb-4" />
+          <h3 className="text-lg font-medium">No notifications</h3>
+          <p className="text-muted-foreground mt-2">
+            When you receive notifications, they will appear here
+          </p>
+        </div>
+      )}
     </div>
   );
 };

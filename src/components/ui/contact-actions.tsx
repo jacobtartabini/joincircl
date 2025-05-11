@@ -22,7 +22,8 @@ export const ContactActions = ({
         className="flex-1"
         onClick={onView}
       >
-        <Eye size={16} className="mr-1" /> View
+        <Eye size={16} className="sm:mr-1" /> 
+        <span className="hidden sm:inline">View</span>
       </Button>
       {onViewInsights && (
         <Button
@@ -31,7 +32,8 @@ export const ContactActions = ({
           className="flex-1"
           onClick={onViewInsights}
         >
-          <BarChart size={16} className="mr-1" /> Insights
+          <BarChart size={16} className="sm:mr-1" /> 
+          <span className="hidden sm:inline">Insights</span>
         </Button>
       )}
       {onAddInteraction && (
@@ -41,7 +43,8 @@ export const ContactActions = ({
           className="flex-1"
           onClick={onAddInteraction}
         >
-          <MessageSquare size={16} className="mr-1" /> Interaction
+          <MessageSquare size={16} className="sm:mr-1" /> 
+          <span className="hidden sm:inline">Interaction</span>
         </Button>
       )}
     </div>

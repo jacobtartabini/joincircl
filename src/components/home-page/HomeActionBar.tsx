@@ -3,15 +3,11 @@ import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { User, Plus } from 'lucide-react';
+import { User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import NotificationBell from '@/components/notifications/NotificationBell';
 
-interface HomeActionBarProps {
-  onAddContact: () => void;
-}
-
-const HomeActionBar = ({ onAddContact }: HomeActionBarProps) => {
+const HomeActionBar = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   
@@ -39,15 +35,6 @@ const HomeActionBar = ({ onAddContact }: HomeActionBarProps) => {
       </div>
       
       <div className="flex items-center gap-3">
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={onAddContact}
-          className="border-primary text-primary hover:bg-primary/10"
-        >
-          <Plus size={16} className="mr-1" /> Add Contact
-        </Button>
-        
         <NotificationBell variant="ghost" size="sm" />
         
         <Button 

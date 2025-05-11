@@ -9,7 +9,7 @@ import NetworkRecommendations from '../home/NetworkRecommendations';
 import { UpcomingKeystones } from './UpcomingKeystones';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
-import { CalendarDays, PlusCircle } from 'lucide-react';
+import { CalendarDays, PlusCircle, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import MobileHeader from './MobileHeader';
 import HomeActionBar from './HomeActionBar';
@@ -91,8 +91,8 @@ const HomeContent: React.FC = () => {
       {/* We'll keep the mobile header for mobile devices only */}
       {isMobile && <MobileHeader />}
       
-      {/* New consistent action bar at the top */}
-      {!isMobile && <HomeActionBar onAddContact={handleAddContact} />}
+      {/* Action bar at the top */}
+      {!isMobile && <HomeActionBar />}
       
       <WelcomeBanner onAddContact={handleAddContact} />
       
@@ -108,12 +108,12 @@ const HomeContent: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Main column - 2/3 width on desktop */}
         <div className="md:col-span-2 space-y-6">
-          {/* Recent Contacts Section - Removed duplicate heading */}
+          {/* Recent Contacts Section - Added icon to View all button */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-3">
               <CardTitle className="text-xl font-medium">Recent Contacts</CardTitle>
               <Button variant="ghost" size="sm" onClick={handleViewAllContacts}>
-                View all
+                View all <ArrowRight size={16} className="ml-1" />
               </Button>
             </CardHeader>
             <CardContent>
