@@ -150,13 +150,8 @@ export function UpcomingKeystones() {
       <CalendarExportDialog
         isOpen={isExportDialogOpen}
         onOpenChange={setIsExportDialogOpen}
-        event={selectedKeystone ? {
-          title: selectedKeystone.title,
-          description: selectedKeystone.notes || '',
-          startDate: new Date(selectedKeystone.date),
-          endDate: new Date(new Date(selectedKeystone.date).getTime() + 60 * 60 * 1000), // 1 hour later
-          location: '',
-        } : undefined}
+        eventType="keystone"
+        keystone={selectedKeystone || undefined}
       />
     </>
   );

@@ -15,7 +15,7 @@ type EventType = 'keystone' | 'interaction';
 interface CalendarExportDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  eventType: EventType;
+  eventType?: EventType;
   keystone?: Keystone;
   interaction?: Interaction;
   contact?: Contact;
@@ -25,7 +25,7 @@ interface CalendarExportDialogProps {
 export function CalendarExportDialog({
   isOpen,
   onOpenChange,
-  eventType,
+  eventType = 'keystone',
   keystone,
   interaction,
   contact,
@@ -35,15 +35,23 @@ export function CalendarExportDialog({
   const { toast } = useToast();
   const isMobile = useIsMobile();
   
-  // Validate that we have the necessary data
-  if ((eventType === 'keystone' && !keystone) || (eventType === 'interaction' && (!interaction || !contact))) {
-    return null;
-  }
+  // Create event data based on event type and available data
+  let eventData;
   
-  // Create event data based on event type
-  const eventData = eventType === 'keystone' 
-    ? calendarService.createEventFromKeystone(keystone!)
-    : calendarService.createEventFromInteraction(interaction!, contact!.name);
+  if (eventType === 'keystone' && keystone) {
+    eventData = calendarService.createEventFromKeystone(keystone);
+  } else if (eventType === 'interaction' && interaction && contact) {
+    eventData = calendarService.createEventFromInteraction(interaction, contact.name);
+  } else {
+    // Default empty event data as fallback
+    eventData = {
+      title: '',
+      description: '',
+      start: new Date().toISOString(),
+      end: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+      location: ''
+    };
+  }
   
   const handleExportToGoogle = async () => {
     setIsExporting(true);
