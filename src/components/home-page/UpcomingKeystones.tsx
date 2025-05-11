@@ -122,9 +122,8 @@ export function UpcomingKeystones() {
               title: keystone.title,
               date: keystone.date,
               category: keystone.category,
-              contactId: keystone.contact_id,
-              contactName: keystone.contact_name,
-              // The KeystoneCard component should handle undefined avatars
+              contactId: keystone.contact_id || undefined,
+              contactName: keystone.contact_name || "",
               contactAvatar: undefined,
             }}
             onEdit={() => handleKeystoneClick(keystone)}

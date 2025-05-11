@@ -15,7 +15,10 @@ const HomeActionBar = ({ onAddContact }: HomeActionBarProps) => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   
-  const firstName = profile?.full_name?.split(' ')[0] || 'User';
+  // Safely extract first name with proper null checking
+  const firstName = profile?.full_name 
+    ? profile.full_name.split(' ')[0] 
+    : 'User';
   
   return (
     <div className="flex items-center justify-between py-2 mb-6">

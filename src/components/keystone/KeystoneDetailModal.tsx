@@ -44,7 +44,13 @@ export default function KeystoneDetailModal({
           
           {keystone.is_recurring && (
             <div className="mt-2 px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded inline-flex items-center">
-              Recurring: {keystone.recurrence_frequency}
+              Recurring: {keystone.recurrence_frequency || 'Monthly'}
+            </div>
+          )}
+          
+          {keystone.contact_name && (
+            <div className="mt-2 text-sm">
+              Contact: {keystone.contact_name}
             </div>
           )}
         </div>
