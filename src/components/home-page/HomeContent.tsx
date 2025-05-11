@@ -15,6 +15,7 @@ import MobileHeader from './MobileHeader';
 import HomeActionBar from './HomeActionBar';
 import { useState } from 'react';
 import { Dialog, DialogContent } from '../ui/dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '../ui/sheet';
 import ContactForm from '../contact/ContactForm';
 import KeystoneForm from '../keystone/KeystoneForm';
 
@@ -70,6 +71,20 @@ const HomeContent: React.FC = () => {
   const handleKeystoneFormSuccess = () => {
     setIsAddKeystoneDialogOpen(false);
   };
+  
+  const contactFormContent = (
+    <ContactForm 
+      onSuccess={handleContactFormSuccess} 
+      onCancel={() => setIsAddContactDialogOpen(false)}
+    />
+  );
+  
+  const keystoneFormContent = (
+    <KeystoneForm 
+      onSuccess={handleKeystoneFormSuccess}
+      onCancel={() => setIsAddKeystoneDialogOpen(false)}
+    />
+  );
   
   return (
     <div className="space-y-6 animate-fade-in">
@@ -141,25 +156,47 @@ const HomeContent: React.FC = () => {
         </div>
       </div>
       
-      {/* Add Contact Dialog */}
-      <Dialog open={isAddContactDialogOpen} onOpenChange={setIsAddContactDialogOpen}>
-        <DialogContent className="sm:max-w-xl">
-          <ContactForm 
-            onSuccess={handleContactFormSuccess} 
-            onCancel={() => setIsAddContactDialogOpen(false)}
-          />
-        </DialogContent>
-      </Dialog>
+      {/* Add Contact Dialog/Sheet */}
+      {isMobile ? (
+        <Sheet open={isAddContactDialogOpen} onOpenChange={setIsAddContactDialogOpen}>
+          <SheetContent side="bottom" className="h-[90vh] overflow-auto pt-6">
+            <SheetHeader className="mb-4">
+              <SheetTitle>Add Contact</SheetTitle>
+              <SheetDescription>
+                Add a new contact to your network
+              </SheetDescription>
+            </SheetHeader>
+            {contactFormContent}
+          </SheetContent>
+        </Sheet>
+      ) : (
+        <Dialog open={isAddContactDialogOpen} onOpenChange={setIsAddContactDialogOpen}>
+          <DialogContent className="sm:max-w-xl">
+            {contactFormContent}
+          </DialogContent>
+        </Dialog>
+      )}
       
-      {/* Add Keystone Dialog */}
-      <Dialog open={isAddKeystoneDialogOpen} onOpenChange={setIsAddKeystoneDialogOpen}>
-        <DialogContent className="sm:max-w-xl">
-          <KeystoneForm 
-            onSuccess={handleKeystoneFormSuccess}
-            onCancel={() => setIsAddKeystoneDialogOpen(false)}
-          />
-        </DialogContent>
-      </Dialog>
+      {/* Add Keystone Dialog/Sheet */}
+      {isMobile ? (
+        <Sheet open={isAddKeystoneDialogOpen} onOpenChange={setIsAddKeystoneDialogOpen}>
+          <SheetContent side="bottom" className="h-[90vh] overflow-auto pt-6">
+            <SheetHeader className="mb-4">
+              <SheetTitle>Add Keystone</SheetTitle>
+              <SheetDescription>
+                Add a new important date or event
+              </SheetDescription>
+            </SheetHeader>
+            {keystoneFormContent}
+          </SheetContent>
+        </Sheet>
+      ) : (
+        <Dialog open={isAddKeystoneDialogOpen} onOpenChange={setIsAddKeystoneDialogOpen}>
+          <DialogContent className="sm:max-w-xl">
+            {keystoneFormContent}
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
