@@ -36,14 +36,27 @@ export const keystoneService = {
     if (!userSession.session?.user.id) {
       throw new Error("User not authenticated");
     }
+
+    // Ensure we're only sending fields that exist in the database
+    const keystoneToInsert = {
+      title: keystone.title,
+      date: keystone.date,
+      category: keystone.category,
+      contact_id: keystone.contact_id,
+      is_recurring: keystone.is_recurring,
+      recurrence_frequency: keystone.recurrence_frequency,
+      notes: keystone.notes, // Keep this field but it will be ignored if the column doesn't exist
+      user_id: userSession.session.user.id
+    };
     
     const { data, error } = await supabase
       .from("keystones")
-      .insert([{ ...keystone, user_id: userSession.session.user.id }])
+      .insert([keystoneToInsert])
       .select()
       .single();
 
     if (error) {
+      console.error("Error creating keystone:", error);
       throw new Error(error.message);
     }
 
@@ -57,14 +70,27 @@ export const keystoneService = {
       keystoneToUpdate.date = new Date(keystone.date).toISOString();
     }
 
+    // Remove any fields that don't exist in the database
+    // to prevent schema mismatch errors
+    const safeKeystoneToUpdate = {
+      title: keystoneToUpdate.title,
+      date: keystoneToUpdate.date,
+      category: keystoneToUpdate.category,
+      contact_id: keystoneToUpdate.contact_id,
+      is_recurring: keystoneToUpdate.is_recurring,
+      recurrence_frequency: keystoneToUpdate.recurrence_frequency,
+      notes: keystoneToUpdate.notes, // Keep this field but it will be ignored if the column doesn't exist
+    };
+
     const { data, error } = await supabase
       .from("keystones")
-      .update(keystoneToUpdate)
+      .update(safeKeystoneToUpdate)
       .eq("id", id)
       .select()
       .single();
 
     if (error) {
+      console.error("Error updating keystone:", error);
       throw new Error(error.message);
     }
 
