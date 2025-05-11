@@ -7,12 +7,16 @@ import { Keystone } from '@/types/keystone';
 import { format, isAfter } from 'date-fns';
 import KeystoneDetailModal from '@/components/keystone/KeystoneDetailModal';
 import { useToast } from '@/hooks/use-toast';
+import { CalendarConnectionDialog } from '@/components/calendar/CalendarConnectionDialog';
+import { CalendarExportDialog } from '@/components/calendar/CalendarExportDialog';
 
 export function UpcomingKeystones() {
   const [keystones, setKeystones] = useState<Keystone[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedKeystone, setSelectedKeystone] = useState<Keystone | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [isCalendarDialogOpen, setIsCalendarDialogOpen] = useState(false);
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -80,9 +84,10 @@ export function UpcomingKeystones() {
   };
   
   const handleExportToCalendar = () => {
-    // This would actually trigger the calendar export dialog
-    // But we'll just close the modal for now
-    setIsDetailOpen(false);
+    if (selectedKeystone) {
+      setIsDetailOpen(false);
+      setIsExportDialogOpen(true);
+    }
   };
 
   if (isLoading) {
@@ -119,9 +124,8 @@ export function UpcomingKeystones() {
               category: keystone.category,
               contactId: keystone.contact_id,
               contactName: keystone.contact_name,
-              // Remove the contactAvatar property since it doesn't exist in the Keystone type
-              // Or we can pass undefined since the KeystoneCard component should handle this case
-              contactAvatar: undefined, 
+              // The KeystoneCard component should handle undefined avatars
+              contactAvatar: undefined,
             }}
             onEdit={() => handleKeystoneClick(keystone)}
             className="hover-scale"
@@ -136,6 +140,23 @@ export function UpcomingKeystones() {
         onEdit={handleEditKeystone}
         onDelete={handleDeleteKeystone}
         onCalendarExport={handleExportToCalendar}
+      />
+      
+      <CalendarConnectionDialog 
+        isOpen={isCalendarDialogOpen}
+        onOpenChange={setIsCalendarDialogOpen}
+      />
+      
+      <CalendarExportDialog
+        isOpen={isExportDialogOpen}
+        onOpenChange={setIsExportDialogOpen}
+        event={selectedKeystone ? {
+          title: selectedKeystone.title,
+          description: selectedKeystone.notes || '',
+          startDate: new Date(selectedKeystone.date),
+          endDate: new Date(new Date(selectedKeystone.date).getTime() + 60 * 60 * 1000), // 1 hour later
+          location: '',
+        } : undefined}
       />
     </>
   );

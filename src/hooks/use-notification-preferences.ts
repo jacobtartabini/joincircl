@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { NotificationPreferences } from '@/types/notifications';
 import { useAuth } from '@/contexts/AuthContext';
-import { requestSubscription, sendPushNotification } from '@/services/notificationService';
+import { requestSubscription } from '@/services/notificationService';
 
 const DEFAULT_PREFERENCES: NotificationPreferences = {
   push: {
@@ -97,11 +97,26 @@ export function useNotificationPreferences() {
   // Send a test notification if we have a subscription
   const sendTestNotification = async () => {
     if (subscription) {
-      return sendPushNotification({
-        title: "Test Notification",
-        message: "This is a test notification",
-        subscription
-      });
+      try {
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification("Test Notification", {
+            body: "This is a test notification from Circl",
+            icon: '/lovable-uploads/12af9685-d6d3-4f9d-87cf-0aa29d9c78f8.png',
+          });
+          return true;
+        } else if ('Notification' in window && Notification.permission !== 'denied') {
+          const permission = await Notification.requestPermission();
+          if (permission === 'granted') {
+            new Notification("Test Notification", {
+              body: "This is a test notification from Circl",
+              icon: '/lovable-uploads/12af9685-d6d3-4f9d-87cf-0aa29d9c78f8.png',
+            });
+            return true;
+          }
+        }
+      } catch (error) {
+        console.error("Error sending test notification:", error);
+      }
     }
     return false;
   };

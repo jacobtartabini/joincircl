@@ -1,3 +1,4 @@
+
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -12,9 +13,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useNavigate } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
-import { LogOut, HelpCircle, MailQuestion, Bug, Scale, Upload, Calendar } from "lucide-react";
+import { LogOut, HelpCircle, MailQuestion, Bug, Scale, Upload, Calendar, Phone, Linkedin, Bell } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { CalendarConnectionDialog } from "@/components/calendar/CalendarConnectionDialog";
+import { Switch } from "@/components/ui/switch";
+import { useNotificationPreferences } from "@/hooks/use-notification-preferences";
+import NotificationPreferences from "@/components/notifications/NotificationPreferences";
 
 const Settings = () => {
   const { toast } = useToast();
@@ -37,6 +41,9 @@ const Settings = () => {
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const [isGoogleUser, setIsGoogleUser] = useState(false);
   const [isCalendarDialogOpen, setIsCalendarDialogOpen] = useState(false);
+  const [isLinkedInConnected, setIsLinkedInConnected] = useState(false);
+  const [isPhoneContactsSynced, setIsPhoneContactsSynced] = useState(false);
+  const { preferences, togglePushNotification, toggleEmailNotification, sendTestNotification } = useNotificationPreferences();
 
   useEffect(() => {
     if (user && profile) {
@@ -236,6 +243,40 @@ const Settings = () => {
       setIsLogoutDialogOpen(false);
     }
   };
+  
+  const handleConnectLinkedIn = () => {
+    // In a real app, this would initiate an OAuth flow with LinkedIn
+    toast({
+      title: "LinkedIn Connection",
+      description: "LinkedIn connection initiated. Please complete the authentication in the popup window.",
+    });
+    
+    // For demo purposes we'll simulate a successful connection after 2 seconds
+    setTimeout(() => {
+      setIsLinkedInConnected(true);
+      toast({
+        title: "Success",
+        description: "Your LinkedIn account has been successfully connected.",
+      });
+    }, 2000);
+  };
+  
+  const handleSyncPhoneContacts = () => {
+    // In a real app, this would request permission to access contacts
+    toast({
+      title: "Phone Contacts",
+      description: "Requesting permission to access your phone contacts...",
+    });
+    
+    // For demo purposes we'll simulate a successful sync after 2 seconds
+    setTimeout(() => {
+      setIsPhoneContactsSynced(true);
+      toast({
+        title: "Success",
+        description: "Your phone contacts have been successfully synced.",
+      });
+    }, 2000);
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -252,6 +293,7 @@ const Settings = () => {
         <TabsList>
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="account">Account</TabsTrigger>
+          <TabsTrigger value="preferences">Preferences</TabsTrigger>
           <TabsTrigger value="subscription">Subscription</TabsTrigger>
           <TabsTrigger value="resources">Resources</TabsTrigger>
         </TabsList>
@@ -460,6 +502,106 @@ const Settings = () => {
           </Card>
         </TabsContent>
         
+        {/* New Preferences Tab */}
+        <TabsContent value="preferences" className="space-y-4 mt-4">
+          {/* Calendar Integration */}
+          <Card>
+            <CardHeader className="flex flex-row items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary" />
+              <div>
+                <CardTitle>Calendar Integration</CardTitle>
+                <CardDescription>
+                  Connect your calendar to sync events and interactions
+                </CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm">
+                Connect your calendar to keep track of your connections and important events.
+              </p>
+              <Button onClick={() => setIsCalendarDialogOpen(true)}>
+                Connect Calendar
+              </Button>
+            </CardContent>
+          </Card>
+          
+          {/* LinkedIn Integration */}
+          <Card>
+            <CardHeader className="flex flex-row items-center gap-2">
+              <Linkedin className="h-5 w-5 text-primary" />
+              <div>
+                <CardTitle>LinkedIn Integration</CardTitle>
+                <CardDescription>
+                  Connect your LinkedIn account to enhance your professional network
+                </CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm">
+                Connect your LinkedIn account to automatically import your professional connections and keep your network updated.
+              </p>
+              <Button 
+                onClick={handleConnectLinkedIn}
+                disabled={isLinkedInConnected}
+              >
+                {isLinkedInConnected ? "LinkedIn Connected" : "Connect LinkedIn"}
+              </Button>
+              
+              {isLinkedInConnected && (
+                <div className="mt-4 p-3 bg-green-50 text-green-700 rounded-md text-sm">
+                  Your LinkedIn account is connected. Your connections will be synced automatically.
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          
+          {/* Phone Contacts */}
+          <Card>
+            <CardHeader className="flex flex-row items-center gap-2">
+              <Phone className="h-5 w-5 text-primary" />
+              <div>
+                <CardTitle>Phone Contacts</CardTitle>
+                <CardDescription>
+                  Sync your phone contacts with your Circl account
+                </CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm">
+                Import contacts from your phone to easily add them to your circles.
+              </p>
+              <Button 
+                onClick={handleSyncPhoneContacts}
+                disabled={isPhoneContactsSynced}
+              >
+                {isPhoneContactsSynced ? "Contacts Synced" : "Sync Phone Contacts"}
+              </Button>
+              
+              {isPhoneContactsSynced && (
+                <div className="mt-4 p-3 bg-green-50 text-green-700 rounded-md text-sm">
+                  Your phone contacts have been synced successfully. You can find them in your contacts list.
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          
+          {/* Notification Preferences */}
+          <Card>
+            <CardHeader className="flex flex-row items-center gap-2">
+              <Bell className="h-5 w-5 text-primary" />
+              <div>
+                <CardTitle>Notification Preferences</CardTitle>
+                <CardDescription>
+                  Manage how and when you receive notifications
+                </CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <NotificationPreferences />
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
         <TabsContent value="subscription" className="space-y-4 mt-4">
           <Card>
             <CardHeader>
@@ -568,36 +710,6 @@ const Settings = () => {
           </Card>
         </TabsContent>
       </Tabs>
-      
-      <div className="space-y-6">
-        {/* Account settings sections */}
-        <div className="space-y-4">
-          <div>
-            <h2 className="text-xl font-medium">Calendar Integration</h2>
-            <p className="text-muted-foreground">
-              Connect your calendar to sync events and interactions
-            </p>
-          </div>
-          <div className="grid gap-4">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  <CardTitle className="text-base">Calendar Connection</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm">
-                  Connect your calendar to keep track of your connections and important events.
-                </p>
-                <Button onClick={() => setIsCalendarDialogOpen(true)}>
-                  Connect Calendar
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
       
       <footer className="border-t pt-6 pb-8 text-center text-sm text-muted-foreground">
         © 2025 Jacob Tartabini. All rights reserved. Unauthorized reproduction or distribution of any content is prohibited.

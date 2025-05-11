@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { WelcomeBanner } from './WelcomeBanner';
@@ -11,6 +12,11 @@ import { Button } from '../ui/button';
 import { CalendarDays, PlusCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import MobileHeader from './MobileHeader';
+import HomeActionBar from './HomeActionBar';
+import { useState } from 'react';
+import { Dialog, DialogContent } from '../ui/dialog';
+import ContactForm from '../contact/ContactForm';
+import KeystoneForm from '../keystone/KeystoneForm';
 
 const HomeContent: React.FC = () => {
   const isMobile = useIsMobile();
@@ -23,10 +29,17 @@ const HomeContent: React.FC = () => {
     getRecentContacts 
   } = useContacts();
   
+  const [isAddContactDialogOpen, setIsAddContactDialogOpen] = useState(false);
+  const [isAddKeystoneDialogOpen, setIsAddKeystoneDialogOpen] = useState(false);
+  
   const handleAddContact = () => {
-    navigate('/circles', { state: { openAddContact: true } });
+    setIsAddContactDialogOpen(true);
   };
   
+  const handleAddKeystone = () => {
+    setIsAddKeystoneDialogOpen(true);
+  };
+
   const contactStatsData = {
     totalContacts: contacts.length,
     distribution: getContactDistribution(),
@@ -50,14 +63,21 @@ const HomeContent: React.FC = () => {
     navigate('/keystones');
   };
   
-  const handleAddKeystone = () => {
-    navigate('/keystones', { state: { openAddKeystone: true } });
+  const handleContactFormSuccess = () => {
+    setIsAddContactDialogOpen(false);
+  };
+  
+  const handleKeystoneFormSuccess = () => {
+    setIsAddKeystoneDialogOpen(false);
   };
   
   return (
     <div className="space-y-6 animate-fade-in">
       {/* We'll keep the mobile header for mobile devices only */}
       {isMobile && <MobileHeader />}
+      
+      {/* New consistent action bar at the top */}
+      {!isMobile && <HomeActionBar onAddContact={handleAddContact} />}
       
       <WelcomeBanner onAddContact={handleAddContact} />
       
@@ -120,6 +140,26 @@ const HomeContent: React.FC = () => {
           <NetworkRecommendations />
         </div>
       </div>
+      
+      {/* Add Contact Dialog */}
+      <Dialog open={isAddContactDialogOpen} onOpenChange={setIsAddContactDialogOpen}>
+        <DialogContent className="sm:max-w-xl">
+          <ContactForm 
+            onSuccess={handleContactFormSuccess} 
+            onCancel={() => setIsAddContactDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+      
+      {/* Add Keystone Dialog */}
+      <Dialog open={isAddKeystoneDialogOpen} onOpenChange={setIsAddKeystoneDialogOpen}>
+        <DialogContent className="sm:max-w-xl">
+          <KeystoneForm 
+            onSuccess={handleKeystoneFormSuccess}
+            onCancel={() => setIsAddKeystoneDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
