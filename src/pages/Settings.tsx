@@ -41,6 +41,24 @@ const Settings = () => {
 
   const currentTabLabel = tabOptions.find(tab => tab.id === activeTab)?.label || "Profile";
 
+  // Helper function to render active tab content
+  const renderActiveTabContent = () => {
+    switch(activeTab) {
+      case "profile":
+        return <ProfileTab />;
+      case "account":
+        return <AccountTab />;
+      case "preferences":
+        return <PreferencesTab />;
+      case "subscription":
+        return <SubscriptionTab />;
+      case "resources":
+        return <ResourcesTab />;
+      default:
+        return <ProfileTab />;
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
@@ -60,13 +78,12 @@ const Settings = () => {
 
       {isMobile ? (
         <>
-          <TabsContent value={activeTab} className="space-y-4">
-            {activeTab === "profile" && <ProfileTab />}
-            {activeTab === "account" && <AccountTab />}
-            {activeTab === "preferences" && <PreferencesTab />}
-            {activeTab === "subscription" && <SubscriptionTab />}
-            {activeTab === "resources" && <ResourcesTab />}
-          </TabsContent>
+          {/* Fixed: Properly wrap content in Tabs component for mobile */}
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsContent value={activeTab} className="space-y-4">
+              {renderActiveTabContent()}
+            </TabsContent>
+          </Tabs>
 
           <Sheet open={isTabSelectOpen} onOpenChange={setIsTabSelectOpen}>
             <SheetContent side="bottom" className="h-[60vh]">
