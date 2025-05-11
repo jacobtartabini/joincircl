@@ -1,4 +1,3 @@
-
 export interface Contact {
   id: string;
   name: string;
@@ -55,8 +54,8 @@ export interface ContactMedia {
   url?: string; // Add the url property
 }
 
-export interface ConnectionStrength {
+export type ConnectionStrength = {
   score: number;
-  level: 'weak' | 'moderate' | 'strong';
+  level: "weak" | "moderate" | "strong" | "very-strong";
   suggestions: string[];
-}
+};
