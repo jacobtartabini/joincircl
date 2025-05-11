@@ -1,4 +1,3 @@
-
 import { Contact, ConnectionStrength, Interaction } from "@/types/contact";
 import { differenceInDays, differenceInMonths } from "date-fns";
 
@@ -84,10 +83,12 @@ export function calculateConnectionStrength(contact: Contact, interactions: Inte
     score += diversityBonus;
   }
   
-  // Determine strength level with adjusted thresholds
-  let level: 'weak' | 'moderate' | 'strong';
+  // Determine strength level with adjusted thresholds and added "very-strong" level
+  let level: 'weak' | 'moderate' | 'strong' | 'very-strong';
   
-  if (score >= 70) {
+  if (score >= 90) {
+    level = 'very-strong';
+  } else if (score >= 70) {
     level = 'strong';
   } else if (score >= 40) {
     level = 'moderate';
@@ -166,6 +167,11 @@ export function calculateConnectionStrength(contact: Contact, interactions: Inte
     if (differenceInDays(today, lastInteractionDate) > 14) {
       suggestions.push("Inner circle contacts benefit from frequent communication");
     }
+  }
+
+  // Special suggestions for very strong connections
+  if (level === 'very-strong') {
+    suggestions.push("You have an excellent connection - maintain this level of engagement");
   }
 
   // Limit to most important 5 suggestions

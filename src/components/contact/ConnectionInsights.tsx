@@ -1,7 +1,8 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConnectionStrength } from "@/types/contact";
-import { ArrowUpCircle, MinusCircle, ArrowDownCircle } from "lucide-react";
+import { ArrowUpCircle, MinusCircle, ArrowDownCircle, CheckCircle } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 interface ConnectionInsightsProps {
   strength?: ConnectionStrength;
@@ -36,12 +37,7 @@ export default function ConnectionInsights({ strength }: ConnectionInsightsProps
             <StrengthBadge strength={strength.level} />
           </div>
           
-          <div className="w-full bg-gray-200 rounded-full h-2.5">
-            <div 
-              className={`h-2.5 rounded-full ${getStrengthColor(strength.level)}`} 
-              style={{ width: `${Math.min(100, Math.max(10, strength.score))}%` }}
-            ></div>
-          </div>
+          <Progress value={Math.min(100, Math.max(10, strength.score))} className={`h-2.5 ${getStrengthProgressClass(strength.level)}`} />
           
           <div className="mt-4">
             <h4 className="text-sm font-medium mb-2">Suggestions</h4>
@@ -60,7 +56,16 @@ export default function ConnectionInsights({ strength }: ConnectionInsightsProps
   );
 }
 
-function StrengthBadge({ strength }: { strength: 'weak' | 'moderate' | 'strong' }) {
+function StrengthBadge({ strength }: { strength: 'weak' | 'moderate' | 'strong' | 'very-strong' }) {
+  if (strength === 'very-strong') {
+    return (
+      <div className="flex items-center text-emerald-700 bg-emerald-50 px-2 py-1 rounded-full text-xs font-medium">
+        <CheckCircle size={14} className="mr-1" />
+        Very Strong
+      </div>
+    );
+  }
+  
   if (strength === 'strong') {
     return (
       <div className="flex items-center text-green-600 bg-green-50 px-2 py-1 rounded-full text-xs font-medium">
@@ -87,11 +92,12 @@ function StrengthBadge({ strength }: { strength: 'weak' | 'moderate' | 'strong' 
   );
 }
 
-function getStrengthColor(strength: 'weak' | 'moderate' | 'strong') {
+function getStrengthProgressClass(strength: 'weak' | 'moderate' | 'strong' | 'very-strong') {
   switch (strength) {
-    case 'strong': return 'bg-green-500';
-    case 'moderate': return 'bg-amber-500';
-    case 'weak': return 'bg-red-500';
-    default: return 'bg-gray-500';
+    case 'very-strong': return '[&>div]:bg-emerald-700';
+    case 'strong': return '[&>div]:bg-green-500';
+    case 'moderate': return '[&>div]:bg-amber-500';
+    case 'weak': return '[&>div]:bg-red-500';
+    default: return '[&>div]:bg-gray-500';
   }
 }

@@ -185,7 +185,7 @@ const AccountTab = () => {
             <AlertDialogTrigger asChild>
               <Button 
                 variant="outline" 
-                className="w-full flex items-center justify-center gap-2"
+                className="flex items-center justify-center gap-2"
               >
                 <LogOut size={16} />
                 Log Out

@@ -24,8 +24,8 @@ export function InsightsDialog({
   if (isMobile) {
     return (
       <Sheet open={isOpen} onOpenChange={onOpenChange}>
-        <SheetContent side="bottom" className="h-[90vh] overflow-y-auto pb-safe-area-bottom pt-6">
-          <SheetHeader className="space-y-2">
+        <SheetContent side="bottom" className="h-[90vh] overflow-y-auto pb-safe-area-bottom">
+          <SheetHeader className="space-y-2 mt-4">
             <SheetTitle className="text-xl">Connection Insights</SheetTitle>
             <SheetDescription className="text-base">
               View your connection insights with {contact.name}
