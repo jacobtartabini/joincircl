@@ -119,7 +119,9 @@ export function UpcomingKeystones() {
               category: keystone.category,
               contactId: keystone.contact_id,
               contactName: keystone.contact_name,
-              contactAvatar: keystone.contact_avatar,
+              // Remove the contactAvatar property since it doesn't exist in the Keystone type
+              // Or we can pass undefined since the KeystoneCard component should handle this case
+              contactAvatar: undefined, 
             }}
             onEdit={() => handleKeystoneClick(keystone)}
             className="hover-scale"
