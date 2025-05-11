@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Keystone } from "@/types/keystone";
 import { format } from "date-fns";
-import { CalendarPlus, Edit2, Trash2 } from "lucide-react";
+import { Calendar as CalendarDays, CalendarPlus, Edit2, Trash2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useState } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -167,6 +167,3 @@ export default function KeystoneDetailModal({
     </>
   );
 }
-
-// Import the missing CalendarDays icon
-import { Calendar as CalendarDays, CalendarPlus, Edit2, Trash2 } from "lucide-react";
