@@ -5,42 +5,84 @@ import { useNavigate } from 'react-router-dom';
 import { keystoneService } from '@/services/keystoneService';
 import { Keystone } from '@/types/keystone';
 import { format, isAfter } from 'date-fns';
+import KeystoneDetailModal from '@/components/keystone/KeystoneDetailModal';
+import { useToast } from '@/hooks/use-toast';
 
 export function UpcomingKeystones() {
   const [keystones, setKeystones] = useState<Keystone[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedKeystone, setSelectedKeystone] = useState<Keystone | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchKeystones = async () => {
-      try {
-        setIsLoading(true);
-        const allKeystones = await keystoneService.getKeystones();
-        
-        // Sort keystones by date
-        const sortedKeystones = allKeystones
-          .filter(keystone => {
-            const keystoneDate = new Date(keystone.date);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            return isAfter(keystoneDate, today) || format(keystoneDate, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd');
-          })
-          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-          .slice(0, 3); // Get the first 3
-        
-        setKeystones(sortedKeystones);
-      } catch (error) {
-        console.error("Error loading keystones:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchKeystones();
   }, []);
+  
+  const fetchKeystones = async () => {
+    try {
+      setIsLoading(true);
+      const allKeystones = await keystoneService.getKeystones();
+      
+      // Sort keystones by date
+      const sortedKeystones = allKeystones
+        .filter(keystone => {
+          const keystoneDate = new Date(keystone.date);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          return isAfter(keystoneDate, today) || format(keystoneDate, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd');
+        })
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        .slice(0, 3); // Get the first 3
+      
+      setKeystones(sortedKeystones);
+    } catch (error) {
+      console.error("Error loading keystones:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  const handleKeystoneClick = (keystoneId: string) => {
-    navigate(`/keystones`, { state: { openKeystoneId: keystoneId } });
+  const handleKeystoneClick = (keystone: Keystone) => {
+    setSelectedKeystone(keystone);
+    setIsDetailOpen(true);
+  };
+  
+  const handleEditKeystone = () => {
+    if (selectedKeystone) {
+      navigate(`/keystones`, { state: { editKeystone: selectedKeystone } });
+    }
+    setIsDetailOpen(false);
+  };
+  
+  const handleDeleteKeystone = async () => {
+    if (!selectedKeystone) return;
+    
+    try {
+      await keystoneService.deleteKeystone(selectedKeystone.id);
+      toast({ 
+        title: "Keystone deleted", 
+        description: "The keystone has been successfully deleted." 
+      });
+      
+      // Remove from local state
+      setKeystones(keystones.filter(k => k.id !== selectedKeystone.id));
+      setIsDetailOpen(false);
+      setSelectedKeystone(null);
+    } catch (error) {
+      toast({ 
+        title: "Error", 
+        description: "Failed to delete keystone.", 
+        variant: "destructive" 
+      });
+    }
+  };
+  
+  const handleExportToCalendar = () => {
+    // This would actually trigger the calendar export dialog
+    // But we'll just close the modal for now
+    setIsDetailOpen(false);
   };
 
   if (isLoading) {
@@ -65,22 +107,34 @@ export function UpcomingKeystones() {
   }
 
   return (
-    <div className="space-y-4">
-      {keystones.map((keystone) => (
-        <KeystoneCard
-          key={keystone.id}
-          keystone={{
-            id: keystone.id,
-            title: keystone.title,
-            date: keystone.date,
-            category: keystone.category,
-            contactId: keystone.contact_id,
-            contactName: keystone.contact_name,
-          }}
-          onEdit={() => handleKeystoneClick(keystone.id)}
-          className="hover-scale"
-        />
-      ))}
-    </div>
+    <>
+      <div className="space-y-4">
+        {keystones.map((keystone) => (
+          <KeystoneCard
+            key={keystone.id}
+            keystone={{
+              id: keystone.id,
+              title: keystone.title,
+              date: keystone.date,
+              category: keystone.category,
+              contactId: keystone.contact_id,
+              contactName: keystone.contact_name,
+              contactAvatar: keystone.contact_avatar,
+            }}
+            onEdit={() => handleKeystoneClick(keystone)}
+            className="hover-scale"
+          />
+        ))}
+      </div>
+      
+      <KeystoneDetailModal
+        keystone={selectedKeystone}
+        isOpen={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
+        onEdit={handleEditKeystone}
+        onDelete={handleDeleteKeystone}
+        onCalendarExport={handleExportToCalendar}
+      />
+    </>
   );
 }

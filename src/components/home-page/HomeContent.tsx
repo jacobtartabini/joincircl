@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { WelcomeBanner } from './WelcomeBanner';
@@ -51,8 +50,13 @@ const HomeContent: React.FC = () => {
     navigate('/keystones');
   };
   
+  const handleAddKeystone = () => {
+    navigate('/keystones', { state: { openAddKeystone: true } });
+  };
+  
   return (
     <div className="space-y-6 animate-fade-in">
+      {/* We'll keep the mobile header for mobile devices only */}
       {isMobile && <MobileHeader />}
       
       <WelcomeBanner onAddContact={handleAddContact} />
@@ -69,7 +73,7 @@ const HomeContent: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Main column - 2/3 width on desktop */}
         <div className="md:col-span-2 space-y-6">
-          {/* Recent Contacts Section */}
+          {/* Recent Contacts Section - Removed duplicate heading */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-3">
               <CardTitle className="text-xl font-medium">Recent Contacts</CardTitle>
@@ -95,14 +99,12 @@ const HomeContent: React.FC = () => {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => navigate('/keystones', { state: { openAddKeystone: true } })}
+                  onClick={handleAddKeystone}
                 >
-                  <PlusCircle size={16} className="mr-1" />
-                  New
+                  <PlusCircle size={16} className="mr-1" /> New
                 </Button>
                 <Button variant="ghost" size="sm" onClick={handleViewAllKeystones}>
-                  <CalendarDays size={16} className="mr-1" />
-                  View all
+                  <CalendarDays size={16} className="mr-1" /> View all
                 </Button>
               </div>
             </CardHeader>

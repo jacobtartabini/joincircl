@@ -1,39 +1,40 @@
 
 import React from 'react';
 import { Bell } from 'lucide-react';
-import { useNotifications } from '@/hooks/use-notifications';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useNotifications } from '@/hooks/use-notifications';
 import { cn } from '@/lib/utils';
 
 interface NotificationBellProps {
-  variant?: 'default' | 'ghost' | 'outline';
-  size?: 'default' | 'sm';
+  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+  size?: "default" | "sm" | "lg" | "icon";
   showCount?: boolean;
 }
 
 const NotificationBell = ({ 
-  variant = 'ghost', 
-  size = 'default',
-  showCount = true 
+  variant = "default", 
+  size = "default",
+  showCount = true
 }: NotificationBellProps) => {
+  const navigate = useNavigate();
   const { unreadCount } = useNotifications();
   
+  const handleClick = () => {
+    navigate('/notifications');
+  };
+  
   return (
-    <Button variant={variant} size={size} asChild>
-      <Link to="/notifications" className="relative">
-        <Bell className="h-5 w-5" />
-        
-        {showCount && unreadCount > 0 && (
-          <span className={cn(
-            "absolute -top-1 -right-1 flex items-center justify-center",
-            "bg-primary rounded-full text-white text-xs font-bold",
-            size === 'default' ? "w-4 h-4 min-w-4" : "w-3.5 h-3.5 min-w-3.5",
-          )}>
-            {unreadCount > 9 ? '9+' : unreadCount}
-          </span>
-        )}
-      </Link>
+    <Button onClick={handleClick} variant={variant} size={size} className="relative">
+      <Bell className="h-5 w-5" />
+      {showCount && unreadCount > 0 && (
+        <span className={cn(
+          "absolute -top-1 -right-1 bg-red-500 text-white rounded-full",
+          size === "sm" ? "w-3.5 h-3.5 text-[0.6rem]" : "w-4 h-4 text-xs"
+        )}>
+          {unreadCount > 9 ? '9+' : unreadCount}
+        </span>
+      )}
     </Button>
   );
 };

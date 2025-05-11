@@ -1,11 +1,12 @@
 
 import { Home, Circle, Calendar, Settings } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import NotificationBell from "@/components/notifications/NotificationBell";
+import { useNotifications } from "@/hooks/use-notifications";
 
 const DesktopNav = () => {
   const location = useLocation();
   const currentPath = location.pathname;
+  const { unreadCount } = useNotifications();
 
   const navItems = [
     { icon: Home, label: "Home", path: "/" },
@@ -42,24 +43,19 @@ const DesktopNav = () => {
                     isActive ? "text-primary" : "text-gray-500"
                   }`}
                 >
-                  <item.icon size={24} />
+                  <div className="relative">
+                    <item.icon size={24} />
+                    {/* Add badge for notifications count on home page */}
+                    {item.path === "/" && unreadCount > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center bg-primary rounded-full text-white text-xs min-w-3.5 h-3.5">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </span>
+                    )}
+                  </div>
                   <span className="text-xs mt-1">{item.label}</span>
                 </Link>
               );
             })}
-            
-            {/* Add Notifications Link */}
-            <Link
-              to="/notifications"
-              className={`flex flex-col items-center justify-center ${
-                currentPath.startsWith("/notifications") ? "text-primary" : "text-gray-500"
-              }`}
-            >
-              <div className="relative">
-                <NotificationBell variant="ghost" size="sm" showCount={false} />
-              </div>
-              <span className="text-xs mt-1">Notifications</span>
-            </Link>
           </div>
         </div>
       </div>
