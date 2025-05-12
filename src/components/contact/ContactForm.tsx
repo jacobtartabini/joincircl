@@ -61,7 +61,7 @@ export default function ContactForm({
 
   const handleTouchEnd = () => {
     if (deltaY > 100) {
-      onCancel(); // Close the form
+      onCancel();
     } else {
       if (swipeRef.current) {
         swipeRef.current.style.transition = "transform 0.3s ease";
@@ -77,7 +77,7 @@ export default function ContactForm({
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
-      onCancel(); // Click outside closes form
+      onCancel();
     }
   };
 
@@ -93,18 +93,37 @@ export default function ContactForm({
         onTouchEnd={handleTouchEnd}
         className="w-full sm:max-w-lg bg-white rounded-t-2xl sm:rounded-lg shadow-lg max-h-[90vh] overflow-y-auto transition-transform"
       >
-        {/* Handle bar at the top */}
         <div className="w-full flex justify-center py-2">
           <div className="w-12 h-1 bg-gray-300 rounded-full" />
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 px-4 pb-4">
           <Tabs defaultValue="basic" className="w-full">
-            <TabsList className="grid grid-cols-4 mb-4">
-              <TabsTrigger value="basic">Basic</TabsTrigger>
-              <TabsTrigger value="professional">Professional</TabsTrigger>
-              <TabsTrigger value="education">Education</TabsTrigger>
-              <TabsTrigger value="other">Other</TabsTrigger>
+            <TabsList className="grid grid-cols-4 mb-4 bg-gray-100 rounded-lg overflow-hidden">
+              <TabsTrigger
+                value="basic"
+                className="text-center py-2 text-sm sm:text-base data-[state=active]:bg-white data-[state=active]:text-black"
+              >
+                Basic
+              </TabsTrigger>
+              <TabsTrigger
+                value="professional"
+                className="text-center py-2 text-sm sm:text-base data-[state=active]:bg-white data-[state=active]:text-black"
+              >
+                Professional
+              </TabsTrigger>
+              <TabsTrigger
+                value="education"
+                className="text-center py-2 text-sm sm:text-base data-[state=active]:bg-white data-[state=active]:text-black"
+              >
+                Education
+              </TabsTrigger>
+              <TabsTrigger
+                value="other"
+                className="text-center py-2 text-sm sm:text-base data-[state=active]:bg-white data-[state=active]:text-black"
+              >
+                Other
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="basic">
