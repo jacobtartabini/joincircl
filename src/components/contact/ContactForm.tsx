@@ -40,11 +40,15 @@ export default function ContactForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
-      
       {/* Visual drag handle */}
       <div className="flex justify-center pt-2">
         <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
       </div>
+
+      {/* Add Contact Title */}
+      <h2 className="text-lg font-semibold text-center">
+        {contact?.id ? "Edit Contact" : "Add Contact"}
+      </h2>
 
       <Tabs defaultValue="basic" className="w-full">
         <TabsList className="grid grid-cols-4 mb-4">
@@ -53,7 +57,7 @@ export default function ContactForm({
           <TabsTrigger value="education">Education</TabsTrigger>
           <TabsTrigger value="other">Other</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="basic">
           <ContactFormBasicTab 
             formData={formData}
@@ -63,14 +67,14 @@ export default function ContactForm({
             handleBirthdayDayChange={handleBirthdayDayChange}
           />
         </TabsContent>
-        
+
         <TabsContent value="professional">
           <ContactFormProfessionalTab 
             formData={formData}
             handleChange={handleChange}
           />
         </TabsContent>
-        
+
         <TabsContent value="education">
           <ContactFormEducationTab 
             formData={formData}
@@ -78,7 +82,7 @@ export default function ContactForm({
             handleNumberChange={handleNumberChange}
           />
         </TabsContent>
-        
+
         <TabsContent value="other">
           <ContactFormOtherTab 
             formData={formData}
