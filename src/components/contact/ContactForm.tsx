@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Contact } from "@/types/contact";
@@ -35,24 +34,24 @@ export default function ContactForm({
     handleDocumentUpload,
     handleRemoveImage,
     handleRemoveDocument,
-    handleSubmit
+    handleSubmit,
   } = useContactForm(contact, onSuccess, onCancel);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
-      
-      {/* Visual drag handle BELOW the header */}
-      <div className="flex justify-center pt-2">
+
+      {/* Visual drag handle (centered, below screen top) */}
+      <div className="flex justify-center pt-4">
         <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
       </div>
 
-      {/* Optional: Add "Add Contact" title here if not in parent */}
-      <h2 className="text-lg font-semibold text-center mt-2">
+      {/* Optional heading */}
+      <h2 className="text-lg font-semibold text-center mt-2 mb-2">
         {contact?.id ? "Edit Contact" : "Add Contact"}
       </h2>
 
       <Tabs defaultValue="basic" className="w-full">
-        <TabsList className="grid grid-cols-4 mb-4 mt-4">
+        <TabsList className="grid grid-cols-4 mb-4">
           <TabsTrigger value="basic">Basic</TabsTrigger>
           <TabsTrigger value="professional">Professional</TabsTrigger>
           <TabsTrigger value="education">Education</TabsTrigger>
@@ -60,7 +59,7 @@ export default function ContactForm({
         </TabsList>
 
         <TabsContent value="basic">
-          <ContactFormBasicTab 
+          <ContactFormBasicTab
             formData={formData}
             handleChange={handleChange}
             handleCircleChange={handleCircleChange}
@@ -70,14 +69,14 @@ export default function ContactForm({
         </TabsContent>
 
         <TabsContent value="professional">
-          <ContactFormProfessionalTab 
+          <ContactFormProfessionalTab
             formData={formData}
             handleChange={handleChange}
           />
         </TabsContent>
 
         <TabsContent value="education">
-          <ContactFormEducationTab 
+          <ContactFormEducationTab
             formData={formData}
             handleChange={handleChange}
             handleNumberChange={handleNumberChange}
@@ -85,7 +84,7 @@ export default function ContactForm({
         </TabsContent>
 
         <TabsContent value="other">
-          <ContactFormOtherTab 
+          <ContactFormOtherTab
             formData={formData}
             handleChange={handleChange}
             tags={formData.tags || []}
