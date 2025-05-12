@@ -22,7 +22,7 @@ const updateSW = registerSW({
       // Register for background sync if supported
       if ('sync' in registration) {
         console.log('Background sync supported')
-        // Register a sync event
+        // Register a sync event with a valid tag name (must be <= 15 characters)
         registration.sync.register('sync-data')
           .then(() => console.log('Sync registered'))
           .catch(err => console.error('Sync registration failed:', err))

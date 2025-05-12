@@ -1,3 +1,4 @@
+
 import { precacheAndRoute } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
 import { CacheFirst, NetworkFirst, StaleWhileRevalidate } from 'workbox-strategies';
@@ -5,7 +6,7 @@ import { ExpirationPlugin } from 'workbox-expiration';
 import { BackgroundSyncPlugin } from 'workbox-background-sync';
 
 // Use with precache injection
-precacheAndRoute(self.__WB_MANIFEST);
+precacheAndRoute(self.__WB_MANIFEST || []);
 
 // Create a background sync plugin
 const bgSyncPlugin = new BackgroundSyncPlugin('circl-sync-queue', {
@@ -165,4 +166,11 @@ self.addEventListener('install', (event) => {
       ]);
     })
   );
+});
+
+// Add a skip waiting handler to ensure the service worker activates quickly
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
