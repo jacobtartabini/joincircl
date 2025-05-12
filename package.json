@@ -65,7 +65,9 @@
     "vaul": "^0.9.3",
     "vite-plugin-pwa": "^1.0.0",
     "workbox-background-sync": "^7.3.0",
+    "workbox-expiration": "^7.3.0",
     "workbox-precaching": "^7.3.0",
+    "workbox-routing": "^7.3.0",
     "workbox-window": "^7.3.0",
     "zod": "^3.23.8"
   },
