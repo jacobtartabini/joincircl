@@ -22,12 +22,13 @@ export function AddContactDialog({
     onOpenChange(false);
   };
 
-  // For mobile devices, use Sheet (full-screen)
+  // For mobile devices, use Sheet (slide-in from bottom)
   if (isMobile) {
     return (
       <Sheet open={isOpen} onOpenChange={onOpenChange}>
         <SheetContent side="bottom" className="h-[90vh] overflow-auto">
-          <SheetHeader>
+          <div className="mx-auto -mt-1 mb-4 h-1.5 w-[60px] rounded-full bg-muted" />
+          <SheetHeader className="mb-4">
             <SheetTitle>Add Contact</SheetTitle>
             <SheetDescription>
               Add a new contact to your circles

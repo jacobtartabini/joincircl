@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -8,13 +9,10 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useState } from "react";
 import {
   AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle
+  AlertDialogTitle,
+  AlertDialogDescription
 } from "@/components/ui/alert-dialog";
 
 interface KeystoneDetailModalProps {
@@ -136,6 +134,7 @@ export default function KeystoneDetailModal({
       {isMobile ? (
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
           <SheetContent side="bottom" className="sheet-mobile max-h-[85vh] overflow-y-auto">
+            <div className="mx-auto -mt-1 mb-4 h-1.5 w-[60px] rounded-full bg-muted" />
             {content}
           </SheetContent>
         </Sheet>
@@ -151,6 +150,7 @@ export default function KeystoneDetailModal({
       {isMobile ? (
         <Sheet open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
           <SheetContent side="bottom" className="sheet-mobile py-6">
+            <div className="mx-auto -mt-1 mb-4 h-1.5 w-[60px] rounded-full bg-muted" />
             <div className="px-2">
               <h3 className="text-xl font-semibold mb-4">Delete Keystone</h3>
               {deleteConfirmContent}

@@ -6,12 +6,14 @@ import { useToast } from "@/hooks/use-toast";
 import { KeystoneCard } from "@/components/ui/keystone-card";
 import { Keystone } from "@/types/keystone";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import KeystoneForm from "@/components/keystone/KeystoneForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "react-router-dom";
 import KeystoneDetailModal from "@/components/keystone/KeystoneDetailModal";
 import { contactService } from "@/services/contactService";
 import { Contact } from "@/types/contact";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Keystones = () => {
   const [keystones, setKeystones] = useState<Keystone[]>([]);
@@ -23,6 +25,7 @@ const Keystones = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isKeystoneDetailOpen, setIsKeystoneDetailOpen] = useState(false);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     fetchKeystones();
@@ -238,36 +241,75 @@ const Keystones = () => {
         </TabsContent>
       </Tabs>
 
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Add Keystone</DialogTitle>
-          </DialogHeader>
-          <KeystoneForm
-            onSuccess={handleAddSuccess}
-            onCancel={() => setIsAddDialogOpen(false)}
-          />
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit Keystone</DialogTitle>
-          </DialogHeader>
-          {selectedKeystone && (
+      {/* Add Dialog/Sheet */}
+      {isMobile ? (
+        <Sheet open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <SheetContent side="bottom" className="h-[90vh] overflow-auto pt-6">
+            <div className="mx-auto -mt-1 mb-4 h-1.5 w-[60px] rounded-full bg-muted" />
+            <SheetHeader className="mb-4">
+              <SheetTitle>Add Keystone</SheetTitle>
+            </SheetHeader>
             <KeystoneForm
-              keystone={selectedKeystone}
-              onSuccess={handleEditSuccess}
-              onCancel={() => {
-                setIsEditDialogOpen(false);
-                setSelectedKeystone(null);
-              }}
-              onDelete={handleDeleteClick}
+              onSuccess={handleAddSuccess}
+              onCancel={() => setIsAddDialogOpen(false)}
             />
-          )}
-        </DialogContent>
-      </Dialog>
+          </SheetContent>
+        </Sheet>
+      ) : (
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Add Keystone</DialogTitle>
+            </DialogHeader>
+            <KeystoneForm
+              onSuccess={handleAddSuccess}
+              onCancel={() => setIsAddDialogOpen(false)}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Edit Dialog/Sheet */}
+      {isMobile ? (
+        <Sheet open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <SheetContent side="bottom" className="h-[90vh] overflow-auto pt-6">
+            <div className="mx-auto -mt-1 mb-4 h-1.5 w-[60px] rounded-full bg-muted" />
+            <SheetHeader className="mb-4">
+              <SheetTitle>Edit Keystone</SheetTitle>
+            </SheetHeader>
+            {selectedKeystone && (
+              <KeystoneForm
+                keystone={selectedKeystone}
+                onSuccess={handleEditSuccess}
+                onCancel={() => {
+                  setIsEditDialogOpen(false);
+                  setSelectedKeystone(null);
+                }}
+                onDelete={handleDeleteClick}
+              />
+            )}
+          </SheetContent>
+        </Sheet>
+      ) : (
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Edit Keystone</DialogTitle>
+            </DialogHeader>
+            {selectedKeystone && (
+              <KeystoneForm
+                keystone={selectedKeystone}
+                onSuccess={handleEditSuccess}
+                onCancel={() => {
+                  setIsEditDialogOpen(false);
+                  setSelectedKeystone(null);
+                }}
+                onDelete={handleDeleteClick}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Add KeystoneDetailModal for viewing keystone details */}
       <KeystoneDetailModal

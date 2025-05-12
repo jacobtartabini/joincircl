@@ -1,3 +1,4 @@
+
 import * as SheetPrimitive from "@radix-ui/react-dialog"
 import { cva, type VariantProps } from "class-variance-authority"
 import { X } from "lucide-react"
@@ -54,27 +55,79 @@ interface SheetContentProps
 const SheetContent = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Content>,
   SheetContentProps
->(({ side = "right", className, children, ...props }, ref) => (
-  <SheetPortal>
-    <SheetOverlay />
-    <SheetPrimitive.Content
-      ref={ref}
-      className={cn(sheetVariants({ side }), className)}
-      {...props}
-    >
-      {side === "bottom" && (
-        <div className="mx-auto -mt-1 mb-5 h-1.5 w-[60px] rounded-full bg-muted" />
-      )}
-      {children}
-      {side !== "bottom" && (
-        <SheetPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
-          <X className="h-4 w-4" />
+>(({ side = "right", className, children, ...props }, ref) => {
+  const [isDragging, setIsDragging] = React.useState(false);
+  const [startY, setStartY] = React.useState(0);
+  const [offsetY, setOffsetY] = React.useState(0);
+  const contentRef = React.useRef<HTMLDivElement>(null);
+  const closeRef = React.useRef<HTMLButtonElement>(null);
+  
+  // Function to handle touch events for swipe to close (for bottom sheets only)
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (side !== "bottom") return;
+    setIsDragging(true);
+    setStartY(e.touches[0].clientY);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!isDragging || side !== "bottom") return;
+    const currentY = e.touches[0].clientY;
+    const diff = currentY - startY;
+    if (diff > 0) { // Only allow swiping down
+      setOffsetY(diff);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (!isDragging || side !== "bottom") return;
+    setIsDragging(false);
+    
+    // If swiped down more than 100px, close the sheet
+    if (offsetY > 100 && closeRef.current) {
+      closeRef.current.click();
+    }
+    
+    // Reset offset
+    setOffsetY(0);
+  };
+  
+  // Apply transform style for drag effect
+  const dragStyle = isDragging && side === "bottom" ? {
+    transform: `translateY(${offsetY}px)`,
+    transition: 'none'
+  } : {};
+
+  return (
+    <SheetPortal>
+      <SheetOverlay />
+      <SheetPrimitive.Content
+        ref={(el) => {
+          if (typeof ref === 'function') ref(el);
+          else if (ref) ref.current = el;
+          contentRef.current = el;
+        }}
+        className={cn(sheetVariants({ side }), className)}
+        style={dragStyle}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        {...props}
+      >
+        {children}
+        {side !== "bottom" && (
+          <SheetPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </SheetPrimitive.Close>
+        )}
+        {/* Hidden close button for programmatic closing */}
+        <SheetPrimitive.Close ref={closeRef} className="sr-only">
           <span className="sr-only">Close</span>
         </SheetPrimitive.Close>
-      )}
-    </SheetPrimitive.Content>
-  </SheetPortal>
-))
+      </SheetPrimitive.Content>
+    </SheetPortal>
+  ))
+})
 SheetContent.displayName = SheetPrimitive.Content.displayName
 
 const SheetHeader = ({

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { WelcomeBanner } from './WelcomeBanner';
@@ -160,6 +159,7 @@ const HomeContent: React.FC = () => {
       {isMobile ? (
         <Sheet open={isAddContactDialogOpen} onOpenChange={setIsAddContactDialogOpen}>
           <SheetContent side="bottom" className="h-[90vh] overflow-auto pt-6">
+            <div className="mx-auto -mt-1 mb-4 h-1.5 w-[60px] rounded-full bg-muted" />
             <SheetHeader className="mb-4">
               <SheetTitle>Add Contact</SheetTitle>
               <SheetDescription>
@@ -181,6 +181,7 @@ const HomeContent: React.FC = () => {
       {isMobile ? (
         <Sheet open={isAddKeystoneDialogOpen} onOpenChange={setIsAddKeystoneDialogOpen}>
           <SheetContent side="bottom" className="h-[90vh] overflow-auto pt-6">
+            <div className="mx-auto -mt-1 mb-4 h-1.5 w-[60px] rounded-full bg-muted" />
             <SheetHeader className="mb-4">
               <SheetTitle>Add Keystone</SheetTitle>
               <SheetDescription>

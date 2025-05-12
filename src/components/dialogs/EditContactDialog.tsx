@@ -1,7 +1,9 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import ContactForm from "@/components/contact/ContactForm";
 import { Contact } from "@/types/contact";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface EditContactDialogProps {
   contact: Contact | null;
@@ -16,6 +18,35 @@ export default function EditContactDialog({
   onOpenChange,
   onContactUpdate
 }: EditContactDialogProps) {
+  const isMobile = useIsMobile();
+
+  if (!contact) return null;
+
+  const handleContactUpdate = async (updatedContact?: Contact, prevBirthday?: string | null) => {
+    if (updatedContact) {
+      await onContactUpdate(updatedContact, prevBirthday);
+    }
+    onOpenChange(false);
+  };
+
+  if (isMobile) {
+    return (
+      <Sheet open={isOpen} onOpenChange={onOpenChange}>
+        <SheetContent side="bottom" className="h-[90vh] overflow-auto">
+          <div className="mx-auto -mt-1 mb-4 h-1.5 w-[60px] rounded-full bg-muted" />
+          <SheetHeader className="mb-4">
+            <SheetTitle>Edit Contact</SheetTitle>
+          </SheetHeader>
+          <ContactForm
+            contact={contact}
+            onSuccess={handleContactUpdate}
+            onCancel={() => onOpenChange(false)}
+          />
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
