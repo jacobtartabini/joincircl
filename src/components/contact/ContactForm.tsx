@@ -41,19 +41,24 @@ export default function ContactForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
       
-      {/* Visual drag handle */}
+      {/* Visual drag handle BELOW the header */}
       <div className="flex justify-center pt-2">
         <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
       </div>
 
+      {/* Optional: Add "Add Contact" title here if not in parent */}
+      <h2 className="text-lg font-semibold text-center mt-2">
+        {contact?.id ? "Edit Contact" : "Add Contact"}
+      </h2>
+
       <Tabs defaultValue="basic" className="w-full">
-        <TabsList className="grid grid-cols-4 mb-4">
+        <TabsList className="grid grid-cols-4 mb-4 mt-4">
           <TabsTrigger value="basic">Basic</TabsTrigger>
           <TabsTrigger value="professional">Professional</TabsTrigger>
           <TabsTrigger value="education">Education</TabsTrigger>
           <TabsTrigger value="other">Other</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="basic">
           <ContactFormBasicTab 
             formData={formData}
@@ -63,14 +68,14 @@ export default function ContactForm({
             handleBirthdayDayChange={handleBirthdayDayChange}
           />
         </TabsContent>
-        
+
         <TabsContent value="professional">
           <ContactFormProfessionalTab 
             formData={formData}
             handleChange={handleChange}
           />
         </TabsContent>
-        
+
         <TabsContent value="education">
           <ContactFormEducationTab 
             formData={formData}
@@ -78,7 +83,7 @@ export default function ContactForm({
             handleNumberChange={handleNumberChange}
           />
         </TabsContent>
-        
+
         <TabsContent value="other">
           <ContactFormOtherTab 
             formData={formData}
@@ -91,7 +96,7 @@ export default function ContactForm({
             onImageRemove={handleRemoveImage}
             documentFiles={documentFiles}
             onDocumentUpload={handleDocumentUpload}
-            onDocumentRemove={handleRemoveDocument}
+            onDocumentRemove={handleDocumentRemove}
           />
         </TabsContent>
       </Tabs>
