@@ -152,7 +152,7 @@ const Keystones = () => {
           </p>
         </div>
         <Button size="sm" onClick={() => setIsAddDialogOpen(true)}>
-          <Plus size={16} className="mr-1" /> Add Keystone
+          <Plus size={16} className="mr-1" /> Add
         </Button>
       </div>
 
