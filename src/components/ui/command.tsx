@@ -25,11 +25,17 @@ Command.displayName = CommandPrimitive.displayName
 interface CommandDialogProps extends DialogProps {}
 
 const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
+  // Ensure children is always defined
+  const safeChildren = React.useMemo(() => {
+    if (!children) return null;
+    return children;
+  }, [children]);
+
   return (
     <Dialog {...props}>
       <DialogContent className="overflow-hidden p-0 shadow-lg">
         <Command className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5">
-          {children}
+          {safeChildren}
         </Command>
       </DialogContent>
     </Dialog>
@@ -59,20 +65,27 @@ CommandInput.displayName = CommandPrimitive.Input.displayName
 const CommandList = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.List>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.List>
->(({ className, ...props }, ref) => {
+>(({ className, children, ...props }, ref) => {
   // Ensure children is always defined and iterable
   const safeChildren = React.useMemo(() => {
-    if (!props.children) return [];
-    return Array.isArray(props.children) ? props.children : [props.children];
-  }, [props.children]);
+    if (!children) return [];
+    try {
+      // This will throw if children is not iterable
+      return Array.isArray(children) ? children.filter(Boolean) : [children].filter(Boolean);
+    } catch (e) {
+      console.warn("Error with CommandList children:", e);
+      return [];
+    }
+  }, [children]);
 
   return (
     <CommandPrimitive.List
       ref={ref}
       className={cn("max-h-[300px] overflow-y-auto overflow-x-hidden", className)}
       {...props}
-      children={safeChildren}
-    />
+    >
+      {safeChildren}
+    </CommandPrimitive.List>
   );
 });
 
@@ -94,12 +107,18 @@ CommandEmpty.displayName = CommandPrimitive.Empty.displayName
 const CommandGroup = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Group>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Group>
->(({ className, ...props }, ref) => {
+>(({ className, children, ...props }, ref) => {
   // Ensure children is always defined and iterable
   const safeChildren = React.useMemo(() => {
-    if (!props.children) return [];
-    return Array.isArray(props.children) ? props.children : [props.children];
-  }, [props.children]);
+    if (!children) return [];
+    try {
+      // This will throw if children is not iterable
+      return Array.isArray(children) ? children.filter(Boolean) : [children].filter(Boolean);
+    } catch (e) {
+      console.warn("Error with CommandGroup children:", e);
+      return [];
+    }
+  }, [children]);
 
   return (
     <CommandPrimitive.Group
@@ -109,8 +128,9 @@ const CommandGroup = React.forwardRef<
         className
       )}
       {...props}
-      children={safeChildren}
-    />
+    >
+      {safeChildren}
+    </CommandPrimitive.Group>
   );
 });
 
@@ -132,8 +152,18 @@ const CommandItem = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item>
 >(({ className, value, children, ...props }, ref) => {
-  // Generate a guaranteed unique value if none provided
-  const safeValue = value || `item-${Math.random().toString(36).substring(2, 11)}`;
+  // Generate a guaranteed unique value if none provided or value is undefined/null
+  const safeValue = React.useMemo(() => {
+    if (value === undefined || value === null || value === '') {
+      return `item-${Math.random().toString(36).substring(2, 11)}`;
+    }
+    return value;
+  }, [value]);
+  
+  // Make sure we have valid children
+  const safeChildren = React.useMemo(() => {
+    return children || safeValue;
+  }, [children, safeValue]);
   
   return (
     <CommandPrimitive.Item
@@ -145,10 +175,10 @@ const CommandItem = React.forwardRef<
       )}
       {...props}
     >
-      {children || safeValue}
+      {safeChildren}
     </CommandPrimitive.Item>
   );
-})
+});
 
 CommandItem.displayName = CommandPrimitive.Item.displayName
 

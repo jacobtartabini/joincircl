@@ -97,8 +97,8 @@ export default function SearchFilterBar({
   };
 
   // Create a guaranteed unique id for each CommandItem in popover groups
-  const createUniqueId = (prefix: string, optionValue: string, index: number) => {
-    return `${prefix}-${optionValue || index}-${index}`;
+  const createUniqueId = (prefix: string, optionValue: string | undefined, index: number) => {
+    return `${prefix}-${optionValue || index}-${Math.random().toString(36).substring(2, 5)}`;
   };
 
   return (
@@ -137,18 +137,23 @@ export default function SearchFilterBar({
                 <Command>
                   <CommandInput placeholder={`Search ${key}...`} />
                   <CommandEmpty>No {key} found.</CommandEmpty>
-                  <CommandGroup className="overflow-auto max-h-64">
+                  <CommandGroup>
                     {allOptions[key]
                       .filter(option => option && !safeSelectedFilters[key].includes(option))
-                      .map((option, index) => (
-                        <CommandItem 
-                          key={createUniqueId(key, option || "", index)}
-                          value={option || `option-${key}-${index}`}
-                          onSelect={() => handleSelect(key, option || "")}
-                        >
-                          {option || `Unnamed ${key.slice(0, -1)}`}
-                        </CommandItem>
-                      ))}
+                      .map((option, index) => {
+                        const optionValue = option || `unnamed-${key}-${index}`;
+                        const displayText = option || `Unnamed ${key.slice(0, -1)} ${index + 1}`;
+                        
+                        return (
+                          <CommandItem 
+                            key={createUniqueId(key, option, index)}
+                            value={optionValue}
+                            onSelect={() => handleSelect(key, optionValue)}
+                          >
+                            {displayText}
+                          </CommandItem>
+                        );
+                      })}
                   </CommandGroup>
                 </Command>
               </PopoverContent>
@@ -161,16 +166,20 @@ export default function SearchFilterBar({
       {/* Selected filter badges */}
       <div className="flex flex-wrap gap-2">
         {FILTER_KEYS.map((key) =>
-          safeSelectedFilters[key].filter(Boolean).map((value, index) => (
-            <Badge 
-              key={`selected-${key}-${value || index}-${index}`} 
-              variant="secondary" 
-              className="flex items-center gap-1"
-            >
-              {value || `Unnamed ${key.slice(0, -1)}`}
-              <X className="h-3 w-3 cursor-pointer" onClick={() => handleRemove(key, value)} />
-            </Badge>
-          ))
+          safeSelectedFilters[key].filter(Boolean).map((value, index) => {
+            const displayText = value || `Unnamed ${key.slice(0, -1)} ${index + 1}`;
+            
+            return (
+              <Badge 
+                key={`selected-${key}-${value || ''}-${index}`}
+                variant="secondary" 
+                className="flex items-center gap-1"
+              >
+                {displayText}
+                <X className="h-3 w-3 cursor-pointer" onClick={() => handleRemove(key, value)} />
+              </Badge>
+            );
+          })
         )}
         {(FILTER_KEYS.some((key) => safeSelectedFilters[key].length > 0)) && (
           <Button

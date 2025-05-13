@@ -38,8 +38,8 @@ export function MultiSelect({
   const [open, setOpen] = React.useState(false);
   
   // Ensure options and selected are arrays
-  const safeOptions = Array.isArray(options) ? options : [];
-  const safeSelected = Array.isArray(selected) ? selected : [];
+  const safeOptions = Array.isArray(options) ? options.filter(item => item !== null && item !== undefined) : [];
+  const safeSelected = Array.isArray(selected) ? selected.filter(Boolean) : [];
 
   const handleSelect = (value: string) => {
     if (!value) return; // Skip empty values
@@ -49,6 +49,11 @@ export function MultiSelect({
       : [...safeSelected, value];
     
     onChange(newSelected);
+  };
+
+  // Create a stable unique ID for Command Items
+  const createItemId = (index: number, value?: string) => {
+    return `option-${value || index}-${index}`;
   };
 
   return (
@@ -78,7 +83,7 @@ export function MultiSelect({
               
               return (
                 <CommandItem
-                  key={value}
+                  key={createItemId(index, value)}
                   value={value}
                   onSelect={() => handleSelect(value)}
                 >
@@ -108,7 +113,7 @@ export function SearchBar({ onSearch, placeholder = "Search..." }: SearchBarProp
   const [value, setValue] = React.useState("");
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
+    const newValue = e.target.value || "";
     setValue(newValue);
     onSearch(newValue);
   };
