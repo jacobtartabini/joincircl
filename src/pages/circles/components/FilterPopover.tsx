@@ -59,6 +59,10 @@ export const FilterPopover = ({
 
   // Get current filter options as a safe array
   const getCurrentFilterOptions = (): string[] => {
+    // Make sure allOptions is defined and has the activeFilterTab property
+    if (!allOptions || !allOptions[activeFilterTab]) {
+      return [];
+    }
     const options = allOptions[activeFilterTab];
     return Array.isArray(options) ? options : [];
   };
@@ -67,6 +71,13 @@ export const FilterPopover = ({
   const getCurrentSelectedFilters = (): string[] => {
     const selected = safeSelectedFilters[activeFilterTab];
     return Array.isArray(selected) ? selected : [];
+  };
+
+  // Initialize safe versions of options to avoid undefined iterations
+  const safeOptions = {
+    locations: Array.isArray(allOptions?.locations) ? allOptions.locations : [],
+    companies: Array.isArray(allOptions?.companies) ? allOptions.companies : [],
+    industries: Array.isArray(allOptions?.industries) ? allOptions.industries : []
   };
 
   return (
@@ -140,10 +151,11 @@ export const FilterPopover = ({
                   );
                 }
                 
+                // Ensure we always return an array of elements, not undefined
                 return availableOptions.map((option, index) => (
                   <CommandItem 
                     key={createUniqueId(activeFilterTab, option, index)}
-                    value={option}
+                    value={option || `empty-${index}`} // Ensure value is never undefined
                     onSelect={() => onSelect(activeFilterTab, option)}
                     className="rounded-md cursor-pointer"
                   >
