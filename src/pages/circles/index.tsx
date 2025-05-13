@@ -37,7 +37,7 @@ const Circles = () => {
   const safeSelectedTags = Array.isArray(selectedTags) ? selectedTags : [];
   const safeAvailableTags = Array.isArray(availableTags) ? availableTags : [];
   const safeSearchQuery = typeof searchQuery === 'string' ? searchQuery : '';
-  const safeContacts = Array.isArray(contacts) ? contacts : [];
+  const safeContacts = Array.isArray(contacts) ? contacts.filter(Boolean) : [];
 
   // Create proper filter structure expected by SearchFilterBar
   const selectedFilters = {
@@ -55,13 +55,16 @@ const Circles = () => {
     // You could add more logic here if you want to handle filters in the parent component
   };
 
+  // Log to help debug
+  console.log("Rendering Circles component with contacts:", safeContacts?.length || 0);
+  
   return (
     <div className="space-y-6 animate-fade-in">
       <CirclesHeader onAddContact={() => setIsAddDialogOpen(true)} />
 
       <SearchFilterBar 
         allTags={[]} // Empty array since we're not using tags
-        allLocations={[]} // These will be populated from the contacts data
+        allLocations={[]} // Using empty arrays as fallbacks, data will be populated from contacts
         allCompanies={[]}
         allIndustries={[]}
         selectedFilters={selectedFilters}

@@ -55,6 +55,9 @@ export default function SearchFilterBar({
   const [activeFilterTab, setActiveFilterTab] = useState<FilterKey>("locations");
   const isMobile = useIsMobile();
 
+  // Ensure we're working with a valid contacts array
+  const safeContacts = Array.isArray(contacts) ? contacts.filter(Boolean) : [];
+
   // Extract unique values from contacts
   const [filterOptions, setFilterOptions] = useState<{
     locations: string[];
@@ -66,35 +69,54 @@ export default function SearchFilterBar({
     industries: [],
   });
 
-  // Ensure we're working with a valid contacts array
-  const safeContacts = Array.isArray(contacts) ? contacts.filter(Boolean) : [];
-
   // Extract unique values from contacts
   useEffect(() => {
-    if (!safeContacts.length) return;
+    if (!safeContacts || !Array.isArray(safeContacts) || !safeContacts.length) {
+      setFilterOptions({
+        locations: [],
+        companies: [],
+        industries: []
+      });
+      return;
+    }
 
-    const uniqueLocations = new Set<string>();
-    const uniqueCompanies = new Set<string>();
-    const uniqueIndustries = new Set<string>();
+    try {
+      const uniqueLocations = new Set<string>();
+      const uniqueCompanies = new Set<string>();
+      const uniqueIndustries = new Set<string>();
 
-    safeContacts.forEach(contact => {
-      if (contact.location) uniqueLocations.add(contact.location);
-      if (contact.company_name) uniqueCompanies.add(contact.company_name);
-      if (contact.industry) uniqueIndustries.add(contact.industry);
-    });
+      safeContacts.forEach(contact => {
+        if (contact && contact.location) uniqueLocations.add(contact.location);
+        if (contact && contact.company_name) uniqueCompanies.add(contact.company_name);
+        if (contact && contact.industry) uniqueIndustries.add(contact.industry);
+      });
 
-    setFilterOptions({
-      locations: Array.from(uniqueLocations).filter(Boolean).sort(),
-      companies: Array.from(uniqueCompanies).filter(Boolean).sort(),
-      industries: Array.from(uniqueIndustries).filter(Boolean).sort(),
-    });
+      setFilterOptions({
+        locations: Array.from(uniqueLocations).filter(Boolean).sort(),
+        companies: Array.from(uniqueCompanies).filter(Boolean).sort(),
+        industries: Array.from(uniqueIndustries).filter(Boolean).sort(),
+      });
+    } catch (error) {
+      console.error("Error extracting filter options:", error);
+      setFilterOptions({
+        locations: [],
+        companies: [],
+        industries: []
+      });
+    }
   }, [safeContacts]);
 
   // Make sure all options are arrays and never undefined
   const allOptions = {
-    locations: filterOptions.locations.length > 0 ? filterOptions.locations : (Array.isArray(allLocations) ? allLocations.filter(Boolean) : []),
-    companies: filterOptions.companies.length > 0 ? filterOptions.companies : (Array.isArray(allCompanies) ? allCompanies.filter(Boolean) : []),
-    industries: filterOptions.industries.length > 0 ? filterOptions.industries : (Array.isArray(allIndustries) ? allIndustries.filter(Boolean) : []),
+    locations: Array.isArray(filterOptions.locations) && filterOptions.locations.length > 0 
+      ? filterOptions.locations 
+      : (Array.isArray(allLocations) ? allLocations.filter(Boolean) : []),
+    companies: Array.isArray(filterOptions.companies) && filterOptions.companies.length > 0 
+      ? filterOptions.companies 
+      : (Array.isArray(allCompanies) ? allCompanies.filter(Boolean) : []),
+    industries: Array.isArray(filterOptions.industries) && filterOptions.industries.length > 0 
+      ? filterOptions.industries 
+      : (Array.isArray(allIndustries) ? allIndustries.filter(Boolean) : []),
   };
 
   // Ensure selectedFilters is properly defined with default values
@@ -233,30 +255,50 @@ export default function SearchFilterBar({
                   No {activeFilterTab} found.
                 </CommandEmpty>
                 <CommandGroup className="max-h-64 overflow-auto">
-                  {/* Ensure we're working with valid arrays to prevent errors */}
                   {(() => {
-                    const options = getCurrentFilterOptions();
-                    const selected = getCurrentSelectedFilters();
-                    
-                    // Filter out options that are already selected and ensure each item is valid
-                    const availableOptions = options
-                      .filter(Boolean)
-                      .filter(option => !selected.includes(option));
-                    
-                    if (!availableOptions.length) {
-                      return <div className="text-xs text-center py-2 text-muted-foreground">All {activeFilterTab} are selected</div>;
+                    try {
+                      const options = getCurrentFilterOptions();
+                      const selected = getCurrentSelectedFilters();
+                      
+                      if (!Array.isArray(options) || options.length === 0) {
+                        return (
+                          <div className="text-xs text-center py-2 text-muted-foreground">
+                            No {activeFilterTab} available
+                          </div>
+                        );
+                      }
+
+                      // Filter out options that are already selected and ensure each item is valid
+                      const availableOptions = options
+                        .filter(Boolean)
+                        .filter(option => !selected.includes(option));
+                      
+                      if (availableOptions.length === 0) {
+                        return (
+                          <div className="text-xs text-center py-2 text-muted-foreground">
+                            All {activeFilterTab} are selected
+                          </div>
+                        );
+                      }
+                      
+                      return availableOptions.map((option, index) => (
+                        <CommandItem 
+                          key={createUniqueId(activeFilterTab, option, index)}
+                          value={option}
+                          onSelect={() => handleSelect(activeFilterTab, option)}
+                          className="rounded-md cursor-pointer"
+                        >
+                          {option}
+                        </CommandItem>
+                      ));
+                    } catch (err) {
+                      console.error("Error rendering command items:", err);
+                      return (
+                        <div className="text-xs text-center py-2 text-muted-foreground">
+                          Error loading filter options
+                        </div>
+                      );
                     }
-                    
-                    return availableOptions.map((option, index) => (
-                      <CommandItem 
-                        key={createUniqueId(activeFilterTab, option, index)}
-                        value={option}
-                        onSelect={() => handleSelect(activeFilterTab, option)}
-                        className="rounded-md cursor-pointer"
-                      >
-                        {option}
-                      </CommandItem>
-                    ));
                   })()}
                 </CommandGroup>
               </Command>
