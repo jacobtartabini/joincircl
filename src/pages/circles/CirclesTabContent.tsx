@@ -28,7 +28,7 @@ export const CirclesTabContent = ({
   onAddContact
 }: CirclesTabContentProps) => {
   // Ensure contacts is an array
-  const safeContacts = Array.isArray(contacts) ? contacts : [];
+  const safeContacts = Array.isArray(contacts) ? contacts.filter(Boolean) : [];
   // Ensure selectedTags is an array
   const safeSelectedTags = Array.isArray(selectedTags) ? selectedTags : [];
   // Ensure searchQuery is a string

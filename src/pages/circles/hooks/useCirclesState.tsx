@@ -27,15 +27,17 @@ export function useCirclesState() {
     try {
       setIsLoading(true);
       const data = await contactService.getContacts();
-      const safeData = Array.isArray(data) ? data : [];
+      
+      // Ensure we have valid contacts array (never undefined)
+      const safeData = Array.isArray(data) ? data.filter(contact => contact !== null && contact !== undefined) : [];
       setContacts(safeData);
       
-      // Extract unique tags from all contacts
+      // Extract unique tags from all contacts with safe null checks
       const allTags = new Set<string>();
       safeData.forEach(contact => {
-        if (contact && contact.tags && Array.isArray(contact.tags)) {
+        if (contact && Array.isArray(contact.tags)) {
           contact.tags.forEach(tag => {
-            if (tag) allTags.add(tag);
+            if (tag && typeof tag === 'string') allTags.add(tag);
           });
         }
       });
