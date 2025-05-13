@@ -66,14 +66,14 @@ const CommandList = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.List>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.List>
 >(({ className, children, ...props }, ref) => {
-  // Ensure children is always defined and iterable - this is where the error is happening
+  // Ensure children is always array-like before mapping
   const safeChildren = React.useMemo(() => {
-    if (!children) return null;
     try {
-      return React.Children.map(children, child => child) || null;
+      // Use React.Children.toArray to safely convert children to an array
+      return children ? React.Children.toArray(children) : [];
     } catch (e) {
       console.warn("Error processing CommandList children:", e);
-      return null;
+      return [];
     }
   }, [children]);
 
@@ -107,14 +107,14 @@ const CommandGroup = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Group>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Group>
 >(({ className, children, ...props }, ref) => {
-  // Ensure children is always defined and iterable - this is critical for the error
+  // Ensure children is always array-like before mapping
   const safeChildren = React.useMemo(() => {
-    if (!children) return null;
     try {
-      return React.Children.map(children, child => child) || null;
+      // Use React.Children.toArray to safely convert children to an array
+      return children ? React.Children.toArray(children) : [];
     } catch (e) {
       console.warn("Error processing CommandGroup children:", e);
-      return null;
+      return [];
     }
   }, [children]);
 

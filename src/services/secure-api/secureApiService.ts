@@ -17,7 +17,14 @@ export const secureApiService = {
     options: FetchOptions = {}
   ): Promise<QueryResult<T>> => {
     try {
-      return await fetchAdapter<T>(table, options);
+      const result = await fetchAdapter<T>(table, options);
+      
+      // Ensure we return safe defaults for undefined values
+      return {
+        data: Array.isArray(result.data) ? result.data : [],
+        count: typeof result.count === 'number' ? result.count : 0,
+        error: result.error || null
+      };
     } catch (error) {
       console.error("Error in secureApiService.fetch:", error);
       // Return a safe empty result on error

@@ -55,7 +55,7 @@ export default function SearchFilterBar({
     Array.isArray(contacts) ? contacts.filter(Boolean) : []
   , [contacts]);
 
-  // Extract unique values from contacts
+  // Initialize filterOptions state with empty arrays to prevent undefined errors
   const [filterOptions, setFilterOptions] = useState<{
     locations: string[];
     companies: string[];
@@ -68,12 +68,7 @@ export default function SearchFilterBar({
 
   // Extract unique values from contacts
   useEffect(() => {
-    if (!safeContacts || !Array.isArray(safeContacts) || safeContacts.length === 0) {
-      setFilterOptions({
-        locations: [],
-        companies: [],
-        industries: []
-      });
+    if (!Array.isArray(safeContacts) || safeContacts.length === 0) {
       return;
     }
 
@@ -83,9 +78,14 @@ export default function SearchFilterBar({
       const uniqueIndustries = new Set<string>();
 
       safeContacts.forEach(contact => {
-        if (contact && contact.location) uniqueLocations.add(contact.location);
-        if (contact && contact.company_name) uniqueCompanies.add(contact.company_name);
-        if (contact && contact.industry) uniqueIndustries.add(contact.industry);
+        if (contact && typeof contact.location === 'string' && contact.location.trim()) 
+          uniqueLocations.add(contact.location);
+          
+        if (contact && typeof contact.company_name === 'string' && contact.company_name.trim()) 
+          uniqueCompanies.add(contact.company_name);
+          
+        if (contact && typeof contact.industry === 'string' && contact.industry.trim()) 
+          uniqueIndustries.add(contact.industry);
       });
 
       setFilterOptions({
@@ -95,6 +95,7 @@ export default function SearchFilterBar({
       });
     } catch (error) {
       console.error("Error extracting filter options:", error);
+      // In case of error, ensure we have empty arrays instead of undefined
       setFilterOptions({
         locations: [],
         companies: [],
@@ -105,15 +106,12 @@ export default function SearchFilterBar({
 
   // Make sure all options are arrays and never undefined
   const allOptions = useMemo(() => ({
-    locations: Array.isArray(filterOptions.locations) && filterOptions.locations.length > 0 
-      ? filterOptions.locations 
-      : (Array.isArray(allLocations) ? allLocations.filter(Boolean) : []),
-    companies: Array.isArray(filterOptions.companies) && filterOptions.companies.length > 0 
-      ? filterOptions.companies 
-      : (Array.isArray(allCompanies) ? allCompanies.filter(Boolean) : []),
-    industries: Array.isArray(filterOptions.industries) && filterOptions.industries.length > 0 
-      ? filterOptions.industries 
-      : (Array.isArray(allIndustries) ? allIndustries.filter(Boolean) : []),
+    locations: Array.isArray(filterOptions.locations) ? filterOptions.locations : 
+      (Array.isArray(allLocations) ? allLocations.filter(Boolean) : []),
+    companies: Array.isArray(filterOptions.companies) ? filterOptions.companies : 
+      (Array.isArray(allCompanies) ? allCompanies.filter(Boolean) : []),
+    industries: Array.isArray(filterOptions.industries) ? filterOptions.industries : 
+      (Array.isArray(allIndustries) ? allIndustries.filter(Boolean) : []),
   }), [filterOptions, allLocations, allCompanies, allIndustries]);
 
   // Ensure selectedFilters is properly defined with default values
@@ -163,9 +161,13 @@ export default function SearchFilterBar({
 
   // Ensure we never pass undefined values to child components
   const safeProps = useMemo(() => ({
-    allOptions: Object.keys(allOptions).length ? allOptions : { locations: [], companies: [], industries: [] },
+    allOptions: {
+      locations: Array.isArray(allOptions.locations) ? allOptions.locations : [],
+      companies: Array.isArray(allOptions.companies) ? allOptions.companies : [],
+      industries: Array.isArray(allOptions.industries) ? allOptions.industries : [],
+    },
     selectedFilters: safeSelectedFilters,
-    totalFiltersCount: totalFiltersCount,
+    totalFiltersCount,
     searchQuery: typeof searchQuery === 'string' ? searchQuery : '',
   }), [allOptions, safeSelectedFilters, totalFiltersCount, searchQuery]);
 

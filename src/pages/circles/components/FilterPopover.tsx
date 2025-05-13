@@ -87,16 +87,11 @@ export const FilterPopover = ({
     );
   }, [currentOptions, currentSelected]);
 
-  // Render commands - this prevents the error by not relying on CommandGroup's child handling
-  const renderCommands = () => {
+  // Create command items ahead of time to avoid rendering issues
+  const commandItems = useMemo(() => {
+    // If no available options, return an empty array but NEVER undefined
     if (!Array.isArray(availableOptions) || availableOptions.length === 0) {
-      return (
-        <div className="text-xs text-center py-2 text-muted-foreground">
-          {currentOptions.length === 0 
-            ? `No ${activeFilterTab} available` 
-            : `All ${activeFilterTab} are selected`}
-        </div>
-      );
+      return [];
     }
 
     return availableOptions.map((option, index) => {
@@ -113,9 +108,7 @@ export const FilterPopover = ({
         </CommandItem>
       );
     });
-  };
-
-  const commandItems = useMemo(() => renderCommands(), [availableOptions, activeFilterTab, onSelect]);
+  }, [availableOptions, activeFilterTab, onSelect]);
 
   return (
     <Popover open={openFilters} onOpenChange={setOpenFilters}>
@@ -162,7 +155,15 @@ export const FilterPopover = ({
             No {activeFilterTab} found.
           </CommandEmpty>
           <CommandGroup className="max-h-64 overflow-auto">
-            {commandItems}
+            {commandItems.length > 0 ? (
+              commandItems
+            ) : (
+              <div className="text-xs text-center py-2 text-muted-foreground">
+                {currentOptions.length === 0 
+                  ? `No ${activeFilterTab} available` 
+                  : `All ${activeFilterTab} are selected`}
+              </div>
+            )}
           </CommandGroup>
         </Command>
         {totalFiltersCount > 0 && (
