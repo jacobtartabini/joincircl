@@ -25,7 +25,7 @@ Command.displayName = CommandPrimitive.displayName
 interface CommandDialogProps extends DialogProps {}
 
 const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
-  // Ensure children is always defined
+  // Ensure children is always valid - this is important to avoid iteration errors
   const safeChildren = React.useMemo(() => {
     if (!children) return null;
     return children;

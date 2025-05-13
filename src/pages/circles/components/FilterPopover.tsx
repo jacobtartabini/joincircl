@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Filter } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -39,12 +39,19 @@ export const FilterPopover = ({
   const isMobile = useIsMobile();
 
   // Ensure selectedFilters is properly defined with default values
-  const safeSelectedFilters = {
+  const safeSelectedFilters = useMemo(() => ({
     tags: Array.isArray(selectedFilters?.tags) ? selectedFilters.tags.filter(Boolean) : [],
     locations: Array.isArray(selectedFilters?.locations) ? selectedFilters.locations.filter(Boolean) : [],
     companies: Array.isArray(selectedFilters?.companies) ? selectedFilters.companies.filter(Boolean) : [],
     industries: Array.isArray(selectedFilters?.industries) ? selectedFilters.industries.filter(Boolean) : [],
-  };
+  }), [selectedFilters]);
+
+  // Initialize safe versions of options to avoid undefined iterations
+  const safeOptions = useMemo(() => ({
+    locations: Array.isArray(allOptions?.locations) ? allOptions.locations.filter(Boolean) : [],
+    companies: Array.isArray(allOptions?.companies) ? allOptions.companies.filter(Boolean) : [],
+    industries: Array.isArray(allOptions?.industries) ? allOptions.industries.filter(Boolean) : []
+  }), [allOptions]);
 
   // Create a guaranteed unique id for each CommandItem in popover groups
   const createUniqueId = (prefix: string, optionValue: string | undefined, index: number) => {
@@ -60,25 +67,30 @@ export const FilterPopover = ({
   // Get current filter options as a safe array
   const getCurrentFilterOptions = (): string[] => {
     // Make sure allOptions is defined and has the activeFilterTab property
-    if (!allOptions || !allOptions[activeFilterTab]) {
+    if (!safeOptions || !safeOptions[activeFilterTab]) {
       return [];
     }
-    const options = allOptions[activeFilterTab];
-    return Array.isArray(options) ? options : [];
+    const options = safeOptions[activeFilterTab];
+    return Array.isArray(options) ? options.filter(Boolean) : [];
   };
 
   // Get current selected filters as a safe array
   const getCurrentSelectedFilters = (): string[] => {
     const selected = safeSelectedFilters[activeFilterTab];
-    return Array.isArray(selected) ? selected : [];
+    return Array.isArray(selected) ? selected.filter(Boolean) : [];
   };
 
-  // Initialize safe versions of options to avoid undefined iterations
-  const safeOptions = {
-    locations: Array.isArray(allOptions?.locations) ? allOptions.locations : [],
-    companies: Array.isArray(allOptions?.companies) ? allOptions.companies : [],
-    industries: Array.isArray(allOptions?.industries) ? allOptions.industries : []
-  };
+  // Pre-calculate options for efficiency and safety
+  const currentOptions = useMemo(() => getCurrentFilterOptions(), [activeFilterTab, safeOptions]);
+  const currentSelected = useMemo(() => getCurrentSelectedFilters(), [activeFilterTab, safeSelectedFilters]);
+  
+  // Safely calculate available options (not already selected)
+  const availableOptions = useMemo(() => {
+    if (!Array.isArray(currentOptions)) return [];
+    return currentOptions.filter(option => 
+      option && !currentSelected.includes(option)
+    );
+  }, [currentOptions, currentSelected]);
 
   return (
     <Popover open={openFilters} onOpenChange={setOpenFilters}>
@@ -117,7 +129,7 @@ export const FilterPopover = ({
             className="h-9 rounded-lg border border-input"
           />
           <div className="pt-2 pb-1 text-xs font-medium text-muted-foreground px-2">
-            {getCurrentFilterOptions().length === 0 
+            {currentOptions.length === 0 
               ? `No ${getActiveFilterLabel()} found` 
               : `Select ${getActiveFilterLabel()}`}
           </div>
@@ -125,52 +137,25 @@ export const FilterPopover = ({
             No {activeFilterTab} found.
           </CommandEmpty>
           <CommandGroup className="max-h-64 overflow-auto">
-            {(() => {
-              try {
-                const options = getCurrentFilterOptions();
-                const selected = getCurrentSelectedFilters();
-                
-                if (!Array.isArray(options) || options.length === 0) {
-                  return (
-                    <div className="text-xs text-center py-2 text-muted-foreground">
-                      No {activeFilterTab} available
-                    </div>
-                  );
-                }
-
-                // Filter out options that are already selected and ensure each item is valid
-                const availableOptions = options
-                  .filter(Boolean)
-                  .filter(option => !selected.includes(option));
-                
-                if (availableOptions.length === 0) {
-                  return (
-                    <div className="text-xs text-center py-2 text-muted-foreground">
-                      All {activeFilterTab} are selected
-                    </div>
-                  );
-                }
-                
-                // Ensure we always return an array of elements, not undefined
-                return availableOptions.map((option, index) => (
-                  <CommandItem 
-                    key={createUniqueId(activeFilterTab, option, index)}
-                    value={option || `empty-${index}`} // Ensure value is never undefined
-                    onSelect={() => onSelect(activeFilterTab, option)}
-                    className="rounded-md cursor-pointer"
-                  >
-                    {option}
-                  </CommandItem>
-                ));
-              } catch (err) {
-                console.error("Error rendering command items:", err);
-                return (
-                  <div className="text-xs text-center py-2 text-muted-foreground">
-                    Error loading filter options
-                  </div>
-                );
-              }
-            })()}
+            {availableOptions.length === 0 ? (
+              <div className="text-xs text-center py-2 text-muted-foreground">
+                {currentOptions.length === 0 
+                  ? `No ${activeFilterTab} available` 
+                  : `All ${activeFilterTab} are selected`}
+              </div>
+            ) : (
+              // Ensure we use a stable array of child elements that are always defined
+              availableOptions.map((option, index) => (
+                <CommandItem 
+                  key={createUniqueId(activeFilterTab, option, index)}
+                  value={option || `empty-${index}`} // Ensure value is never undefined
+                  onSelect={() => onSelect(activeFilterTab, option)}
+                  className="rounded-md cursor-pointer"
+                >
+                  {option}
+                </CommandItem>
+              ))
+            )}
           </CommandGroup>
         </Command>
         {totalFiltersCount > 0 && (

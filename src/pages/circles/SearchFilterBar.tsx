@@ -157,28 +157,36 @@ export default function SearchFilterBar({
     0
   );
 
+  // Ensure we never pass undefined values to child components
+  const safeProps = {
+    allOptions: Object.keys(allOptions).length ? allOptions : { locations: [], companies: [], industries: [] },
+    selectedFilters: safeSelectedFilters,
+    totalFiltersCount: totalFiltersCount,
+    searchQuery: typeof searchQuery === 'string' ? searchQuery : '',
+  };
+
   return (
     <div className="flex flex-col gap-3">
       <div className={`flex ${isMobile ? "flex-col" : "items-center"} gap-3`}>
         <SearchInput 
-          searchQuery={searchQuery} 
+          searchQuery={safeProps.searchQuery} 
           onSearchChange={onSearchChange} 
         />
 
         <div className="flex gap-2 flex-wrap">
           <FilterPopover
-            allOptions={allOptions}
-            selectedFilters={safeSelectedFilters}
+            allOptions={safeProps.allOptions}
+            selectedFilters={safeProps.selectedFilters}
             onSelect={handleSelect}
             onClearAll={handleClearAll}
-            totalFiltersCount={totalFiltersCount}
+            totalFiltersCount={safeProps.totalFiltersCount}
           />
           <CircleImportButtons onImportSuccess={onRefresh} />
         </div>
       </div>
 
       <FilterBadges
-        selectedFilters={safeSelectedFilters}
+        selectedFilters={safeProps.selectedFilters}
         onRemoveFilter={handleRemove}
         onClearAll={handleClearAll}
       />
