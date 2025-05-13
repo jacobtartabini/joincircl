@@ -96,6 +96,11 @@ export default function SearchFilterBar({
     });
   };
 
+  // Create a guaranteed unique id for each CommandItem in popover groups
+  const createUniqueId = (prefix: string, optionValue: string, index: number) => {
+    return `${prefix}-${optionValue || index}-${index}`;
+  };
+
   return (
     <div className="flex flex-col gap-3">
       <div className={`flex ${isMobile ? "flex-col" : "items-center"} gap-3`}>
@@ -135,20 +140,15 @@ export default function SearchFilterBar({
                   <CommandGroup className="overflow-auto max-h-64">
                     {allOptions[key]
                       .filter(option => option && !safeSelectedFilters[key].includes(option))
-                      .map((option, index) => {
-                        // Generate safe unique keys and values for each command item
-                        const safeKey = `${key}-${option || index}-${index}`;
-                        const safeValue = option || `option-${index}`;
-                        return (
-                          <CommandItem 
-                            key={safeKey}
-                            value={safeValue}
-                            onSelect={() => handleSelect(key, option || "")}
-                          >
-                            {option || "Unnamed"}
-                          </CommandItem>
-                        );
-                      })}
+                      .map((option, index) => (
+                        <CommandItem 
+                          key={createUniqueId(key, option || "", index)}
+                          value={option || `option-${key}-${index}`}
+                          onSelect={() => handleSelect(key, option || "")}
+                        >
+                          {option || `Unnamed ${key.slice(0, -1)}`}
+                        </CommandItem>
+                      ))}
                   </CommandGroup>
                 </Command>
               </PopoverContent>
@@ -163,11 +163,11 @@ export default function SearchFilterBar({
         {FILTER_KEYS.map((key) =>
           safeSelectedFilters[key].filter(Boolean).map((value, index) => (
             <Badge 
-              key={`${key}-${value || index}`} 
+              key={`selected-${key}-${value || index}-${index}`} 
               variant="secondary" 
               className="flex items-center gap-1"
             >
-              {value || "Unnamed"}
+              {value || `Unnamed ${key.slice(0, -1)}`}
               <X className="h-3 w-3 cursor-pointer" onClick={() => handleRemove(key, value)} />
             </Badge>
           ))

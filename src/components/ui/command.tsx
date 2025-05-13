@@ -59,13 +59,22 @@ CommandInput.displayName = CommandPrimitive.Input.displayName
 const CommandList = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.List>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.List>
->(({ className, ...props }, ref) => (
-  <CommandPrimitive.List
-    ref={ref}
-    className={cn("max-h-[300px] overflow-y-auto overflow-x-hidden", className)}
-    {...props}
-  />
-))
+>(({ className, ...props }, ref) => {
+  // Ensure children is always defined and iterable
+  const safeChildren = React.useMemo(() => {
+    if (!props.children) return [];
+    return Array.isArray(props.children) ? props.children : [props.children];
+  }, [props.children]);
+
+  return (
+    <CommandPrimitive.List
+      ref={ref}
+      className={cn("max-h-[300px] overflow-y-auto overflow-x-hidden", className)}
+      {...props}
+      children={safeChildren}
+    />
+  );
+});
 
 CommandList.displayName = CommandPrimitive.List.displayName
 
@@ -85,16 +94,25 @@ CommandEmpty.displayName = CommandPrimitive.Empty.displayName
 const CommandGroup = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Group>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Group>
->(({ className, ...props }, ref) => (
-  <CommandPrimitive.Group
-    ref={ref}
-    className={cn(
-      "overflow-hidden p-1 text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground",
-      className
-    )}
-    {...props}
-  />
-))
+>(({ className, ...props }, ref) => {
+  // Ensure children is always defined and iterable
+  const safeChildren = React.useMemo(() => {
+    if (!props.children) return [];
+    return Array.isArray(props.children) ? props.children : [props.children];
+  }, [props.children]);
+
+  return (
+    <CommandPrimitive.Group
+      ref={ref}
+      className={cn(
+        "overflow-hidden p-1 text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground",
+        className
+      )}
+      {...props}
+      children={safeChildren}
+    />
+  );
+});
 
 CommandGroup.displayName = CommandPrimitive.Group.displayName
 
@@ -113,8 +131,8 @@ CommandSeparator.displayName = CommandPrimitive.Separator.displayName
 const CommandItem = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item>
->(({ className, value, ...props }, ref) => {
-  // Ensure value is never empty, undefined, or null
+>(({ className, value, children, ...props }, ref) => {
+  // Generate a guaranteed unique value if none provided
   const safeValue = value || `item-${Math.random().toString(36).substring(2, 11)}`;
   
   return (
@@ -126,7 +144,9 @@ const CommandItem = React.forwardRef<
         className
       )}
       {...props}
-    />
+    >
+      {children || safeValue}
+    </CommandPrimitive.Item>
   );
 })
 
