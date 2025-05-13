@@ -66,6 +66,8 @@ export default function SearchFilterBar({
   };
 
   const handleSelect = (key: FilterKey, value: string) => {
+    if (!value) return; // Skip empty values
+    
     if (!safeSelectedFilters[key].includes(value)) {
       onFiltersChange({
         ...safeSelectedFilters,
@@ -76,6 +78,8 @@ export default function SearchFilterBar({
   };
 
   const handleRemove = (key: FilterKey, value: string) => {
+    if (!value) return; // Skip empty values
+    
     onFiltersChange({
       ...safeSelectedFilters,
       [key]: safeSelectedFilters[key].filter((v) => v !== value),
@@ -129,10 +133,14 @@ export default function SearchFilterBar({
                   <CommandEmpty>No {key} found.</CommandEmpty>
                   <CommandGroup>
                     {allOptions[key]
-                      .filter((option) => option && !safeSelectedFilters[key].includes(option))
-                      .map((option) => (
-                        <CommandItem key={option} value={option} onSelect={() => handleSelect(key, option)}>
-                          {option}
+                      .filter(option => option && !safeSelectedFilters[key].includes(option))
+                      .map((option, index) => (
+                        <CommandItem 
+                          key={option || `empty-option-${index}`} 
+                          value={option || `empty-option-${index}`} 
+                          onSelect={() => handleSelect(key, option || "")}
+                        >
+                          {option || "Unnamed"}
                         </CommandItem>
                       ))}
                   </CommandGroup>
@@ -148,8 +156,8 @@ export default function SearchFilterBar({
       <div className="flex flex-wrap gap-2">
         {FILTER_KEYS.map((key) =>
           safeSelectedFilters[key].map((value) => (
-            <Badge key={`${key}-${value}`} variant="secondary" className="flex items-center gap-1">
-              {value}
+            <Badge key={`${key}-${value || "unnamed"}`} variant="secondary" className="flex items-center gap-1">
+              {value || "Unnamed"}
               <X className="h-3 w-3 cursor-pointer" onClick={() => handleRemove(key, value)} />
             </Badge>
           ))
