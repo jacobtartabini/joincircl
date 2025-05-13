@@ -33,7 +33,7 @@ export function useCirclesState() {
       // Extract unique tags from all contacts
       const allTags = new Set<string>();
       safeData.forEach(contact => {
-        if (contact.tags && Array.isArray(contact.tags)) {
+        if (contact && contact.tags && Array.isArray(contact.tags)) {
           contact.tags.forEach(tag => {
             if (tag) allTags.add(tag);
           });

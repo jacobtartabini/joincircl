@@ -39,14 +39,30 @@ const Circles = () => {
   const safeSearchQuery = typeof searchQuery === 'string' ? searchQuery : '';
   const safeContacts = Array.isArray(contacts) ? contacts : [];
 
+  // Create proper filter structure expected by SearchFilterBar
+  const selectedFilters = {
+    tags: safeSelectedTags,
+    locations: [],
+    companies: [],
+    industries: []
+  };
+
+  const handleFiltersChange = (filters) => {
+    // We're only using tags for now
+    setSelectedTags(filters.tags);
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <CirclesHeader onAddContact={() => setIsAddDialogOpen(true)} />
 
       <SearchFilterBar 
         allTags={safeAvailableTags}
-        selectedTags={safeSelectedTags}
-        onTagsChange={setSelectedTags}
+        allLocations={[]}
+        allCompanies={[]}
+        allIndustries={[]}
+        selectedFilters={selectedFilters}
+        onFiltersChange={handleFiltersChange}
         onAddContact={() => setIsAddDialogOpen(true)}
         onRefresh={fetchContacts}
         searchQuery={safeSearchQuery}

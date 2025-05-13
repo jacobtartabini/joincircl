@@ -10,10 +10,10 @@ import CircleImportButtons from "@/components/circles/CircleImportButtons";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface SearchFilterBarProps {
-  allTags: string[];
-  allLocations: string[];
-  allCompanies: string[];
-  allIndustries: string[];
+  allTags?: string[];
+  allLocations?: string[];
+  allCompanies?: string[];
+  allIndustries?: string[];
   selectedFilters: {
     tags: string[];
     locations: string[];
@@ -35,7 +35,12 @@ export default function SearchFilterBar({
   allLocations = [],
   allCompanies = [],
   allIndustries = [],
-  selectedFilters,
+  selectedFilters = {
+    tags: [],
+    locations: [],
+    companies: [],
+    industries: [],
+  },
   onFiltersChange,
   onAddContact,
   onRefresh,
@@ -46,17 +51,25 @@ export default function SearchFilterBar({
   const isMobile = useIsMobile();
 
   const allOptions = {
-    tags: allTags,
-    locations: allLocations,
-    companies: allCompanies,
-    industries: allIndustries,
+    tags: Array.isArray(allTags) ? allTags : [],
+    locations: Array.isArray(allLocations) ? allLocations : [],
+    companies: Array.isArray(allCompanies) ? allCompanies : [],
+    industries: Array.isArray(allIndustries) ? allIndustries : [],
+  };
+
+  // Ensure selectedFilters is properly defined with default values
+  const safeSelectedFilters = {
+    tags: Array.isArray(selectedFilters?.tags) ? selectedFilters.tags : [],
+    locations: Array.isArray(selectedFilters?.locations) ? selectedFilters.locations : [],
+    companies: Array.isArray(selectedFilters?.companies) ? selectedFilters.companies : [],
+    industries: Array.isArray(selectedFilters?.industries) ? selectedFilters.industries : [],
   };
 
   const handleSelect = (key: FilterKey, value: string) => {
-    if (!selectedFilters[key].includes(value)) {
+    if (!safeSelectedFilters[key].includes(value)) {
       onFiltersChange({
-        ...selectedFilters,
-        [key]: [...selectedFilters[key], value],
+        ...safeSelectedFilters,
+        [key]: [...safeSelectedFilters[key], value],
       });
     }
     setOpenPopover(null);
@@ -64,8 +77,8 @@ export default function SearchFilterBar({
 
   const handleRemove = (key: FilterKey, value: string) => {
     onFiltersChange({
-      ...selectedFilters,
-      [key]: selectedFilters[key].filter((v) => v !== value),
+      ...safeSelectedFilters,
+      [key]: safeSelectedFilters[key].filter((v) => v !== value),
     });
   };
 
@@ -116,7 +129,7 @@ export default function SearchFilterBar({
                   <CommandEmpty>No {key} found.</CommandEmpty>
                   <CommandGroup>
                     {allOptions[key]
-                      .filter((option) => option && !selectedFilters[key].includes(option))
+                      .filter((option) => option && !safeSelectedFilters[key].includes(option))
                       .map((option) => (
                         <CommandItem key={option} value={option} onSelect={() => handleSelect(key, option)}>
                           {option}
@@ -134,14 +147,14 @@ export default function SearchFilterBar({
       {/* Selected filter badges */}
       <div className="flex flex-wrap gap-2">
         {FILTER_KEYS.map((key) =>
-          selectedFilters[key].map((value) => (
+          safeSelectedFilters[key].map((value) => (
             <Badge key={`${key}-${value}`} variant="secondary" className="flex items-center gap-1">
               {value}
               <X className="h-3 w-3 cursor-pointer" onClick={() => handleRemove(key, value)} />
             </Badge>
           ))
         )}
-        {(FILTER_KEYS.some((key) => selectedFilters[key].length > 0)) && (
+        {(FILTER_KEYS.some((key) => safeSelectedFilters[key].length > 0)) && (
           <Button
             variant="ghost"
             size="sm"
