@@ -68,13 +68,12 @@ const CommandList = React.forwardRef<
 >(({ className, children, ...props }, ref) => {
   // Ensure children is always defined and iterable - this is where the error is happening
   const safeChildren = React.useMemo(() => {
-    if (!children) return [];
+    if (!children) return null;
     try {
-      // Use React.Children API to handle React children safely
-      return React.Children.toArray(children).filter(Boolean);
+      return React.Children.map(children, child => child) || null;
     } catch (e) {
-      console.warn("Error with CommandList children:", e);
-      return [];
+      console.warn("Error processing CommandList children:", e);
+      return null;
     }
   }, [children]);
 
@@ -110,13 +109,12 @@ const CommandGroup = React.forwardRef<
 >(({ className, children, ...props }, ref) => {
   // Ensure children is always defined and iterable - this is critical for the error
   const safeChildren = React.useMemo(() => {
-    if (!children) return [];
+    if (!children) return null;
     try {
-      // Use React.Children API to handle React children safely
-      return React.Children.toArray(children).filter(Boolean);
+      return React.Children.map(children, child => child) || null;
     } catch (e) {
-      console.warn("Error with CommandGroup children:", e);
-      return [];
+      console.warn("Error processing CommandGroup children:", e);
+      return null;
     }
   }, [children]);
 

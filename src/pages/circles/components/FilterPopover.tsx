@@ -32,7 +32,7 @@ export const FilterPopover = ({
   selectedFilters,
   onSelect,
   onClearAll,
-  totalFiltersCount
+  totalFiltersCount = 0
 }: FilterPopoverProps) => {
   const [openFilters, setOpenFilters] = useState(false);
   const [activeFilterTab, setActiveFilterTab] = useState<FilterKey>("locations");
@@ -52,11 +52,6 @@ export const FilterPopover = ({
     companies: Array.isArray(allOptions?.companies) ? allOptions.companies.filter(Boolean) : [],
     industries: Array.isArray(allOptions?.industries) ? allOptions.industries.filter(Boolean) : []
   }), [allOptions]);
-
-  // Create a guaranteed unique id for each CommandItem in popover groups
-  const createUniqueId = (prefix: string, optionValue: string | undefined, index: number) => {
-    return `${prefix}-${optionValue || index}-${Math.random().toString(36).substring(2, 5)}`;
-  };
 
   // Get label for currently active filter tab
   const getActiveFilterLabel = () => {
@@ -92,21 +87,35 @@ export const FilterPopover = ({
     );
   }, [currentOptions, currentSelected]);
 
-  // Create the command items safely
-  const commandItems = useMemo(() => {
-    if (!Array.isArray(availableOptions)) return [];
-    
-    return availableOptions.map((option, index) => (
-      <CommandItem 
-        key={createUniqueId(activeFilterTab, option, index)}
-        value={option || `empty-${index}`} // Ensure value is never undefined
-        onSelect={() => onSelect(activeFilterTab, option)}
-        className="rounded-md cursor-pointer"
-      >
-        {option}
-      </CommandItem>
-    ));
-  }, [availableOptions, activeFilterTab, onSelect]);
+  // Render commands - this prevents the error by not relying on CommandGroup's child handling
+  const renderCommands = () => {
+    if (!Array.isArray(availableOptions) || availableOptions.length === 0) {
+      return (
+        <div className="text-xs text-center py-2 text-muted-foreground">
+          {currentOptions.length === 0 
+            ? `No ${activeFilterTab} available` 
+            : `All ${activeFilterTab} are selected`}
+        </div>
+      );
+    }
+
+    return availableOptions.map((option, index) => {
+      // Ensure value is always a string
+      const safeOption = String(option || `option-${index}`);
+      return (
+        <CommandItem 
+          key={`option-${activeFilterTab}-${safeOption}-${index}`}
+          value={safeOption}
+          onSelect={() => onSelect(activeFilterTab, safeOption)}
+          className="rounded-md cursor-pointer"
+        >
+          {safeOption}
+        </CommandItem>
+      );
+    });
+  };
+
+  const commandItems = useMemo(() => renderCommands(), [availableOptions, activeFilterTab, onSelect]);
 
   return (
     <Popover open={openFilters} onOpenChange={setOpenFilters}>
@@ -153,16 +162,7 @@ export const FilterPopover = ({
             No {activeFilterTab} found.
           </CommandEmpty>
           <CommandGroup className="max-h-64 overflow-auto">
-            {availableOptions.length === 0 ? (
-              <div className="text-xs text-center py-2 text-muted-foreground">
-                {currentOptions.length === 0 
-                  ? `No ${activeFilterTab} available` 
-                  : `All ${activeFilterTab} are selected`}
-              </div>
-            ) : (
-              // We're using a pre-computed array of elements that are always defined
-              commandItems
-            )}
+            {commandItems}
           </CommandGroup>
         </Command>
         {totalFiltersCount > 0 && (
