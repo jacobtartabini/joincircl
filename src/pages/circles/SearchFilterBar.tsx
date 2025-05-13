@@ -92,7 +92,7 @@ export default function SearchFilterBar({
 
   // Ensure selectedFilters is properly defined with default values (excluding tags)
   const safeSelectedFilters = {
-    tags: [], // Keep this for compatibility but we won't use it
+    tags: Array.isArray(selectedFilters?.tags) ? selectedFilters.tags.filter(Boolean) : [],
     locations: Array.isArray(selectedFilters?.locations) ? selectedFilters.locations.filter(Boolean) : [],
     companies: Array.isArray(selectedFilters?.companies) ? selectedFilters.companies.filter(Boolean) : [],
     industries: Array.isArray(selectedFilters?.industries) ? selectedFilters.industries.filter(Boolean) : [],
@@ -130,7 +130,8 @@ export default function SearchFilterBar({
 
   // Get total filters count
   const totalFiltersCount = FILTER_KEYS.reduce(
-    (count, key) => count + safeSelectedFilters[key].length, 0
+    (count, key) => count + (Array.isArray(safeSelectedFilters[key]) ? safeSelectedFilters[key].length : 0), 
+    0
   );
 
   // Create a guaranteed unique id for each CommandItem in popover groups
@@ -142,6 +143,19 @@ export default function SearchFilterBar({
   const getActiveFilterLabel = () => {
     const key = activeFilterTab.charAt(0).toUpperCase() + activeFilterTab.slice(1);
     return key.endsWith('ies') ? key.slice(0, -3) + 'y' : key.slice(0, -1);
+  };
+
+  // Ensure safe arrays for options - this is crucial
+  const getCurrentFilterOptions = () => {
+    const options = allOptions[activeFilterTab] || [];
+    // Make absolutely sure we have an array that is not undefined
+    return Array.isArray(options) ? options : [];
+  };
+
+  // Ensure we have valid array for selected items
+  const getCurrentSelectedFilters = () => {
+    const selected = safeSelectedFilters[activeFilterTab];
+    return Array.isArray(selected) ? selected : [];
   };
 
   return (
@@ -205,7 +219,7 @@ export default function SearchFilterBar({
                   className="h-9 rounded-lg border border-input"
                 />
                 <div className="pt-2 pb-1 text-xs font-medium text-muted-foreground px-2">
-                  {allOptions[activeFilterTab].length === 0 
+                  {getCurrentFilterOptions().length === 0 
                     ? `No ${getActiveFilterLabel()} found` 
                     : `Select ${getActiveFilterLabel()}`}
                 </div>
@@ -213,15 +227,19 @@ export default function SearchFilterBar({
                   No {activeFilterTab} found.
                 </CommandEmpty>
                 <CommandGroup className="max-h-64 overflow-auto">
-                  {allOptions[activeFilterTab]
-                    .filter(option => option && !safeSelectedFilters[activeFilterTab].includes(option))
+                  {/* This is the key fix: ensure we have a valid array to map over */}
+                  {getCurrentFilterOptions()
+                    .filter(option => option && !getCurrentSelectedFilters().includes(option))
                     .map((option, index) => {
+                      if (!option) return null; // Skip nulls
+                      
                       const optionValue = option || `unnamed-${activeFilterTab}-${index}`;
-                      const displayText = option || `Unnamed ${activeFilterTab.slice(0, -1)} ${index + 1}`;
+                      const displayText = option || `Unnamed ${getActiveFilterLabel()} ${index + 1}`;
+                      const uniqueId = createUniqueId(activeFilterTab, option, index);
                       
                       return (
                         <CommandItem 
-                          key={createUniqueId(activeFilterTab, option, index)}
+                          key={uniqueId}
                           value={optionValue}
                           onSelect={() => handleSelect(activeFilterTab, optionValue)}
                           className="rounded-md cursor-pointer"
@@ -253,20 +271,24 @@ export default function SearchFilterBar({
       {/* Selected filter badges */}
       <div className="flex flex-wrap gap-2">
         {FILTER_KEYS.map((key) =>
-          safeSelectedFilters[key].filter(Boolean).map((value, index) => {
-            const displayText = value || `Unnamed ${key.slice(0, -1)} ${index + 1}`;
-            
-            return (
-              <Badge 
-                key={`selected-${key}-${value || ''}-${index}`}
-                variant="secondary" 
-                className="flex items-center gap-1 px-3 py-1 rounded-full bg-muted/80 hover:bg-muted"
-              >
-                {displayText}
-                <X className="h-3 w-3 cursor-pointer ml-1" onClick={() => handleRemove(key, value)} />
-              </Badge>
-            );
-          })
+          // Ensure we have a valid array to map over
+          (Array.isArray(safeSelectedFilters[key]) ? safeSelectedFilters[key] : [])
+            .filter(Boolean)
+            .map((value, index) => {
+              const displayText = value || `Unnamed ${key.slice(0, -1)} ${index + 1}`;
+              const uniqueKey = `selected-${key}-${value || ''}-${index}`;
+              
+              return (
+                <Badge 
+                  key={uniqueKey}
+                  variant="secondary" 
+                  className="flex items-center gap-1 px-3 py-1 rounded-full bg-muted/80 hover:bg-muted"
+                >
+                  {displayText}
+                  <X className="h-3 w-3 cursor-pointer ml-1" onClick={() => handleRemove(key, value)} />
+                </Badge>
+              );
+            })
         )}
         {(totalFiltersCount > 0) && (
           <Button
