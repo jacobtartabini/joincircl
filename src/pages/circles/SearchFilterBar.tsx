@@ -27,7 +27,8 @@ interface SearchFilterBarProps {
   onSearchChange: (query: string) => void;
 }
 
-const FILTER_KEYS = ["tags", "locations", "companies", "industries"] as const;
+// Define filter keys but exclude tags
+const FILTER_KEYS = ["locations", "companies", "industries"] as const;
 type FilterKey = typeof FILTER_KEYS[number];
 
 export default function SearchFilterBar({
@@ -47,20 +48,20 @@ export default function SearchFilterBar({
   searchQuery = "",
   onSearchChange,
 }: SearchFilterBarProps) {
-  const [openPopover, setOpenPopover] = useState<FilterKey | null>(null);
+  const [openFilters, setOpenFilters] = useState(false);
+  const [activeFilterTab, setActiveFilterTab] = useState<FilterKey>("locations");
   const isMobile = useIsMobile();
 
   // Make sure all options are arrays and never undefined
   const allOptions = {
-    tags: Array.isArray(allTags) ? allTags.filter(Boolean) : [],
     locations: Array.isArray(allLocations) ? allLocations.filter(Boolean) : [],
     companies: Array.isArray(allCompanies) ? allCompanies.filter(Boolean) : [],
     industries: Array.isArray(allIndustries) ? allIndustries.filter(Boolean) : [],
   };
 
-  // Ensure selectedFilters is properly defined with default values
+  // Ensure selectedFilters is properly defined with default values (excluding tags)
   const safeSelectedFilters = {
-    tags: Array.isArray(selectedFilters?.tags) ? selectedFilters.tags.filter(Boolean) : [],
+    tags: [], // Keep this for compatibility but we won't use it
     locations: Array.isArray(selectedFilters?.locations) ? selectedFilters.locations.filter(Boolean) : [],
     companies: Array.isArray(selectedFilters?.companies) ? selectedFilters.companies.filter(Boolean) : [],
     industries: Array.isArray(selectedFilters?.industries) ? selectedFilters.industries.filter(Boolean) : [],
@@ -75,7 +76,6 @@ export default function SearchFilterBar({
         [key]: [...safeSelectedFilters[key], value],
       });
     }
-    setOpenPopover(null);
   };
 
   const handleRemove = (key: FilterKey, value: string) => {
@@ -89,12 +89,18 @@ export default function SearchFilterBar({
 
   const handleClearAll = () => {
     onFiltersChange({
-      tags: [],
+      tags: [], // Keep empty tags array for compatibility
       locations: [],
       companies: [],
       industries: [],
     });
+    setOpenFilters(false);
   };
+
+  // Get total filters count
+  const totalFiltersCount = FILTER_KEYS.reduce(
+    (count, key) => count + safeSelectedFilters[key].length, 0
+  );
 
   // Create a guaranteed unique id for each CommandItem in popover groups
   const createUniqueId = (prefix: string, optionValue: string | undefined, index: number) => {
@@ -125,40 +131,73 @@ export default function SearchFilterBar({
         </div>
 
         <div className="flex gap-2 flex-wrap">
-          {FILTER_KEYS.map((key) => (
-            <Popover key={key} open={openPopover === key} onOpenChange={(open) => setOpenPopover(open ? key : null)}>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="sm">
-                  {key.charAt(0).toUpperCase() + key.slice(1)}
-                  <Filter className="ml-1 h-4 w-4" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-60 p-0" align="start" sideOffset={4}>
-                <Command>
-                  <CommandInput placeholder={`Search ${key}...`} />
-                  <CommandEmpty>No {key} found.</CommandEmpty>
-                  <CommandGroup>
-                    {allOptions[key]
-                      .filter(option => option && !safeSelectedFilters[key].includes(option))
-                      .map((option, index) => {
-                        const optionValue = option || `unnamed-${key}-${index}`;
-                        const displayText = option || `Unnamed ${key.slice(0, -1)} ${index + 1}`;
-                        
-                        return (
-                          <CommandItem 
-                            key={createUniqueId(key, option, index)}
-                            value={optionValue}
-                            onSelect={() => handleSelect(key, optionValue)}
-                          >
-                            {displayText}
-                          </CommandItem>
-                        );
-                      })}
-                  </CommandGroup>
-                </Command>
-              </PopoverContent>
-            </Popover>
-          ))}
+          {/* Single combined filter button with badge */}
+          <Popover open={openFilters} onOpenChange={setOpenFilters}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="relative">
+                <Filter className="h-4 w-4" />
+                {totalFiltersCount > 0 && (
+                  <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] font-medium text-primary-foreground flex items-center justify-center">
+                    {totalFiltersCount}
+                  </span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-60 p-0" align="start" sideOffset={4}>
+              <div className="border-b border-border flex">
+                {FILTER_KEYS.map((key) => (
+                  <Button
+                    key={key}
+                    variant={activeFilterTab === key ? "default" : "ghost"}
+                    size="sm"
+                    className="flex-1 rounded-none h-9 text-xs"
+                    onClick={() => setActiveFilterTab(key)}
+                  >
+                    {key.charAt(0).toUpperCase() + key.slice(1)}
+                    {safeSelectedFilters[key].length > 0 && (
+                      <span className="ml-1 px-1 rounded-full bg-muted text-[10px]">
+                        {safeSelectedFilters[key].length}
+                      </span>
+                    )}
+                  </Button>
+                ))}
+              </div>
+              <Command>
+                <CommandInput placeholder={`Search ${activeFilterTab}...`} />
+                <CommandEmpty>No {activeFilterTab} found.</CommandEmpty>
+                <CommandGroup>
+                  {allOptions[activeFilterTab]
+                    .filter(option => option && !safeSelectedFilters[activeFilterTab].includes(option))
+                    .map((option, index) => {
+                      const optionValue = option || `unnamed-${activeFilterTab}-${index}`;
+                      const displayText = option || `Unnamed ${activeFilterTab.slice(0, -1)} ${index + 1}`;
+                      
+                      return (
+                        <CommandItem 
+                          key={createUniqueId(activeFilterTab, option, index)}
+                          value={optionValue}
+                          onSelect={() => handleSelect(activeFilterTab, optionValue)}
+                        >
+                          {displayText}
+                        </CommandItem>
+                      );
+                    })}
+                </CommandGroup>
+              </Command>
+              {totalFiltersCount > 0 && (
+                <div className="p-2 border-t border-border">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full text-xs text-muted-foreground"
+                    onClick={handleClearAll}
+                  >
+                    Clear All Filters
+                  </Button>
+                </div>
+              )}
+            </PopoverContent>
+          </Popover>
           <CircleImportButtons onImportSuccess={onRefresh} />
         </div>
       </div>
@@ -181,7 +220,7 @@ export default function SearchFilterBar({
             );
           })
         )}
-        {(FILTER_KEYS.some((key) => safeSelectedFilters[key].length > 0)) && (
+        {(totalFiltersCount > 0) && (
           <Button
             variant="ghost"
             size="sm"

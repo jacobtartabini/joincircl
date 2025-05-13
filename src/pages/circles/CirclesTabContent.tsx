@@ -1,4 +1,3 @@
-
 import { useMemo } from "react";
 import { Contact } from "@/types/contact";
 import { TabsContent } from "@/components/ui/tabs";
@@ -10,7 +9,7 @@ interface CirclesTabContentProps {
   value: "all" | "inner" | "middle" | "outer";
   contacts: Contact[];
   searchQuery: string;
-  selectedTags: string[];
+  selectedTags: string[]; // We'll keep this for compatibility but won't use it
   isLoading: boolean;
   onAddInteraction: (contact: Contact) => void;
   onViewInsights: (contact: Contact) => void;
@@ -29,8 +28,6 @@ export const CirclesTabContent = ({
 }: CirclesTabContentProps) => {
   // Ensure contacts is an array
   const safeContacts = Array.isArray(contacts) ? contacts.filter(Boolean) : [];
-  // Ensure selectedTags is an array
-  const safeSelectedTags = Array.isArray(selectedTags) ? selectedTags : [];
   // Ensure searchQuery is a string
   const safeSearchQuery = typeof searchQuery === 'string' ? searchQuery : '';
   
@@ -55,14 +52,10 @@ export const CirclesTabContent = ({
         (contact.job_title && contact.job_title.toLowerCase().includes(searchTerms)) ||
         (contact.notes && contact.notes.toLowerCase().includes(searchTerms));
       
-      // Check if contact has all selected tags - safely handle undefined tags
-      const contactTags = Array.isArray(contact.tags) ? contact.tags : [];
-      const matchesTags = safeSelectedTags.length === 0 || 
-        safeSelectedTags.every(tag => contactTags.includes(tag));
-      
-      return matchesSearch && matchesTags;
+      // We're no longer filtering by tags
+      return matchesSearch;
     });
-  }, [safeContacts, value, safeSearchQuery, safeSelectedTags]);
+  }, [safeContacts, value, safeSearchQuery]);
 
   const circleTypeName = value === "all" ? "" : `${value} circle `;
   
@@ -74,7 +67,7 @@ export const CirclesTabContent = ({
         <ContactGrid contacts={filteredContacts} onAddInteraction={onAddInteraction} onViewInsights={onViewInsights} />
       ) : (
         <EmptyState 
-          searchActive={safeSearchQuery !== "" || safeSelectedTags.length > 0} 
+          searchActive={safeSearchQuery !== ""} // Removed tag filter check
           circleType={value}
           onAddContact={onAddContact}
         />

@@ -1,4 +1,3 @@
-
 import { useCirclesState } from "./hooks/useCirclesState";
 import { CirclesHeader } from "./components/CirclesHeader";
 import { CircleDialogs } from "./components/CircleDialogs";
@@ -41,15 +40,17 @@ const Circles = () => {
 
   // Create proper filter structure expected by SearchFilterBar
   const selectedFilters = {
-    tags: safeSelectedTags,
+    tags: [], // We're not using tags anymore
     locations: [],
     companies: [],
     industries: []
   };
 
   const handleFiltersChange = (filters) => {
-    // We're only using tags for now
-    setSelectedTags(filters.tags);
+    // We're no longer using tags but keeping the structure for compatibility
+    setSelectedTags([]); // Reset tags since we're not using them anymore
+    
+    // Update the filters state in useCirclesState if needed in the future
   };
 
   return (
@@ -57,8 +58,8 @@ const Circles = () => {
       <CirclesHeader onAddContact={() => setIsAddDialogOpen(true)} />
 
       <SearchFilterBar 
-        allTags={safeAvailableTags}
-        allLocations={[]}
+        allTags={[]} // Empty array since we're not using tags
+        allLocations={[]} // These will need to be populated with actual data when implementing
         allCompanies={[]}
         allIndustries={[]}
         selectedFilters={selectedFilters}
@@ -74,7 +75,7 @@ const Circles = () => {
           value="all" 
           contacts={safeContacts}
           searchQuery={safeSearchQuery}
-          selectedTags={safeSelectedTags}
+          selectedTags={[]} // Pass empty array since we're not using tags anymore
           isLoading={isLoading}
           onAddInteraction={handleAddInteraction}
           onViewInsights={handleViewInsights}
@@ -84,7 +85,7 @@ const Circles = () => {
           value="inner" 
           contacts={safeContacts}
           searchQuery={safeSearchQuery}
-          selectedTags={safeSelectedTags}
+          selectedTags={[]}
           isLoading={isLoading}
           onAddInteraction={handleAddInteraction}
           onViewInsights={handleViewInsights}
@@ -94,7 +95,7 @@ const Circles = () => {
           value="middle" 
           contacts={safeContacts}
           searchQuery={safeSearchQuery}
-          selectedTags={safeSelectedTags}
+          selectedTags={[]}
           isLoading={isLoading}
           onAddInteraction={handleAddInteraction}
           onViewInsights={handleViewInsights}
@@ -104,7 +105,7 @@ const Circles = () => {
           value="outer" 
           contacts={safeContacts}
           searchQuery={safeSearchQuery}
-          selectedTags={safeSelectedTags}
+          selectedTags={[]}
           isLoading={isLoading}
           onAddInteraction={handleAddInteraction}
           onViewInsights={handleViewInsights}
