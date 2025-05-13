@@ -11,67 +11,85 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 interface SearchFilterBarProps {
   allTags: string[];
-  selectedTags: string[];
-  onTagsChange: (tags: string[]) => void;
+  allLocations: string[];
+  allCompanies: string[];
+  allIndustries: string[];
+  selectedFilters: {
+    tags: string[];
+    locations: string[];
+    companies: string[];
+    industries: string[];
+  };
+  onFiltersChange: (filters: SearchFilterBarProps["selectedFilters"]) => void;
   onAddContact: () => void;
   onRefresh: () => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
 }
 
+const FILTER_KEYS = ["tags", "locations", "companies", "industries"] as const;
+type FilterKey = typeof FILTER_KEYS[number];
+
 export default function SearchFilterBar({
-  allTags = [],  // Provide default empty array
-  selectedTags = [],  // Provide default empty array
-  onTagsChange,
+  allTags = [],
+  allLocations = [],
+  allCompanies = [],
+  allIndustries = [],
+  selectedFilters,
+  onFiltersChange,
   onAddContact,
   onRefresh,
-  searchQuery = "",  // Provide default empty string
-  onSearchChange
+  searchQuery = "",
+  onSearchChange,
 }: SearchFilterBarProps) {
-  const [open, setOpen] = useState(false);
+  const [openPopover, setOpenPopover] = useState<FilterKey | null>(null);
   const isMobile = useIsMobile();
 
-  // Safe list of tags - ensure allTags is always an array
-  const safeAllTags = Array.isArray(allTags) ? allTags : [];
-  // Safe list of selected tags - ensure selectedTags is always an array
-  const safeSelectedTags = Array.isArray(selectedTags) ? selectedTags : [];
-  // Safe search query - ensure searchQuery is always a string
-  const safeSearchQuery = typeof searchQuery === 'string' ? searchQuery : "";
+  const allOptions = {
+    tags: allTags,
+    locations: allLocations,
+    companies: allCompanies,
+    industries: allIndustries,
+  };
 
-  const handleTagSelect = (tag: string) => {
-    if (tag && !safeSelectedTags.includes(tag)) {
-      onTagsChange([...safeSelectedTags, tag]);
+  const handleSelect = (key: FilterKey, value: string) => {
+    if (!selectedFilters[key].includes(value)) {
+      onFiltersChange({
+        ...selectedFilters,
+        [key]: [...selectedFilters[key], value],
+      });
     }
-    setOpen(false);
+    setOpenPopover(null);
   };
 
-  const handleTagRemove = (tag: string) => {
-    if (tag) {
-      onTagsChange(safeSelectedTags.filter((t) => t !== tag));
-    }
+  const handleRemove = (key: FilterKey, value: string) => {
+    onFiltersChange({
+      ...selectedFilters,
+      [key]: selectedFilters[key].filter((v) => v !== value),
+    });
   };
 
-  const handleClearTags = () => {
-    onTagsChange([]);
+  const handleClearAll = () => {
+    onFiltersChange({
+      tags: [],
+      locations: [],
+      companies: [],
+      industries: [],
+    });
   };
-
-  // Filter out available tags that aren't already selected
-  // Make sure to handle any undefined values and filter out null/empty tags
-  const availableTags = safeAllTags
-    .filter(tag => tag && typeof tag === 'string' && tag.trim() !== '' && !safeSelectedTags.includes(tag));
 
   return (
     <div className="flex flex-col gap-3">
-      <div className={`flex ${isMobile ? 'flex-col' : 'items-center'} gap-3`}>
+      <div className={`flex ${isMobile ? "flex-col" : "items-center"} gap-3`}>
         <div className="relative flex-grow">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search contacts..."
             className="pl-8 h-10"
-            value={safeSearchQuery}
+            value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
           />
-          {safeSearchQuery && (
+          {searchQuery && (
             <Button
               variant="ghost"
               size="sm"
@@ -83,86 +101,55 @@ export default function SearchFilterBar({
           )}
         </div>
 
-        <div className={`flex gap-2 ${isMobile ? 'w-full' : ''}`}>
-          {/* Only show filter button if there are tags available */}
-          {safeAllTags.length > 0 && (
-            <Popover open={open} onOpenChange={setOpen}>
+        <div className="flex gap-2 flex-wrap">
+          {FILTER_KEYS.map((key) => (
+            <Popover key={key} open={openPopover === key} onOpenChange={(open) => setOpenPopover(open ? key : null)}>
               <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className={`h-10 w-10 flex items-center justify-center ${isMobile ? '' : ''}`}
-                >
-                  <Filter className="h-4 w-4" />
+                <Button variant="outline" size="sm">
+                  {key.charAt(0).toUpperCase() + key.slice(1)}
+                  <Filter className="ml-1 h-4 w-4" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent 
-                className="w-60 p-0" 
-                align={isMobile ? "center" : "start"}
-                sideOffset={isMobile ? 8 : 4}
-              >
+              <PopoverContent className="w-60 p-0" align="start" sideOffset={4}>
                 <Command>
-                  <CommandInput placeholder="Search tags..." />
-                  <CommandEmpty>No tags found.</CommandEmpty>
+                  <CommandInput placeholder={`Search ${key}...`} />
+                  <CommandEmpty>No {key} found.</CommandEmpty>
                   <CommandGroup>
-                    {availableTags.length > 0 ? (
-                      availableTags.map((tag, index) => {
-                        // Ensure we have a valid tag value
-                        const safeTag = tag || `tag-${index}`;
-                        return (
-                          <CommandItem
-                            key={safeTag}
-                            value={safeTag}
-                            onSelect={() => handleTagSelect(safeTag)}
-                          >
-                            {safeTag}
-                          </CommandItem>
-                        );
-                      })
-                    ) : (
-                      <div className="py-2 px-2 text-sm text-muted-foreground">
-                        No more tags available
-                      </div>
-                    )}
+                    {allOptions[key]
+                      .filter((option) => option && !selectedFilters[key].includes(option))
+                      .map((option) => (
+                        <CommandItem key={option} value={option} onSelect={() => handleSelect(key, option)}>
+                          {option}
+                        </CommandItem>
+                      ))}
                   </CommandGroup>
                 </Command>
               </PopoverContent>
             </Popover>
-          )}
-          
-          <CircleImportButtons 
-            onImportSuccess={onRefresh} 
-            className={isMobile ? "flex-1" : ""}
-          />
+          ))}
+          <CircleImportButtons onImportSuccess={onRefresh} />
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
-        {safeSelectedTags.length > 0 && (
-          <>
-            <div className="flex flex-wrap gap-1 items-center">
-              {safeSelectedTags.map((tag, index) => {
-                const safeTag = tag || `tag-${index}`;
-                return (
-                  <Badge key={safeTag} variant="secondary" className="flex items-center gap-1">
-                    {safeTag}
-                    <X
-                      className="h-3 w-3 cursor-pointer"
-                      onClick={() => handleTagRemove(safeTag)}
-                    />
-                  </Badge>
-                );
-              })}
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 px-1 text-xs text-muted-foreground"
-              onClick={handleClearTags}
-            >
-              Clear
-            </Button>
-          </>
+      {/* Selected filter badges */}
+      <div className="flex flex-wrap gap-2">
+        {FILTER_KEYS.map((key) =>
+          selectedFilters[key].map((value) => (
+            <Badge key={`${key}-${value}`} variant="secondary" className="flex items-center gap-1">
+              {value}
+              <X className="h-3 w-3 cursor-pointer" onClick={() => handleRemove(key, value)} />
+            </Badge>
+          ))
+        )}
+        {(FILTER_KEYS.some((key) => selectedFilters[key].length > 0)) && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 px-2 text-xs text-muted-foreground"
+            onClick={handleClearAll}
+          >
+            Clear All
+          </Button>
         )}
       </div>
     </div>
