@@ -41,7 +41,7 @@ const Circles = () => {
 
   // Create proper filter structure expected by SearchFilterBar
   const selectedFilters = {
-    tags: [], // We're not using tags anymore
+    tags: [],
     locations: [],
     companies: [],
     industries: []
@@ -52,6 +52,7 @@ const Circles = () => {
     setSelectedTags([]); // Reset tags since we're not using them anymore
     
     // Update the filters state in useCirclesState if needed in the future
+    // You could add more logic here if you want to handle filters in the parent component
   };
 
   return (
@@ -69,7 +70,7 @@ const Circles = () => {
         onRefresh={fetchContacts}
         searchQuery={safeSearchQuery}
         onSearchChange={setSearchQuery}
-        contacts={safeContacts} // Pass contacts to the SearchFilterBar
+        contacts={safeContacts} // Always pass a valid array
       />
 
       <CirclesTabs>

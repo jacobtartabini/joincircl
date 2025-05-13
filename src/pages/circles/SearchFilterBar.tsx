@@ -56,21 +56,28 @@ export default function SearchFilterBar({
   const isMobile = useIsMobile();
 
   // Extract unique values from contacts
-  const [filterOptions, setFilterOptions] = useState({
-    locations: [] as string[],
-    companies: [] as string[],
-    industries: [] as string[],
+  const [filterOptions, setFilterOptions] = useState<{
+    locations: string[];
+    companies: string[];
+    industries: string[];
+  }>({
+    locations: [],
+    companies: [],
+    industries: [],
   });
+
+  // Ensure we're working with a valid contacts array
+  const safeContacts = Array.isArray(contacts) ? contacts.filter(Boolean) : [];
 
   // Extract unique values from contacts
   useEffect(() => {
-    if (!contacts || contacts.length === 0) return;
+    if (!safeContacts.length) return;
 
     const uniqueLocations = new Set<string>();
     const uniqueCompanies = new Set<string>();
     const uniqueIndustries = new Set<string>();
 
-    contacts.forEach(contact => {
+    safeContacts.forEach(contact => {
       if (contact.location) uniqueLocations.add(contact.location);
       if (contact.company_name) uniqueCompanies.add(contact.company_name);
       if (contact.industry) uniqueIndustries.add(contact.industry);
@@ -81,7 +88,7 @@ export default function SearchFilterBar({
       companies: Array.from(uniqueCompanies).filter(Boolean).sort(),
       industries: Array.from(uniqueIndustries).filter(Boolean).sort(),
     });
-  }, [contacts]);
+  }, [safeContacts]);
 
   // Make sure all options are arrays and never undefined
   const allOptions = {
@@ -90,7 +97,7 @@ export default function SearchFilterBar({
     industries: filterOptions.industries.length > 0 ? filterOptions.industries : (Array.isArray(allIndustries) ? allIndustries.filter(Boolean) : []),
   };
 
-  // Ensure selectedFilters is properly defined with default values (excluding tags)
+  // Ensure selectedFilters is properly defined with default values
   const safeSelectedFilters = {
     tags: Array.isArray(selectedFilters?.tags) ? selectedFilters.tags.filter(Boolean) : [],
     locations: Array.isArray(selectedFilters?.locations) ? selectedFilters.locations.filter(Boolean) : [],
@@ -145,15 +152,14 @@ export default function SearchFilterBar({
     return key.endsWith('ies') ? key.slice(0, -3) + 'y' : key.slice(0, -1);
   };
 
-  // Ensure safe arrays for options - this is crucial
-  const getCurrentFilterOptions = () => {
-    const options = allOptions[activeFilterTab] || [];
-    // Make absolutely sure we have an array that is not undefined
+  // Get current filter options as a safe array
+  const getCurrentFilterOptions = (): string[] => {
+    const options = allOptions[activeFilterTab];
     return Array.isArray(options) ? options : [];
   };
 
-  // Ensure we have valid array for selected items
-  const getCurrentSelectedFilters = () => {
+  // Get current selected filters as a safe array
+  const getCurrentSelectedFilters = (): string[] => {
     const selected = safeSelectedFilters[activeFilterTab];
     return Array.isArray(selected) ? selected : [];
   };
@@ -227,27 +233,31 @@ export default function SearchFilterBar({
                   No {activeFilterTab} found.
                 </CommandEmpty>
                 <CommandGroup className="max-h-64 overflow-auto">
-                  {/* This is the key fix: ensure we have a valid array to map over */}
-                  {getCurrentFilterOptions()
-                    .filter(option => option && !getCurrentSelectedFilters().includes(option))
-                    .map((option, index) => {
-                      if (!option) return null; // Skip nulls
-                      
-                      const optionValue = option || `unnamed-${activeFilterTab}-${index}`;
-                      const displayText = option || `Unnamed ${getActiveFilterLabel()} ${index + 1}`;
-                      const uniqueId = createUniqueId(activeFilterTab, option, index);
-                      
-                      return (
-                        <CommandItem 
-                          key={uniqueId}
-                          value={optionValue}
-                          onSelect={() => handleSelect(activeFilterTab, optionValue)}
-                          className="rounded-md cursor-pointer"
-                        >
-                          {displayText}
-                        </CommandItem>
-                      );
-                    })}
+                  {/* Ensure we're working with valid arrays to prevent errors */}
+                  {(() => {
+                    const options = getCurrentFilterOptions();
+                    const selected = getCurrentSelectedFilters();
+                    
+                    // Filter out options that are already selected and ensure each item is valid
+                    const availableOptions = options
+                      .filter(Boolean)
+                      .filter(option => !selected.includes(option));
+                    
+                    if (!availableOptions.length) {
+                      return <div className="text-xs text-center py-2 text-muted-foreground">All {activeFilterTab} are selected</div>;
+                    }
+                    
+                    return availableOptions.map((option, index) => (
+                      <CommandItem 
+                        key={createUniqueId(activeFilterTab, option, index)}
+                        value={option}
+                        onSelect={() => handleSelect(activeFilterTab, option)}
+                        className="rounded-md cursor-pointer"
+                      >
+                        {option}
+                      </CommandItem>
+                    ));
+                  })()}
                 </CommandGroup>
               </Command>
               {totalFiltersCount > 0 && (
@@ -274,21 +284,19 @@ export default function SearchFilterBar({
           // Ensure we have a valid array to map over
           (Array.isArray(safeSelectedFilters[key]) ? safeSelectedFilters[key] : [])
             .filter(Boolean)
-            .map((value, index) => {
-              const displayText = value || `Unnamed ${key.slice(0, -1)} ${index + 1}`;
-              const uniqueKey = `selected-${key}-${value || ''}-${index}`;
-              
-              return (
-                <Badge 
-                  key={uniqueKey}
-                  variant="secondary" 
-                  className="flex items-center gap-1 px-3 py-1 rounded-full bg-muted/80 hover:bg-muted"
-                >
-                  {displayText}
-                  <X className="h-3 w-3 cursor-pointer ml-1" onClick={() => handleRemove(key, value)} />
-                </Badge>
-              );
-            })
+            .map((value, index) => (
+              <Badge 
+                key={`selected-${key}-${value || ''}-${index}`}
+                variant="secondary" 
+                className="flex items-center gap-1 px-3 py-1 rounded-full bg-muted/80 hover:bg-muted"
+              >
+                {value}
+                <X 
+                  className="h-3 w-3 cursor-pointer ml-1" 
+                  onClick={() => handleRemove(key, value)} 
+                />
+              </Badge>
+            ))
         )}
         {(totalFiltersCount > 0) && (
           <Button
