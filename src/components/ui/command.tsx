@@ -113,9 +113,9 @@ CommandSeparator.displayName = CommandPrimitive.Separator.displayName
 const CommandItem = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item>
->(({ className, value = "", ...props }, ref) => {
-  // Ensure value is never empty or undefined
-  const safeValue = value || `item-${Math.random().toString(36).slice(2, 9)}`;
+>(({ className, value, ...props }, ref) => {
+  // Ensure value is never empty, undefined, or null
+  const safeValue = value || `item-${Math.random().toString(36).substring(2, 11)}`;
   
   return (
     <CommandPrimitive.Item

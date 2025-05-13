@@ -50,19 +50,20 @@ export default function SearchFilterBar({
   const [openPopover, setOpenPopover] = useState<FilterKey | null>(null);
   const isMobile = useIsMobile();
 
+  // Make sure all options are arrays and never undefined
   const allOptions = {
-    tags: Array.isArray(allTags) ? allTags : [],
-    locations: Array.isArray(allLocations) ? allLocations : [],
-    companies: Array.isArray(allCompanies) ? allCompanies : [],
-    industries: Array.isArray(allIndustries) ? allIndustries : [],
+    tags: Array.isArray(allTags) ? allTags.filter(Boolean) : [],
+    locations: Array.isArray(allLocations) ? allLocations.filter(Boolean) : [],
+    companies: Array.isArray(allCompanies) ? allCompanies.filter(Boolean) : [],
+    industries: Array.isArray(allIndustries) ? allIndustries.filter(Boolean) : [],
   };
 
   // Ensure selectedFilters is properly defined with default values
   const safeSelectedFilters = {
-    tags: Array.isArray(selectedFilters?.tags) ? selectedFilters.tags : [],
-    locations: Array.isArray(selectedFilters?.locations) ? selectedFilters.locations : [],
-    companies: Array.isArray(selectedFilters?.companies) ? selectedFilters.companies : [],
-    industries: Array.isArray(selectedFilters?.industries) ? selectedFilters.industries : [],
+    tags: Array.isArray(selectedFilters?.tags) ? selectedFilters.tags.filter(Boolean) : [],
+    locations: Array.isArray(selectedFilters?.locations) ? selectedFilters.locations.filter(Boolean) : [],
+    companies: Array.isArray(selectedFilters?.companies) ? selectedFilters.companies.filter(Boolean) : [],
+    industries: Array.isArray(selectedFilters?.industries) ? selectedFilters.industries.filter(Boolean) : [],
   };
 
   const handleSelect = (key: FilterKey, value: string) => {
@@ -103,7 +104,7 @@ export default function SearchFilterBar({
           <Input
             placeholder="Search contacts..."
             className="pl-8 h-10"
-            value={searchQuery}
+            value={searchQuery || ""}
             onChange={(e) => onSearchChange(e.target.value)}
           />
           {searchQuery && (
@@ -131,18 +132,23 @@ export default function SearchFilterBar({
                 <Command>
                   <CommandInput placeholder={`Search ${key}...`} />
                   <CommandEmpty>No {key} found.</CommandEmpty>
-                  <CommandGroup>
+                  <CommandGroup className="overflow-auto max-h-64">
                     {allOptions[key]
                       .filter(option => option && !safeSelectedFilters[key].includes(option))
-                      .map((option, index) => (
-                        <CommandItem 
-                          key={option || `empty-option-${index}`} 
-                          value={option || `empty-option-${index}`} 
-                          onSelect={() => handleSelect(key, option || "")}
-                        >
-                          {option || "Unnamed"}
-                        </CommandItem>
-                      ))}
+                      .map((option, index) => {
+                        // Generate safe unique keys and values for each command item
+                        const safeKey = `${key}-${option || index}-${index}`;
+                        const safeValue = option || `option-${index}`;
+                        return (
+                          <CommandItem 
+                            key={safeKey}
+                            value={safeValue}
+                            onSelect={() => handleSelect(key, option || "")}
+                          >
+                            {option || "Unnamed"}
+                          </CommandItem>
+                        );
+                      })}
                   </CommandGroup>
                 </Command>
               </PopoverContent>
@@ -155,8 +161,12 @@ export default function SearchFilterBar({
       {/* Selected filter badges */}
       <div className="flex flex-wrap gap-2">
         {FILTER_KEYS.map((key) =>
-          safeSelectedFilters[key].map((value) => (
-            <Badge key={`${key}-${value || "unnamed"}`} variant="secondary" className="flex items-center gap-1">
+          safeSelectedFilters[key].filter(Boolean).map((value, index) => (
+            <Badge 
+              key={`${key}-${value || index}`} 
+              variant="secondary" 
+              className="flex items-center gap-1"
+            >
               {value || "Unnamed"}
               <X className="h-3 w-3 cursor-pointer" onClick={() => handleRemove(key, value)} />
             </Badge>
