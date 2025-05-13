@@ -66,12 +66,12 @@ const CommandList = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.List>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.List>
 >(({ className, children, ...props }, ref) => {
-  // Ensure children is always defined and iterable
+  // Ensure children is always defined and iterable - this is where the error is happening
   const safeChildren = React.useMemo(() => {
     if (!children) return [];
     try {
-      // This will throw if children is not iterable
-      return Array.isArray(children) ? children.filter(Boolean) : [children].filter(Boolean);
+      // Use React.Children API to handle React children safely
+      return React.Children.toArray(children).filter(Boolean);
     } catch (e) {
       console.warn("Error with CommandList children:", e);
       return [];
@@ -108,12 +108,12 @@ const CommandGroup = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Group>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Group>
 >(({ className, children, ...props }, ref) => {
-  // Ensure children is always defined and iterable
+  // Ensure children is always defined and iterable - this is critical for the error
   const safeChildren = React.useMemo(() => {
     if (!children) return [];
     try {
-      // This will throw if children is not iterable
-      return Array.isArray(children) ? children.filter(Boolean) : [children].filter(Boolean);
+      // Use React.Children API to handle React children safely
+      return React.Children.toArray(children).filter(Boolean);
     } catch (e) {
       console.warn("Error with CommandGroup children:", e);
       return [];

@@ -6,6 +6,7 @@ import { CirclesTabContent } from "./CirclesTabContent";
 import { CirclesTabs } from "./CirclesTabs";
 import SearchFilterBar from "./SearchFilterBar";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useState, useMemo } from "react";
 
 const Circles = () => {
   const {
@@ -34,25 +35,34 @@ const Circles = () => {
   const isMobile = useIsMobile();
   
   // Ensure we have safe values for props
-  const safeSelectedTags = Array.isArray(selectedTags) ? selectedTags : [];
-  const safeAvailableTags = Array.isArray(availableTags) ? availableTags : [];
-  const safeSearchQuery = typeof searchQuery === 'string' ? searchQuery : '';
-  const safeContacts = Array.isArray(contacts) ? contacts.filter(Boolean) : [];
+  const safeSelectedTags = useMemo(() => 
+    Array.isArray(selectedTags) ? selectedTags : []
+  , [selectedTags]);
+  
+  const safeAvailableTags = useMemo(() =>
+    Array.isArray(availableTags) ? availableTags : []
+  , [availableTags]);
+  
+  const safeSearchQuery = useMemo(() =>
+    typeof searchQuery === 'string' ? searchQuery : ''
+  , [searchQuery]);
+  
+  const safeContacts = useMemo(() => 
+    Array.isArray(contacts) ? contacts.filter(Boolean) : []
+  , [contacts]);
 
   // Create proper filter structure expected by SearchFilterBar
-  const selectedFilters = {
+  const [selectedFilters, setSelectedFilters] = useState({
     tags: [],
     locations: [],
     companies: [],
     industries: []
-  };
+  });
 
   const handleFiltersChange = (filters) => {
     // We're no longer using tags but keeping the structure for compatibility
     setSelectedTags([]); // Reset tags since we're not using them anymore
-    
-    // Update the filters state in useCirclesState if needed in the future
-    // You could add more logic here if you want to handle filters in the parent component
+    setSelectedFilters(filters);
   };
 
   // Log to help debug

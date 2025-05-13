@@ -92,6 +92,22 @@ export const FilterPopover = ({
     );
   }, [currentOptions, currentSelected]);
 
+  // Create the command items safely
+  const commandItems = useMemo(() => {
+    if (!Array.isArray(availableOptions)) return [];
+    
+    return availableOptions.map((option, index) => (
+      <CommandItem 
+        key={createUniqueId(activeFilterTab, option, index)}
+        value={option || `empty-${index}`} // Ensure value is never undefined
+        onSelect={() => onSelect(activeFilterTab, option)}
+        className="rounded-md cursor-pointer"
+      >
+        {option}
+      </CommandItem>
+    ));
+  }, [availableOptions, activeFilterTab, onSelect]);
+
   return (
     <Popover open={openFilters} onOpenChange={setOpenFilters}>
       <PopoverTrigger asChild>
@@ -144,17 +160,8 @@ export const FilterPopover = ({
                   : `All ${activeFilterTab} are selected`}
               </div>
             ) : (
-              // Ensure we use a stable array of child elements that are always defined
-              availableOptions.map((option, index) => (
-                <CommandItem 
-                  key={createUniqueId(activeFilterTab, option, index)}
-                  value={option || `empty-${index}`} // Ensure value is never undefined
-                  onSelect={() => onSelect(activeFilterTab, option)}
-                  className="rounded-md cursor-pointer"
-                >
-                  {option}
-                </CommandItem>
-              ))
+              // We're using a pre-computed array of elements that are always defined
+              commandItems
             )}
           </CommandGroup>
         </Command>

@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { SearchInput } from "./components/SearchInput";
 import { FilterBadges } from "./components/FilterBadges";
 import { FilterPopover } from "./components/FilterPopover";
@@ -51,7 +51,9 @@ export default function SearchFilterBar({
   const isMobile = useIsMobile();
 
   // Ensure we're working with a valid contacts array
-  const safeContacts = Array.isArray(contacts) ? contacts.filter(Boolean) : [];
+  const safeContacts = useMemo(() => 
+    Array.isArray(contacts) ? contacts.filter(Boolean) : []
+  , [contacts]);
 
   // Extract unique values from contacts
   const [filterOptions, setFilterOptions] = useState<{
@@ -66,7 +68,7 @@ export default function SearchFilterBar({
 
   // Extract unique values from contacts
   useEffect(() => {
-    if (!safeContacts || !Array.isArray(safeContacts) || !safeContacts.length) {
+    if (!safeContacts || !Array.isArray(safeContacts) || safeContacts.length === 0) {
       setFilterOptions({
         locations: [],
         companies: [],
@@ -102,7 +104,7 @@ export default function SearchFilterBar({
   }, [safeContacts]);
 
   // Make sure all options are arrays and never undefined
-  const allOptions = {
+  const allOptions = useMemo(() => ({
     locations: Array.isArray(filterOptions.locations) && filterOptions.locations.length > 0 
       ? filterOptions.locations 
       : (Array.isArray(allLocations) ? allLocations.filter(Boolean) : []),
@@ -112,15 +114,15 @@ export default function SearchFilterBar({
     industries: Array.isArray(filterOptions.industries) && filterOptions.industries.length > 0 
       ? filterOptions.industries 
       : (Array.isArray(allIndustries) ? allIndustries.filter(Boolean) : []),
-  };
+  }), [filterOptions, allLocations, allCompanies, allIndustries]);
 
   // Ensure selectedFilters is properly defined with default values
-  const safeSelectedFilters = {
+  const safeSelectedFilters = useMemo(() => ({
     tags: Array.isArray(selectedFilters?.tags) ? selectedFilters.tags.filter(Boolean) : [],
     locations: Array.isArray(selectedFilters?.locations) ? selectedFilters.locations.filter(Boolean) : [],
     companies: Array.isArray(selectedFilters?.companies) ? selectedFilters.companies.filter(Boolean) : [],
     industries: Array.isArray(selectedFilters?.industries) ? selectedFilters.industries.filter(Boolean) : [],
-  };
+  }), [selectedFilters]);
 
   const handleSelect = (key: FilterKey, value: string) => {
     if (!value) return; // Skip empty values
@@ -152,18 +154,20 @@ export default function SearchFilterBar({
   };
 
   // Get total filters count
-  const totalFiltersCount = FILTER_KEYS.reduce(
-    (count, key) => count + (Array.isArray(safeSelectedFilters[key]) ? safeSelectedFilters[key].length : 0), 
-    0
-  );
+  const totalFiltersCount = useMemo(() => 
+    FILTER_KEYS.reduce(
+      (count, key) => count + (Array.isArray(safeSelectedFilters[key]) ? safeSelectedFilters[key].length : 0), 
+      0
+    )
+  , [safeSelectedFilters]);
 
   // Ensure we never pass undefined values to child components
-  const safeProps = {
+  const safeProps = useMemo(() => ({
     allOptions: Object.keys(allOptions).length ? allOptions : { locations: [], companies: [], industries: [] },
     selectedFilters: safeSelectedFilters,
     totalFiltersCount: totalFiltersCount,
     searchQuery: typeof searchQuery === 'string' ? searchQuery : '',
-  };
+  }), [allOptions, safeSelectedFilters, totalFiltersCount, searchQuery]);
 
   return (
     <div className="flex flex-col gap-3">
