@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Filter, X } from "lucide-react";
@@ -8,6 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
 import CircleImportButtons from "@/components/circles/CircleImportButtons";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Contact } from "@/types/contact";
 
 interface SearchFilterBarProps {
   allTags?: string[];
@@ -25,6 +26,7 @@ interface SearchFilterBarProps {
   onRefresh: () => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
+  contacts?: Contact[]; // Add contacts prop to get filter data
 }
 
 // Define filter keys but exclude tags
@@ -47,16 +49,45 @@ export default function SearchFilterBar({
   onRefresh,
   searchQuery = "",
   onSearchChange,
+  contacts = [], // Default to empty array
 }: SearchFilterBarProps) {
   const [openFilters, setOpenFilters] = useState(false);
   const [activeFilterTab, setActiveFilterTab] = useState<FilterKey>("locations");
   const isMobile = useIsMobile();
 
+  // Extract unique values from contacts
+  const [filterOptions, setFilterOptions] = useState({
+    locations: [] as string[],
+    companies: [] as string[],
+    industries: [] as string[],
+  });
+
+  // Extract unique values from contacts
+  useEffect(() => {
+    if (!contacts || contacts.length === 0) return;
+
+    const uniqueLocations = new Set<string>();
+    const uniqueCompanies = new Set<string>();
+    const uniqueIndustries = new Set<string>();
+
+    contacts.forEach(contact => {
+      if (contact.location) uniqueLocations.add(contact.location);
+      if (contact.company_name) uniqueCompanies.add(contact.company_name);
+      if (contact.industry) uniqueIndustries.add(contact.industry);
+    });
+
+    setFilterOptions({
+      locations: Array.from(uniqueLocations).filter(Boolean).sort(),
+      companies: Array.from(uniqueCompanies).filter(Boolean).sort(),
+      industries: Array.from(uniqueIndustries).filter(Boolean).sort(),
+    });
+  }, [contacts]);
+
   // Make sure all options are arrays and never undefined
   const allOptions = {
-    locations: Array.isArray(allLocations) ? allLocations.filter(Boolean) : [],
-    companies: Array.isArray(allCompanies) ? allCompanies.filter(Boolean) : [],
-    industries: Array.isArray(allIndustries) ? allIndustries.filter(Boolean) : [],
+    locations: filterOptions.locations.length > 0 ? filterOptions.locations : (Array.isArray(allLocations) ? allLocations.filter(Boolean) : []),
+    companies: filterOptions.companies.length > 0 ? filterOptions.companies : (Array.isArray(allCompanies) ? allCompanies.filter(Boolean) : []),
+    industries: filterOptions.industries.length > 0 ? filterOptions.industries : (Array.isArray(allIndustries) ? allIndustries.filter(Boolean) : []),
   };
 
   // Ensure selectedFilters is properly defined with default values (excluding tags)
@@ -107,6 +138,12 @@ export default function SearchFilterBar({
     return `${prefix}-${optionValue || index}-${Math.random().toString(36).substring(2, 5)}`;
   };
 
+  // Get label for currently active filter tab
+  const getActiveFilterLabel = () => {
+    const key = activeFilterTab.charAt(0).toUpperCase() + activeFilterTab.slice(1);
+    return key.endsWith('ies') ? key.slice(0, -3) + 'y' : key.slice(0, -1);
+  };
+
   return (
     <div className="flex flex-col gap-3">
       <div className={`flex ${isMobile ? "flex-col" : "items-center"} gap-3`}>
@@ -143,29 +180,39 @@ export default function SearchFilterBar({
                 )}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-60 p-0" align="start" sideOffset={4}>
-              <div className="border-b border-border flex">
+            <PopoverContent className="w-72 p-0 rounded-xl shadow-lg border border-gray-100" align="start" sideOffset={4}>
+              <div className="border-b border-border flex p-1">
                 {FILTER_KEYS.map((key) => (
                   <Button
                     key={key}
                     variant={activeFilterTab === key ? "default" : "ghost"}
                     size="sm"
-                    className="flex-1 rounded-none h-9 text-xs"
+                    className={`flex-1 rounded-md h-9 text-xs ${activeFilterTab === key ? 'shadow-sm' : ''}`}
                     onClick={() => setActiveFilterTab(key)}
                   >
                     {key.charAt(0).toUpperCase() + key.slice(1)}
                     {safeSelectedFilters[key].length > 0 && (
-                      <span className="ml-1 px-1 rounded-full bg-muted text-[10px]">
+                      <span className="ml-1 px-1.5 py-0.5 rounded-full bg-primary-foreground text-primary text-[10px] font-medium">
                         {safeSelectedFilters[key].length}
                       </span>
                     )}
                   </Button>
                 ))}
               </div>
-              <Command>
-                <CommandInput placeholder={`Search ${activeFilterTab}...`} />
-                <CommandEmpty>No {activeFilterTab} found.</CommandEmpty>
-                <CommandGroup>
+              <Command className="p-2">
+                <CommandInput 
+                  placeholder={`Search ${activeFilterTab}...`} 
+                  className="h-9 rounded-lg border border-input"
+                />
+                <div className="pt-2 pb-1 text-xs font-medium text-muted-foreground px-2">
+                  {allOptions[activeFilterTab].length === 0 
+                    ? `No ${getActiveFilterLabel()} found` 
+                    : `Select ${getActiveFilterLabel()}`}
+                </div>
+                <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
+                  No {activeFilterTab} found.
+                </CommandEmpty>
+                <CommandGroup className="max-h-64 overflow-auto">
                   {allOptions[activeFilterTab]
                     .filter(option => option && !safeSelectedFilters[activeFilterTab].includes(option))
                     .map((option, index) => {
@@ -177,6 +224,7 @@ export default function SearchFilterBar({
                           key={createUniqueId(activeFilterTab, option, index)}
                           value={optionValue}
                           onSelect={() => handleSelect(activeFilterTab, optionValue)}
+                          className="rounded-md cursor-pointer"
                         >
                           {displayText}
                         </CommandItem>
@@ -189,7 +237,7 @@ export default function SearchFilterBar({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="w-full text-xs text-muted-foreground"
+                    className="w-full text-xs text-muted-foreground hover:bg-muted/50"
                     onClick={handleClearAll}
                   >
                     Clear All Filters
@@ -212,10 +260,10 @@ export default function SearchFilterBar({
               <Badge 
                 key={`selected-${key}-${value || ''}-${index}`}
                 variant="secondary" 
-                className="flex items-center gap-1"
+                className="flex items-center gap-1 px-3 py-1 rounded-full bg-muted/80 hover:bg-muted"
               >
                 {displayText}
-                <X className="h-3 w-3 cursor-pointer" onClick={() => handleRemove(key, value)} />
+                <X className="h-3 w-3 cursor-pointer ml-1" onClick={() => handleRemove(key, value)} />
               </Badge>
             );
           })

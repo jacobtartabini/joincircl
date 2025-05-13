@@ -1,3 +1,4 @@
+
 import { useCirclesState } from "./hooks/useCirclesState";
 import { CirclesHeader } from "./components/CirclesHeader";
 import { CircleDialogs } from "./components/CircleDialogs";
@@ -59,7 +60,7 @@ const Circles = () => {
 
       <SearchFilterBar 
         allTags={[]} // Empty array since we're not using tags
-        allLocations={[]} // These will need to be populated with actual data when implementing
+        allLocations={[]} // These will be populated from the contacts data
         allCompanies={[]}
         allIndustries={[]}
         selectedFilters={selectedFilters}
@@ -68,6 +69,7 @@ const Circles = () => {
         onRefresh={fetchContacts}
         searchQuery={safeSearchQuery}
         onSearchChange={setSearchQuery}
+        contacts={safeContacts} // Pass contacts to the SearchFilterBar
       />
 
       <CirclesTabs>
