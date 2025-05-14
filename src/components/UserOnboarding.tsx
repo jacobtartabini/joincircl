@@ -7,7 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Check, Linkedin, Phone, Users } from 'lucide-react';
 
-export default function UserOnboarding() {
+// Change to named export for consistency
+export const UserOnboarding = () => {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("welcome");
@@ -199,3 +200,6 @@ export default function UserOnboarding() {
     </Dialog>
   );
 }
+
+// Add default export as well for backward compatibility
+export default UserOnboarding;

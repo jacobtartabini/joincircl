@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Bell } from "lucide-react";
-import { UserOnboarding } from "@/components/UserOnboarding";
+import UserOnboarding from "@/components/UserOnboarding";
 import { Badge } from "@/components/ui/badge";
 import { ConnectionStatus } from "@/components/ui/offline-indicator";
 import usePWAFeatures from "@/hooks/usePWAFeatures";
@@ -33,3 +33,5 @@ export function TopStatusBar() {
     </div>
   );
 }
+
+export default TopStatusBar;

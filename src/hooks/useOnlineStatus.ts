@@ -21,7 +21,7 @@ export function useOnlineStatus() {
       toast({
         title: "You're offline",
         description: "Working with locally stored data",
-        variant: "warning",
+        variant: "destructive",
       });
     };
 

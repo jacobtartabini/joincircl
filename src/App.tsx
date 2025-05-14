@@ -18,7 +18,7 @@ import CallbackPage from "./pages/auth/CallbackPage";
 import ContactDetail from "./pages/contact/ContactDetail";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { RequireAuth } from "@/components/guards/RequireAuth";
-import UserOnboarding from "./components/UserOnboarding";
+import { UserOnboarding } from "./components/UserOnboarding"; // Update to named import
 import Help from "./pages/Help";
 import Contact from "./pages/Contact";
 import Bugs from "./pages/Bugs";

@@ -1,7 +1,7 @@
 
 import { ReactNode } from "react";
 import MobileNav from "./MobileNav";
-import TopStatusBar from "./TopStatusBar";
+import { TopStatusBar } from "./TopStatusBar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import DesktopNav from "./DesktopNav";
 import { SecureHeaders } from "@/components/security/SecureHeaders";

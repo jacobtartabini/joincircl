@@ -195,6 +195,11 @@ const saveContacts = async (contacts: Contact[]): Promise<Contact[]> => {
   });
 };
 
+// Add the missing saveContact function
+const saveContact = async (contact: Contact): Promise<Contact> => {
+  return await addItem(STORES.CONTACTS, contact);
+};
+
 const getContact = async (id: string): Promise<Contact | null> => {
   return await getItem<Contact>(STORES.CONTACTS, id);
 };
@@ -223,6 +228,7 @@ export const offlineStorage = {
     clear: clearProfile
   },
   contacts: {
+    save: saveContact,     // Add the missing save method
     saveAll: saveContacts,
     get: getContact,
     getAll: getAllContacts,
