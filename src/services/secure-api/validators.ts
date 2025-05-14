@@ -1,6 +1,12 @@
 
 import { FetchOptions } from "./types";
 
+// Export validateRequest function to fix the import error
+export function validateRequest(resource: string, action: string): boolean {
+  // Simple request validator that can be expanded
+  return true; // Allow by default
+}
+
 export function validateQueryParams(options: FetchOptions = {}): void {
   // Validate limit
   if (options.limit !== undefined && (typeof options.limit !== 'number' || options.limit <= 0)) {

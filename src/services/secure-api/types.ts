@@ -37,3 +37,10 @@ export interface QueryResult<T> {
 export interface SecureApiService {
   fetch: <T extends DataRecord>(table: TableName, options?: FetchOptions) => Promise<QueryResult<T>>;
 }
+
+// Adding the missing SecureApiServiceOptions interface
+export interface SecureApiServiceOptions {
+  useCache?: boolean;
+  retries?: number;
+  timeout?: number;
+}

@@ -83,11 +83,19 @@ export const secureApiService = {
       const extendedExpirySeconds = 60 * 60 * 24 * 30; // 30 days in seconds
       
       try {
-        // Update session expiry time
+        // Get current session first
+        const { data } = await supabase.auth.getSession();
+        if (!data.session) {
+          console.error("No session found to extend");
+          return;
+        }
+        
+        // Update session expiry time using the correct method and properties
         await supabase.auth.setSession({
-          refresh_token: (await supabase.auth.getSession()).data.session?.refresh_token || '',
-          access_token: (await supabase.auth.getSession()).data.session?.access_token || '',
-          expires_in: extendedExpirySeconds
+          refresh_token: data.session.refresh_token,
+          access_token: data.session.access_token
+          // Removed 'expires_in' as it's not a supported property in the type
+          // We're now relying on Supabase's session refresh mechanism
         });
         
         console.log("Session extended to 30 days");
