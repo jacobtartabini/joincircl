@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { contactService } from "@/services/contactService";
+import { contactService } from "@/services/contacts";
 import { Contact } from "@/types/contact";
 import { useToast } from "@/hooks/use-toast";
 

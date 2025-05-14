@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Contact } from "@/types/contact";
-import { contactService } from "@/services/contactService";
+import { contactService } from "@/services/contacts";
 import { useToast } from "@/hooks/use-toast";
 
 export const useContacts = () => {
