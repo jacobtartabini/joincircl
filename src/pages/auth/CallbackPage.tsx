@@ -1,51 +1,68 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { secureApiService } from "@/services/secure-api";
 
 export default function CallbackPage() {
-  const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // This handles the OAuth callback and redirects to the homepage
-    const handleAuthCallback = async () => {
+    const handleCallback = async () => {
       try {
-        // Get the session - the OAuth exchange should already be complete
-        const { data, error } = await supabase.auth.getSession();
+        // Process the OAuth callback
+        const { error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error("Auth callback error:", error);
           setError(error.message);
           return;
         }
 
-        if (data && data.session) {
-          console.log("Auth callback successful, redirecting to homepage");
-          // Successful authentication, redirect to the home page
-          navigate("/", { replace: true });
-        } else {
-          // No session found, might be an error in the OAuth flow
-          console.error("No session found in callback");
-          setError("Authentication failed. Please try again.");
-          setTimeout(() => navigate("/auth/sign-in", { replace: true }), 2000);
+        // Check if user selected "keep me signed in" before OAuth redirect
+        const keepSignedIn = localStorage.getItem('keepSignedIn') === 'true';
+        
+        // Apply extended session if keep me signed in was selected
+        if (keepSignedIn) {
+          await secureApiService.extendSession(true);
+          localStorage.removeItem('keepSignedIn'); // Clean up
         }
-      } catch (err) {
-        console.error("Error in auth callback:", err);
-        setError("An unexpected error occurred during authentication.");
+
+        // Navigate to the home page or a redirect URL if there was one
+        const redirectTo = localStorage.getItem('authRedirectPath') || '/';
+        localStorage.removeItem('authRedirectPath'); // Clean up
+        navigate(redirectTo, { replace: true });
+        
+      } catch (err: any) {
+        console.error("Error during OAuth callback:", err);
+        setError(err.message || "An unknown error occurred during sign in");
       }
     };
 
-    handleAuthCallback();
+    handleCallback();
   }, [navigate]);
 
+  if (error) {
+    return (
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <div className="text-center max-w-md p-6 bg-white rounded-lg shadow-md">
+          <h1 className="text-xl font-bold text-red-600 mb-4">Authentication Error</h1>
+          <p className="mb-4">{error}</p>
+          <button 
+            onClick={() => navigate("/auth/sign-in")}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Back to Sign In
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center p-4 bg-background">
+    <div className="flex min-h-screen items-center justify-center p-4">
       <div className="text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
-        <h2 className="text-2xl font-bold mb-2">Authenticating...</h2>
-        <p className="mb-1">Please wait while we complete the authentication process.</p>
-        {error && <p className="text-destructive">{error}</p>}
+        <p>Completing sign in...</p>
       </div>
     </div>
   );
