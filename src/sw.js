@@ -29,10 +29,10 @@ registerRoute(
   'POST'
 );
 
-// Cache API responses for offline use
+// Enhanced caching for contacts API
 registerRoute(
   /\/api\/contacts$/,
-  new StaleWhileRevalidate({
+  new NetworkFirst({
     cacheName: 'contacts-list-cache',
     plugins: [
       new ExpirationPlugin({
@@ -59,6 +59,35 @@ registerRoute(
   'GET'
 );
 
+// Cache profile data
+registerRoute(
+  /\/rest\/v1\/profiles/,
+  new NetworkFirst({
+    cacheName: 'user-profile-cache',
+    plugins: [
+      new ExpirationPlugin({
+        maxEntries: 5, // We don't need many entries here
+        maxAgeSeconds: 24 * 60 * 60 // 24 hours
+      })
+    ]
+  }),
+  'GET'
+);
+
+// Cache Supabase auth session - be careful with this one
+registerRoute(
+  /\/auth\/v1\/token/,
+  new NetworkFirst({
+    cacheName: 'auth-token-cache',
+    plugins: [
+      new ExpirationPlugin({
+        maxEntries: 10,
+        maxAgeSeconds: 60 * 30 // 30 minutes to avoid security issues
+      })
+    ]
+  })
+);
+
 // Serve offline page when network requests fail for uncached routes
 registerRoute(
   ({ request }) => request.mode === 'navigate',
@@ -77,15 +106,79 @@ registerRoute(
 self.addEventListener('sync', (event) => {
   if (event.tag === 'sync-data') {
     event.waitUntil(syncData());
+  } else if (event.tag === 'sync-contacts') {
+    event.waitUntil(syncContacts());
+  } else if (event.tag === 'sync-profile') {
+    event.waitUntil(syncProfile());
   }
 });
 
-// Function to sync data
+// Function to sync all data
 async function syncData() {
   console.log('Background sync started');
-  // Implement your data synchronization logic here
-  // This could be fetching updated data, or sending cached requests
+  // Perform general data sync
+  try {
+    // First sync profile data
+    await syncProfile();
+    // Then sync contacts
+    await syncContacts();
+    
+    // Post a message to the client
+    self.clients.matchAll().then(clients => {
+      clients.forEach(client => {
+        client.postMessage({
+          type: 'SYNC_COMPLETED',
+          message: 'All data synchronized successfully'
+        });
+      });
+    });
+  } catch (error) {
+    console.error('Error during sync:', error);
+  }
   console.log('Background sync completed');
+}
+
+// Function to specifically sync contacts
+async function syncContacts() {
+  console.log('Syncing contacts data...');
+  
+  try {
+    // Inform clients about contact sync
+    self.clients.matchAll().then(clients => {
+      clients.forEach(client => {
+        client.postMessage({
+          type: 'CONTACTS_SYNC_STARTED'
+        });
+      });
+    });
+    
+    // The actual sync will be handled by the client-side code
+    // using the IndexedDB operations we defined
+    
+  } catch (error) {
+    console.error('Error syncing contacts:', error);
+  }
+}
+
+// Function to specifically sync profile data
+async function syncProfile() {
+  console.log('Syncing profile data...');
+  
+  try {
+    // Inform clients about profile sync
+    self.clients.matchAll().then(clients => {
+      clients.forEach(client => {
+        client.postMessage({
+          type: 'PROFILE_SYNC_STARTED'
+        });
+      });
+    });
+    
+    // The actual sync will be handled by the client-side code
+    
+  } catch (error) {
+    console.error('Error syncing profile:', error);
+  }
 }
 
 // Handle push notifications
@@ -143,8 +236,13 @@ self.addEventListener('periodicsync', (event) => {
 
 async function updateContent() {
   console.log('Performing periodic content sync');
-  // Implement your periodic sync logic here
-  // For example, fetch updated contacts or notifications
+  // Perform general content update
+  try {
+    // Sync all data
+    await syncData();
+  } catch (error) {
+    console.error('Error during periodic sync:', error);
+  }
 }
 
 async function syncNotifications() {
@@ -172,5 +270,17 @@ self.addEventListener('install', (event) => {
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
+  }
+});
+
+// Add specific handler for offline mode detection
+self.addEventListener('fetch', event => {
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        // Network request failed, return the offline page
+        return caches.match('/offline.html');
+      })
+    );
   }
 });

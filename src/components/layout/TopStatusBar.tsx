@@ -1,60 +1,35 @@
 
-import { useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { useIsMobile } from "@/hooks/use-mobile";
+import React from "react";
+import { Bell } from "lucide-react";
+import { UserOnboarding } from "@/components/UserOnboarding";
+import { Badge } from "@/components/ui/badge";
+import { ConnectionStatus } from "@/components/ui/offline-indicator";
+import usePWAFeatures from "@/hooks/usePWAFeatures";
 
-const TopStatusBar = () => {
-  const location = useLocation();
-  const isMobile = useIsMobile();
-  const [lastScrollY, setLastScrollY] = useState(0);
-  const [showBar, setShowBar] = useState(true);
-
-  // Get page title based on current route
-  const getPageTitle = () => {
-    const path = location.pathname;
-    
-    if (path === "/") return "Home";
-    if (path.startsWith("/circles")) return "Circles";
-    if (path.startsWith("/keystones")) return "Keystones";
-    if (path.startsWith("/settings")) return "Settings";
-    if (path.startsWith("/contacts")) return "Contact Details";
-    if (path.startsWith("/help")) return "Help";
-    if (path.startsWith("/contact")) return "Contact Us";
-    if (path.startsWith("/bugs")) return "Report Bugs";
-    if (path.startsWith("/legal")) return "Legal";
-    
-    return "Circl";
-  };
+export function TopStatusBar() {
+  const { isOffline } = usePWAFeatures();
   
-  // Hide status bar on scroll down, show on scroll up (mobile only)
-  useEffect(() => {
-    if (!isMobile) return;
-
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      setShowBar(currentScrollY <= 10 || currentScrollY < lastScrollY);
-      setLastScrollY(currentScrollY);
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [lastScrollY, isMobile]);
-  
-  if (!isMobile) return null;
-
   return (
-    <motion.div
-      className="fixed top-0 left-0 right-0 z-40"
-      initial={{ y: 0 }}
-      animate={{ y: showBar ? 0 : -60 }}
-      transition={{ duration: 0.3 }}
-    >
-      <div className="h-14 bg-white shadow-sm flex items-center justify-center relative pt-safe">
-        <h1 className="text-lg font-semibold">{getPageTitle()}</h1>
+    <div className="flex items-center justify-between py-2 md:py-3 px-4 border-b border-border">
+      {/* Left section */}
+      <div className="flex items-center space-x-2">
+        <h1 className="text-lg font-semibold hidden md:block">Circl</h1>
+        <Badge variant="outline" className="hidden md:flex">
+          Beta
+        </Badge>
       </div>
-    </motion.div>
-  );
-};
 
-export default TopStatusBar;
+      {/* Right section */}
+      <div className="flex items-center space-x-4">
+        {/* Connection status indicator */}
+        <ConnectionStatus />
+        
+        {/* Bell icon */}
+        <Bell className="h-5 w-5 text-muted-foreground" />
+        
+        {/* User onboarding */}
+        <UserOnboarding />
+      </div>
+    </div>
+  );
+}

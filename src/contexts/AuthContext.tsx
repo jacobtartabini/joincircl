@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { AuthState, Profile } from '@/types/auth';
 import { useToast } from '@/hooks/use-toast';
 import { sanitizeInput, handleError } from '@/utils/security';
+import { offlineStorage } from '@/services/offlineStorage';
 
 interface AuthContextType extends AuthState {
   signIn: (email: string, password: string) => Promise<void>;
@@ -18,6 +19,7 @@ interface AuthContextType extends AuthState {
   setHasSeenTutorial: (value: boolean) => void;
   deleteAccount: () => Promise<void>;
   hasPermission: (permission: string) => boolean;
+  isOfflineEnabled: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -63,8 +65,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
   const [profile, setProfile] = useState<Profile | null>(null);
   const [hasSeenTutorial, setHasSeenTutorial] = useState<boolean>(false);
+  const [isOfflineEnabled, setIsOfflineEnabled] = useState<boolean>(false);
   const { toast } = useToast();
 
+  // Initialize offline storage
+  useEffect(() => {
+    const initOfflineSupport = async () => {
+      const isAvailable = offlineStorage.isAvailable();
+      setIsOfflineEnabled(isAvailable);
+      
+      if (isAvailable) {
+        console.log("Offline storage initialized");
+        
+        // If offline but we have cached profile, load it
+        if (!navigator.onLine && authState.user?.id) {
+          try {
+            const cachedProfile = await offlineStorage.profile.get(authState.user.id);
+            if (cachedProfile) {
+              console.log("Loading cached profile from offline storage");
+              setProfile(cachedProfile);
+              setHasSeenTutorial(!!cachedProfile.has_seen_tutorial);
+            }
+          } catch (error) {
+            console.error("Error loading cached profile:", error);
+          }
+        }
+      } else {
+        console.warn("IndexedDB is not available - offline mode disabled");
+      }
+    };
+    
+    initOfflineSupport();
+  }, []);
+
+  // Setup auth state change handler
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
@@ -104,26 +138,89 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  // Add online/offline sync event handlers
+  useEffect(() => {
+    const handleOnline = async () => {
+      console.log("App is back online - syncing data");
+      if (authState.user) {
+        try {
+          // Re-fetch profile data
+          await fetchProfile(authState.user.id);
+          
+          // Sync any pending changes
+          // This would be expanded for other data types
+          if (isOfflineEnabled) {
+            try {
+              // Call sync method from services
+              await import('@/services/contactService').then(module => {
+                return module.contactService.syncOfflineChanges();
+              });
+            } catch (error) {
+              console.error("Error syncing offline changes:", error);
+            }
+          }
+        } catch (error) {
+          console.error("Error syncing data after coming online:", error);
+        }
+      }
+    };
+
+    window.addEventListener('online', handleOnline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+    };
+  }, [authState.user, isOfflineEnabled]);
+
   const fetchProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) {
-        console.error('Error fetching profile:', error);
-        return;
-      }
-
-      setProfile(data);
-      
-      if (data?.has_seen_tutorial) {
-        setHasSeenTutorial(true);
+      if (navigator.onLine) {
+        // Online - fetch from API
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single();
+  
+        if (error) {
+          console.error('Error fetching profile:', error);
+          return;
+        }
+  
+        setProfile(data);
+        
+        if (data?.has_seen_tutorial) {
+          setHasSeenTutorial(true);
+        }
+        
+        // Cache profile for offline use
+        if (isOfflineEnabled && data) {
+          await offlineStorage.profile.save(data);
+        }
+      } else if (isOfflineEnabled) {
+        // Offline - try to load from cache
+        const cachedProfile = await offlineStorage.profile.get(userId);
+        if (cachedProfile) {
+          console.log("Loading profile from offline cache");
+          setProfile(cachedProfile);
+          setHasSeenTutorial(!!cachedProfile.has_seen_tutorial);
+        }
       }
     } catch (error) {
       console.error('Error in fetchProfile:', error);
+      // If online fetch fails, try offline cache as fallback
+      if (isOfflineEnabled) {
+        try {
+          const cachedProfile = await offlineStorage.profile.get(userId);
+          if (cachedProfile) {
+            console.log("Fallback to cached profile");
+            setProfile(cachedProfile);
+            setHasSeenTutorial(!!cachedProfile.has_seen_tutorial);
+          }
+        } catch (cacheError) {
+          console.error("Error loading cached profile:", cacheError);
+        }
+      }
     }
   };
 
@@ -224,8 +321,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       
-      // Clear any sensitive data from localStorage
+      // Clear any sensitive data from localStorage and IndexedDB
       localStorage.removeItem('lastRoute');
+      
+      // Clear offline data when signing out for security
+      if (isOfflineEnabled) {
+        try {
+          await offlineStorage.profile.clear();
+          await offlineStorage.contacts.clear();
+        } catch (error) {
+          console.error("Error clearing offline data:", error);
+        }
+      }
 
       toast({
         title: "Signed out",
@@ -322,24 +429,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update(sanitizedUpdates)
-        .eq('id', authState.user.id);
-
-      if (error) {
-        toast({
-          title: "Profile update failed",
-          description: handleError(error),
-          variant: "destructive",
-        });
-        throw error;
-      }
-
+      if (navigator.onLine) {
+        // Online update
+        const { error } = await supabase
+          .from('profiles')
+          .update(sanitizedUpdates)
+          .eq('id', authState.user.id);
+  
+        if (error) {
+          toast({
+            title: "Profile update failed",
+            description: handleError(error),
+            variant: "destructive",
+          });
+          throw error;
+        }
+      } 
+      
+      // Update the local state
       setProfile(prev => {
         if (!prev) return prev;
-        return { ...prev, ...sanitizedUpdates };
+        const updated = { ...prev, ...sanitizedUpdates };
+        
+        // Also update offline cache
+        if (isOfflineEnabled) {
+          offlineStorage.profile.save(updated)
+            .catch(err => console.error("Failed to cache profile update:", err));
+        }
+        
+        return updated;
       });
+
+      // If offline, queue the update for sync when back online
+      if (!navigator.onLine && isOfflineEnabled) {
+        await offlineStorage.sync.queue('update', 'profile', {
+          id: authState.user.id,
+          ...sanitizedUpdates
+        });
+      }
 
       toast({
         title: "Profile updated",
@@ -435,6 +562,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setHasSeenTutorial,
         deleteAccount,
         hasPermission,
+        isOfflineEnabled
       }}
     >
       {children}

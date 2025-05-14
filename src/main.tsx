@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 import { registerSW } from 'virtual:pwa-register'
+import { OfflineIndicator } from './components/ui/offline-indicator.tsx'
 
 // Register service worker with enhanced features
 const updateSW = registerSW({
@@ -13,6 +14,13 @@ const updateSW = registerSW({
   },
   onOfflineReady() {
     console.log('App ready to work offline')
+    // Show a toast notification that the app is ready for offline use
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('Circl App', {
+        body: 'App is ready to work offline',
+        icon: '/lovable-uploads/12af9685-d6d3-4f9d-87cf-0aa29d9c78f8.png'
+      });
+    }
   },
   onRegistered(registration) {
     // Setup background sync when registration is successful
@@ -22,10 +30,18 @@ const updateSW = registerSW({
       // Register for background sync if supported
       if ('sync' in registration) {
         console.log('Background sync supported')
-        // Register a sync event with a valid tag name (must be <= 15 characters)
+        // Register sync events for different data types
         registration.sync.register('sync-data')
           .then(() => console.log('Sync registered'))
           .catch(err => console.error('Sync registration failed:', err))
+        
+        registration.sync.register('sync-contacts')
+          .then(() => console.log('Contacts sync registered'))
+          .catch(err => console.error('Contacts sync registration failed:', err))
+          
+        registration.sync.register('sync-profile')
+          .then(() => console.log('Profile sync registered'))
+          .catch(err => console.error('Profile sync registration failed:', err))
       }
       
       // Register for push notifications if supported
@@ -53,6 +69,27 @@ const updateSW = registerSW({
           })
           .catch(err => console.warn('Periodic sync permission check failed:', err))
       }
+
+      // Listen for messages from the service worker
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data && event.data.type) {
+          console.log('Received message from service worker:', event.data);
+          
+          // Handle different message types
+          switch (event.data.type) {
+            case 'SYNC_COMPLETED':
+              console.log('Data sync completed:', event.data.message);
+              // Could dispatch an event or update state here
+              break;
+            case 'CONTACTS_SYNC_STARTED':
+              console.log('Contacts sync started');
+              break;
+            case 'PROFILE_SYNC_STARTED':
+              console.log('Profile sync started');
+              break;
+          }
+        }
+      });
     }
   },
   onRegisterError(error) {
@@ -88,4 +125,10 @@ if ('widgets' in window) {
   }).catch(e => console.warn('Widget registration failed:', e));
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+// Render the application with the offline indicator
+createRoot(document.getElementById("root")!).render(
+  <>
+    <App />
+    <OfflineIndicator />
+  </>
+);

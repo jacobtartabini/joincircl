@@ -1,9 +1,12 @@
+
 import { useMemo } from "react";
 import { Contact } from "@/types/contact";
 import { TabsContent } from "@/components/ui/tabs";
 import { ContactCard } from "@/components/ui/contact-card";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { CloudOff } from "lucide-react";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 
 interface CirclesTabContentProps {
   value: "all" | "inner" | "middle" | "outer";
@@ -32,6 +35,7 @@ export const CirclesTabContent = ({
   const safeSearchQuery = typeof searchQuery === 'string' ? searchQuery : '';
   
   const isMobile = useIsMobile();
+  const isOnline = useOnlineStatus();
   
   const filteredContacts = useMemo(() => {
     return safeContacts.filter(contact => {
@@ -61,6 +65,15 @@ export const CirclesTabContent = ({
   
   return (
     <TabsContent value={value} className="mt-4">
+      {!isOnline && (
+        <div className="mb-4 bg-amber-50 border border-amber-200 rounded-md p-3 flex items-center gap-2 text-amber-700">
+          <CloudOff size={16} />
+          <p className="text-sm">
+            You're currently in offline mode. Some features may be limited.
+          </p>
+        </div>
+      )}
+      
       {isLoading ? (
         <LoadingState />
       ) : filteredContacts.length > 0 ? (
@@ -70,6 +83,7 @@ export const CirclesTabContent = ({
           searchActive={safeSearchQuery !== ""} // Removed tag filter check
           circleType={value}
           onAddContact={onAddContact}
+          isOffline={!isOnline}
         />
       )}
     </TabsContent>
@@ -111,9 +125,10 @@ interface EmptyStateProps {
   searchActive: boolean;
   circleType: string;
   onAddContact: () => void;
+  isOffline?: boolean;
 }
 
-const EmptyState = ({ searchActive, circleType, onAddContact }: EmptyStateProps) => {
+const EmptyState = ({ searchActive, circleType, onAddContact, isOffline = false }: EmptyStateProps) => {
   const circleMessage = circleType === "all" ? "" : `${circleType} circle `;
   const isMobile = useIsMobile();
   
@@ -121,6 +136,11 @@ const EmptyState = ({ searchActive, circleType, onAddContact }: EmptyStateProps)
     <div className="text-center py-8 border rounded-md bg-muted/30">
       {searchActive ? (
         <p className="text-muted-foreground">No {circleMessage}contacts match your search criteria.</p>
+      ) : isOffline ? (
+        <div className="space-y-2">
+          <p className="text-muted-foreground">No {circleMessage}contacts available offline.</p>
+          <p className="text-sm text-muted-foreground">Your contacts will be accessible when you're back online.</p>
+        </div>
       ) : (
         <>
           <p className="text-muted-foreground">No {circleMessage}contacts yet.</p>

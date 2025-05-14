@@ -1,36 +1,93 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { Contact, Interaction } from "@/types/contact";
+import { offlineStorage } from "./offlineStorage";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 
 export const contactService = {
   async getContacts(): Promise<Contact[]> {
-    const { data, error } = await supabase
-      .from("contacts")
-      .select("*")
-      .order("name");
-
-    if (error) {
-      throw new Error(error.message);
+    try {
+      // Try to fetch from API first
+      if (navigator.onLine) {
+        const { data, error } = await supabase
+          .from("contacts")
+          .select("*")
+          .order("name");
+  
+        if (error) {
+          throw new Error(error.message);
+        }
+  
+        // Cache the data for offline use
+        if (data && data.length > 0) {
+          await offlineStorage.contacts.saveAll(data as Contact[]);
+        }
+        
+        return data as Contact[];
+      } else {
+        // Offline mode - get from local storage
+        console.log("Offline: Loading contacts from local storage");
+        const contacts = await offlineStorage.contacts.getAll();
+        return contacts;
+      }
+    } catch (error) {
+      console.error("Error in getContacts:", error);
+      
+      // If API call fails, try to load from local storage as fallback
+      try {
+        console.log("Falling back to local contacts data");
+        const contacts = await offlineStorage.contacts.getAll();
+        return contacts;
+      } catch (offlineError) {
+        console.error("Could not load contacts from offline storage:", offlineError);
+        return [];
+      }
     }
-
-    return data as Contact[];
   },
 
   async getContact(id: string): Promise<Contact> {
-    const { data, error } = await supabase
-      .from("contacts")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-    if (error) {
-      throw new Error(error.message);
+    try {
+      // Try API first if online
+      if (navigator.onLine) {
+        const { data, error } = await supabase
+          .from("contacts")
+          .select("*")
+          .eq("id", id)
+          .single();
+  
+        if (error) {
+          throw new Error(error.message);
+        }
+  
+        // Cache this contact
+        if (data) {
+          await offlineStorage.contacts.save(data);
+        }
+        
+        return data as Contact;
+      } else {
+        // Try to get from local storage
+        const contact = await offlineStorage.contacts.get(id);
+        if (!contact) {
+          throw new Error("Contact not found in offline storage");
+        }
+        return contact;
+      }
+    } catch (error) {
+      console.error("Error in getContact:", error);
+      
+      // Fallback to local storage
+      const contact = await offlineStorage.contacts.get(id);
+      if (!contact) {
+        throw new Error("Contact not found");
+      }
+      return contact;
     }
-
-    return data as Contact;
   },
 
   async getInteractionsByContactId(contactId: string): Promise<Interaction[]> {
+    // For now, interactions aren't cached offline
+    // Could be added in a future enhancement
     const { data, error } = await supabase
       .from("interactions")
       .select("*")
@@ -54,17 +111,41 @@ export const contactService = {
     // Format the birthday to a date string if it exists
     const formattedContact = { ...contact };
     
-    const { data, error } = await supabase
-      .from("contacts")
-      .insert([{ ...formattedContact, user_id: userSession.session.user.id }])
-      .select()
-      .single();
+    if (navigator.onLine) {
+      const { data, error } = await supabase
+        .from("contacts")
+        .insert([{ ...formattedContact, user_id: userSession.session.user.id }])
+        .select()
+        .single();
+  
+      if (error) {
+        throw new Error(error.message);
+      }
 
-    if (error) {
-      throw new Error(error.message);
+      // Cache the new contact
+      if (data) {
+        await offlineStorage.contacts.save(data);
+      }
+      
+      return data as Contact;
+    } else {
+      // Offline operation - queue for later sync
+      const tempContact = {
+        ...formattedContact,
+        id: `temp_${Date.now()}`,
+        user_id: userSession.session.user.id,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      } as Contact;
+      
+      // Save to local storage
+      await offlineStorage.contacts.save(tempContact);
+      
+      // Queue for sync when back online
+      await offlineStorage.sync.queue('create', 'contacts', tempContact);
+      
+      return tempContact;
     }
-
-    return data as Contact;
   },
 
   async updateContact(id: string, contact: Partial<Contact>): Promise<Contact> {
@@ -74,28 +155,67 @@ export const contactService = {
       contactToUpdate.last_contact = new Date(contact.last_contact).toISOString();
     }
 
-    const { data, error } = await supabase
-      .from("contacts")
-      .update(contactToUpdate)
-      .eq("id", id)
-      .select()
-      .single();
-
-    if (error) {
-      throw new Error(error.message);
+    if (navigator.onLine) {
+      const { data, error } = await supabase
+        .from("contacts")
+        .update(contactToUpdate)
+        .eq("id", id)
+        .select()
+        .single();
+  
+      if (error) {
+        throw new Error(error.message);
+      }
+      
+      // Update in local cache
+      if (data) {
+        await offlineStorage.contacts.save(data);
+      }
+      
+      return data as Contact;
+    } else {
+      // Offline update - get existing contact from storage
+      const existingContact = await offlineStorage.contacts.get(id);
+      if (!existingContact) {
+        throw new Error("Cannot update: Contact not found in offline storage");
+      }
+      
+      // Merge changes
+      const updatedContact = {
+        ...existingContact,
+        ...contactToUpdate,
+        updated_at: new Date().toISOString()
+      };
+      
+      // Save locally
+      await offlineStorage.contacts.save(updatedContact);
+      
+      // Queue for sync
+      await offlineStorage.sync.queue('update', 'contacts', updatedContact);
+      
+      return updatedContact;
     }
-
-    return data as Contact;
   },
 
   async deleteContact(id: string): Promise<void> {
-    const { error } = await supabase
-      .from("contacts")
-      .delete()
-      .eq("id", id);
-
-    if (error) {
-      throw new Error(error.message);
+    if (navigator.onLine) {
+      const { error } = await supabase
+        .from("contacts")
+        .delete()
+        .eq("id", id);
+  
+      if (error) {
+        throw new Error(error.message);
+      }
+      
+      // Remove from local storage as well
+      await offlineStorage.contacts.delete(id);
+    } else {
+      // Queue delete operation for when back online
+      await offlineStorage.sync.queue('delete', 'contacts', { id });
+      
+      // Remove from local storage immediately
+      await offlineStorage.contacts.delete(id);
     }
   },
 
@@ -106,6 +226,8 @@ export const contactService = {
       throw new Error("User not authenticated");
     }
     
+    // Interactions require online connectivity for now
+    // Could be enhanced to support offline in the future
     const { data, error } = await supabase
       .from("interactions")
       .insert([{ ...interaction, user_id: userSession.session.user.id }])
@@ -120,6 +242,7 @@ export const contactService = {
   },
 
   async deleteInteraction(id: string): Promise<void> {
+    // Interactions require online connectivity for now
     const { error } = await supabase
       .from("interactions")
       .delete()
@@ -127,6 +250,84 @@ export const contactService = {
 
     if (error) {
       throw new Error(error.message);
+    }
+  },
+  
+  // Sync offline changes when app comes back online
+  async syncOfflineChanges(): Promise<void> {
+    // Only attempt sync if online
+    if (!navigator.onLine) return;
+    
+    try {
+      // Get all pending sync operations
+      const pendingOps = await offlineStorage.sync.getPending();
+      
+      for (const op of pendingOps) {
+        try {
+          const { id, operation, storeName, data } = op;
+          
+          if (storeName === 'contacts') {
+            switch (operation) {
+              case 'create':
+                // Handle temp IDs
+                const tempId = data.id;
+                if (tempId.startsWith('temp_')) {
+                  delete data.id; // Let Supabase generate a real ID
+                }
+                
+                const { data: newData, error: createError } = await supabase
+                  .from("contacts")
+                  .insert([data])
+                  .select()
+                  .single();
+                
+                if (createError) throw createError;
+                
+                // Replace temp contact with real one
+                if (tempId.startsWith('temp_')) {
+                  await offlineStorage.contacts.delete(tempId);
+                  await offlineStorage.contacts.save(newData);
+                }
+                break;
+                
+              case 'update':
+                // Only send fields that should be updated
+                const { id: updateId, ...updateFields } = data;
+                
+                const { error: updateError } = await supabase
+                  .from("contacts")
+                  .update(updateFields)
+                  .eq("id", updateId);
+                  
+                if (updateError) throw updateError;
+                break;
+                
+              case 'delete':
+                const { error: deleteError } = await supabase
+                  .from("contacts")
+                  .delete()
+                  .eq("id", data.id);
+                  
+                if (deleteError) throw deleteError;
+                break;
+            }
+          }
+          
+          // Clear the sync operation once completed
+          await offlineStorage.sync.clearOp(id);
+          
+        } catch (opError) {
+          console.error(`Error syncing operation:`, op, opError);
+          // Continue with next operation even if this one failed
+        }
+      }
+      
+      // After sync is complete, refresh the contacts list
+      await this.getContacts();
+      
+    } catch (error) {
+      console.error("Error during sync operation:", error);
+      throw error;
     }
   }
 };
