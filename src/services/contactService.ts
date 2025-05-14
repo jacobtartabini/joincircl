@@ -20,10 +20,20 @@ export const contactService = {
   
         // Cache the data for offline use
         if (data && data.length > 0) {
-          await offlineStorage.contacts.saveAll(data as Contact[]);
+          // Ensure proper typing for circle property
+          const typedContacts = data.map(contact => ({
+            ...contact,
+            circle: contact.circle as "inner" | "middle" | "outer"
+          })) as Contact[];
+          
+          await offlineStorage.contacts.saveAll(typedContacts);
         }
         
-        return data as Contact[];
+        // Return typed contacts
+        return (data || []).map(contact => ({
+          ...contact,
+          circle: contact.circle as "inner" | "middle" | "outer"
+        })) as Contact[];
       } else {
         // Offline mode - get from local storage
         console.log("Offline: Loading contacts from local storage");
@@ -59,12 +69,21 @@ export const contactService = {
           throw new Error(error.message);
         }
   
-        // Cache this contact
+        // Cache this contact with proper typing
         if (data) {
-          await offlineStorage.contacts.save(data);
+          const typedContact = {
+            ...data,
+            circle: data.circle as "inner" | "middle" | "outer"
+          } as Contact;
+          
+          await offlineStorage.contacts.save(typedContact);
         }
         
-        return data as Contact;
+        // Return typed contact
+        return {
+          ...data,
+          circle: data.circle as "inner" | "middle" | "outer"
+        } as Contact;
       } else {
         // Try to get from local storage
         const contact = await offlineStorage.contacts.get(id);
@@ -122,12 +141,21 @@ export const contactService = {
         throw new Error(error.message);
       }
 
-      // Cache the new contact
+      // Cache the new contact with proper typing
       if (data) {
-        await offlineStorage.contacts.save(data);
+        const typedContact = {
+          ...data,
+          circle: data.circle as "inner" | "middle" | "outer"
+        } as Contact;
+        
+        await offlineStorage.contacts.save(typedContact);
       }
       
-      return data as Contact;
+      // Return typed contact
+      return {
+        ...data,
+        circle: data.circle as "inner" | "middle" | "outer"
+      } as Contact;
     } else {
       // Offline operation - queue for later sync
       const tempContact = {
@@ -167,12 +195,21 @@ export const contactService = {
         throw new Error(error.message);
       }
       
-      // Update in local cache
+      // Update in local cache with proper typing
       if (data) {
-        await offlineStorage.contacts.save(data);
+        const typedContact = {
+          ...data,
+          circle: data.circle as "inner" | "middle" | "outer"
+        } as Contact;
+        
+        await offlineStorage.contacts.save(typedContact);
       }
       
-      return data as Contact;
+      // Return typed contact
+      return {
+        ...data,
+        circle: data.circle as "inner" | "middle" | "outer"
+      } as Contact;
     } else {
       // Offline update - get existing contact from storage
       const existingContact = await offlineStorage.contacts.get(id);
@@ -283,10 +320,16 @@ export const contactService = {
                 
                 if (createError) throw createError;
                 
-                // Replace temp contact with real one
+                // Replace temp contact with real one with proper typing
                 if (tempId.startsWith('temp_')) {
                   await offlineStorage.contacts.delete(tempId);
-                  await offlineStorage.contacts.save(newData);
+                  
+                  const typedContact = {
+                    ...newData,
+                    circle: newData.circle as "inner" | "middle" | "outer"
+                  } as Contact;
+                  
+                  await offlineStorage.contacts.save(typedContact);
                 }
                 break;
                 
