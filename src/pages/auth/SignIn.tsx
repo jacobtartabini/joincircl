@@ -7,12 +7,10 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Navigate, Link, useNavigate } from "react-router-dom";
-import { Checkbox } from "@/components/ui/checkbox";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [keepSignedIn, setKeepSignedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const { signIn, signInWithGoogle, user } = useAuth();
@@ -59,7 +57,7 @@ export default function SignIn() {
 
     setIsLoading(true);
     try {
-      await signIn(email, password, keepSignedIn);
+      await signIn(email, password);
       navigate("/");
     } catch (error) {
       console.error("Error signing in:", error);
@@ -71,7 +69,7 @@ export default function SignIn() {
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
-      await signInWithGoogle(keepSignedIn);
+      await signInWithGoogle();
       // Note: The redirect to callback page is handled by Supabase OAuth flow
     } catch (error) {
       console.error("Error signing in with Google:", error);
@@ -127,17 +125,6 @@ export default function SignIn() {
                 disabled={isLoading}
                 required
               />
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="keep-signed-in" 
-                checked={keepSignedIn}
-                onCheckedChange={(checked) => setKeepSignedIn(checked === true)}
-              />
-              <Label htmlFor="keep-signed-in" className="text-sm">
-                Keep me signed in for 30 days
-              </Label>
             </div>
             
             <Button type="submit" className="w-full" disabled={isLoading}>

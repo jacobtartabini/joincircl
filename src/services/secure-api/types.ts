@@ -1,46 +1,42 @@
 
-import { SupabaseClient } from "@supabase/supabase-js";
+import { PostgrestError } from "@supabase/supabase-js";
 
-export type DataRecord = Record<string, any>;
-
-export interface UserOwnedRecord {
-  user_id: string;
-  [key: string]: any;
+// Updated interface to match the actual usage
+export interface SecureApiService {
+  fetch: <T>(table: string, options?: FetchOptions) => Promise<{ data: T[] | null; error: PostgrestError | null }>;
+  insert: <T>(table: string, data: T, options?: MutationOptions) => Promise<{ data: T | null; error: PostgrestError | null }>;
+  update: <T>(table: string, data: Partial<T>, options?: MutationOptions) => Promise<{ data: T | null; error: PostgrestError | null }>;
+  delete: (table: string, options: MutationOptions) => Promise<{ error: PostgrestError | null }>;
+  validateSession: () => Promise<boolean>;
+  extendSession: () => Promise<void>;
 }
 
-export type TableName = 
-  | "contacts"
-  | "profiles"
-  | "interactions"
-  | "keystones"
-  | "contact_media"
-  | "user_calendar_tokens";
-
 export interface FetchOptions {
-  filters?: Record<string, any>;
+  column?: string;
+  value?: any;
   limit?: number;
-  offset?: number;
-  page?: number;
-  pageSize?: number;
-  orderBy?: {
+  order?: {
     column: string;
     ascending?: boolean;
   };
+  select?: string;
+  filters?: Array<{
+    column: string;
+    operator: 'eq' | 'neq' | 'gt' | 'lt' | 'gte' | 'lte' | 'like' | 'ilike';
+    value: any;
+  }>;
 }
 
-export interface QueryResult<T> {
-  data: T[];
-  count: number;
-  error?: any;
+export interface MutationOptions {
+  column?: string;
+  value?: any;
+  filters?: Array<{
+    column: string;
+    operator: 'eq' | 'neq' | 'gt' | 'lt' | 'gte' | 'lte' | 'like' | 'ilike';
+    value: any;
+  }>;
+  returning?: boolean;
 }
 
-export interface SecureApiService {
-  fetch: <T extends DataRecord>(table: TableName, options?: FetchOptions) => Promise<QueryResult<T>>;
-}
-
-// Adding the missing SecureApiServiceOptions interface
-export interface SecureApiServiceOptions {
-  useCache?: boolean;
-  retries?: number;
-  timeout?: number;
-}
+// Alias for backward compatibility
+export type SecureApiServiceOptions = MutationOptions;

@@ -8,11 +8,11 @@ import { offlineStorage } from '@/services/offlineStorage';
 import { secureApiService } from '@/services/secure-api';
 
 interface AuthContextType extends AuthState {
-  signIn: (email: string, password: string, keepSignedIn?: boolean) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
-  signInWithGoogle: (keepSignedIn?: boolean) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   profile: Profile | null;
   updateProfile: (profile: Partial<Profile>) => Promise<void>;
   hasSeenTutorial: boolean;
@@ -224,7 +224,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signIn = async (email: string, password: string, keepSignedIn = false) => {
+  const signIn = async (email: string, password: string) => {
     // Sanitize inputs
     const sanitizedEmail = sanitizeInput(email.trim().toLowerCase());
     
@@ -251,11 +251,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           variant: "destructive",
         });
         throw error;
-      }
-
-      // If "keep me signed in" is selected, extend the session
-      if (keepSignedIn) {
-        await secureApiService.extendSession(true);
       }
 
       toast({
@@ -391,15 +386,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signInWithGoogle = async (keepSignedIn = false) => {
+  const signInWithGoogle = async () => {
     try {
-      // Store the keepSignedIn preference in localStorage to retrieve after OAuth redirect
-      if (keepSignedIn) {
-        localStorage.setItem('keepSignedIn', 'true');
-      } else {
-        localStorage.removeItem('keepSignedIn');
-      }
-      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {

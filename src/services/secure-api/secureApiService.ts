@@ -1,10 +1,9 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { deleteAdapter } from "./adapters/deleteAdapter";
 import { fetchAdapter } from "./adapters/fetchAdapter";
 import { insertAdapter } from "./adapters/insertAdapter";
 import { updateAdapter } from "./adapters/updateAdapter";
-import { SecureApiServiceOptions } from "./types";
+import { SecureApiService } from "./types";
 import { rateLimiter } from "./rateLimiting";
 import { validateRequest } from "./validators";
 
@@ -74,34 +73,28 @@ export const secureApiService = {
   },
 
   /**
-   * Extends session duration during sign in (when keep me signed in is selected)
-   * @param options Session configuration options
+   * Extends session duration (no longer used - keeping method signature for compatibility)
    * @returns Session setup result
    */
-  extendSession: async (keepMeSignedIn: boolean): Promise<void> => {
-    if (keepMeSignedIn) {
-      const extendedExpirySeconds = 60 * 60 * 24 * 30; // 30 days in seconds
-      
-      try {
-        // Get current session first
-        const { data } = await supabase.auth.getSession();
-        if (!data.session) {
-          console.error("No session found to extend");
-          return;
-        }
-        
-        // Update session expiry time using the correct method and properties
-        await supabase.auth.setSession({
-          refresh_token: data.session.refresh_token,
-          access_token: data.session.access_token
-          // Removed 'expires_in' as it's not a supported property in the type
-          // We're now relying on Supabase's session refresh mechanism
-        });
-        
-        console.log("Session extended to 30 days");
-      } catch (error) {
-        console.error("Error extending session:", error);
+  extendSession: async (): Promise<void> => {
+    // This method is no longer used for extending sessions
+    // Since "Keep me signed in" feature is removed
+    
+    try {
+      // Get current session first
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        console.error("No session found");
+        return;
       }
+      
+      // Use the proper method to refresh the session if needed
+      if (data.session) {
+        await supabase.auth.refreshSession();
+        console.log("Session refreshed");
+      }
+    } catch (error) {
+      console.error("Error with session:", error);
     }
   }
 };

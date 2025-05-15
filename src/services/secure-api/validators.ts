@@ -1,57 +1,65 @@
 
-import { FetchOptions } from "./types";
+import { supabase } from "@/integrations/supabase/client";
 
-// Export validateRequest function to fix the import error
-export function validateRequest(resource: string, action: string): boolean {
-  // Simple request validator that can be expanded
-  return true; // Allow by default
-}
-
-export function validateQueryParams(options: FetchOptions = {}): void {
-  // Validate limit
-  if (options.limit !== undefined && (typeof options.limit !== 'number' || options.limit <= 0)) {
-    throw new Error("Limit must be a positive number");
+/**
+ * Validates request parameters to prevent injection attacks
+ * @param params Parameters to validate
+ * @returns True if valid, false otherwise
+ */
+export const validateRequest = (params: any): boolean => {
+  // Check for null or undefined
+  if (!params) {
+    console.error("Invalid request: parameters are null or undefined");
+    return false;
   }
-
-  // Validate offset
-  if (options.offset !== undefined && (typeof options.offset !== 'number' || options.offset < 0)) {
-    throw new Error("Offset must be a non-negative number");
-  }
-
-  // Validate pagination
-  if (options.page !== undefined && (typeof options.page !== 'number' || options.page <= 0)) {
-    throw new Error("Page must be a positive number");
-  }
-
-  if (options.pageSize !== undefined && (typeof options.pageSize !== 'number' || options.pageSize <= 0)) {
-    throw new Error("Page size must be a positive number");
-  }
-
-  // Validate orderBy
-  if (options.orderBy && !options.orderBy.column) {
-    throw new Error("Order by column must be specified");
-  }
-}
-
-export function isValidUuid(id: string): boolean {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  return uuidRegex.test(id);
-}
-
-export function validateOwnership(resourceUserId: string, requestUserId: string): boolean {
-  return resourceUserId === requestUserId;
-}
-
-export function sanitizeDataObject(data: Record<string, any>): Record<string, any> {
-  const sanitized = { ...data };
   
-  // Basic input sanitization for string values
-  Object.keys(sanitized).forEach(key => {
-    if (typeof sanitized[key] === 'string') {
-      // Trim strings and convert empty strings to null
-      sanitized[key] = sanitized[key].trim() || null;
+  // Check for SQL injection attempts in string values
+  if (typeof params === "string") {
+    const sqlInjectionPattern = /('|"|;|--|\/\*|\*\/|@@|@|char|nchar|varchar|nvarchar|alter|begin|cast|create|cursor|declare|delete|drop|end|exec|execute|fetch|insert|kill|open|select|sys|sysobjects|syscolumns|table|update|values|xp_)/i;
+    if (sqlInjectionPattern.test(params)) {
+      console.error("Invalid request: potential SQL injection detected");
+      return false;
     }
-  });
+  }
   
-  return sanitized;
-}
+  // For objects, validate each property
+  if (typeof params === "object" && params !== null) {
+    for (const key in params) {
+      if (Object.prototype.hasOwnProperty.call(params, key)) {
+        if (!validateRequest(params[key])) {
+          return false;
+        }
+      }
+    }
+  }
+  
+  return true;
+};
+
+/**
+ * Validates that the user has appropriate permissions for a resource
+ * @param resourceType The type of resource being accessed
+ * @param action The action being performed (read, create, update, delete)
+ * @returns Promise resolving to true if authorized, false otherwise
+ */
+export const validatePermission = async (
+  resourceType: string, 
+  action: 'read' | 'create' | 'update' | 'delete'
+): Promise<boolean> => {
+  try {
+    const { data: session } = await supabase.auth.getSession();
+    if (!session.session) {
+      console.error("Permission denied: No active session");
+      return false;
+    }
+    
+    // This is a simplified permission check
+    // In a real application, you would check against a roles/permissions system
+    
+    // For now, all authenticated users have basic permissions
+    return true;
+  } catch (error) {
+    console.error("Error validating permissions:", error);
+    return false;
+  }
+};

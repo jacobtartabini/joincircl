@@ -1,7 +1,7 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { secureApiService } from "@/services/secure-api";
 
 export default function CallbackPage() {
   const [error, setError] = useState<string | null>(null);
@@ -16,15 +16,6 @@ export default function CallbackPage() {
         if (error) {
           setError(error.message);
           return;
-        }
-
-        // Check if user selected "keep me signed in" before OAuth redirect
-        const keepSignedIn = localStorage.getItem('keepSignedIn') === 'true';
-        
-        // Apply extended session if keep me signed in was selected
-        if (keepSignedIn) {
-          await secureApiService.extendSession(true);
-          localStorage.removeItem('keepSignedIn'); // Clean up
         }
 
         // Navigate to the home page or a redirect URL if there was one
