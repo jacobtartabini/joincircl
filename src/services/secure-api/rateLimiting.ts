@@ -73,3 +73,29 @@ class RateLimiter {
 
 // Export singleton instance
 export const rateLimiter = new RateLimiter();
+
+// Create specific rate limiter instances for different services
+export const contactsRateLimiter = new RateLimiter(15, 60); // 15 requests per minute for contacts
+
+/**
+ * Apply rate limiting to a request
+ * @param limiter The rate limiter to use
+ * @param identifier Unique identifier for the requester
+ * @throws Error if rate limited
+ */
+export const checkRateLimit = (limiter: RateLimiter, identifier: string): void => {
+  if (!limiter.allowRequest(identifier)) {
+    throw new Error("Rate limit exceeded. Please try again later.");
+  }
+};
+
+/**
+ * Apply rate limiting with custom parameters
+ * This is used by the fetchAdapter for paginated queries
+ */
+export const applyRateLimiting = (userId: string, costFactor = 1): void => {
+  // Use contacts rate limiter by default
+  if (!contactsRateLimiter.allowRequest(`${userId}-query-${costFactor}`)) {
+    throw new Error("Query rate limit exceeded. Please try again later.");
+  }
+};

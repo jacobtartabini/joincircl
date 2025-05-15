@@ -54,7 +54,7 @@ export const secureApiService = {
         if (expiresAtMs < oneHourFromNow) {
           console.log("Session will expire soon, refreshing...");
           // Refresh session
-          const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+          const { error: refreshError } = await supabase.auth.refreshSession();
           
           if (refreshError) {
             console.error("Failed to refresh session:", refreshError);
@@ -77,22 +77,17 @@ export const secureApiService = {
    * @returns Session setup result
    */
   extendSession: async (): Promise<void> => {
-    // This method is no longer used for extending sessions
-    // Since "Keep me signed in" feature is removed
-    
+    // We're removing the "Keep me signed in" feature, so this method is simplified
     try {
-      // Get current session first
+      // Just check the current session
       const { data } = await supabase.auth.getSession();
       if (!data.session) {
         console.error("No session found");
         return;
       }
       
-      // Use the proper method to refresh the session if needed
-      if (data.session) {
-        await supabase.auth.refreshSession();
-        console.log("Session refreshed");
-      }
+      // We'll still refresh the session if needed
+      await supabase.auth.refreshSession();
     } catch (error) {
       console.error("Error with session:", error);
     }

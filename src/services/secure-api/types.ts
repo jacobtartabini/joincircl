@@ -11,13 +11,26 @@ export interface SecureApiService {
   extendSession: () => Promise<void>;
 }
 
+// Basic types for tables and records
+export type TableName = string;
+export type DataRecord = Record<string, any>;
+export type UserOwnedRecord = DataRecord & { user_id: string };
+export type QueryResult<T> = { data: T[] | null; error: PostgrestError | null };
+
 export interface FetchOptions {
   column?: string;
   value?: any;
   limit?: number;
+  offset?: number; // Added for pagination support
+  page?: number;    // Added for pagination support
+  pageSize?: number; // Added for pagination support
   order?: {
     column: string;
     ascending?: boolean;
+  };
+  orderBy?: {      // Alternative format for ordering
+    column: string;
+    direction?: 'asc' | 'desc';
   };
   select?: string;
   filters?: Array<{
