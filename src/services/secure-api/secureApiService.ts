@@ -27,13 +27,13 @@ export const secureApiService = {
   insert: async function<T>(table: TableName, data: T, options: MutationOptions = {}) {
     validateRequestParams(table, options);
     
-    const session = await supabase.auth.getSession();
-    if (!session.data.session?.user.id) {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user?.id) {
       return { data: null, error: new Error('User not authenticated') };
     }
     
     try {
-      const result = await insertAdapter.insertData(table, session.data.session.user.id, data);
+      const result = await insertAdapter.insertData(table, session.user.id, data);
       return { data: result, error: null };
     } catch (error: any) {
       return { data: null, error };
@@ -51,13 +51,13 @@ export const secureApiService = {
     }
     
     const id = options.value;
-    const session = await supabase.auth.getSession();
-    if (!session.data.session?.user.id) {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user?.id) {
       return { data: null, error: new Error('User not authenticated') };
     }
     
     try {
-      const result = await updateAdapter.updateData(table, session.data.session.user.id, id as string, data);
+      const result = await updateAdapter.updateData(table, session.user.id, id as string, data);
       return { data: result, error: null };
     } catch (error: any) {
       return { data: null, error };
@@ -75,13 +75,13 @@ export const secureApiService = {
     }
     
     const id = options.value;
-    const session = await supabase.auth.getSession();
-    if (!session.data.session?.user.id) {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user?.id) {
       return { error: new Error('User not authenticated') };
     }
     
     try {
-      await deleteAdapter.deleteData(table, session.data.session.user.id, id as string);
+      await deleteAdapter.deleteData(table, session.user.id, id as string);
       return { error: null };
     } catch (error: any) {
       return { error };
@@ -110,14 +110,15 @@ export const secureApiService = {
         if (expiresAtMs < oneHourFromNow) {
           console.log("Session will expire soon, refreshing...");
           // Refresh session
-          const { error: refreshError } = await supabase.auth.refreshSession();
+          const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
           
           if (refreshError) {
             console.error("Failed to refresh session:", refreshError);
             return false;
           }
           
-          console.log("Session refreshed successfully");
+          console.log("Session refreshed successfully:", !!refreshData.session);
+          return !!refreshData.session;
         }
       }
       
@@ -129,22 +130,31 @@ export const secureApiService = {
   },
 
   /**
-   * Extends session duration (simplified implementation without "Keep me signed in" feature)
-   * @returns Session setup result
+   * Extends session duration
+   * @returns A Promise that resolves when the session is extended
    */
   extendSession: async (): Promise<void> => {
     try {
-      // Just check the current session
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) {
-        console.error("No session found");
+      // Check the current session
+      const { data, error } = await supabase.auth.getSession();
+      if (error || !data.session) {
+        console.error("No session found or error:", error);
         return;
       }
       
-      // We'll still refresh the session if needed
-      await supabase.auth.refreshSession();
+      console.log("Extending session");
+      
+      // Refresh the session
+      const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+      
+      if (refreshError) {
+        console.error("Error refreshing session:", refreshError);
+        return;
+      }
+      
+      console.log("Session successfully extended:", !!refreshData.session);
     } catch (error) {
-      console.error("Error with session:", error);
+      console.error("Error with session extension:", error);
     }
   }
 };

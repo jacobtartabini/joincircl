@@ -6,30 +6,35 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Navigate, Link, useNavigate } from "react-router-dom";
+import { Navigate, Link, useNavigate, useLocation } from "react-router-dom";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  const { signIn, signInWithGoogle, user } = useAuth();
+  const { signIn, signInWithGoogle, user, session } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-
+  const location = useLocation();
+  
+  // Get redirect path from location state or default to home
+  const redirectPath = location.state?.from || "/";
+  
   // Check if user is already authenticated on mount
   useEffect(() => {
     const checkAuthStatus = async () => {
-      // User state from context is sufficient
+      console.log("Checking auth status, user:", !!user, "session:", !!session);
       setIsCheckingAuth(false);
     };
     
     checkAuthStatus();
-  }, []);
+  }, [user, session]);
 
-  // If user is already signed in, redirect to the home page
-  if (user) {
-    return <Navigate to="/" replace />;
+  // If user is already signed in, redirect to the intended page or home
+  if (user && session) {
+    console.log("User already authenticated, redirecting to:", redirectPath);
+    return <Navigate to={redirectPath} replace />;
   }
 
   // Show loading while checking authentication status
@@ -57,11 +62,14 @@ export default function SignIn() {
 
     setIsLoading(true);
     try {
+      console.log("Signing in with email:", email);
       await signIn(email, password);
-      navigate("/");
+      
+      // After successful sign-in, redirect to the intended page or home
+      console.log("Sign in successful, redirecting to:", redirectPath);
+      navigate(redirectPath);
     } catch (error) {
       console.error("Error signing in:", error);
-    } finally {
       setIsLoading(false);
     }
   };
@@ -69,6 +77,7 @@ export default function SignIn() {
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
+      console.log("Signing in with Google");
       await signInWithGoogle();
       // Note: The redirect to callback page is handled by Supabase OAuth flow
     } catch (error) {

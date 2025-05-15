@@ -5,27 +5,48 @@ import { supabase } from "@/integrations/supabase/client";
 
 export default function CallbackPage() {
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     const handleCallback = async () => {
       try {
+        console.log("Processing OAuth callback");
+        setLoading(true);
+        
         // Process the OAuth callback
-        const { error } = await supabase.auth.getSession();
+        const { data, error } = await supabase.auth.getSession();
         
         if (error) {
+          console.error("Auth callback error:", error);
           setError(error.message);
+          setLoading(false);
           return;
         }
 
+        if (!data.session) {
+          console.error("No session found in callback");
+          setError("Authentication failed. Please try again.");
+          setLoading(false);
+          return;
+        }
+
+        console.log("Auth callback successful, session found:", !!data.session);
+        
         // Navigate to the home page or a redirect URL if there was one
         const redirectTo = localStorage.getItem('authRedirectPath') || '/';
         localStorage.removeItem('authRedirectPath'); // Clean up
-        navigate(redirectTo, { replace: true });
+        
+        // Short delay to ensure auth state is updated everywhere
+        setTimeout(() => {
+          setLoading(false);
+          navigate(redirectTo, { replace: true });
+        }, 500);
         
       } catch (err: any) {
         console.error("Error during OAuth callback:", err);
         setError(err.message || "An unknown error occurred during sign in");
+        setLoading(false);
       }
     };
 
@@ -53,7 +74,7 @@ export default function CallbackPage() {
     <div className="flex min-h-screen items-center justify-center p-4">
       <div className="text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
-        <p>Completing sign in...</p>
+        <p>{loading ? "Completing sign in..." : "Redirecting..."}</p>
       </div>
     </div>
   );
