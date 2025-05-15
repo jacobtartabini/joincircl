@@ -1,101 +1,87 @@
 
-// Simple rate limiting implementation for API calls
+import { RateLimiter, RateLimiterConfig } from "./types";
 
-interface RateLimitInfo {
-  count: number;
-  resetTime: number;
-}
+// Configure rate limits for various operations
+const DEFAULT_RATE_LIMIT: RateLimiterConfig = {
+  maxRequests: 100,  // Max requests per window
+  windowMs: 60000    // Window size in milliseconds (1 minute)
+};
 
-class RateLimiter {
-  private requestLimits: Map<string, RateLimitInfo> = new Map();
-  private readonly maxRequests: number;
-  private readonly windowMs: number;
+// Rate limiters for different operations
+export const contactsRateLimiter: RateLimiter = {};
+export const authRateLimiter: RateLimiter = {};
+export const userRateLimiter: RateLimiter = {};
 
-  constructor(maxRequests = 10, windowSeconds = 60) {
-    this.maxRequests = maxRequests;
-    this.windowMs = windowSeconds * 1000;
-  }
+// Pre-defined rate limiters for specific operations
+const createContactLimit: RateLimiterConfig = {
+  maxRequests: 20,  // Allow 20 contact creations
+  windowMs: 60000   // Per minute
+};
 
-  /**
-   * Check if a request should be allowed under rate limits
-   * @param identifier Unique identifier for the requester (e.g., user ID, IP)
-   * @returns True if request is allowed, false if rate limited
-   */
-  public allowRequest(identifier: string): boolean {
-    const now = Date.now();
-    const info = this.requestLimits.get(identifier);
+const deleteContactLimit: RateLimiterConfig = {
+  maxRequests: 10,  // Allow 10 contact deletions
+  windowMs: 60000   // Per minute
+};
 
-    // First request from this identifier
-    if (!info) {
-      this.requestLimits.set(identifier, {
-        count: 1,
-        resetTime: now + this.windowMs,
-      });
-      return true;
-    }
-
-    // Reset if window has passed
-    if (now > info.resetTime) {
-      this.requestLimits.set(identifier, {
-        count: 1,
-        resetTime: now + this.windowMs,
-      });
-      return true;
-    }
-
-    // Check if under limit
-    if (info.count < this.maxRequests) {
-      info.count++;
-      this.requestLimits.set(identifier, info);
-      return true;
-    }
-
-    // Rate limited
-    return false;
+// Generic rate limiting function
+export function applyRateLimiting(
+  operation: string = "generic",
+  userId: string = "anonymous"
+): void {
+  const key = `${userId}:${operation}`;
+  const now = Date.now();
+  
+  // Use specific rate limiter based on operation
+  let rateLimiter = contactsRateLimiter;
+  let config = DEFAULT_RATE_LIMIT;
+  
+  // Special case configurations
+  if (operation === 'create_contact') {
+    config = createContactLimit;
+  } else if (operation === 'delete_contact') {
+    config = deleteContactLimit;
+  } else if (operation.includes('auth')) {
+    rateLimiter = authRateLimiter;
+  } else if (operation.includes('user')) {
+    rateLimiter = userRateLimiter;
   }
   
-  /**
-   * Get remaining requests for an identifier
-   * @param identifier Unique identifier
-   * @returns Number of remaining requests, or max if not found
-   */
-  public getRemainingRequests(identifier: string): number {
-    const now = Date.now();
-    const info = this.requestLimits.get(identifier);
-    
-    if (!info || now > info.resetTime) {
-      return this.maxRequests;
-    }
-    
-    return Math.max(0, this.maxRequests - info.count);
+  // Get current rate limiting data
+  const data = rateLimiter[key] || { count: 0, resetTime: now + config.windowMs };
+  
+  // Reset if window expired
+  if (now > data.resetTime) {
+    data.count = 1;
+    data.resetTime = now + config.windowMs;
+  } else {
+    data.count++;
+  }
+  
+  // Save updated data
+  rateLimiter[key] = data;
+  
+  // Check if rate limit exceeded
+  if (data.count > config.maxRequests) {
+    const retryAfter = Math.ceil((data.resetTime - now) / 1000);
+    throw new Error(`Rate limit exceeded. Please try again in ${retryAfter} seconds.`);
   }
 }
 
-// Export singleton instance
-export const rateLimiter = new RateLimiter();
-
-// Create specific rate limiter instances for different services
-export const contactsRateLimiter = new RateLimiter(15, 60); // 15 requests per minute for contacts
-
-/**
- * Apply rate limiting to a request
- * @param limiter The rate limiter to use
- * @param identifier Unique identifier for the requester
- * @throws Error if rate limited
- */
-export const checkRateLimit = (limiter: RateLimiter, identifier: string): void => {
-  if (!limiter.allowRequest(identifier)) {
-    throw new Error("Rate limit exceeded. Please try again later.");
+// Helper function that checks rate limit without incrementing
+export function checkRateLimit(rateLimiter: RateLimiter, userId: string, operation: string = "generic"): void {
+  const key = `${userId}:${operation}`;
+  const now = Date.now();
+  const data = rateLimiter[key];
+  
+  // If no data exists or window has expired, no limit is being hit
+  if (!data || now > data.resetTime) {
+    return;
   }
-};
-
-/**
- * Apply rate limiting with custom parameters
- * This is used by the fetchAdapter for paginated queries
- */
-export const applyRateLimiting = (userId: string, costFactor = 1): void => {
-  // Use contacts rate limiter by default
-  if (!contactsRateLimiter.allowRequest(`${userId}-query-${costFactor}`)) {
-    throw new Error("Query rate limit exceeded. Please try again later.");
+  
+  // Check if rate limit exceeded
+  const config = DEFAULT_RATE_LIMIT; // Default config, can be made more specific
+  if (data.count > config.maxRequests) {
+    const retryAfter = Math.ceil((data.resetTime - now) / 1000);
+    throw new Error(`Rate limit exceeded. Please try again in ${retryAfter} seconds.`);
   }
-};
+}

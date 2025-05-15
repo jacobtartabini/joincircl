@@ -2,7 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { TableName, UserOwnedRecord } from "../types";
 import { isValidUuid, validateOwnership } from "../validators";
-import { checkRateLimit } from "../rateLimiting";
+import { applyRateLimiting } from "../rateLimiting";
 import { contactsRateLimiter } from "../rateLimiting";
 import { handleDataOperationError } from "../errorHandling";
 
@@ -19,7 +19,7 @@ export const deleteAdapter = {
    */
   async deleteData(table: TableName, userId: string, id: string): Promise<boolean> {
     // Apply rate limiting
-    checkRateLimit(contactsRateLimiter, userId);
+    applyRateLimiting("delete", userId);
     
     // Safe ID validation (UUID format)
     if (!isValidUuid(id)) {

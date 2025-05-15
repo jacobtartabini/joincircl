@@ -49,6 +49,20 @@ export const handleDataOperationError = (operation: string, table: string, error
 };
 
 /**
+ * Handles API errors in a secure way for query operations
+ * @param error The error object from the API
+ * @returns Standardized error response
+ */
+export const handleApiError = <T extends DataRecord>(error: any): QueryResult<T> => {
+  console.error("API Error:", error);
+  
+  return {
+    data: null,
+    error: typeof error === 'object' ? error : new Error(String(error))
+  };
+};
+
+/**
  * Transforms a Supabase query result to a standard format
  * @param result The query result from Supabase
  * @returns Standardized result format
@@ -57,3 +71,4 @@ export const transformQueryResult = <T extends DataRecord>(result: QueryResult<T
   // This can be expanded to standardize results across different providers
   return result;
 };
+

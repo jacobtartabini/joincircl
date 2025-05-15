@@ -2,8 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { TableName, DataRecord, UserOwnedRecord } from "../types";
 import { isValidUuid, sanitizeDataObject, validateOwnership } from "../validators";
-import { checkRateLimit } from "../rateLimiting";
-import { contactsRateLimiter } from "../rateLimiting";
+import { applyRateLimiting } from "../rateLimiting";
 import { handleDataOperationError } from "../errorHandling";
 
 // Simple type for records
@@ -23,7 +22,7 @@ export const updateAdapter = {
    */
   async updateData<T extends DataRecord>(table: TableName, userId: string, id: string, data: AnyRecord): Promise<T> {
     // Apply rate limiting
-    checkRateLimit(contactsRateLimiter, userId);
+    applyRateLimiting("update", userId);
     
     // Safe ID validation (UUID format)
     if (!isValidUuid(id)) {
