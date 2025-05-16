@@ -1,5 +1,5 @@
 
-import { useState, ChangeEvent } from "react";
+import { useState, ChangeEvent, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import { offlineStorage } from "@/services/offlineStorage";
 
 const ProfileTab = () => {
   const { toast } = useToast();
@@ -18,8 +19,33 @@ const ProfileTab = () => {
   const [bio, setBio] = useState(profile?.bio || "");
   const [phoneNumber, setPhoneNumber] = useState(profile?.phone_number || "");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(profile?.avatar_url || null);
+  const [localAvatarUrl, setLocalAvatarUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Check for locally cached avatar image when offline
+  useEffect(() => {
+    const loadCachedProfileImage = async () => {
+      if (!user) return;
+      
+      // If we have an avatar URL but are offline, try to load from cache
+      if (profile?.avatar_url && !navigator.onLine) {
+        try {
+          const cachedImage = await offlineStorage.profileImage.get(user.id);
+          if (cachedImage) {
+            const imageUrl = URL.createObjectURL(cachedImage);
+            setLocalAvatarUrl(imageUrl);
+          }
+        } catch (error) {
+          console.error("Error loading cached profile image:", error);
+        }
+      } else {
+        setLocalAvatarUrl(null);
+      }
+    };
+    
+    loadCachedProfileImage();
+  }, [user, profile?.avatar_url]);
 
   const handleSaveProfile = async () => {
     if (!user) return;
@@ -94,6 +120,9 @@ const ProfileTab = () => {
         .getPublicUrl(filePath);
 
       if (data?.publicUrl) {
+        // Also cache the image for offline use
+        await offlineStorage.profileImage.save(user.id, file);
+        
         // Update user profile with new avatar URL
         await updateProfile({ avatar_url: data.publicUrl });
         setAvatarUrl(data.publicUrl);
@@ -115,6 +144,9 @@ const ProfileTab = () => {
     }
   };
 
+  // Choose avatar URL source based on online status and availability
+  const displayAvatarUrl = localAvatarUrl || avatarUrl || '';
+
   return (
     <Card>
       <CardHeader>
@@ -126,7 +158,7 @@ const ProfileTab = () => {
       <CardContent className="space-y-4">
         <div className="flex flex-col items-start gap-2 mb-4">
           <Avatar className="w-20 h-20">
-            <AvatarImage src={avatarUrl || ''} />
+            <AvatarImage src={displayAvatarUrl} />
             <AvatarFallback className="text-lg">
               {name ? name.charAt(0).toUpperCase() : "?"}
             </AvatarFallback>
@@ -144,12 +176,12 @@ const ProfileTab = () => {
                 variant="outline" 
                 size="sm" 
                 className="cursor-pointer flex items-center gap-1 mt-2" 
-                disabled={uploading}
+                disabled={uploading || !navigator.onLine}
                 asChild
               >
                 <span>
                   <Upload size={16} className="mr-1" />
-                  {uploading ? "Uploading..." : "Upload Photo"}
+                  {uploading ? "Uploading..." : !navigator.onLine ? "Need to be online" : "Upload Photo"}
                 </span>
               </Button>
             </label>

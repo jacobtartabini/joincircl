@@ -1,3 +1,4 @@
+
 import { Contact } from "@/types/contact";
 import { Profile } from "@/types/auth";
 import { Keystone } from "@/types/keystone";
@@ -11,7 +12,8 @@ const STORES = {
   CONTACTS: "contacts",
   SYNC_QUEUE: "syncQueue",
   KEYSTONES: "keystones",
-  INTERACTIONS: "interactions"
+  INTERACTIONS: "interactions",
+  PROFILE_IMAGES: "profileImages" // Add new store for profile images
 };
 
 // Initialize the database
@@ -49,13 +51,18 @@ const initDB = (): Promise<IDBDatabase> => {
         syncStore.createIndex("timestamp", "timestamp", { unique: false });
       }
       
-      // Add new stores for keystones and interactions
+      // Add stores for keystones and interactions
       if (!db.objectStoreNames.contains(STORES.KEYSTONES)) {
         db.createObjectStore(STORES.KEYSTONES, { keyPath: "id" });
       }
       
       if (!db.objectStoreNames.contains(STORES.INTERACTIONS)) {
         db.createObjectStore(STORES.INTERACTIONS, { keyPath: "id" });
+      }
+      
+      // Add new store for profile images
+      if (!db.objectStoreNames.contains(STORES.PROFILE_IMAGES)) {
+        db.createObjectStore(STORES.PROFILE_IMAGES, { keyPath: "userId" });
       }
     };
   });
@@ -185,9 +192,22 @@ const clearProfile = async (): Promise<void> => {
   return await clearStore(STORES.PROFILE);
 };
 
-// Add the missing deleteProfile function
 const deleteProfile = async (id: string): Promise<void> => {
   return await deleteItem(STORES.PROFILE, id);
+};
+
+// Profile image cache functions
+const saveProfileImage = async (userId: string, imageBlob: Blob): Promise<void> => {
+  return await addItem(STORES.PROFILE_IMAGES, { userId, imageBlob });
+};
+
+const getProfileImage = async (userId: string): Promise<Blob | null> => {
+  const result = await getItem<{userId: string, imageBlob: Blob}>(STORES.PROFILE_IMAGES, userId);
+  return result ? result.imageBlob : null;
+};
+
+const deleteProfileImage = async (userId: string): Promise<void> => {
+  return await deleteItem(STORES.PROFILE_IMAGES, userId);
 };
 
 // Contact specific functions
@@ -212,7 +232,6 @@ const saveContacts = async (contacts: Contact[]): Promise<Contact[]> => {
   });
 };
 
-// Add the missing saveContact function
 const saveContact = async (contact: Contact): Promise<Contact> => {
   return await addItem(STORES.CONTACTS, contact);
 };
@@ -317,6 +336,11 @@ export const offlineStorage = {
     get: getProfile,
     clear: clearProfile,
     delete: deleteProfile
+  },
+  profileImage: {
+    save: saveProfileImage,
+    get: getProfileImage,
+    delete: deleteProfileImage
   },
   contacts: {
     save: saveContact,

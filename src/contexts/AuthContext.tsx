@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -30,6 +31,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [hasSeenTutorial, setHasSeenTutorial] = useState<boolean>(false);
 
+  // Function to cache profile image
+  const cacheProfileImage = async (imageUrl: string, userId: string) => {
+    if (!imageUrl) return;
+    
+    try {
+      // Fetch the image and store as blob
+      const response = await fetch(imageUrl);
+      if (!response.ok) {
+        console.error('Failed to fetch profile image for caching');
+        return;
+      }
+      
+      const imageBlob = await response.blob();
+      await offlineStorage.profileImage.save(userId, imageBlob);
+      console.log('Profile image cached successfully');
+    } catch (error) {
+      console.error('Error caching profile image:', error);
+    }
+  };
+
   // Function to fetch and cache user profile
   const fetchAndCacheProfile = async (userId: string) => {
     try {
@@ -44,6 +65,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.log('Found profile in offline storage:', cachedProfile);
           setProfile(cachedProfile);
           setHasSeenTutorial(cachedProfile.has_seen_tutorial || false);
+          
+          // If we have an avatar URL, check if we have the image cached
+          if (cachedProfile.avatar_url) {
+            // Cache the profile image if we're online
+            if (navigator.onLine) {
+              cacheProfileImage(cachedProfile.avatar_url, userId);
+            }
+          }
         }
       } catch (cacheError) {
         console.error('Error checking cache for profile:', cacheError);
@@ -72,6 +101,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Cache profile for offline use
           await offlineStorage.profile.save(data);
           console.log('Updated profile cache with latest data');
+          
+          // Cache profile image if it exists
+          if (data.avatar_url) {
+            cacheProfileImage(data.avatar_url, userId);
+          }
         }
       } else {
         // If offline and we found a cached profile earlier, we're good
@@ -169,6 +203,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Cache the updated profile
       await offlineStorage.profile.save(updatedProfile);
+      
+      // If avatar URL is updated, cache the new image
+      if (updates.avatar_url && navigator.onLine) {
+        cacheProfileImage(updates.avatar_url, user.id);
+      }
     }
     
     // Then if online, update the database
@@ -234,6 +273,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Remove from offline storage
       await offlineStorage.profile.delete(user.id);
+      await offlineStorage.profileImage.delete(user.id);
     } catch (error) {
       console.error("Error deleting account:", error);
       throw error;
