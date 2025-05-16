@@ -134,15 +134,13 @@ export const FilterPopover = ({
               : `Select ${getActiveFilterLabel()}`}
           </div>
           
-          {/* Using a fixed empty component structure for CommandGroup to prevent rendering issues */}
           <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
             No {activeFilterTab} found.
           </CommandEmpty>
 
-          {/* Fixed rendering of CommandGroup to prevent undefined is not iterable error */}
-          <CommandGroup className="max-h-64 overflow-auto">
-            {safeAvailableOptions.length > 0 ? (
-              safeAvailableOptions.map((option, index) => {
+          {safeAvailableOptions.length > 0 ? (
+            <CommandGroup className="max-h-64 overflow-auto">
+              {safeAvailableOptions.map((option, index) => {
                 // Ensure value is always a string and never undefined
                 const safeOption = typeof option === 'string' ? option : `option-${index}`;
                 
@@ -159,16 +157,15 @@ export const FilterPopover = ({
                     {safeOption}
                   </CommandItem>
                 );
-              })
-            ) : (
-              // Always render at least one CommandItem with a safe value to prevent undefined children issues
-              <div className="text-xs text-center py-2 text-muted-foreground">
-                {currentOptions.length === 0 
-                  ? `No ${activeFilterTab} available` 
-                  : `All ${activeFilterTab} are selected`}
-              </div>
-            )}
-          </CommandGroup>
+              })}
+            </CommandGroup>
+          ) : (
+            <div className="text-xs text-center py-6 text-muted-foreground">
+              {currentOptions.length === 0 
+                ? `No ${activeFilterTab} available` 
+                : `All ${activeFilterTab} are selected`}
+            </div>
+          )}
         </Command>
         {totalFiltersCount > 0 && (
           <div className="p-2 border-t border-border">
