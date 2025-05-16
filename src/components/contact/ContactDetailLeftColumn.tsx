@@ -6,10 +6,6 @@ import ContactMediaSection from "@/components/contact/ContactMediaSection";
 import ContactKeystonesSection from "@/components/contact/ContactKeystonesSection";
 import ContactInteractionsSection from "@/components/contact/ContactInteractionsSection";
 import ContactVisualizationsSection from "@/components/contact/ContactVisualizationsSection";
-import ContactTimeline from "@/components/visualizations/ContactTimeline";
-import { useState } from "react";
-import { KeystoneDetailModal } from "@/components/keystone/KeystoneDetailModal";
-import InteractionDetailModal from "@/components/interaction/InteractionDetailModal";
 
 interface ContactDetailLeftColumnProps {
   contact: Contact;
@@ -30,66 +26,18 @@ export default function ContactDetailLeftColumn({
 }: ContactDetailLeftColumnProps) {
   const hasMedia = contactMedia.length > 0;
   
-  // State for timeline event detail modal
-  const [selectedKeystone, setSelectedKeystone] = useState<Keystone | null>(null);
-  const [selectedInteraction, setSelectedInteraction] = useState<Interaction | null>(null);
-  const [isKeystoneDetailOpen, setIsKeystoneDetailOpen] = useState(false);
-  const [isInteractionDetailOpen, setIsInteractionDetailOpen] = useState(false);
-  
-  const handleTimelineEventClick = (event: any) => {
-    if (event.type === 'keystone') {
-      const keystone = keystones.find(k => k.id === event.id);
-      if (keystone) {
-        setSelectedKeystone(keystone);
-        setIsKeystoneDetailOpen(true);
-      }
-    } else if (event.type === 'interaction') {
-      const interaction = interactions.find(i => i.id === event.id);
-      if (interaction) {
-        setSelectedInteraction(interaction);
-        setIsInteractionDetailOpen(true);
-      }
-    }
-  };
-  
-  const handleEditKeystone = () => {
-    setIsKeystoneDetailOpen(false);
-    // Additional edit logic would go here
-  };
-  
-  const handleDeleteKeystone = async () => {
-    if (!selectedKeystone?.id) return;
-    setIsKeystoneDetailOpen(false);
-    await onKeystoneAdded();
-    setSelectedKeystone(null);
-  };
-  
-  const handleEditInteraction = () => {
-    setIsInteractionDetailOpen(false);
-    // Additional edit logic would go here
-  };
-  
-  const handleDeleteInteraction = async () => {
-    if (!selectedInteraction?.id) return;
-    setIsInteractionDetailOpen(false);
-    await onInteractionAdded();
-    setSelectedInteraction(null);
-  };
-  
   return (
     <div className="space-y-6">
       {/* Contact Info Card */}
       <ContactInfoSection contact={contact} />
       
-      {/* Relationship Map Visualization */}
-      <ContactVisualizationsSection contact={contact} />
-      
-      {/* Timeline Visualization */}
-      <ContactTimeline 
-        contact={contact}
+      {/* Visualizations Section (Includes both Timeline and Relationship Map) */}
+      <ContactVisualizationsSection 
+        contact={contact} 
         keystones={keystones}
         interactions={interactions}
-        onEventClick={handleTimelineEventClick}
+        onKeystoneAdded={onKeystoneAdded}
+        onInteractionAdded={onInteractionAdded}
       />
       
       {/* Media section - conditionally rendered */}
@@ -112,23 +60,6 @@ export default function ContactDetailLeftColumn({
         interactions={interactions} 
         contact={contact} 
         onInteractionAdded={onInteractionAdded} 
-      />
-      
-      {/* Modals for timeline event details */}
-      <KeystoneDetailModal
-        keystone={selectedKeystone}
-        isOpen={isKeystoneDetailOpen}
-        onOpenChange={setIsKeystoneDetailOpen}
-        onEdit={handleEditKeystone}
-        onDelete={handleDeleteKeystone}
-      />
-      
-      <InteractionDetailModal
-        interaction={selectedInteraction}
-        isOpen={isInteractionDetailOpen}
-        onOpenChange={setIsInteractionDetailOpen}
-        onEdit={handleEditInteraction}
-        onDelete={handleDeleteInteraction}
       />
     </div>
   );
