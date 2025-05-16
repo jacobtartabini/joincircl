@@ -23,7 +23,6 @@ const Bugs = () => {
     steps: "",
     email: ""
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -34,52 +33,17 @@ const Bugs = () => {
     setFormData(prev => ({ ...prev, bugType: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      const form = new FormData();
-      form.append("bugType", formData.bugType);
-      form.append("description", formData.description);
-      form.append("steps", formData.steps);
-      form.append("email", formData.email);
-
-      const response = await fetch("https://formspree.io/f/mqaqndap", {
-        method: "POST",
-        body: form,
-        headers: {
-          Accept: "application/json",
-        }
-      });
-
-      if (response.ok) {
-        toast({
-          title: "Bug Report Submitted",
-          description: "Thank you for helping us improve Circl!",
-        });
-        setFormData({
-          bugType: "",
-          description: "",
-          steps: "",
-          email: ""
-        });
-      } else {
-        toast({
-          title: "Submission Failed",
-          description: "Please try again or contact support.",
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "An error occurred",
-        description: "Unable to submit the bug report.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleToast = () => {
+    toast({
+      title: "Bug Report Submitted",
+      description: "Thank you for helping us improve Circl!",
+    });
+    setFormData({
+      bugType: "",
+      description: "",
+      steps: "",
+      email: ""
+    });
   };
 
   return (
@@ -103,7 +67,15 @@ const Bugs = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form
+            action="https://formspree.io/f/mqaqndap"
+            method="POST"
+            className="space-y-4"
+            onSubmit={handleToast}
+          >
+            {/* Hidden redirect or optional toast trigger */}
+            <input type="hidden" name="_next" value="." />
+
             <div className="space-y-2">
               <Label htmlFor="bugType">Bug Type</Label>
               <Select
@@ -122,10 +94,9 @@ const Bugs = () => {
                   <SelectItem value="Other">Other</SelectItem>
                 </SelectContent>
               </Select>
-              {/* Hidden input to send bugType to Formspree */}
               <input type="hidden" name="bugType" value={formData.bugType} />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="description">Bug Description</Label>
               <textarea 
@@ -164,11 +135,11 @@ const Bugs = () => {
               />
             </div>
             
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Submitting..." : "Submit Bug Report"}
+            <Button type="submit" className="w-full">
+              Submit Bug Report
             </Button>
           </form>
-          
+
           <div className="mt-8 p-4 bg-muted rounded-md">
             <h3 className="font-medium mb-2">Before Submitting</h3>
             <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
