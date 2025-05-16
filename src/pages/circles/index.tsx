@@ -1,6 +1,6 @@
 
 import { useCirclesState } from "./hooks/useCirclesState";
-import { CirclesHeader } from "./components/CirclesHeader";
+import CirclesHeader from "./components/CirclesHeader";
 import { CircleDialogs } from "./components/CircleDialogs";
 import { CirclesTabContent } from "./CirclesTabContent";
 import { CirclesTabs } from "./CirclesTabs";

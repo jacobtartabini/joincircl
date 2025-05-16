@@ -33,7 +33,7 @@ export const useDuplicateContacts = () => {
     fetchDuplicates();
   }, [fetchDuplicates]);
   
-  const handleMergeContacts = useCallback(async (primaryId: string, secondaryId: string) => {
+  const handleMergeContacts = useCallback(async (primaryId: string, secondaryId: string): Promise<Contact | null> => {
     try {
       const mergedContact = await duplicateContactService.mergeContacts(primaryId, secondaryId);
       

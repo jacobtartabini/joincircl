@@ -7,6 +7,7 @@ import { ArrowLeft, RefreshCw } from "lucide-react";
 import { useDuplicateContacts } from "@/hooks/useDuplicateContacts";
 import { DuplicateContactCard } from "@/components/duplicates/DuplicateContactCard";
 import { DuplicateCompareDialog } from "@/components/duplicates/DuplicateCompareDialog";
+import { Contact } from "@/types/contact";
 
 const Duplicates = () => {
   const navigate = useNavigate();
@@ -57,7 +58,7 @@ const Duplicates = () => {
         </div>
       ) : duplicatePairs.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {duplicatePairs.map((pair, index) => (
+          {duplicatePairs.map((pair) => (
             <DuplicateContactCard 
               key={`${pair.contact1.id}-${pair.contact2.id}`}
               duplicatePair={pair}

@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Contact } from "@/types/contact";
 import { contactService } from "./contactService";
@@ -269,7 +268,10 @@ export const duplicateContactService = {
     ];
     
     textFields.forEach(field => {
-      merged[field] = primary[field] || secondary[field];
+      // Use type assertion to handle the assignment
+      if (!primary[field] && secondary[field]) {
+        (merged[field] as any) = secondary[field];
+      }
     });
     
     // For numeric fields, prefer primary if it exists
@@ -295,7 +297,7 @@ export const duplicateContactService = {
     
     // For circle, prefer the inner-most circle (highest priority)
     const circleMap = { 'inner': 1, 'middle': 2, 'outer': 3 };
-    if (circleMap[primary.circle] > circleMap[secondary.circle]) {
+    if (primary.circle && secondary.circle && circleMap[primary.circle] > circleMap[secondary.circle]) {
       merged.circle = secondary.circle;
     }
     

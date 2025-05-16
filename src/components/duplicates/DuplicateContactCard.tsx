@@ -11,7 +11,7 @@ import { DuplicatePair } from "@/services/duplicateContactService";
 
 interface DuplicateContactCardProps {
   duplicatePair: DuplicatePair;
-  onMerge: (primaryId: string, secondaryId: string) => Promise<void>;
+  onMerge: (primaryId: string, secondaryId: string) => Promise<Contact | null>;
   onCompare: (duplicatePair: DuplicatePair) => void;
 }
 

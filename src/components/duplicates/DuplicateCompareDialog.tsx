@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { 
   Dialog, 
@@ -19,7 +18,7 @@ interface DuplicateCompareDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   duplicatePair: DuplicatePair | null;
-  onMerge: (primaryId: string, secondaryId: string) => Promise<void>;
+  onMerge: (primaryId: string, secondaryId: string) => Promise<Contact | null>;
 }
 
 export const DuplicateCompareDialog = ({
@@ -54,8 +53,10 @@ export const DuplicateCompareDialog = ({
     
     try {
       setIsMerging(true);
-      await onMerge(primaryContact.id, secondaryContact.id);
-      onOpenChange(false);
+      const mergedContact = await onMerge(primaryContact.id, secondaryContact.id);
+      if (mergedContact) {
+        onOpenChange(false);
+      }
     } finally {
       setIsMerging(false);
     }

@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Plus, Merge } from "lucide-react";
 import CircleImportButtons from "@/components/circles/CircleImportButtons";
@@ -5,7 +6,7 @@ import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { Link } from "react-router-dom";
 
 const CirclesHeader = ({ onAddContact }: { onAddContact: () => void }) => {
-  const { isOnline } = useOnlineStatus();
+  const isOnline = useOnlineStatus();
   
   return (
     <div className="flex items-center justify-between mb-6">
@@ -36,7 +37,7 @@ const CirclesHeader = ({ onAddContact }: { onAddContact: () => void }) => {
           className="hidden md:flex"
           onClick={() => {}}
         >
-          <CircleImportButtons />
+          <CircleImportButtons onImportSuccess={() => {}} />
         </Button>
         
         <Button
