@@ -6,7 +6,6 @@ import ContactMediaSection from "@/components/contact/ContactMediaSection";
 import ContactKeystonesSection from "@/components/contact/ContactKeystonesSection";
 import ContactInteractionsSection from "@/components/contact/ContactInteractionsSection";
 import ContactVisualizationsSection from "@/components/contact/ContactVisualizationsSection";
-import ContactTimeline from "@/components/visualizations/ContactTimeline";
 import { useState } from "react";
 import { KeystoneDetailModal } from "@/components/keystone/KeystoneDetailModal";
 import InteractionDetailModal from "@/components/interaction/InteractionDetailModal";
@@ -49,6 +48,9 @@ export default function ContactDetailLeftColumn({
         setSelectedInteraction(interaction);
         setIsInteractionDetailOpen(true);
       }
+    } else if (event.type === 'email' || event.type === 'calendar') {
+      // For now, just show a toast message - in a real app, we would show a modal with the full content
+      console.log("Clicked on an email or calendar event:", event);
     }
   };
   
@@ -81,15 +83,11 @@ export default function ContactDetailLeftColumn({
       {/* Contact Info Card */}
       <ContactInfoSection contact={contact} />
       
-      {/* Relationship Map Visualization */}
-      <ContactVisualizationsSection contact={contact} />
-      
-      {/* Timeline Visualization */}
-      <ContactTimeline 
-        contact={contact}
-        keystones={keystones}
+      {/* Visualizations Section - Combined relationship map and timeline */}
+      <ContactVisualizationsSection 
+        contact={contact} 
         interactions={interactions}
-        onEventClick={handleTimelineEventClick}
+        keystones={keystones}
       />
       
       {/* Media section - conditionally rendered */}
