@@ -87,6 +87,11 @@ export const FilterPopover = ({
     );
   }, [currentOptions, currentSelected]);
 
+  // Ensure we always have arrays, never undefined for component rendering
+  const safeAvailableOptions = useMemo(() => {
+    return Array.isArray(availableOptions) ? availableOptions : [];
+  }, [availableOptions]);
+
   return (
     <Popover open={openFilters} onOpenChange={setOpenFilters}>
       <PopoverTrigger asChild>
@@ -132,13 +137,16 @@ export const FilterPopover = ({
             No {activeFilterTab} found.
           </CommandEmpty>
           <CommandGroup className="max-h-64 overflow-auto">
-            {availableOptions.length > 0 ? (
-              availableOptions.map((option, index) => {
-                // Ensure value is always a string
-                const safeOption = String(option || `option-${index}`);
+            {safeAvailableOptions.length > 0 ? (
+              safeAvailableOptions.map((option, index) => {
+                // Ensure value is always a string and never undefined
+                const safeOption = typeof option === 'string' ? option : `option-${index}`;
+                // Create a stable, unique key
+                const itemKey = `filter-item-${activeFilterTab}-${safeOption}-${index}`;
+                
                 return (
                   <CommandItem 
-                    key={`option-${activeFilterTab}-${safeOption}-${index}`}
+                    key={itemKey}
                     value={safeOption}
                     onSelect={() => onSelect(activeFilterTab, safeOption)}
                     className="rounded-md cursor-pointer"
