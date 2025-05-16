@@ -65,14 +65,12 @@ export const FilterPopover = ({
     if (!safeOptions || !safeOptions[activeFilterTab]) {
       return [];
     }
-    const options = safeOptions[activeFilterTab];
-    return Array.isArray(options) ? options.filter(Boolean) : [];
+    return safeOptions[activeFilterTab];
   };
 
   // Get current selected filters as a safe array
   const getCurrentSelectedFilters = (): string[] => {
-    const selected = safeSelectedFilters[activeFilterTab];
-    return Array.isArray(selected) ? selected.filter(Boolean) : [];
+    return safeSelectedFilters[activeFilterTab];
   };
 
   // Pre-calculate options for efficiency and safety
@@ -81,16 +79,10 @@ export const FilterPopover = ({
   
   // Safely calculate available options (not already selected)
   const availableOptions = useMemo(() => {
-    if (!Array.isArray(currentOptions)) return [];
     return currentOptions.filter(option => 
       option && !currentSelected.includes(option)
     );
   }, [currentOptions, currentSelected]);
-
-  // Ensure we always have arrays, never undefined for component rendering
-  const safeAvailableOptions = useMemo(() => {
-    return Array.isArray(availableOptions) ? availableOptions : [];
-  }, [availableOptions]);
 
   return (
     <Popover open={openFilters} onOpenChange={setOpenFilters}>
@@ -138,13 +130,12 @@ export const FilterPopover = ({
             No {activeFilterTab} found.
           </CommandEmpty>
 
-          {safeAvailableOptions.length > 0 ? (
-            <CommandGroup className="max-h-64 overflow-auto">
-              {safeAvailableOptions.map((option, index) => {
-                // Ensure value is always a string and never undefined
-                const safeOption = typeof option === 'string' ? option : `option-${index}`;
+          {availableOptions.length > 0 ? (
+            <CommandGroup>
+              {availableOptions.map((option, index) => {
+                if (!option) return null; // Skip null/undefined items
                 
-                // Create a stable, unique key
+                const safeOption = String(option); // Ensure option is a string
                 const itemKey = `filter-item-${activeFilterTab}-${safeOption}-${index}`;
                 
                 return (

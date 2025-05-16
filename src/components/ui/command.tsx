@@ -59,32 +59,32 @@ CommandInput.displayName = CommandPrimitive.Input.displayName
 const CommandList = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.List>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.List>
->(({ className, children, ...props }, ref) => {
-  // Create a guaranteed safe version of children that's always an array
+>(({ className, ...props }, ref) => {
+  // Ensure children is always a valid array before rendering
   const safeChildren = React.useMemo(() => {
-    // If children is undefined or null, return an empty array
+    const children = props.children;
+    
     if (children === undefined || children === null) {
       return [];
     }
     
     try {
-      // Use React.Children.toArray to safely convert children to an array
-      const childArray = React.Children.toArray(children);
-      return childArray;
+      return React.Children.toArray(children).filter(Boolean);
     } catch (e) {
-      console.warn("Error processing CommandList children:", e);
+      console.error("Error processing CommandList children:", e);
       return [];
     }
-  }, [children]);
+  }, [props.children]);
+  
+  // Create a new props object with the safe children
+  const safeProps = { ...props, children: safeChildren };
 
   return (
     <CommandPrimitive.List
       ref={ref}
       className={cn("max-h-[300px] overflow-y-auto overflow-x-hidden", className)}
-      {...props}
-    >
-      {safeChildren}
-    </CommandPrimitive.List>
+      {...safeProps}
+    />
   );
 });
 
@@ -106,23 +106,25 @@ CommandEmpty.displayName = CommandPrimitive.Empty.displayName
 const CommandGroup = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Group>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Group>
->(({ className, children, ...props }, ref) => {
-  // Create a guaranteed safe version of children that's always an array
+>(({ className, ...props }, ref) => {
+  // Ensure children is always a valid array before rendering
   const safeChildren = React.useMemo(() => {
-    // If children is undefined or null, return an empty array
+    const children = props.children;
+    
     if (children === undefined || children === null) {
       return [];
     }
     
     try {
-      // Use React.Children.toArray to safely convert children to an array
-      const childArray = React.Children.toArray(children);
-      return childArray;
+      return React.Children.toArray(children).filter(Boolean);
     } catch (e) {
-      console.warn("Error processing CommandGroup children:", e);
+      console.error("Error processing CommandGroup children:", e);
       return [];
     }
-  }, [children]);
+  }, [props.children]);
+  
+  // Create a new props object with the safe children
+  const safeProps = { ...props, children: safeChildren };
 
   return (
     <CommandPrimitive.Group
@@ -131,10 +133,8 @@ const CommandGroup = React.forwardRef<
         "overflow-hidden p-1 text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground",
         className
       )}
-      {...props}
-    >
-      {safeChildren.length > 0 ? safeChildren : null}
-    </CommandPrimitive.Group>
+      {...safeProps}
+    />
   );
 });
 
@@ -156,19 +156,19 @@ const CommandItem = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item>
 >(({ className, value, children, ...props }, ref) => {
-  // Generate a guaranteed unique value if none provided
+  // Generate a guaranteed valid value if none provided
   const safeValue = React.useMemo(() => {
     if (value === undefined || value === null || value === '') {
       return `item-${Math.random().toString(36).substring(2, 11)}`;
     }
-    return String(value);  // Convert to string to ensure consistency
+    return String(value);  // Ensure value is always a string
   }, [value]);
   
-  // Make sure we have valid children
+  // Ensure children is valid
   const safeChildren = React.useMemo(() => {
     return children ?? safeValue;
   }, [children, safeValue]);
-  
+
   return (
     <CommandPrimitive.Item
       ref={ref}
