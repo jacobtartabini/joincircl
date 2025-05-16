@@ -210,6 +210,7 @@ export type Database = {
           date: string
           id: string
           is_recurring: boolean | null
+          notes: string | null
           recurrence_frequency: string | null
           title: string
           updated_at: string | null
@@ -222,6 +223,7 @@ export type Database = {
           date: string
           id?: string
           is_recurring?: boolean | null
+          notes?: string | null
           recurrence_frequency?: string | null
           title: string
           updated_at?: string | null
@@ -234,6 +236,7 @@ export type Database = {
           date?: string
           id?: string
           is_recurring?: boolean | null
+          notes?: string | null
           recurrence_frequency?: string | null
           title?: string
           updated_at?: string | null

@@ -24,7 +24,7 @@ interface KeystoneDetailModalProps {
   onCalendarExport?: () => void;
 }
 
-export default function KeystoneDetailModal({
+export function KeystoneDetailModal({
   keystone,
   isOpen,
   onOpenChange,
@@ -173,3 +173,6 @@ export default function KeystoneDetailModal({
     </>
   );
 }
+
+// Default export to maintain backward compatibility
+export default KeystoneDetailModal;
