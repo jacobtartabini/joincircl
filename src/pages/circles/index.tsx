@@ -6,7 +6,8 @@ import { CirclesTabContent } from "./CirclesTabContent";
 import { CirclesTabs } from "./CirclesTabs";
 import SearchFilterBar from "./SearchFilterBar";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useDuplicateContacts } from "@/hooks/useDuplicateContacts";
 
 const Circles = () => {
   const {
@@ -31,6 +32,14 @@ const Circles = () => {
     handleAddInteraction,
     handleViewInsights
   } = useCirclesState();
+
+  // Use the duplicate contacts hook to check for duplicates
+  const { duplicatePairs, isLoading: isDuplicatesLoading } = useDuplicateContacts();
+  
+  // Determine if we have duplicates to show
+  const hasDuplicates = useMemo(() => {
+    return duplicatePairs.length > 0;
+  }, [duplicatePairs]);
 
   const isMobile = useIsMobile();
   
@@ -70,7 +79,10 @@ const Circles = () => {
   
   return (
     <div className="space-y-6 animate-fade-in">
-      <CirclesHeader onAddContact={() => setIsAddDialogOpen(true)} />
+      <CirclesHeader 
+        onAddContact={() => setIsAddDialogOpen(true)} 
+        hasDuplicates={hasDuplicates}
+      />
 
       <SearchFilterBar 
         allTags={[]} // Empty array since we're not using tags
