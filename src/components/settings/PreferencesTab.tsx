@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +9,6 @@ import NotificationPreferences from "@/components/notifications/NotificationPref
 import EmailIntegrationSection from "@/components/integrations/EmailIntegrationSection";
 import { EmailConnectionDialog } from "@/components/integrations/EmailConnectionDialog";
 import { useEmailProviders } from "@/hooks/useEmailProviders";
-import { supabase } from "@/integrations/supabase/client";
 
 const PreferencesTab = () => {
   const { toast } = useToast();

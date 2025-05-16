@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { EmailProviderToken } from './useEmailProviders';
 
 // Define calendar event type
 interface CalendarEvent {
@@ -40,7 +41,7 @@ export const useCalendarEvents = (contactId?: string) => {
           const { data: emailTokens } = await supabase
             .from('user_email_tokens')
             .select('*')
-            .eq('user_id', userSession.session.user.id);
+            .eq('user_id', userSession.session.user.id) as { data: EmailProviderToken[] | null };
             
           // Generate some demo calendar events based on connected providers
           const demoEvents: CalendarEvent[] = [];

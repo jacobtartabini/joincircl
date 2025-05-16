@@ -59,7 +59,7 @@ export function EmailConnectionDialog({
           access_token: "demo-token",
           refresh_token: "demo-refresh-token",
           expires_at: new Date(Date.now() + 3600000).toISOString(),
-        });
+        } as any);
         
         if (error) {
           throw error;

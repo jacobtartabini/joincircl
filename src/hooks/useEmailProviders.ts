@@ -32,11 +32,11 @@ export const useEmailProviders = () => {
         if (userSession?.session) {
           const userId = userSession.session.user.id;
           
-          // Use a more type-safe approach with explicit typing
+          // Use generic fetch to avoid TypeScript issues with the table not in types yet
           const { data: tokens, error: tokensError } = await supabase
             .from('user_email_tokens')
             .select('*')
-            .eq('user_id', userId);
+            .eq('user_id', userId) as { data: EmailProviderToken[] | null, error: Error | null };
           
           if (tokensError) {
             throw tokensError;

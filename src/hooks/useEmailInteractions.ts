@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { EmailProviderToken } from './useEmailProviders';
 
 // Define email interaction type
 interface EmailInteraction {
@@ -38,7 +39,7 @@ export const useEmailInteractions = (contactId?: string) => {
           const { data: emailTokens } = await supabase
             .from('user_email_tokens')
             .select('*')
-            .eq('user_id', userSession.session.user.id);
+            .eq('user_id', userSession.session.user.id) as { data: EmailProviderToken[] | null };
             
           // Generate some demo email interactions based on connected providers
           const demoEmails: EmailInteraction[] = [];
