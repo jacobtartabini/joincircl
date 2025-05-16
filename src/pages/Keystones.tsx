@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -147,12 +146,12 @@ const Keystones = () => {
     }
   };
 
-  // Use due_date property if it exists, otherwise fall back to date
+  // Use date property only, not due_date
   const upcomingKeystones = keystones.filter(
-    (k) => new Date(k.due_date || k.date) >= new Date()
+    (k) => new Date(k.date) >= new Date()
   );
   const pastKeystones = keystones.filter(
-    (k) => new Date(k.due_date || k.date) < new Date()
+    (k) => new Date(k.date) < new Date()
   );
 
   return (

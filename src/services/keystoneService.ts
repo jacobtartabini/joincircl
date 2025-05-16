@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Keystone } from "@/types/keystone";
 import { offlineStorage } from "./offlineStorage";
@@ -93,7 +92,6 @@ export const keystoneService = {
     const keystoneToInsert = {
       title: keystone.title,
       date: keystone.date,
-      due_date: keystone.due_date,
       category: keystone.category,
       contact_id: keystone.contact_id,
       is_recurring: keystone.is_recurring,
@@ -145,7 +143,6 @@ export const keystoneService = {
     const safeKeystoneToUpdate = {
       title: keystone.title,
       date: keystone.date,
-      due_date: keystone.due_date,
       category: keystone.category,
       contact_id: keystone.contact_id,
       is_recurring: keystone.is_recurring,

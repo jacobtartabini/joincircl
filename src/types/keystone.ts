@@ -3,7 +3,7 @@ export interface Keystone {
   id: string;
   title: string;
   date: string; // Date stored as string to match Supabase
-  due_date?: string; // Explicitly define due_date property 
+  due_date?: string; // Making this explicitly optional
   category?: string;
   contact_id?: string;
   contact_name?: string; // Added to match KeystoneProps
