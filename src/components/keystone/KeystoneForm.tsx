@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -40,12 +41,12 @@ const formSchema = z.object({
   id: z.string().optional(),
   title: z.string().min(3, "Title must be at least 3 characters"),
   date: z.date(),
+  due_date: z.date().optional(),
   notes: z.string().optional(),
   contact_id: z.string().optional(),
   category: z.string().min(1, "Category is required"),
   is_recurring: z.boolean().default(false),
   recurrence_frequency: z.string().optional(),
-  due_date: z.date().optional(),
 });
 
 const categories = [
@@ -82,6 +83,7 @@ export default function KeystoneForm({
     defaultValues: {
       title: keystone?.title || "",
       date: keystone?.date ? new Date(keystone.date) : new Date(),
+      due_date: keystone?.due_date ? new Date(keystone.due_date) : undefined,
       notes: keystone?.notes || "",
       contact_id: keystone?.contact_id || contact?.id || "",
       category: keystone?.category || "Reminder",
@@ -112,8 +114,9 @@ export default function KeystoneForm({
         await keystoneService.updateKeystone(keystone.id, {
           title: values.title,
           date: values.date.toISOString(),
+          due_date: values.due_date ? values.due_date.toISOString() : undefined,
           notes: values.notes,
-          contact_id: values.contact_id,
+          contact_id: values.contact_id === "none" ? undefined : values.contact_id,
           category: values.category,
           is_recurring: values.is_recurring,
           recurrence_frequency: values.is_recurring
@@ -129,8 +132,9 @@ export default function KeystoneForm({
         await keystoneService.createKeystone({
           title: values.title,
           date: values.date.toISOString(),
+          due_date: values.due_date ? values.due_date.toISOString() : undefined,
           notes: values.notes,
-          contact_id: values.contact_id,
+          contact_id: values.contact_id === "none" ? undefined : values.contact_id,
           category: values.category,
           is_recurring: values.is_recurring,
           recurrence_frequency: values.is_recurring
@@ -161,9 +165,6 @@ export default function KeystoneForm({
     <div className="max-h-[80vh] overflow-y-auto">
       {/* Mobile grab bar */}
       <div className="mx-auto mt-2 mb-1 h-1.5 w-10 rounded-full bg-muted-foreground/40 sm:hidden" />
-      <h2 className="text-center text-lg font-semibold mb-4">
-        {keystone?.id ? "Edit Keystone" : "Add Keystone"}
-      </h2>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -223,32 +224,71 @@ export default function KeystoneForm({
 
             <FormField
               control={form.control}
-              name="category"
+              name="due_date"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Category</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a category" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <FormItem className="flex flex-col">
+                  <FormLabel>Due Date (Optional)</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, "PPP")
+                          ) : (
+                            <span>Pick a due date</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value || undefined}
+                        onSelect={field.onChange}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}
             />
           </div>
+
+          <FormField
+            control={form.control}
+            name="category"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Category</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           <FormField
             control={form.control}

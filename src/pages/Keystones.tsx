@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -14,6 +15,8 @@ import KeystoneDetailModal from "@/components/keystone/KeystoneDetailModal";
 import { contactService } from "@/services/contactService";
 import { Contact } from "@/types/contact";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import { syncOfflineChanges } from "@/utils/syncManager";
 
 const Keystones = () => {
   const [keystones, setKeystones] = useState<Keystone[]>([]);
@@ -26,6 +29,16 @@ const Keystones = () => {
   const [isKeystoneDetailOpen, setIsKeystoneDetailOpen] = useState(false);
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const isOnline = useOnlineStatus();
+
+  // Run sync when coming back online
+  useEffect(() => {
+    if (isOnline) {
+      syncOfflineChanges().then(() => {
+        fetchKeystones(); // Refresh data after sync
+      });
+    }
+  }, [isOnline]);
 
   useEffect(() => {
     fetchKeystones();
@@ -134,7 +147,7 @@ const Keystones = () => {
     }
   };
 
-  // Use date property if due_date doesn't exist
+  // Use due_date property if it exists, otherwise fall back to date
   const upcomingKeystones = keystones.filter(
     (k) => new Date(k.due_date || k.date) >= new Date()
   );

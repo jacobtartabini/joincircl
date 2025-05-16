@@ -93,6 +93,7 @@ export const keystoneService = {
     const keystoneToInsert = {
       title: keystone.title,
       date: keystone.date,
+      due_date: keystone.due_date,
       category: keystone.category,
       contact_id: keystone.contact_id,
       is_recurring: keystone.is_recurring,
@@ -114,7 +115,9 @@ export const keystoneService = {
       }
 
       // Cache for offline use
-      await offlineStorage.keystones.save(data as Keystone);
+      if (data) {
+        await offlineStorage.keystones.save(data as Keystone);
+      }
       
       return data as Keystone;
     } else {
@@ -137,22 +140,17 @@ export const keystoneService = {
   },
 
   async updateKeystone(id: string, keystone: Partial<Keystone>): Promise<Keystone> {
-    // Convert Date objects to ISO strings if they exist
-    const keystoneToUpdate = { ...keystone };
-    if (keystone.date && typeof keystone.date === 'object') {
-      keystoneToUpdate.date = new Date(keystone.date).toISOString();
-    }
-
     // Remove any fields that don't exist in the database
     // to prevent schema mismatch errors
     const safeKeystoneToUpdate = {
-      title: keystoneToUpdate.title,
-      date: keystoneToUpdate.date,
-      category: keystoneToUpdate.category,
-      contact_id: keystoneToUpdate.contact_id,
-      is_recurring: keystoneToUpdate.is_recurring,
-      recurrence_frequency: keystoneToUpdate.recurrence_frequency,
-      notes: keystoneToUpdate.notes,
+      title: keystone.title,
+      date: keystone.date,
+      due_date: keystone.due_date,
+      category: keystone.category,
+      contact_id: keystone.contact_id,
+      is_recurring: keystone.is_recurring,
+      recurrence_frequency: keystone.recurrence_frequency,
+      notes: keystone.notes,
     };
 
     if (navigator.onLine) {
@@ -169,7 +167,9 @@ export const keystoneService = {
       }
 
       // Update in local cache
-      await offlineStorage.keystones.save(data as Keystone);
+      if (data) {
+        await offlineStorage.keystones.save(data as Keystone);
+      }
       
       return data as Keystone;
     } else {
