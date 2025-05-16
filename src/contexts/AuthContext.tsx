@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -34,35 +33,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Function to fetch and cache user profile
   const fetchAndCacheProfile = async (userId: string) => {
     try {
-      // Try to get from offline storage first if not online
-      if (!navigator.onLine) {
-        const cachedProfile = await offlineStorage.profile.get(userId);
+      // Try to get from offline storage first
+      let cachedProfile: Profile | null = null;
+      
+      try {
+        cachedProfile = await offlineStorage.profile.get(userId);
+        
+        // If we have a cached profile, use it immediately while we fetch the latest
         if (cachedProfile) {
+          console.log('Found profile in offline storage:', cachedProfile);
           setProfile(cachedProfile);
           setHasSeenTutorial(cachedProfile.has_seen_tutorial || false);
-          console.log('Loaded profile from offline storage');
-          return;
         }
+      } catch (cacheError) {
+        console.error('Error checking cache for profile:', cacheError);
       }
       
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-      
-      if (error) {
-        console.error('Error fetching profile:', error);
-        return;
-      }
-      
-      if (data) {
-        // Store profile in state
-        setProfile(data);
-        setHasSeenTutorial(data.has_seen_tutorial || false);
+      // If online, fetch the latest profile from the server
+      if (navigator.onLine) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single();
         
-        // Cache profile for offline use
-        await offlineStorage.profile.save(data);
+        if (error) {
+          console.error('Error fetching profile:', error);
+          // If we failed to fetch but have a cached version, don't throw
+          if (cachedProfile) return;
+          throw error;
+        }
+        
+        if (data) {
+          // Store profile in state
+          setProfile(data);
+          setHasSeenTutorial(data.has_seen_tutorial || false);
+          
+          // Cache profile for offline use
+          await offlineStorage.profile.save(data);
+          console.log('Updated profile cache with latest data');
+        }
+      } else {
+        // If offline and we found a cached profile earlier, we're good
+        // If not, show an error
+        if (!cachedProfile) {
+          console.error('No cached profile available while offline');
+        }
       }
     } catch (error) {
       console.error('Error in fetchAndCacheProfile:', error);
@@ -108,6 +124,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
+  // Update the profile when hasSeenTutorial changes
+  useEffect(() => {
+    if (profile && profile.has_seen_tutorial !== hasSeenTutorial) {
+      updateProfile({ has_seen_tutorial: hasSeenTutorial })
+        .catch(error => console.error('Error updating tutorial status:', error));
+    }
+  }, [hasSeenTutorial]);
+
   // Auth methods
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -133,18 +157,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateProfile = async (updates: Partial<Profile>) => {
     if (!user) throw new Error("User must be logged in");
     
-    const { error } = await supabase
-      .from('profiles')
-      .update(updates)
-      .eq('id', user.id);
-    
-    if (error) throw error;
-    
-    // Update local state and cache
+    // First update local state
     if (profile) {
       const updatedProfile = { ...profile, ...updates };
       setProfile(updatedProfile);
+      
+      // If has_seen_tutorial is being updated, also update the local state
+      if (updates.has_seen_tutorial !== undefined) {
+        setHasSeenTutorial(updates.has_seen_tutorial);
+      }
+      
+      // Cache the updated profile
       await offlineStorage.profile.save(updatedProfile);
+    }
+    
+    // Then if online, update the database
+    if (navigator.onLine) {
+      try {
+        const { error } = await supabase
+          .from('profiles')
+          .update(updates)
+          .eq('id', user.id);
+        
+        if (error) throw error;
+      } catch (error) {
+        console.error('Error updating profile in database:', error);
+        // Queue for sync when back online
+        if (profile) {
+          await offlineStorage.sync.queue('update', 'profiles', { 
+            id: user.id, 
+            ...updates 
+          });
+        }
+      }
+    } else {
+      // If offline, queue for sync
+      if (profile) {
+        await offlineStorage.sync.queue('update', 'profiles', { 
+          id: user.id, 
+          ...updates 
+        });
+      }
     }
   };
 

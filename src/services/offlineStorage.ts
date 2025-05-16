@@ -1,13 +1,17 @@
 import { Contact } from "@/types/contact";
 import { Profile } from "@/types/auth";
+import { Keystone } from "@/types/keystone";
+import { Interaction } from "@/types/contact";
 
 // Define database name and stores
 const DB_NAME = "circlOfflineDB";
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Increased version for new stores
 const STORES = {
   PROFILE: "profile",
   CONTACTS: "contacts",
-  SYNC_QUEUE: "syncQueue"
+  SYNC_QUEUE: "syncQueue",
+  KEYSTONES: "keystones",
+  INTERACTIONS: "interactions"
 };
 
 // Initialize the database
@@ -43,6 +47,15 @@ const initDB = (): Promise<IDBDatabase> => {
         });
         syncStore.createIndex("operation", "operation", { unique: false });
         syncStore.createIndex("timestamp", "timestamp", { unique: false });
+      }
+      
+      // Add new stores for keystones and interactions
+      if (!db.objectStoreNames.contains(STORES.KEYSTONES)) {
+        db.createObjectStore(STORES.KEYSTONES, { keyPath: "id" });
+      }
+      
+      if (!db.objectStoreNames.contains(STORES.INTERACTIONS)) {
+        db.createObjectStore(STORES.INTERACTIONS, { keyPath: "id" });
       }
     };
   });
@@ -220,6 +233,79 @@ const clearContacts = async (): Promise<void> => {
   return await clearStore(STORES.CONTACTS);
 };
 
+const saveKeystones = async (keystones: Keystone[]): Promise<Keystone[]> => {
+  const db = await initDB();
+  const transaction = db.transaction(STORES.KEYSTONES, "readwrite");
+  const store = transaction.objectStore(STORES.KEYSTONES);
+  
+  return new Promise((resolve, reject) => {
+    keystones.forEach(keystone => {
+      store.put(keystone);
+    });
+    
+    transaction.oncomplete = () => {
+      db.close();
+      resolve(keystones);
+    };
+    
+    transaction.onerror = () => {
+      reject(transaction.error);
+    };
+  });
+};
+
+// Keystone specific functions
+const saveKeystone = async (keystone: Keystone): Promise<Keystone> => {
+  return await addItem(STORES.KEYSTONES, keystone);
+};
+
+const getKeystone = async (id: string): Promise<Keystone | null> => {
+  return await getItem<Keystone>(STORES.KEYSTONES, id);
+};
+
+const getAllKeystonesByContactId = async (contactId: string): Promise<Keystone[]> => {
+  const keystones = await getAllItems<Keystone>(STORES.KEYSTONES);
+  return keystones.filter(keystone => keystone.contact_id === contactId);
+};
+
+const getAllKeystones = async (): Promise<Keystone[]> => {
+  return await getAllItems<Keystone>(STORES.KEYSTONES);
+};
+
+const deleteKeystone = async (id: string): Promise<void> => {
+  return await deleteItem(STORES.KEYSTONES, id);
+};
+
+const clearKeystones = async (): Promise<void> => {
+  return await clearStore(STORES.KEYSTONES);
+};
+
+// Interaction specific functions
+const saveInteraction = async (interaction: Interaction): Promise<Interaction> => {
+  return await addItem(STORES.INTERACTIONS, interaction);
+};
+
+const getInteraction = async (id: string): Promise<Interaction | null> => {
+  return await getItem<Interaction>(STORES.INTERACTIONS, id);
+};
+
+const getAllInteractionsByContactId = async (contactId: string): Promise<Interaction[]> => {
+  const interactions = await getAllItems<Interaction>(STORES.INTERACTIONS);
+  return interactions.filter(interaction => interaction.contact_id === contactId);
+};
+
+const getAllInteractions = async (): Promise<Interaction[]> => {
+  return await getAllItems<Interaction>(STORES.INTERACTIONS);
+};
+
+const deleteInteraction = async (id: string): Promise<void> => {
+  return await deleteItem(STORES.INTERACTIONS, id);
+};
+
+const clearInteractions = async (): Promise<void> => {
+  return await clearStore(STORES.INTERACTIONS);
+};
+
 // Check if IndexedDB is available
 const isIndexedDBAvailable = (): boolean => {
   return window && 'indexedDB' in window;
@@ -239,6 +325,23 @@ export const offlineStorage = {
     getAll: getAllContacts,
     delete: deleteContact,
     clear: clearContacts
+  },
+  keystones: {
+    save: saveKeystone,
+    saveAll: saveKeystones,
+    get: getKeystone,
+    getByContactId: getAllKeystonesByContactId,
+    getAll: getAllKeystones,
+    delete: deleteKeystone,
+    clear: clearKeystones
+  },
+  interactions: {
+    save: saveInteraction,
+    get: getInteraction,
+    getByContactId: getAllInteractionsByContactId,
+    getAll: getAllInteractions,
+    delete: deleteInteraction,
+    clear: clearInteractions
   },
   sync: {
     queue: queueForSync,

@@ -1,7 +1,7 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Contact, Interaction } from "@/types/contact";
 import { offlineStorage } from "./offlineStorage";
+import { v4 as uuidv4 } from "uuid";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 
 export const contactService = {
@@ -105,19 +105,43 @@ export const contactService = {
   },
 
   async getInteractionsByContactId(contactId: string): Promise<Interaction[]> {
-    // For now, interactions aren't cached offline
-    // Could be added in a future enhancement
-    const { data, error } = await supabase
-      .from("interactions")
-      .select("*")
-      .eq("contact_id", contactId)
-      .order("date", { ascending: false });
+    try {
+      if (navigator.onLine) {
+        const { data, error } = await supabase
+          .from("interactions")
+          .select("*")
+          .eq("contact_id", contactId)
+          .order("date", { ascending: false });
 
-    if (error) {
-      throw new Error(error.message);
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        // Cache interactions for offline use
+        if (data && data.length > 0) {
+          for (const interaction of data) {
+            await offlineStorage.interactions.save(interaction);
+          }
+        }
+
+        return data as Interaction[];
+      } else {
+        // Offline mode - get from local storage
+        console.log("Offline: Loading interactions from local storage");
+        return await offlineStorage.interactions.getByContactId(contactId);
+      }
+    } catch (error) {
+      console.error("Error in getInteractionsByContactId:", error);
+      
+      // Fallback to local storage
+      try {
+        console.log("Falling back to local interactions data");
+        return await offlineStorage.interactions.getByContactId(contactId);
+      } catch (offlineError) {
+        console.error("Could not load interactions from offline storage:", offlineError);
+        return [];
+      }
     }
-
-    return data as Interaction[];
   },
 
   async createContact(contact: Omit<Contact, "id" | "user_id" | "created_at" | "updated_at">): Promise<Contact> {
@@ -263,30 +287,63 @@ export const contactService = {
       throw new Error("User not authenticated");
     }
     
-    // Interactions require online connectivity for now
-    // Could be enhanced to support offline in the future
-    const { data, error } = await supabase
-      .from("interactions")
-      .insert([{ ...interaction, user_id: userSession.session.user.id }])
-      .select()
-      .single();
+    const interactionToInsert = {
+      ...interaction,
+      user_id: userSession.session.user.id
+    };
+    
+    if (navigator.onLine) {
+      const { data, error } = await supabase
+        .from("interactions")
+        .insert([interactionToInsert])
+        .select()
+        .single();
 
-    if (error) {
-      throw new Error(error.message);
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      // Cache for offline use
+      await offlineStorage.interactions.save(data as Interaction);
+      
+      return data as Interaction;
+    } else {
+      // Offline operation - create temporary interaction
+      const tempInteraction = {
+        ...interactionToInsert,
+        id: `temp_${uuidv4()}`,
+        created_at: new Date().toISOString()
+      } as Interaction;
+      
+      // Save to local storage
+      await offlineStorage.interactions.save(tempInteraction);
+      
+      // Queue for sync
+      await offlineStorage.sync.queue('create', 'interactions', tempInteraction);
+      
+      return tempInteraction;
     }
-
-    return data as Interaction;
   },
 
   async deleteInteraction(id: string): Promise<void> {
-    // Interactions require online connectivity for now
-    const { error } = await supabase
-      .from("interactions")
-      .delete()
-      .eq("id", id);
+    if (navigator.onLine) {
+      const { error } = await supabase
+        .from("interactions")
+        .delete()
+        .eq("id", id);
 
-    if (error) {
-      throw new Error(error.message);
+      if (error) {
+        throw new Error(error.message);
+      }
+      
+      // Remove from local storage as well
+      await offlineStorage.interactions.delete(id);
+    } else {
+      // Queue delete operation for when back online
+      await offlineStorage.sync.queue('delete', 'interactions', { id });
+      
+      // Remove from local storage immediately
+      await offlineStorage.interactions.delete(id);
     }
   },
   
@@ -370,6 +427,77 @@ export const contactService = {
       
     } catch (error) {
       console.error("Error during sync operation:", error);
+      throw error;
+    }
+  },
+  
+  // Add function to sync offline interactions
+  async syncOfflineInteractions(): Promise<void> {
+    if (!navigator.onLine) return;
+    
+    try {
+      // Get all pending sync operations for interactions
+      const pendingOps = await offlineStorage.sync.getPending();
+      const interactionOps = pendingOps.filter(op => op.storeName === 'interactions');
+      
+      for (const op of interactionOps) {
+        try {
+          const { id, operation, data } = op;
+          
+          switch (operation) {
+            case 'create':
+              // Handle temp IDs
+              const tempId = data.id;
+              if (tempId.startsWith('temp_')) {
+                delete data.id; // Let Supabase generate a real ID
+              }
+              
+              const { data: newData, error: createError } = await supabase
+                .from("interactions")
+                .insert([data])
+                .select()
+                .single();
+              
+              if (createError) throw createError;
+              
+              // Replace temp interaction with real one
+              if (tempId.startsWith('temp_')) {
+                await offlineStorage.interactions.delete(tempId);
+                await offlineStorage.interactions.save(newData);
+              }
+              break;
+              
+            case 'update':
+              // Only send fields that should be updated
+              const { id: updateId, ...updateFields } = data;
+              
+              const { error: updateError } = await supabase
+                .from("interactions")
+                .update(updateFields)
+                .eq("id", updateId);
+                
+              if (updateError) throw updateError;
+              break;
+              
+            case 'delete':
+              const { error: deleteError } = await supabase
+                .from("interactions")
+                .delete()
+                .eq("id", data.id);
+                
+              if (deleteError) throw deleteError;
+              break;
+          }
+          
+          // Clear the sync operation once completed
+          await offlineStorage.sync.clearOp(id);
+          
+        } catch (opError) {
+          console.error(`Error syncing interaction operation:`, op, opError);
+        }
+      }
+    } catch (error) {
+      console.error("Error during interaction sync operation:", error);
       throw error;
     }
   }
