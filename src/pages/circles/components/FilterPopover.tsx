@@ -87,29 +87,6 @@ export const FilterPopover = ({
     );
   }, [currentOptions, currentSelected]);
 
-  // Create command items ahead of time to avoid rendering issues
-  const commandItems = useMemo(() => {
-    // If no available options, return an empty array but NEVER undefined
-    if (!Array.isArray(availableOptions) || availableOptions.length === 0) {
-      return [];
-    }
-
-    return availableOptions.map((option, index) => {
-      // Ensure value is always a string
-      const safeOption = String(option || `option-${index}`);
-      return (
-        <CommandItem 
-          key={`option-${activeFilterTab}-${safeOption}-${index}`}
-          value={safeOption}
-          onSelect={() => onSelect(activeFilterTab, safeOption)}
-          className="rounded-md cursor-pointer"
-        >
-          {safeOption}
-        </CommandItem>
-      );
-    });
-  }, [availableOptions, activeFilterTab, onSelect]);
-
   return (
     <Popover open={openFilters} onOpenChange={setOpenFilters}>
       <PopoverTrigger asChild>
@@ -155,8 +132,21 @@ export const FilterPopover = ({
             No {activeFilterTab} found.
           </CommandEmpty>
           <CommandGroup className="max-h-64 overflow-auto">
-            {commandItems.length > 0 ? (
-              commandItems
+            {availableOptions.length > 0 ? (
+              availableOptions.map((option, index) => {
+                // Ensure value is always a string
+                const safeOption = String(option || `option-${index}`);
+                return (
+                  <CommandItem 
+                    key={`option-${activeFilterTab}-${safeOption}-${index}`}
+                    value={safeOption}
+                    onSelect={() => onSelect(activeFilterTab, safeOption)}
+                    className="rounded-md cursor-pointer"
+                  >
+                    {safeOption}
+                  </CommandItem>
+                );
+              })
             ) : (
               <div className="text-xs text-center py-2 text-muted-foreground">
                 {currentOptions.length === 0 
