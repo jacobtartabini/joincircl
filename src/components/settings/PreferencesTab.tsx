@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -8,6 +7,7 @@ import { Calendar, Phone, Linkedin, Bell } from "lucide-react";
 import NotificationPreferences from "@/components/notifications/NotificationPreferences";
 import EmailIntegrationSection from "@/components/integrations/EmailIntegrationSection";
 import { EmailConnectionDialog } from "@/components/integrations/EmailConnectionDialog";
+import { useEmailProviders } from "@/hooks/useEmailProviders";
 import { supabase } from "@/integrations/supabase/client";
 
 const PreferencesTab = () => {
@@ -17,41 +17,10 @@ const PreferencesTab = () => {
   const [isOutlookDialogOpen, setIsOutlookDialogOpen] = useState(false);
   const [isLinkedInConnected, setIsLinkedInConnected] = useState(false);
   const [isPhoneContactsSynced, setIsPhoneContactsSynced] = useState(false);
-  const [isGmailConnected, setIsGmailConnected] = useState(false);
-  const [isOutlookConnected, setIsOutlookConnected] = useState(false);
   
-  // Check if email integrations are connected
-  useEffect(() => {
-    async function checkEmailIntegrations() {
-      // In a real app, we would check for actual connection status from Supabase
-      try {
-        const { data: userSession } = await supabase.auth.getSession();
-        if (userSession?.session) {
-          const { data: gmailData } = await supabase
-            .from('user_email_tokens')
-            .select('*')
-            .eq('user_id', userSession.session.user.id)
-            .eq('provider', 'gmail')
-            .maybeSingle();
-            
-          const { data: outlookData } = await supabase
-            .from('user_email_tokens')
-            .select('*')
-            .eq('user_id', userSession.session.user.id)
-            .eq('provider', 'outlook')
-            .maybeSingle();
-            
-          setIsGmailConnected(!!gmailData);
-          setIsOutlookConnected(!!outlookData);
-        }
-      } catch (error) {
-        console.error("Error checking email connections:", error);
-      }
-    }
-    
-    checkEmailIntegrations();
-  }, []);
-
+  // Use our new hook to determine if email providers are connected
+  const { isGmailConnected, isOutlookConnected } = useEmailProviders();
+  
   const handleConnectLinkedIn = () => {
     // In a real app, this would initiate an OAuth flow with LinkedIn
     toast({
@@ -212,14 +181,14 @@ const PreferencesTab = () => {
         isOpen={isGmailDialogOpen}
         onOpenChange={setIsGmailDialogOpen}
         provider="gmail"
-        onSuccess={() => setIsGmailConnected(true)}
+        onSuccess={() => {}}
       />
       
       <EmailConnectionDialog
         isOpen={isOutlookDialogOpen}
         onOpenChange={setIsOutlookDialogOpen}
         provider="outlook"
-        onSuccess={() => setIsOutlookConnected(true)}
+        onSuccess={() => {}}
       />
     </>
   );

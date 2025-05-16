@@ -36,24 +36,19 @@ export const useCalendarEvents = (contactId?: string) => {
         const { data: userSession } = await supabase.auth.getSession();
         
         if (userSession?.session) {
-          const { data: gmailConnectionData } = await supabase
+          // Check for connected email accounts which also provide calendar access
+          const { data: emailTokens } = await supabase
             .from('user_email_tokens')
             .select('*')
-            .eq('user_id', userSession.session.user.id)
-            .eq('provider', 'gmail')
-            .maybeSingle();
-            
-          const { data: outlookConnectionData } = await supabase
-            .from('user_email_tokens')
-            .select('*')
-            .eq('user_id', userSession.session.user.id)
-            .eq('provider', 'outlook')
-            .maybeSingle();
+            .eq('user_id', userSession.session.user.id);
             
           // Generate some demo calendar events based on connected providers
           const demoEvents: CalendarEvent[] = [];
           
-          if (gmailConnectionData) {
+          const gmailConnected = emailTokens?.some(token => token.provider === 'gmail');
+          const outlookConnected = emailTokens?.some(token => token.provider === 'outlook');
+          
+          if (gmailConnected) {
             // Add some Gmail calendar events
             const gmailEvents: CalendarEvent[] = [
               {
@@ -84,7 +79,7 @@ export const useCalendarEvents = (contactId?: string) => {
             demoEvents.push(...gmailEvents);
           }
           
-          if (outlookConnectionData) {
+          if (outlookConnected) {
             // Add some Outlook calendar events
             const outlookEvents: CalendarEvent[] = [
               {

@@ -53,13 +53,17 @@ export function EmailConnectionDialog({
       
       if (userSession?.session) {
         // Example: store token info (in a real app this would be OAuth tokens)
-        await supabase.from('user_email_tokens').upsert({
+        const { error } = await supabase.from('user_email_tokens').upsert({
           user_id: userSession.session.user.id,
           provider: provider,
           access_token: "demo-token",
           refresh_token: "demo-refresh-token",
           expires_at: new Date(Date.now() + 3600000).toISOString(),
         });
+        
+        if (error) {
+          throw error;
+        }
       }
       
       toast({

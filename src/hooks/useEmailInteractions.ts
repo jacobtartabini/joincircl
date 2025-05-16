@@ -34,24 +34,19 @@ export const useEmailInteractions = (contactId?: string) => {
         const { data: userSession } = await supabase.auth.getSession();
         
         if (userSession?.session) {
-          const { data: gmailConnectionData } = await supabase
+          // Check for connected email accounts
+          const { data: emailTokens } = await supabase
             .from('user_email_tokens')
             .select('*')
-            .eq('user_id', userSession.session.user.id)
-            .eq('provider', 'gmail')
-            .maybeSingle();
-            
-          const { data: outlookConnectionData } = await supabase
-            .from('user_email_tokens')
-            .select('*')
-            .eq('user_id', userSession.session.user.id)
-            .eq('provider', 'outlook')
-            .maybeSingle();
+            .eq('user_id', userSession.session.user.id);
             
           // Generate some demo email interactions based on connected providers
           const demoEmails: EmailInteraction[] = [];
           
-          if (gmailConnectionData) {
+          const gmailConnected = emailTokens?.some(token => token.provider === 'gmail');
+          const outlookConnected = emailTokens?.some(token => token.provider === 'outlook');
+          
+          if (gmailConnected) {
             // Add some Gmail demo interactions
             const gmailEmails: EmailInteraction[] = [
               {
@@ -79,7 +74,7 @@ export const useEmailInteractions = (contactId?: string) => {
             demoEmails.push(...gmailEmails);
           }
           
-          if (outlookConnectionData) {
+          if (outlookConnected) {
             // Add some Outlook demo interactions
             const outlookEmails: EmailInteraction[] = [
               {
