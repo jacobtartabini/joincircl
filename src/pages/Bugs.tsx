@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -35,24 +34,46 @@ const Bugs = () => {
     setFormData(prev => ({ ...prev, bugType: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulate form submission
-    setTimeout(() => {
+
+    try {
+      const response = await fetch("https://formspree.io/f/mqaqndap", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Bug Report Submitted",
+          description: "Thank you for helping us improve Circl!",
+        });
+        setFormData({
+          bugType: "",
+          description: "",
+          steps: "",
+          email: ""
+        });
+      } else {
+        toast({
+          title: "Submission Failed",
+          description: "Please try again or contact support.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
       toast({
-        title: "Bug Report Submitted",
-        description: "Thank you for helping us improve Circl!",
+        title: "An error occurred",
+        description: "Unable to submit the bug report.",
+        variant: "destructive"
       });
-      setFormData({
-        bugType: "",
-        description: "",
-        steps: "",
-        email: ""
-      });
+    } finally {
       setIsSubmitting(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -95,6 +116,8 @@ const Bugs = () => {
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
+              {/* Hidden input to send bugType to Formspree */}
+              <input type="hidden" name="bugType" value={formData.bugType} />
             </div>
             
             <div className="space-y-2">
