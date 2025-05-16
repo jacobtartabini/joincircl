@@ -39,12 +39,18 @@ const Bugs = () => {
     setIsSubmitting(true);
 
     try {
+      const form = new FormData();
+      form.append("bugType", formData.bugType);
+      form.append("description", formData.description);
+      form.append("steps", formData.steps);
+      form.append("email", formData.email);
+
       const response = await fetch("https://formspree.io/f/mqaqndap", {
         method: "POST",
+        body: form,
         headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(formData)
+          Accept: "application/json",
+        }
       });
 
       if (response.ok) {
@@ -109,11 +115,11 @@ const Bugs = () => {
                   <SelectValue placeholder="Select bug type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ui">UI/Display Issue</SelectItem>
-                  <SelectItem value="performance">Performance Problem</SelectItem>
-                  <SelectItem value="feature">Feature Not Working</SelectItem>
-                  <SelectItem value="crash">App Crash</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="UI/Display Issue">UI/Display Issue</SelectItem>
+                  <SelectItem value="Performance Problem">Performance Problem</SelectItem>
+                  <SelectItem value="Feature Not Working">Feature Not Working</SelectItem>
+                  <SelectItem value="App Crash">App Crash</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
                 </SelectContent>
               </Select>
               {/* Hidden input to send bugType to Formspree */}
