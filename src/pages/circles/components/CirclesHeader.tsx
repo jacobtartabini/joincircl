@@ -5,7 +5,12 @@ import CircleImportButtons from "@/components/circles/CircleImportButtons";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { Link } from "react-router-dom";
 
-const CirclesHeader = ({ onAddContact }: { onAddContact: () => void }) => {
+interface CirclesHeaderProps {
+  onAddContact: () => void;
+  hasDuplicates?: boolean;
+}
+
+const CirclesHeader = ({ onAddContact, hasDuplicates = false }: CirclesHeaderProps) => {
   const isOnline = useOnlineStatus();
   
   return (
@@ -18,27 +23,23 @@ const CirclesHeader = ({ onAddContact }: { onAddContact: () => void }) => {
       </div>
       
       <div className="flex space-x-2">
-        <Button
-          variant="outline"
-          size="sm"
-          className="hidden md:flex"
-          onClick={() => {}}
-          asChild
-        >
-          <Link to="/duplicates">
-            <Merge size={16} className="mr-2" /> 
-            Review Duplicates
-          </Link>
-        </Button>
+        {hasDuplicates && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="hidden md:flex"
+            asChild
+          >
+            <Link to="/duplicates">
+              <Merge size={16} className="mr-2" /> 
+              Review Duplicates
+            </Link>
+          </Button>
+        )}
         
-        <Button
-          variant="outline"
-          size="sm"
-          className="hidden md:flex"
-          onClick={() => {}}
-        >
+        <div className="hidden md:block">
           <CircleImportButtons onImportSuccess={() => {}} />
-        </Button>
+        </div>
         
         <Button
           variant="default"
