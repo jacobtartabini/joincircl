@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -25,149 +24,164 @@ import Bugs from "./pages/Bugs";
 import Legal from "./pages/Legal";
 import ShareTarget from "./pages/ShareTarget";
 import Notifications from "./pages/Notifications";
+import Duplicates from "@/pages/Duplicates";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            {/* Auth routes */}
-            <Route path="/auth/sign-in" element={<SignIn />} />
-            <Route path="/auth/sign-up" element={<SignUp />} />
-            <Route path="/auth/forgot-password" element={<ForgotPassword />} />
-            <Route path="/auth/reset-password" element={<ResetPassword />} />
-            <Route path="/auth/callback" element={<CallbackPage />} />
-            
-            {/* Share target route */}
-            <Route
-              path="/share-target"
-              element={
-                <RequireAuth>
-                  <MainLayout>
-                    <ShareTarget />
-                  </MainLayout>
-                </RequireAuth>
-              }
-            />
-            
-            {/* Protected routes */}
-            <Route
-              path="/"
-              element={
-                <RequireAuth>
-                  <MainLayout>
-                    <Home />
-                  </MainLayout>
-                  <UserOnboarding />
-                </RequireAuth>
-              }
-            />
-            <Route
-              path="/circles"
-              element={
-                <RequireAuth>
-                  <MainLayout>
-                    <Circles />
-                  </MainLayout>
-                </RequireAuth>
-              }
-            />
-            <Route
-              path="/contacts/:id"
-              element={
-                <RequireAuth>
-                  <MainLayout>
-                    <ContactDetail />
-                  </MainLayout>
-                </RequireAuth>
-              }
-            />
-            <Route
-              path="/keystones"
-              element={
-                <RequireAuth>
-                  <MainLayout>
-                    <Keystones />
-                  </MainLayout>
-                </RequireAuth>
-              }
-            />
-            <Route
-              path="/settings"
-              element={
-                <RequireAuth>
-                  <MainLayout>
-                    <Settings />
-                  </MainLayout>
-                </RequireAuth>
-              }
-            />
-            <Route
-              path="/notifications"
-              element={
-                <RequireAuth>
-                  <MainLayout>
-                    <Notifications />
-                  </MainLayout>
-                </RequireAuth>
-              }
-            />
-            
-            {/* Resource pages */}
-            <Route
-              path="/help"
-              element={
-                <RequireAuth>
-                  <MainLayout>
-                    <Help />
-                  </MainLayout>
-                </RequireAuth>
-              }
-            />
-            <Route
-              path="/contact"
-              element={
-                <RequireAuth>
-                  <MainLayout>
-                    <Contact />
-                  </MainLayout>
-                </RequireAuth>
-              }
-            />
-            <Route
-              path="/bugs"
-              element={
-                <RequireAuth>
-                  <MainLayout>
-                    <Bugs />
-                  </MainLayout>
-                </RequireAuth>
-              }
-            />
-            <Route
-              path="/legal"
-              element={
-                <RequireAuth>
-                  <MainLayout>
-                    <Legal />
-                  </MainLayout>
-                </RequireAuth>
-              }
-            />
-            
-            {/* Fallback routes */}
-            <Route path="/index" element={<Navigate to="/" replace />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              {/* Auth routes */}
+              <Route path="/auth/sign-in" element={<SignIn />} />
+              <Route path="/auth/sign-up" element={<SignUp />} />
+              <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+              <Route path="/auth/reset-password" element={<ResetPassword />} />
+              <Route path="/auth/callback" element={<CallbackPage />} />
+              
+              {/* Share target route */}
+              <Route
+                path="/share-target"
+                element={
+                  <RequireAuth>
+                    <MainLayout>
+                      <ShareTarget />
+                    </MainLayout>
+                  </RequireAuth>
+                }
+              />
+              
+              {/* Protected routes */}
+              <Route
+                path="/"
+                element={
+                  <RequireAuth>
+                    <MainLayout>
+                      <Home />
+                    </MainLayout>
+                    <UserOnboarding />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/circles"
+                element={
+                  <RequireAuth>
+                    <MainLayout>
+                      <Circles />
+                    </MainLayout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/contacts/:id"
+                element={
+                  <RequireAuth>
+                    <MainLayout>
+                      <ContactDetail />
+                    </MainLayout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/keystones"
+                element={
+                  <RequireAuth>
+                    <MainLayout>
+                      <Keystones />
+                    </MainLayout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/settings"
+                element={
+                  <RequireAuth>
+                    <MainLayout>
+                      <Settings />
+                    </MainLayout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/notifications"
+                element={
+                  <RequireAuth>
+                    <MainLayout>
+                      <Notifications />
+                    </MainLayout>
+                  </RequireAuth>
+                }
+              />
+              
+              {/* Resource pages */}
+              <Route
+                path="/help"
+                element={
+                  <RequireAuth>
+                    <MainLayout>
+                      <Help />
+                    </MainLayout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/contact"
+                element={
+                  <RequireAuth>
+                    <MainLayout>
+                      <Contact />
+                    </MainLayout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/bugs"
+                element={
+                  <RequireAuth>
+                    <MainLayout>
+                      <Bugs />
+                    </MainLayout>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/legal"
+                element={
+                  <RequireAuth>
+                    <MainLayout>
+                      <Legal />
+                    </MainLayout>
+                  </RequireAuth>
+                }
+              />
+              
+              {/* Duplicates route */}
+              <Route
+                path="/duplicates"
+                element={
+                  <RequireAuth>
+                    <MainLayout>
+                      <Duplicates />
+                    </MainLayout>
+                  </RequireAuth>
+                }
+              />
+              
+              {/* Fallback routes */}
+              <Route path="/index" element={<Navigate to="/" replace />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+}
 
 export default App;
