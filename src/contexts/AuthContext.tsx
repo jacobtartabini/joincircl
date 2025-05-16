@@ -14,6 +14,12 @@ interface AuthContextProps {
   signUp: (email: string, password: string, metadata?: any) => Promise<{ error: any, data: any }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
+  // Add missing properties
+  deleteAccount: () => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
+  hasPermission: (permission: string) => boolean;
+  hasSeenTutorial: boolean;
+  setHasSeenTutorial: (value: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -23,6 +29,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hasSeenTutorial, setHasSeenTutorial] = useState<boolean>(false);
 
   // Function to fetch and cache user profile
   const fetchAndCacheProfile = async (userId: string) => {
@@ -32,6 +39,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const cachedProfile = await offlineStorage.profile.get(userId);
         if (cachedProfile) {
           setProfile(cachedProfile);
+          setHasSeenTutorial(cachedProfile.has_seen_tutorial || false);
           console.log('Loaded profile from offline storage');
           return;
         }
@@ -51,6 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (data) {
         // Store profile in state
         setProfile(data);
+        setHasSeenTutorial(data.has_seen_tutorial || false);
         
         // Cache profile for offline use
         await offlineStorage.profile.save(data);
@@ -139,6 +148,55 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Implement the missing methods
+  const signInWithGoogle = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`
+      }
+    });
+  };
+
+  const deleteAccount = async () => {
+    if (!user) throw new Error("User must be logged in");
+    
+    try {
+      // Delete profile
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', user.id);
+      
+      if (profileError) throw profileError;
+      
+      // Delete user auth account
+      const { error } = await supabase.auth.admin.deleteUser(user.id);
+      if (error) throw error;
+      
+      // Clear local state
+      setProfile(null);
+      setUser(null);
+      setSession(null);
+      
+      // Remove from offline storage
+      await offlineStorage.profile.delete(user.id);
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      throw error;
+    }
+  };
+
+  const hasPermission = (permission: string) => {
+    // For now, implement a simple permission check
+    // This can be expanded later based on user roles or specific permissions
+    if (!user) return false;
+    
+    // Basic implementation - return true for authenticated users
+    // In real application, you would check against user's permissions in profile
+    return true;
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -149,6 +207,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       signUp,
       signOut,
       updateProfile,
+      // Add the missing properties
+      deleteAccount,
+      signInWithGoogle,
+      hasPermission,
+      hasSeenTutorial,
+      setHasSeenTutorial,
     }}>
       {children}
     </AuthContext.Provider>
