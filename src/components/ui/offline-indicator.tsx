@@ -1,4 +1,3 @@
-
 import { Wifi, WifiOff } from "lucide-react";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { cn } from "@/lib/utils";
@@ -19,22 +18,7 @@ export function OfflineIndicator({ className }: { className?: string }) {
   );
 }
 
+// Keep the function for backwards compatibility but don't render anything
 export function ConnectionStatus({ className }: { className?: string }) {
-  const isOnline = useOnlineStatus();
-
-  return (
-    <div className={cn("flex items-center gap-1.5", className)}>
-      {isOnline ? (
-        <>
-          <Wifi size={16} className="text-green-500" />
-          <span className="text-xs text-muted-foreground">Online</span>
-        </>
-      ) : (
-        <>
-          <WifiOff size={16} className="text-destructive" />
-          <span className="text-xs text-destructive">Offline</span>
-        </>
-      )}
-    </div>
-  );
+  return null;
 }

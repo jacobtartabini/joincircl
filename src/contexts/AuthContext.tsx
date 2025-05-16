@@ -1,574 +1,159 @@
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Session, User } from '@supabase/supabase-js';
+import React, { createContext, useState, useContext, useEffect } from 'react';
+import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { AuthState, Profile } from '@/types/auth';
-import { useToast } from '@/hooks/use-toast';
-import { sanitizeInput, handleError } from '@/utils/security';
+import { Profile } from '@/types/auth';
 import { offlineStorage } from '@/services/offlineStorage';
 
-interface AuthContextType extends AuthState {
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, fullName: string) => Promise<void>;
-  signOut: () => Promise<void>;
-  resetPassword: (email: string) => Promise<void>;
-  signInWithGoogle: () => Promise<void>;
+interface AuthContextProps {
+  user: User | null;
+  session: Session | null;
   profile: Profile | null;
-  updateProfile: (profile: Partial<Profile>) => Promise<void>;
-  hasSeenTutorial: boolean;
-  setHasSeenTutorial: (value: boolean) => void;
-  deleteAccount: () => Promise<void>;
-  hasPermission: (permission: string) => boolean;
-  isOfflineEnabled: boolean;
+  loading: boolean;
+  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, metadata?: any) => Promise<{ error: any, data: any }>;
+  signOut: () => Promise<void>;
+  updateProfile: (updates: Partial<Profile>) => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
-// Rate limiter for authentication attempts - only allow 5 attempts per minute
-const authRateLimiter = new Map<string, { count: number, resetTime: number }>();
-const MAX_AUTH_ATTEMPTS = 5;
-const AUTH_WINDOW_MS = 60 * 1000; // 1 minute
-
-// Helper to check rate limiting for auth attempts
-function checkRateLimit(identifier: string): boolean {
-  const now = Date.now();
-  const rateLimit = authRateLimiter.get(identifier);
-  
-  if (!rateLimit) {
-    // First attempt
-    authRateLimiter.set(identifier, { count: 1, resetTime: now + AUTH_WINDOW_MS });
-    return true;
-  }
-  
-  if (now > rateLimit.resetTime) {
-    // Reset time window has passed
-    authRateLimiter.set(identifier, { count: 1, resetTime: now + AUTH_WINDOW_MS });
-    return true;
-  }
-  
-  if (rateLimit.count >= MAX_AUTH_ATTEMPTS) {
-    // Too many attempts
-    return false;
-  }
-  
-  // Increment attempt count
-  rateLimit.count += 1;
-  authRateLimiter.set(identifier, rateLimit);
-  return true;
-}
-
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [authState, setAuthState] = useState<AuthState>({
-    session: null,
-    user: null,
-    loading: true,
-  });
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [hasSeenTutorial, setHasSeenTutorial] = useState<boolean>(false);
-  const [isOfflineEnabled, setIsOfflineEnabled] = useState<boolean>(false);
-  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
 
-  // Initialize offline storage
-  useEffect(() => {
-    const initOfflineSupport = async () => {
-      const isAvailable = offlineStorage.isAvailable();
-      setIsOfflineEnabled(isAvailable);
-      
-      if (isAvailable) {
-        console.log("Offline storage initialized");
-        
-        // If offline but we have cached profile, load it
-        if (!navigator.onLine && authState.user?.id) {
-          try {
-            const cachedProfile = await offlineStorage.profile.get(authState.user.id);
-            if (cachedProfile) {
-              console.log("Loading cached profile from offline storage");
-              setProfile(cachedProfile);
-              setHasSeenTutorial(!!cachedProfile.has_seen_tutorial);
-            }
-          } catch (error) {
-            console.error("Error loading cached profile:", error);
-          }
+  // Function to fetch and cache user profile
+  const fetchAndCacheProfile = async (userId: string) => {
+    try {
+      // Try to get from offline storage first if not online
+      if (!navigator.onLine) {
+        const cachedProfile = await offlineStorage.profile.get(userId);
+        if (cachedProfile) {
+          setProfile(cachedProfile);
+          console.log('Loaded profile from offline storage');
+          return;
         }
-      } else {
-        console.warn("IndexedDB is not available - offline mode disabled");
       }
-    };
-    
-    initOfflineSupport();
-  }, []);
-
-  // Setup auth state change handler
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log('Auth state change event:', event, !!session);
-        setAuthState(prev => ({
-          ...prev,
-          session: session,
-          user: session?.user ?? null,
-        }));
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return;
+      }
+      
+      if (data) {
+        // Store profile in state
+        setProfile(data);
         
-        if (session?.user) {
-          // Use setTimeout to prevent potential deadlock with Supabase client
+        // Cache profile for offline use
+        await offlineStorage.profile.save(data);
+      }
+    } catch (error) {
+      console.error('Error in fetchAndCacheProfile:', error);
+    }
+  };
+
+  // Initial session check and auth subscription setup
+  useEffect(() => {
+    setLoading(true);
+    
+    // First, set up the auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, currentSession) => {
+        console.log('Auth state change event:', event, Boolean(currentSession));
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+        
+        // Fetch profile with setTimeout to prevent auth deadlocks
+        if (currentSession?.user?.id) {
           setTimeout(() => {
-            fetchProfile(session.user.id);
+            fetchAndCacheProfile(currentSession.user.id);
           }, 0);
-        } else {
-          setProfile(null);
         }
       }
     );
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session check:', !!session);
-      setAuthState({
-        session: session,
-        user: session?.user ?? null,
-        loading: false,
-      });
+    
+    // Then check for existing session
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      console.log('Initial session check:', Boolean(currentSession));
+      setSession(currentSession);
+      setUser(currentSession?.user ?? null);
       
-      if (session?.user) {
-        fetchProfile(session.user.id);
+      if (currentSession?.user?.id) {
+        fetchAndCacheProfile(currentSession.user.id);
       }
+      
+      setLoading(false);
     });
-
+    
+    // Cleanup subscription
     return () => {
       subscription.unsubscribe();
     };
   }, []);
 
-  // Add online/offline sync event handlers
-  useEffect(() => {
-    const handleOnline = async () => {
-      console.log("App is back online - syncing data");
-      if (authState.user) {
-        try {
-          // Re-fetch profile data
-          await fetchProfile(authState.user.id);
-          
-          // Sync any pending changes
-          // This would be expanded for other data types
-          if (isOfflineEnabled) {
-            try {
-              // Call sync method from services
-              await import('@/services/contactService').then(module => {
-                return module.contactService.syncOfflineChanges();
-              });
-            } catch (error) {
-              console.error("Error syncing offline changes:", error);
-            }
-          }
-        } catch (error) {
-          console.error("Error syncing data after coming online:", error);
-        }
-      }
-    };
-
-    window.addEventListener('online', handleOnline);
-    
-    return () => {
-      window.removeEventListener('online', handleOnline);
-    };
-  }, [authState.user, isOfflineEnabled]);
-
-  const fetchProfile = async (userId: string) => {
-    try {
-      if (navigator.onLine) {
-        // Online - fetch from API
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', userId)
-          .single();
-  
-        if (error) {
-          console.error('Error fetching profile:', error);
-          return;
-        }
-  
-        setProfile(data);
-        
-        if (data?.has_seen_tutorial) {
-          setHasSeenTutorial(true);
-        }
-        
-        // Cache profile for offline use
-        if (isOfflineEnabled && data) {
-          await offlineStorage.profile.save(data);
-        }
-      } else if (isOfflineEnabled) {
-        // Offline - try to load from cache
-        const cachedProfile = await offlineStorage.profile.get(userId);
-        if (cachedProfile) {
-          console.log("Loading profile from offline cache");
-          setProfile(cachedProfile);
-          setHasSeenTutorial(!!cachedProfile.has_seen_tutorial);
-        }
-      }
-    } catch (error) {
-      console.error('Error in fetchProfile:', error);
-      // If online fetch fails, try offline cache as fallback
-      if (isOfflineEnabled) {
-        try {
-          const cachedProfile = await offlineStorage.profile.get(userId);
-          if (cachedProfile) {
-            console.log("Fallback to cached profile");
-            setProfile(cachedProfile);
-            setHasSeenTutorial(!!cachedProfile.has_seen_tutorial);
-          }
-        } catch (cacheError) {
-          console.error("Error loading cached profile:", cacheError);
-        }
-      }
-    }
-  };
-
+  // Auth methods
   const signIn = async (email: string, password: string) => {
-    // Sanitize inputs
-    const sanitizedEmail = sanitizeInput(email.trim().toLowerCase());
-    
-    // Check rate limiting
-    if (!checkRateLimit(sanitizedEmail)) {
-      toast({
-        title: "Too many attempts",
-        description: "Please try again later.",
-        variant: "destructive",
-      });
-      throw new Error("Too many sign in attempts");
-    }
-    
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: sanitizedEmail,
-        password,
-      });
-
-      if (error) {
-        toast({
-          title: "Sign in failed",
-          description: handleError(error),
-          variant: "destructive",
-        });
-        throw error;
-      }
-
-      toast({
-        title: "Welcome back!",
-        description: "You've successfully signed in.",
-      });
-    } catch (error: any) {
-      console.error('Sign in error:', error);
-      throw error;
-    }
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    return { error };
   };
 
-  const signUp = async (email: string, password: string, fullName: string) => {
-    // Sanitize inputs
-    const sanitizedEmail = sanitizeInput(email.trim().toLowerCase());
-    const sanitizedName = sanitizeInput(fullName.trim());
-    
-    // Check rate limiting
-    if (!checkRateLimit(sanitizedEmail)) {
-      toast({
-        title: "Too many attempts",
-        description: "Please try again later.",
-        variant: "destructive",
-      });
-      throw new Error("Too many sign up attempts");
-    }
-    
-    try {
-      const { error } = await supabase.auth.signUp({
-        email: sanitizedEmail,
-        password,
-        options: {
-          data: {
-            full_name: sanitizedName,
-          },
-          emailRedirectTo: window.location.origin + '/auth/callback',
-        },
-      });
-
-      if (error) {
-        toast({
-          title: "Sign up failed",
-          description: handleError(error),
-          variant: "destructive",
-        });
-        throw error;
-      }
-
-      toast({
-        title: "Account created",
-        description: "Please check your email to confirm your account.",
-      });
-    } catch (error: any) {
-      console.error('Sign up error:', error);
-      throw error;
-    }
+  const signUp = async (email: string, password: string, metadata?: any) => {
+    const { data, error } = await supabase.auth.signUp({ 
+      email, 
+      password,
+      options: { 
+        data: metadata 
+      } 
+    });
+    return { data, error };
   };
 
   const signOut = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        toast({
-          title: "Sign out failed",
-          description: handleError(error),
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      // Clear any sensitive data from localStorage and IndexedDB
-      localStorage.removeItem('lastRoute');
-      
-      // Clear offline data when signing out for security
-      if (isOfflineEnabled) {
-        try {
-          await offlineStorage.profile.clear();
-          await offlineStorage.contacts.clear();
-        } catch (error) {
-          console.error("Error clearing offline data:", error);
-        }
-      }
-
-      toast({
-        title: "Signed out",
-        description: "You've been successfully signed out.",
-      });
-    } catch (error) {
-      console.error('Sign out error:', error);
-      toast({
-        title: "Sign out failed",
-        description: handleError(error),
-        variant: "destructive",
-      });
-    }
-  };
-
-  const resetPassword = async (email: string) => {
-    // Sanitize input
-    const sanitizedEmail = sanitizeInput(email.trim().toLowerCase());
-    
-    // Check rate limiting
-    if (!checkRateLimit(sanitizedEmail)) {
-      toast({
-        title: "Too many attempts",
-        description: "Please try again later.",
-        variant: "destructive",
-      });
-      throw new Error("Too many password reset attempts");
-    }
-    
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(sanitizedEmail, {
-        redirectTo: `${window.location.origin}/update-password`,
-      });
-
-      if (error) {
-        toast({
-          title: "Password reset failed",
-          description: handleError(error),
-          variant: "destructive",
-        });
-        throw error;
-      }
-
-      toast({
-        title: "Password reset email sent",
-        description: "Please check your email for the password reset link.",
-      });
-    } catch (error: any) {
-      console.error('Password reset error:', error);
-      throw error;
-    }
-  };
-
-  const signInWithGoogle = async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
-        },
-      });
-
-      if (error) {
-        toast({
-          title: "Google sign in failed",
-          description: handleError(error),
-          variant: "destructive",
-        });
-        throw error;
-      }
-    } catch (error: any) {
-      console.error('Google sign in error:', error);
-      throw error;
-    }
+    await supabase.auth.signOut();
+    setProfile(null);
   };
 
   const updateProfile = async (updates: Partial<Profile>) => {
-    if (!authState.user?.id) return;
+    if (!user) throw new Error("User must be logged in");
     
-    // Sanitize text inputs
-    const sanitizedUpdates = { ...updates };
-    if (typeof sanitizedUpdates.full_name === 'string') {
-      sanitizedUpdates.full_name = sanitizeInput(sanitizedUpdates.full_name);
-    }
-    if (typeof sanitizedUpdates.bio === 'string') {
-      sanitizedUpdates.bio = sanitizeInput(sanitizedUpdates.bio);
-    }
-    if (typeof sanitizedUpdates.phone_number === 'string') {
-      sanitizedUpdates.phone_number = sanitizeInput(sanitizedUpdates.phone_number);
-    }
+    const { error } = await supabase
+      .from('profiles')
+      .update(updates)
+      .eq('id', user.id);
     
-    try {
-      if (navigator.onLine) {
-        // Online update
-        const { error } = await supabase
-          .from('profiles')
-          .update(sanitizedUpdates)
-          .eq('id', authState.user.id);
-  
-        if (error) {
-          toast({
-            title: "Profile update failed",
-            description: handleError(error),
-            variant: "destructive",
-          });
-          throw error;
-        }
-      } 
-      
-      // Update the local state
-      setProfile(prev => {
-        if (!prev) return prev;
-        const updated = { ...prev, ...sanitizedUpdates };
-        
-        // Also update offline cache
-        if (isOfflineEnabled) {
-          offlineStorage.profile.save(updated)
-            .catch(err => console.error("Failed to cache profile update:", err));
-        }
-        
-        return updated;
-      });
-
-      // If offline, queue the update for sync when back online
-      if (!navigator.onLine && isOfflineEnabled) {
-        await offlineStorage.sync.queue('update', 'profile', {
-          id: authState.user.id,
-          ...sanitizedUpdates
-        });
-      }
-
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been updated successfully.",
-      });
-    } catch (error: any) {
-      console.error('Profile update error:', error);
-      throw error;
-    }
-  };
-  
-  // Simple permission checking based on user role
-  const hasPermission = (permission: string): boolean => {
-    // For now, we don't have a formal role system
-    // This is a placeholder for future role-based permission checks
-    if (!authState.user) return false;
+    if (error) throw error;
     
-    // Basic admin check (could be expanded with a proper roles table)
-    const isAdmin = authState.user.email === 'admin@example.com';
-    
-    switch (permission) {
-      case 'contacts:create':
-      case 'contacts:read':
-      case 'contacts:update':
-      case 'contacts:delete':
-      case 'profile:read':
-      case 'profile:update':
-        // All authenticated users can do these operations
-        return true;
-      case 'users:admin':
-        // Only admins can do these operations
-        return isAdmin;
-      default:
-        return false;
-    }
-  };
-  
-  const deleteAccount = async () => {
-    if (!authState.user?.id) return;
-    
-    try {
-      // Delete user data in order (respecting foreign key constraints)
-      await supabase
-        .from('contacts')
-        .delete()
-        .eq('user_id', authState.user.id);
-        
-      await supabase
-        .from('interactions')
-        .delete()
-        .eq('user_id', authState.user.id);
-        
-      await supabase
-        .from('keystones')
-        .delete()
-        .eq('user_id', authState.user.id);
-      
-      // This would require admin privileges, which we don't have in the browser
-      // We would need a secure backend/edge function to handle this
-      // For now, showing an alternative approach of signing out
-      
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      
-      toast({
-        title: "Account deactivated",
-        description: "Your account has been deactivated and you've been signed out.",
-      });
-    } catch (error: any) {
-      console.error('Account deletion error:', error);
-      
-      toast({
-        title: "Delete failed",
-        description: handleError(error),
-        variant: "destructive"
-      });
-      throw error;
+    // Update local state and cache
+    if (profile) {
+      const updatedProfile = { ...profile, ...updates };
+      setProfile(updatedProfile);
+      await offlineStorage.profile.save(updatedProfile);
     }
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        ...authState,
-        signIn,
-        signUp,
-        signOut,
-        resetPassword,
-        signInWithGoogle,
-        profile,
-        updateProfile,
-        hasSeenTutorial,
-        setHasSeenTutorial,
-        deleteAccount,
-        hasPermission,
-        isOfflineEnabled
-      }}
-    >
+    <AuthContext.Provider value={{
+      user,
+      session,
+      profile,
+      loading,
+      signIn,
+      signUp,
+      signOut,
+      updateProfile,
+    }}>
       {children}
     </AuthContext.Provider>
   );
-}
+};
 
 export const useAuth = () => {
   const context = useContext(AuthContext);

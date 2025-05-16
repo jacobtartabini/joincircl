@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Contact, Interaction, ContactMedia } from "@/types/contact";
@@ -6,6 +7,7 @@ import { contactService } from "@/services/contactService";
 import { keystoneService } from "@/services/keystoneService";
 import { contactMediaService } from "@/services/contactMediaService";
 import { useToast } from "@/hooks/use-toast";
+import { offlineStorage } from "@/services/offlineStorage";
 
 export function useContactDetail(contactId: string | undefined) {
   const navigate = useNavigate();
@@ -29,16 +31,52 @@ export function useContactDetail(contactId: string | undefined) {
       setError(false);
       
       try {
-        const contactData = await contactService.getContact(contactId);
-        const interactionsData = await contactService.getInteractionsByContactId(contactId);
-        const keystonesData = await keystoneService.getKeystonesByContactId(contactId);
+        // First try to get contact from offline storage
+        let contactData: Contact | null = null;
+        let interactionsData: Interaction[] = [];
         
+        if (!navigator.onLine) {
+          // If offline, try to get from local storage
+          contactData = await offlineStorage.contacts.get(contactId);
+          if (!contactData) {
+            throw new Error("Contact not found in offline storage");
+          }
+          
+          // For interactions, we don't have offline storage yet, so use an empty array
+          // This can be enhanced in the future to store interactions offline too
+        } else {
+          // If online, try API first
+          try {
+            contactData = await contactService.getContact(contactId);
+            interactionsData = await contactService.getInteractionsByContactId(contactId);
+          } catch (apiError) {
+            console.error("API error:", apiError);
+            // Fall back to offline storage
+            contactData = await offlineStorage.contacts.get(contactId);
+            if (!contactData) {
+              throw new Error("Contact not found");
+            }
+          }
+        }
+        
+        // For keystones and media, we'll attempt to fetch but handle gracefully if they fail
+        let keystonesData: Keystone[] = [];
         let mediaData: ContactMedia[] = [];
-        try {
-          mediaData = await contactMediaService.getContactMedia(contactId);
-        } catch (error) {
-          console.error("Error loading contact media:", error);
-          // Don't fail the entire page load if media loading fails
+        
+        if (navigator.onLine) {
+          try {
+            keystonesData = await keystoneService.getKeystonesByContactId(contactId);
+          } catch (error) {
+            console.error("Error loading keystones:", error);
+            // Don't let keystones failure cause the whole page to fail
+          }
+          
+          try {
+            mediaData = await contactMediaService.getContactMedia(contactId);
+          } catch (error) {
+            console.error("Error loading contact media:", error);
+            // Don't let media failure cause the whole page to fail
+          }
         }
         
         setContact(contactData);
@@ -50,7 +88,9 @@ export function useContactDetail(contactId: string | undefined) {
         setError(true);
         toast({
           title: "Error",
-          description: "Could not load contact data. Please try again.",
+          description: navigator.onLine 
+            ? "Could not load contact data. Please try again." 
+            : "You're offline. This contact isn't available in offline mode.",
           variant: "destructive"
         });
       } finally {
@@ -75,7 +115,9 @@ export function useContactDetail(contactId: string | undefined) {
       console.error("Error deleting contact:", error);
       toast({
         title: "Error",
-        description: "Failed to delete contact. Please try again.",
+        description: navigator.onLine 
+          ? "Failed to delete contact. Please try again." 
+          : "Cannot delete contacts while offline. Please try again when you're online.",
         variant: "destructive"
       });
     }
@@ -165,7 +207,7 @@ export function useContactDetail(contactId: string | undefined) {
   };
 
   const handleKeystoneAdded = async () => {
-    if (!contactId) return;
+    if (!contactId || !navigator.onLine) return;
     try {
       const updatedKeystones = await keystoneService.getKeystonesByContactId(contactId);
       setKeystones(updatedKeystones);
@@ -177,10 +219,18 @@ export function useContactDetail(contactId: string | undefined) {
   const handleInteractionAdded = async () => {
     if (!contactId) return;
     try {
-      const updatedContact = await contactService.getContact(contactId);
-      const updatedInteractions = await contactService.getInteractionsByContactId(contactId);
-      setContact(updatedContact);
-      setInteractions(updatedInteractions);
+      if (navigator.onLine) {
+        const updatedContact = await contactService.getContact(contactId);
+        const updatedInteractions = await contactService.getInteractionsByContactId(contactId);
+        setContact(updatedContact);
+        setInteractions(updatedInteractions);
+      } else {
+        toast({
+          title: "Offline mode",
+          description: "Your interaction will be synced when you're back online.",
+          variant: "default"
+        });
+      }
     } catch (error) {
       console.error("Error refreshing interactions:", error);
     }
@@ -199,3 +249,4 @@ export function useContactDetail(contactId: string | undefined) {
     handleInteractionAdded
   };
 }
+

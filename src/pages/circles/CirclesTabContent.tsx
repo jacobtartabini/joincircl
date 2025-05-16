@@ -1,11 +1,9 @@
-
 import { useMemo } from "react";
 import { Contact } from "@/types/contact";
 import { TabsContent } from "@/components/ui/tabs";
 import { ContactCard } from "@/components/ui/contact-card";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { CloudOff } from "lucide-react";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 
 interface CirclesTabContentProps {
@@ -65,15 +63,6 @@ export const CirclesTabContent = ({
   
   return (
     <TabsContent value={value} className="mt-4">
-      {!isOnline && (
-        <div className="mb-4 bg-amber-50 border border-amber-200 rounded-md p-3 flex items-center gap-2 text-amber-700">
-          <CloudOff size={16} />
-          <p className="text-sm">
-            You're currently in offline mode. Some features may be limited.
-          </p>
-        </div>
-      )}
-      
       {isLoading ? (
         <LoadingState />
       ) : filteredContacts.length > 0 ? (

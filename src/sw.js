@@ -1,4 +1,3 @@
-
 import { precacheAndRoute } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
 import { CacheFirst, NetworkFirst, StaleWhileRevalidate } from 'workbox-strategies';
@@ -59,10 +58,10 @@ registerRoute(
   'GET'
 );
 
-// Cache profile data
+// Cache profile data with improved offline support
 registerRoute(
   /\/rest\/v1\/profiles/,
-  new NetworkFirst({
+  new StaleWhileRevalidate({
     cacheName: 'user-profile-cache',
     plugins: [
       new ExpirationPlugin({
@@ -74,15 +73,15 @@ registerRoute(
   'GET'
 );
 
-// Cache Supabase auth session - be careful with this one
+// Cache Supabase auth session with longer expiration for better offline support
 registerRoute(
   /\/auth\/v1\/token/,
-  new NetworkFirst({
+  new StaleWhileRevalidate({
     cacheName: 'auth-token-cache',
     plugins: [
       new ExpirationPlugin({
         maxEntries: 10,
-        maxAgeSeconds: 60 * 30 // 30 minutes to avoid security issues
+        maxAgeSeconds: 24 * 60 * 60 // Extended to 24 hours to help with offline access
       })
     ]
   })
@@ -284,3 +283,27 @@ self.addEventListener('fetch', event => {
     );
   }
 });
+
+// Add profile specific sync handling
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'sync-profiles') {
+    event.waitUntil(syncProfiles());
+  }
+});
+
+async function syncProfiles() {
+  console.log('Syncing profile data...');
+  
+  try {
+    // Inform clients about profile sync
+    self.clients.matchAll().then(clients => {
+      clients.forEach(client => {
+        client.postMessage({
+          type: 'PROFILE_SYNC_STARTED'
+        });
+      });
+    });
+  } catch (error) {
+    console.error('Error syncing profiles:', error);
+  }
+}
