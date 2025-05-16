@@ -136,6 +136,7 @@ export const FilterPopover = ({
           <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
             No {activeFilterTab} found.
           </CommandEmpty>
+          {/* Important: Pass empty children array if no items to avoid undefined is not iterable */}
           <CommandGroup className="max-h-64 overflow-auto">
             {safeAvailableOptions.length > 0 ? (
               safeAvailableOptions.map((option, index) => {
