@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo } from "react";
 import { SearchInput } from "./components/SearchInput";
 import { FilterBadges } from "./components/FilterBadges";
@@ -140,6 +141,42 @@ export default function SearchFilterBar({
     totalFiltersCount,
     searchQuery: typeof searchQuery === 'string' ? searchQuery : '',
   }), [allOptions, safeSelectedFilters, totalFiltersCount, searchQuery]);
+
+  // Add the missing handler functions
+  const handleSelect = (key: FilterKey, value: string) => {
+    if (!key || !value) return;
+    
+    const updatedFilters = { ...safeSelectedFilters };
+    if (!Array.isArray(updatedFilters[key])) {
+      updatedFilters[key] = [];
+    }
+    
+    // Add the value if it doesn't exist, otherwise no change
+    if (!updatedFilters[key].includes(value)) {
+      updatedFilters[key] = [...updatedFilters[key], value];
+      onFiltersChange(updatedFilters);
+    }
+  };
+
+  const handleRemove = (key: FilterKey, value: string) => {
+    if (!key || !value) return;
+    
+    const updatedFilters = { ...safeSelectedFilters };
+    if (Array.isArray(updatedFilters[key])) {
+      updatedFilters[key] = updatedFilters[key].filter(item => item !== value);
+      onFiltersChange(updatedFilters);
+    }
+  };
+
+  const handleClearAll = () => {
+    const emptyFilters = {
+      tags: [],
+      locations: [],
+      companies: [],
+      industries: [],
+    };
+    onFiltersChange(emptyFilters);
+  };
 
   return (
     <div className="flex flex-col gap-3">
