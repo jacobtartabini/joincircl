@@ -1,7 +1,7 @@
 
 import { Contact } from "@/types/contact";
 import { useToast } from "@/hooks/use-toast";
-import { contactService } from "@/services/contacts";
+import { contactService } from "@/services/contactService";
 import { contactMediaService } from "@/services/contactMediaService";
 import { keystoneService } from "@/services/keystoneService";
 

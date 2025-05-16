@@ -2,7 +2,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import { TableName, DataRecord } from "../types";
 import { sanitizeDataObject } from "../validators";
-import { applyRateLimiting } from "../rateLimiting";
+import { checkRateLimit } from "../rateLimiting";
+import { contactsRateLimiter } from "../rateLimiting";
 import { handleDataOperationError } from "../errorHandling";
 
 // Simple type for records
@@ -21,7 +22,7 @@ export const insertAdapter = {
    */
   async insertData<T extends DataRecord>(table: TableName, userId: string, data: AnyRecord): Promise<T> {
     // Apply rate limiting
-    applyRateLimiting("insert", userId);
+    checkRateLimit(contactsRateLimiter, userId);
     
     // Apply sanitization to string fields
     const sanitizedData = sanitizeDataObject(data);

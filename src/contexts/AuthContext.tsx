@@ -6,7 +6,6 @@ import { AuthState, Profile } from '@/types/auth';
 import { useToast } from '@/hooks/use-toast';
 import { sanitizeInput, handleError } from '@/utils/security';
 import { offlineStorage } from '@/services/offlineStorage';
-import { secureApiService } from '@/services/secure-api';
 
 interface AuthContextType extends AuthState {
   signIn: (email: string, password: string) => Promise<void>;
@@ -101,20 +100,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Setup auth state change handler
   useEffect(() => {
-    // Set up listener first before checking session
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         console.log('Auth state change event:', event, !!session);
-        
-        // Only update state synchronously in the callback
-        setAuthState({
-          session,
+        setAuthState(prev => ({
+          ...prev,
+          session: session,
           user: session?.user ?? null,
-          loading: false
-        });
+        }));
         
-        // Use setTimeout to prevent potential deadlock with Supabase client
         if (session?.user) {
+          // Use setTimeout to prevent potential deadlock with Supabase client
           setTimeout(() => {
             fetchProfile(session.user.id);
           }, 0);
@@ -124,12 +120,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     );
 
-    // Then check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log('Initial session check:', !!session);
-      
       setAuthState({
-        session,
+        session: session,
         user: session?.user ?? null,
         loading: false,
       });
@@ -245,14 +239,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     
     try {
-      console.log("Attempting to sign in with email:", sanitizedEmail);
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email: sanitizedEmail,
         password,
       });
 
       if (error) {
-        console.error("Sign in error:", error);
         toast({
           title: "Sign in failed",
           description: handleError(error),
@@ -261,26 +253,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw error;
       }
 
-      console.log("Sign in successful, session:", !!data.session);
-      
-      // Manually update state to prevent race conditions
-      setAuthState({
-        session: data.session,
-        user: data.user,
-        loading: false,
-      });
-      
-      if (data.user) {
-        fetchProfile(data.user.id);
-      }
-
       toast({
         title: "Welcome back!",
         description: "You've successfully signed in.",
       });
-      
-      // Ensure the session is valid
-      await secureApiService.validateSession();
     } catch (error: any) {
       console.error('Sign in error:', error);
       throw error;
@@ -358,15 +334,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      // Explicitly update auth state
-      setAuthState({
-        session: null,
-        user: null,
-        loading: false
-      });
-      
-      setProfile(null);
-
       toast({
         title: "Signed out",
         description: "You've been successfully signed out.",
@@ -397,7 +364,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(sanitizedEmail, {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
+        redirectTo: `${window.location.origin}/update-password`,
       });
 
       if (error) {

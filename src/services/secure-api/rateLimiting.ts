@@ -1,87 +1,54 @@
 
-import { RateLimiter, RateLimiterConfig } from "./types";
+// Rate limiter for general API calls
+let lastApiCall = 0;
+const MIN_API_CALL_INTERVAL = 500; // 500ms minimum between API calls
 
-// Configure rate limits for various operations
-const DEFAULT_RATE_LIMIT: RateLimiterConfig = {
-  maxRequests: 100,  // Max requests per window
-  windowMs: 60000    // Window size in milliseconds (1 minute)
-};
-
-// Rate limiters for different operations
-export const contactsRateLimiter: RateLimiter = {};
-export const authRateLimiter: RateLimiter = {};
-export const userRateLimiter: RateLimiter = {};
-
-// Pre-defined rate limiters for specific operations
-const createContactLimit: RateLimiterConfig = {
-  maxRequests: 20,  // Allow 20 contact creations
-  windowMs: 60000   // Per minute
-};
-
-const deleteContactLimit: RateLimiterConfig = {
-  maxRequests: 10,  // Allow 10 contact deletions
-  windowMs: 60000   // Per minute
-};
-
-// Generic rate limiting function
-export function applyRateLimiting(
-  operation: string = "generic",
-  userId: string = "anonymous"
-): void {
-  const key = `${userId}:${operation}`;
-  const now = Date.now();
-  
-  // Use specific rate limiter based on operation
-  let rateLimiter = contactsRateLimiter;
-  let config = DEFAULT_RATE_LIMIT;
-  
-  // Special case configurations
-  if (operation === 'create_contact') {
-    config = createContactLimit;
-  } else if (operation === 'delete_contact') {
-    config = deleteContactLimit;
-  } else if (operation.includes('auth')) {
-    rateLimiter = authRateLimiter;
-  } else if (operation.includes('user')) {
-    rateLimiter = userRateLimiter;
-  }
-  
-  // Get current rate limiting data
-  const data = rateLimiter[key] || { count: 0, resetTime: now + config.windowMs };
-  
-  // Reset if window expired
-  if (now > data.resetTime) {
-    data.count = 1;
-    data.resetTime = now + config.windowMs;
-  } else {
-    data.count++;
-  }
-  
-  // Save updated data
-  rateLimiter[key] = data;
-  
-  // Check if rate limit exceeded
-  if (data.count > config.maxRequests) {
-    const retryAfter = Math.ceil((data.resetTime - now) / 1000);
-    throw new Error(`Rate limit exceeded. Please try again in ${retryAfter} seconds.`);
-  }
+// Rate limiter for contact-related operations
+interface RateLimiter {
+  operations: Map<string, number[]>;
+  maxOperations: number;
+  timeWindowMs: number;
 }
 
-// Helper function that checks rate limit without incrementing
-export function checkRateLimit(rateLimiter: RateLimiter, userId: string, operation: string = "generic"): void {
-  const key = `${userId}:${operation}`;
+// Create a rate limiter for contacts operations
+export const contactsRateLimiter: RateLimiter = {
+  operations: new Map(),
+  maxOperations: 5,  // Max 5 operations
+  timeWindowMs: 60000 // Within 1 minute
+};
+
+export async function applyRateLimiting(): Promise<void> {
   const now = Date.now();
-  const data = rateLimiter[key];
+  const timeSinceLastCall = now - lastApiCall;
   
-  // If no data exists or window has expired, no limit is being hit
-  if (!data || now > data.resetTime) {
-    return;
+  if (timeSinceLastCall < MIN_API_CALL_INTERVAL) {
+    // Wait for the remaining time to respect rate limiting
+    const waitTime = MIN_API_CALL_INTERVAL - timeSinceLastCall;
+    await new Promise(resolve => setTimeout(resolve, waitTime));
   }
+  
+  // Update last API call timestamp
+  lastApiCall = Date.now();
+}
+
+export function checkRateLimit(limiter: RateLimiter, userId: string): void {
+  const now = Date.now();
+  const userKey = `user-${userId}`;
+  
+  // Get or initialize user's operation timestamps
+  let timestamps = limiter.operations.get(userKey) || [];
+  
+  // Filter out timestamps outside the time window
+  timestamps = timestamps.filter(time => now - time < limiter.timeWindowMs);
   
   // Check if rate limit exceeded
-  const config = DEFAULT_RATE_LIMIT; // Default config, can be made more specific
-  if (data.count > config.maxRequests) {
-    const retryAfter = Math.ceil((data.resetTime - now) / 1000);
-    throw new Error(`Rate limit exceeded. Please try again in ${retryAfter} seconds.`);
+  if (timestamps.length >= limiter.maxOperations) {
+    const oldestTimestamp = timestamps[0];
+    const resetTime = oldestTimestamp + limiter.timeWindowMs - now;
+    throw new Error(`Rate limit exceeded. Try again in ${Math.ceil(resetTime / 1000)} seconds.`);
   }
+  
+  // Add current timestamp and update the map
+  timestamps.push(now);
+  limiter.operations.set(userKey, timestamps);
 }

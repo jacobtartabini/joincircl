@@ -1,3 +1,3 @@
 
-// Re-export the service from the secure-api directory
-export { secureApiService } from './secure-api/secureApiService';
+// Re-export the service from the new location
+export { secureApiService } from './secure-api';

@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Contact, Interaction, ContactMedia } from "@/types/contact";
 import { Keystone } from "@/types/keystone";
-import { contactService } from "@/services/contacts";
+import { contactService } from "@/services/contactService";
 import { keystoneService } from "@/services/keystoneService";
 import { contactMediaService } from "@/services/contactMediaService";
 import { useToast } from "@/hooks/use-toast";

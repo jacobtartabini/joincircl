@@ -2,7 +2,7 @@
 import { ReactNode, useEffect, useState } from "react";
 import { Navigate, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { secureApiService } from "@/services/secure-api";
+import { validateSession } from "@/utils/security";
 
 interface RequireAuthProps {
   children: ReactNode;
@@ -17,41 +17,36 @@ export function RequireAuth({ children, requiredPermission }: RequireAuthProps) 
 
   useEffect(() => {
     const checkAuth = async () => {
-      if (loading) {
-        return; // Still loading auth state
+      if (!loading) {
+        if (!user) {
+          // User is not authenticated, redirect to login
+          navigate("/auth/sign-in", { 
+            replace: true,
+            state: { from: location.pathname } // Remember where they were trying to go
+          });
+          return;
+        }
+        
+        // Verify session is still valid
+        const isValidSession = await validateSession();
+        if (!isValidSession) {
+          // Session expired, redirect to login
+          navigate("/auth/sign-in", {
+            replace: true,
+            state: { from: location.pathname }
+          });
+          return;
+        }
+        
+        // Check permission if specified
+        if (requiredPermission && !hasPermission(requiredPermission)) {
+          // User doesn't have the required permission
+          navigate("/", { replace: true });
+          return;
+        }
+        
+        setIsChecking(false);
       }
-      
-      if (!user) {
-        // User is not authenticated, redirect to login
-        console.log("No user found, redirecting to login");
-        navigate("/auth/sign-in", { 
-          replace: true,
-          state: { from: location.pathname } // Remember where they were trying to go
-        });
-        return;
-      }
-      
-      // Verify session is still valid
-      const isValidSession = await secureApiService.validateSession();
-      if (!isValidSession) {
-        // Session expired, redirect to login
-        console.log("Session invalid, redirecting to login");
-        navigate("/auth/sign-in", {
-          replace: true,
-          state: { from: location.pathname }
-        });
-        return;
-      }
-      
-      // Check permission if specified
-      if (requiredPermission && !hasPermission(requiredPermission)) {
-        // User doesn't have the required permission
-        console.log("User lacks permission, redirecting to home");
-        navigate("/", { replace: true });
-        return;
-      }
-      
-      setIsChecking(false);
     };
     
     checkAuth();

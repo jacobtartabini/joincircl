@@ -1,6 +1,6 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { secureApiService } from "@/services/secure-api";
 
 /**
  * Security utility functions for the application
@@ -25,11 +25,37 @@ export function sanitizeInput(input: string): string {
 
 /**
  * Checks if a user's session is valid and not expired
- * Uses the improved session validation from secureApiService
  * @returns Promise resolving to boolean indicating if session is valid
  */
 export async function validateSession(): Promise<boolean> {
-  return secureApiService.validateSession();
+  try {
+    const { data, error } = await supabase.auth.getSession();
+    
+    if (error) {
+      console.error("Session validation error:", error);
+      return false;
+    }
+    
+    if (!data.session) {
+      return false;
+    }
+    
+    // Check if session has expired
+    const expiresAt = data.session.expires_at;
+    if (expiresAt) {
+      // expires_at is in seconds since epoch, Date.now() is in milliseconds
+      const expiresAtMs = expiresAt * 1000;
+      if (Date.now() >= expiresAtMs) {
+        console.warn("Session has expired");
+        return false;
+      }
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Error validating session:", error);
+    return false;
+  }
 }
 
 /**

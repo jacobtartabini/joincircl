@@ -11,7 +11,7 @@ export async function fetchAdapter<T extends DataRecord>(
 ): Promise<QueryResult<T>> {
   try {
     // Apply rate limiting
-    await applyRateLimiting("fetch");
+    await applyRateLimiting();
     
     // Validate query parameters
     validateQueryParams(options);
@@ -20,34 +20,9 @@ export async function fetchAdapter<T extends DataRecord>(
     let query = supabase.from(table).select('*', { count: 'exact' }) as any;
     
     // Apply filters if provided
-    if (options.filters && options.filters.length > 0) {
-      options.filters.forEach(filter => {
-        switch (filter.operator) {
-          case 'eq': 
-            query = query.eq(filter.column, filter.value);
-            break;
-          case 'neq':
-            query = query.neq(filter.column, filter.value);
-            break;
-          case 'gt':
-            query = query.gt(filter.column, filter.value);
-            break;
-          case 'lt':
-            query = query.lt(filter.column, filter.value);
-            break;
-          case 'gte':
-            query = query.gte(filter.column, filter.value);
-            break;
-          case 'lte':
-            query = query.lte(filter.column, filter.value);
-            break;
-          case 'like':
-            query = query.like(filter.column, filter.value);
-            break;
-          case 'ilike':
-            query = query.ilike(filter.column, filter.value);
-            break;
-        }
+    if (options.filters) {
+      Object.entries(options.filters).forEach(([field, value]) => {
+        query = query.eq(field, value);
       });
     }
 
@@ -68,14 +43,11 @@ export async function fetchAdapter<T extends DataRecord>(
     
     // Apply ordering if provided
     if (options.orderBy) {
-      const ascending = options.orderBy.direction === 'asc';
-      query = query.order(options.orderBy.column, { ascending });
-    } else if (options.order) {
-      query = query.order(options.order.column, { 
-        ascending: options.order.ascending ?? false 
+      query = query.order(options.orderBy.column, { 
+        ascending: options.orderBy.ascending ?? false 
       });
     } else {
-      // Default ordering by created_at if it exists
+      // Default ordering by created_at
       query = query.order('created_at', { ascending: false });
     }
     
@@ -86,8 +58,8 @@ export async function fetchAdapter<T extends DataRecord>(
     
     return {
       data: (data || []) as unknown as T[],
-      error: null,
-      count
+      count: count || 0,
+      error: null
     };
   } catch (error) {
     return handleApiError<T>(error);
