@@ -69,7 +69,7 @@ export const useEmailInteractions = (contactId?: string) => {
                 date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days ago
                 type: 'email',
                 subject: 'Coffee next week?',
-                preview: 'Hey, I was wondering if you'd like to grab coffee next week? I'd love to catch up and hear about your new role.',
+                preview: "Hey, I was wondering if you'd like to grab coffee next week? I'd love to catch up and hear about your new role.",
                 provider: 'gmail',
                 contact_id: contactId,
                 user_id: userSession.session.user.id
