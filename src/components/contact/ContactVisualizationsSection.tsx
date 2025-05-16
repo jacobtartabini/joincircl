@@ -37,26 +37,26 @@ export default function ContactVisualizationsSection({
               <TabsTrigger value="timeline">Timeline</TabsTrigger>
             </TabsList>
           </div>
+          
+          {/* The TabsContent components must be inside the Tabs component, not inside the CardContent which is outside of Tabs */}
+          <TabsContent value="relationship" className="mt-0">
+            <RelationshipMap contact={contact} relatedContacts={relatedContacts} />
+            <div className="text-xs text-center text-muted-foreground mt-4">
+              This visualization shows {contact.name}'s position in your network relative to other contacts.
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="timeline" className="mt-0">
+            <ContactTimeline 
+              contact={contact}
+              keystones={keystones}
+              interactions={interactions}
+              emails={emailInteractions}
+              calendarEvents={calendarEvents}
+            />
+          </TabsContent>
         </Tabs>
       </CardHeader>
-      <CardContent>
-        <TabsContent value="relationship" className="mt-0">
-          <RelationshipMap contact={contact} relatedContacts={relatedContacts} />
-          <div className="text-xs text-center text-muted-foreground mt-4">
-            This visualization shows {contact.name}'s position in your network relative to other contacts.
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="timeline" className="mt-0">
-          <ContactTimeline 
-            contact={contact}
-            keystones={keystones}
-            interactions={interactions}
-            emails={emailInteractions}
-            calendarEvents={calendarEvents}
-          />
-        </TabsContent>
-      </CardContent>
     </Card>
   );
 }
