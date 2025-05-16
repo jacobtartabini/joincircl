@@ -1,4 +1,3 @@
-
 import { Contact } from "@/types/contact";
 import { Profile } from "@/types/auth";
 
@@ -173,6 +172,11 @@ const clearProfile = async (): Promise<void> => {
   return await clearStore(STORES.PROFILE);
 };
 
+// Add the missing deleteProfile function
+const deleteProfile = async (id: string): Promise<void> => {
+  return await deleteItem(STORES.PROFILE, id);
+};
+
 // Contact specific functions
 const saveContacts = async (contacts: Contact[]): Promise<Contact[]> => {
   const db = await initDB();
@@ -225,10 +229,11 @@ export const offlineStorage = {
   profile: {
     save: saveProfile,
     get: getProfile,
-    clear: clearProfile
+    clear: clearProfile,
+    delete: deleteProfile
   },
   contacts: {
-    save: saveContact,     // Add the missing save method
+    save: saveContact,
     saveAll: saveContacts,
     get: getContact,
     getAll: getAllContacts,
