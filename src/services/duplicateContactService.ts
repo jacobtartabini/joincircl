@@ -22,6 +22,13 @@ export const duplicateContactService = {
     try {
       // Get all user contacts
       const contacts = await contactService.getContacts();
+      
+      // Ensure contacts is an array before proceeding
+      if (!contacts || !Array.isArray(contacts)) {
+        console.error("No contacts found or contacts is not an array");
+        return [];
+      }
+      
       const duplicates: DuplicatePair[] = [];
       
       // Compare each contact with every other contact (n²) - for large datasets, 
@@ -30,6 +37,9 @@ export const duplicateContactService = {
         for (let j = i + 1; j < contacts.length; j++) {
           const contact1 = contacts[i];
           const contact2 = contacts[j];
+          
+          // Skip if either contact is undefined or null
+          if (!contact1 || !contact2) continue;
           
           // Calculate similarity score
           const { score, matchedOn } = this.calculateSimilarity(contact1, contact2);
@@ -229,11 +239,15 @@ export const duplicateContactService = {
       await contactService.updateContact(primaryId, mergedContact);
       
       // Step 2: Update all interactions from secondary contact to point to primary
-      for (const interaction of secondaryInteractions) {
-        await supabase
-          .from('interactions')
-          .update({ contact_id: primaryId })
-          .eq('id', interaction.id);
+      if (Array.isArray(secondaryInteractions)) {
+        for (const interaction of secondaryInteractions) {
+          if (interaction && interaction.id) {
+            await supabase
+              .from('interactions')
+              .update({ contact_id: primaryId })
+              .eq('id', interaction.id);
+          }
+        }
       }
       
       // Step 3: Delete the secondary contact
@@ -254,8 +268,8 @@ export const duplicateContactService = {
     const merged: Partial<Contact> = { ...primary };
     
     // Combine tags (unique values only)
-    const primaryTags = primary.tags || [];
-    const secondaryTags = secondary.tags || [];
+    const primaryTags = Array.isArray(primary.tags) ? primary.tags : [];
+    const secondaryTags = Array.isArray(secondary.tags) ? secondary.tags : [];
     merged.tags = [...new Set([...primaryTags, ...secondaryTags])];
     
     // For text fields, prefer primary if it exists, otherwise use secondary

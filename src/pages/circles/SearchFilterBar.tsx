@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from "react";
 import { SearchInput } from "./components/SearchInput";
 import { FilterBadges } from "./components/FilterBadges";
@@ -121,35 +120,6 @@ export default function SearchFilterBar({
     companies: Array.isArray(selectedFilters?.companies) ? selectedFilters.companies.filter(Boolean) : [],
     industries: Array.isArray(selectedFilters?.industries) ? selectedFilters.industries.filter(Boolean) : [],
   }), [selectedFilters]);
-
-  const handleSelect = (key: FilterKey, value: string) => {
-    if (!value) return; // Skip empty values
-    
-    if (!safeSelectedFilters[key].includes(value)) {
-      onFiltersChange({
-        ...safeSelectedFilters,
-        [key]: [...safeSelectedFilters[key], value],
-      });
-    }
-  };
-
-  const handleRemove = (key: FilterKey, value: string) => {
-    if (!value) return; // Skip empty values
-    
-    onFiltersChange({
-      ...safeSelectedFilters,
-      [key]: safeSelectedFilters[key].filter((v) => v !== value),
-    });
-  };
-
-  const handleClearAll = () => {
-    onFiltersChange({
-      tags: [], // Keep empty tags array for compatibility
-      locations: [],
-      companies: [],
-      industries: [],
-    });
-  };
 
   // Get total filters count
   const totalFiltersCount = useMemo(() => 

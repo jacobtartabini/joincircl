@@ -1,3 +1,4 @@
+
 import { useMemo } from "react";
 import { Contact } from "@/types/contact";
 import { TabsContent } from "@/components/ui/tabs";
@@ -36,6 +37,8 @@ export const CirclesTabContent = ({
   const isOnline = useOnlineStatus();
   
   const filteredContacts = useMemo(() => {
+    if (!Array.isArray(safeContacts)) return [];
+
     return safeContacts.filter(contact => {
       if (!contact) return false; // Skip null/undefined contacts
 
