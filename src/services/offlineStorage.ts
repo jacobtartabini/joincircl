@@ -1,4 +1,3 @@
-
 import { Contact } from "@/types/contact";
 import { Profile } from "@/types/auth";
 import { Keystone } from "@/types/keystone";
@@ -198,7 +197,8 @@ const deleteProfile = async (id: string): Promise<void> => {
 
 // Profile image cache functions
 const saveProfileImage = async (userId: string, imageBlob: Blob): Promise<void> => {
-  return await addItem(STORES.PROFILE_IMAGES, { userId, imageBlob });
+  await addItem(STORES.PROFILE_IMAGES, { userId, imageBlob });
+  return;
 };
 
 const getProfileImage = async (userId: string): Promise<Blob | null> => {
