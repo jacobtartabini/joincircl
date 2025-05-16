@@ -61,7 +61,7 @@ export const FilterPopover = ({
 
   // Get current filter options as a safe array
   const getCurrentFilterOptions = (): string[] => {
-    // Make sure allOptions is defined and has the activeFilterTab property
+    // Make sure safeOptions is defined and has the activeFilterTab property
     if (!safeOptions || !safeOptions[activeFilterTab]) {
       return [];
     }
@@ -79,10 +79,18 @@ export const FilterPopover = ({
   
   // Safely calculate available options (not already selected)
   const availableOptions = useMemo(() => {
+    if (!Array.isArray(currentOptions)) return [];
+    if (!Array.isArray(currentSelected)) return currentOptions;
+    
     return currentOptions.filter(option => 
       option && !currentSelected.includes(option)
     );
   }, [currentOptions, currentSelected]);
+
+  // Check if there are any options to display
+  const hasOptions = useMemo(() => 
+    Array.isArray(availableOptions) && availableOptions.length > 0
+  , [availableOptions]);
 
   return (
     <Popover open={openFilters} onOpenChange={setOpenFilters}>
@@ -130,7 +138,7 @@ export const FilterPopover = ({
             No {activeFilterTab} found.
           </CommandEmpty>
 
-          {availableOptions.length > 0 ? (
+          {hasOptions ? (
             <CommandGroup>
               {availableOptions.map((option, index) => {
                 if (!option) return null; // Skip null/undefined items
