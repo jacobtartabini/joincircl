@@ -25,10 +25,9 @@ Command.displayName = CommandPrimitive.displayName
 interface CommandDialogProps extends DialogProps {}
 
 const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
-  // Ensure children is always valid - this is important to avoid iteration errors
+  // Ensure children is always valid
   const safeChildren = React.useMemo(() => {
-    if (!children) return null;
-    return children;
+    return children ?? null;
   }, [children]);
 
   return (
@@ -66,11 +65,13 @@ const CommandList = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.List>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.List>
 >(({ className, children, ...props }, ref) => {
-  // Ensure children is always array-like before mapping
+  // Create a guaranteed safe version of children
   const safeChildren = React.useMemo(() => {
+    if (children === undefined || children === null) return [];
+    
     try {
       // Use React.Children.toArray to safely convert children to an array
-      return children ? React.Children.toArray(children) : [];
+      return React.Children.toArray(children);
     } catch (e) {
       console.warn("Error processing CommandList children:", e);
       return [];
@@ -107,11 +108,14 @@ const CommandGroup = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Group>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Group>
 >(({ className, children, ...props }, ref) => {
-  // Ensure children is always array-like before mapping
+  // Create a guaranteed safe version of children
   const safeChildren = React.useMemo(() => {
+    if (children === undefined || children === null) return [];
+    
     try {
       // Use React.Children.toArray to safely convert children to an array
-      return children ? React.Children.toArray(children) : [];
+      // This will filter out invalid React elements
+      return React.Children.toArray(children);
     } catch (e) {
       console.warn("Error processing CommandGroup children:", e);
       return [];
@@ -150,17 +154,17 @@ const CommandItem = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item>
 >(({ className, value, children, ...props }, ref) => {
-  // Generate a guaranteed unique value if none provided or value is undefined/null
+  // Generate a guaranteed unique value if none provided
   const safeValue = React.useMemo(() => {
     if (value === undefined || value === null || value === '') {
       return `item-${Math.random().toString(36).substring(2, 11)}`;
     }
-    return value;
+    return String(value);  // Convert to string to ensure consistency
   }, [value]);
   
   // Make sure we have valid children
   const safeChildren = React.useMemo(() => {
-    return children || safeValue;
+    return children ?? safeValue;
   }, [children, safeValue]);
   
   return (

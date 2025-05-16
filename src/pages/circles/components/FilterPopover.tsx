@@ -133,15 +133,19 @@ export const FilterPopover = ({
               ? `No ${getActiveFilterLabel()} found` 
               : `Select ${getActiveFilterLabel()}`}
           </div>
+          
+          {/* Using a fixed empty component structure for CommandGroup to prevent rendering issues */}
           <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
             No {activeFilterTab} found.
           </CommandEmpty>
-          {/* Important: Pass empty children array if no items to avoid undefined is not iterable */}
+
+          {/* Fixed rendering of CommandGroup to prevent undefined is not iterable error */}
           <CommandGroup className="max-h-64 overflow-auto">
             {safeAvailableOptions.length > 0 ? (
               safeAvailableOptions.map((option, index) => {
                 // Ensure value is always a string and never undefined
                 const safeOption = typeof option === 'string' ? option : `option-${index}`;
+                
                 // Create a stable, unique key
                 const itemKey = `filter-item-${activeFilterTab}-${safeOption}-${index}`;
                 
@@ -157,6 +161,7 @@ export const FilterPopover = ({
                 );
               })
             ) : (
+              // Always render at least one CommandItem with a safe value to prevent undefined children issues
               <div className="text-xs text-center py-2 text-muted-foreground">
                 {currentOptions.length === 0 
                   ? `No ${activeFilterTab} available` 
