@@ -1,186 +1,127 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { ArrowLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 const Bugs = () => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
   const [formData, setFormData] = useState({
-    bugType: "",
-    description: "",
-    steps: "",
-    email: ""
+    name: "",
+    email: "",
+    message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-  const handleSelectChange = (value: string) => {
-    setFormData(prev => ({ ...prev, bugType: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
+
+    const form = e.target;
+    const data = new FormData(form);
 
     try {
-      const form = new FormData();
-      form.append("bugType", formData.bugType);
-      form.append("description", formData.description);
-      form.append("steps", formData.steps);
-      form.append("email", formData.email);
-
       const response = await fetch("https://formspree.io/f/mqaqndap", {
         method: "POST",
-        body: form,
         headers: {
           Accept: "application/json",
-        }
+        },
+        body: data,
       });
 
       if (response.ok) {
-        toast({
-          title: "Bug Report Submitted",
-          description: "Thank you for helping us improve Circl!",
-        });
-        setFormData({
-          bugType: "",
-          description: "",
-          steps: "",
-          email: ""
-        });
+        setSubmitted(true);
+        setFormData({ name: "", email: "", message: "" });
+        setTimeout(() => setSubmitted(false), 5000);
       } else {
-        toast({
-          title: "Submission Failed",
-          description: "Please try again or contact support.",
-          variant: "destructive"
-        });
+        const result = await response.json();
+        throw new Error(result.error || "Something went wrong.");
       }
-    } catch (error) {
-      toast({
-        title: "An error occurred",
-        description: "Unable to submit the bug report.",
-        variant: "destructive"
-      });
+    } catch (err) {
+      setError(err.message);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center gap-2">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={() => navigate(-1)}
-        >
-          <ArrowLeft size={20} />
-        </Button>
-        <h1 className="text-3xl font-bold">Report a Bug</h1>
-      </div>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Bug Report</CardTitle>
-          <CardDescription>
-            Found something that's not working correctly? Let us know so we can fix it.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="bugType">Bug Type</Label>
-              <Select
-                value={formData.bugType}
-                onValueChange={handleSelectChange}
+    <section className="py-16 px-4">
+      <div className="max-w-3xl mx-auto bg-white shadow-md rounded-lg p-8">
+        <h2 className="text-3xl font-bold mb-6 text-center">Report a Bug</h2>
+        <p className="text-gray-600 mb-6 text-center">
+          Found something broken or acting weird? Let me know so I can fix it!
+        </p>
+
+        {submitted ? (
+          <div className="bg-green-100 text-green-800 p-4 rounded-lg text-center">
+            Thank you for reporting the bug! I’ll check it out shortly.
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+              <div className="bg-red-100 text-red-700 p-3 rounded-lg">
+                {error}
+              </div>
+            )}
+            <div>
+              <label htmlFor="name" className="block font-medium mb-1">
+                Name
+              </label>
+              <input
                 required
-              >
-                <SelectTrigger id="bugType">
-                  <SelectValue placeholder="Select bug type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="UI/Display Issue">UI/Display Issue</SelectItem>
-                  <SelectItem value="Performance Problem">Performance Problem</SelectItem>
-                  <SelectItem value="Feature Not Working">Feature Not Working</SelectItem>
-                  <SelectItem value="App Crash">App Crash</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-              {/* Hidden input to send bugType to Formspree */}
-              <input type="hidden" name="bugType" value={formData.bugType} />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="description">Bug Description</Label>
-              <textarea 
-                id="description" 
-                name="description"
-                value={formData.description}
+                type="text"
+                name="name"
+                id="name"
+                value={formData.name}
                 onChange={handleChange}
-                className="w-full min-h-[100px] p-2 border rounded-md" 
-                placeholder="Please describe what happened..."
-                required
+                className="w-full border border-gray-300 rounded-lg p-2"
               />
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="steps">Steps to Reproduce</Label>
-              <textarea 
-                id="steps" 
-                name="steps"
-                value={formData.steps}
-                onChange={handleChange}
-                className="w-full min-h-[100px] p-2 border rounded-md" 
-                placeholder="Please list the steps to reproduce this issue..."
+            <div>
+              <label htmlFor="email" className="block font-medium mb-1">
+                Email
+              </label>
+              <input
                 required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="email">Your Email (optional)</Label>
-              <Input 
-                id="email" 
-                name="email"
                 type="email"
+                name="email"
+                id="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="Enter your email if you'd like us to follow up" 
+                className="w-full border border-gray-300 rounded-lg p-2"
               />
             </div>
-            
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Submitting..." : "Submit Bug Report"}
-            </Button>
+            <div>
+              <label htmlFor="message" className="block font-medium mb-1">
+                Bug Description
+              </label>
+              <textarea
+                required
+                name="message"
+                id="message"
+                rows="5"
+                value={formData.message}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-lg p-2"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="bg-jacobBlue text-white font-semibold px-6 py-2 rounded-lg hover:bg-opacity-90 transition-colors w-full"
+            >
+              {isSubmitting ? "Sending..." : "Submit Bug"}
+            </button>
           </form>
-          
-          <div className="mt-8 p-4 bg-muted rounded-md">
-            <h3 className="font-medium mb-2">Before Submitting</h3>
-            <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
-              <li>Check if you're using the latest version of the app</li>
-              <li>Try refreshing the page or logging out and back in</li>
-              <li>Clear your browser cache and cookies</li>
-              <li>Check if the issue persists in a different browser</li>
-            </ul>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+        )}
+      </div>
+    </section>
   );
 };
 
