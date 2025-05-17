@@ -69,15 +69,8 @@ export function useSocialIntegrations() {
   const fetchIntegrationStatus = async () => {
     try {
       setIsLoading(true);
-      // Get actual integration status from the database
-      // Using any as a temporary type assertion until the Supabase types are regenerated
-      const { data: integrations, error } = await supabase
-        .from('user_social_integrations' as any)
-        .select('platform, username, last_synced, created_at');
       
-      if (error) throw error;
-      
-      // Convert to expected format
+      // Define initial status for all platforms
       const status: SocialIntegrationStatus[] = [
         { platform: "twitter", connected: false },
         { platform: "facebook", connected: false },
@@ -85,9 +78,19 @@ export function useSocialIntegrations() {
         { platform: "instagram", connected: false }
       ];
       
+      // Get actual integration status from the database
+      const { data: integrations, error } = await supabase
+        .from('user_social_integrations')
+        .select('platform, username, last_synced, created_at');
+      
+      if (error) {
+        console.error("Error fetching integrations:", error);
+        throw error;
+      }
+      
       // Update with actual connected platforms
-      if (integrations) {
-        integrations.forEach((integration: any) => {
+      if (integrations && integrations.length > 0) {
+        integrations.forEach((integration) => {
           const platformIndex = status.findIndex(s => s.platform === integration.platform);
           if (platformIndex >= 0) {
             status[platformIndex] = {

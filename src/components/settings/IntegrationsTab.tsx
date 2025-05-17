@@ -119,16 +119,18 @@ const IntegrationsTab = () => {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="mb-4 w-full justify-start">
           <TabsTrigger value="social" className="flex items-center gap-2">
-            <Twitter size={16} />
             Social Media
           </TabsTrigger>
           <TabsTrigger value="email" className="flex items-center gap-2">
+            <Mail size={16} />
             Email
           </TabsTrigger>
           <TabsTrigger value="calendar" className="flex items-center gap-2">
+            <Calendar size={16} />
             Calendar
           </TabsTrigger>
           <TabsTrigger value="notifications" className="flex items-center gap-2">
+            <Bell size={16} />
             Notifications
           </TabsTrigger>
         </TabsList>
@@ -325,38 +327,6 @@ const IntegrationsTab = () => {
               <Button onClick={() => setIsCalendarDialogOpen(true)}>
                 Connect Calendar
               </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        {/* Phone Contacts Tab */}
-        <TabsContent value="phone" className="space-y-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center gap-2">
-              <Phone className="h-5 w-5 text-primary" />
-              <div>
-                <CardTitle>Phone Contacts</CardTitle>
-                <CardDescription>
-                  Sync your phone contacts with your Circl account
-                </CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm">
-                Import contacts from your phone to easily add them to your circles.
-              </p>
-              <Button 
-                onClick={handleSyncPhoneContacts}
-                disabled={isPhoneContactsSynced}
-              >
-                {isPhoneContactsSynced ? "Contacts Synced" : "Sync Phone Contacts"}
-              </Button>
-              
-              {isPhoneContactsSynced && (
-                <div className="mt-4 p-3 bg-green-50 text-green-700 rounded-md text-sm">
-                  Your phone contacts have been synced successfully. You can find them in your contacts list.
-                </div>
-              )}
             </CardContent>
           </Card>
         </TabsContent>
