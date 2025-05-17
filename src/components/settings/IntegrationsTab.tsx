@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useSocialIntegrations } from "@/hooks/useSocialIntegrations";
 import { SocialPlatform } from "@/types/socialIntegration";
@@ -237,7 +238,7 @@ const IntegrationsTab = () => {
             );
           })}
           
-          {/* Info card remains the same */}
+          {/* Info card */}
           <Card>
             <CardHeader>
               <CardTitle>About Social Integrations</CardTitle>
