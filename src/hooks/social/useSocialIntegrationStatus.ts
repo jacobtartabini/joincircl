@@ -100,15 +100,17 @@ export function useSocialIntegrationStatus() {
           
           // Ensure gmailIntegration is not null before accessing any properties
           if (gmailIntegration) {
-            // Since the database schema might have changed, let's handle this defensively
-            // TypeScript is reporting that these fields might not exist on the actual data
-            const emailAddress = typeof gmailIntegration === 'object' 
-              ? (gmailIntegration.email as string || "Gmail User") 
-              : "Gmail User";
-              
-            const lastUpdated = typeof gmailIntegration === 'object' 
-              ? (gmailIntegration.updated_at as string || new Date().toISOString()) 
-              : new Date().toISOString();
+            // Create local variables first to avoid direct property access
+            let emailAddress: string = "Gmail User";
+            let lastUpdated: string = new Date().toISOString();
+            
+            // Only try to access properties if it's an object
+            if (typeof gmailIntegration === 'object') {
+              // Type assertion to access properties safely
+              const gmailObj = gmailIntegration as Record<string, unknown>;
+              emailAddress = (gmailObj.email as string) || emailAddress;
+              lastUpdated = (gmailObj.updated_at as string) || lastUpdated;
+            }
             
             status.push({
               platform: 'gmail' as SocialPlatform,
@@ -125,9 +127,13 @@ export function useSocialIntegrationStatus() {
           
           // Add null check for calendarIntegration
           if (calendarIntegration) {
-            const lastUpdated = typeof calendarIntegration === 'object'
-              ? (calendarIntegration.updated_at as string || new Date().toISOString()) 
-              : new Date().toISOString();
+            let lastUpdated: string = new Date().toISOString();
+            
+            // Only try to access properties if it's an object
+            if (typeof calendarIntegration === 'object') {
+              const calendarObj = calendarIntegration as Record<string, unknown>;
+              lastUpdated = (calendarObj.updated_at as string) || lastUpdated;
+            }
               
             status.push({
               platform: 'calendar' as SocialPlatform,
