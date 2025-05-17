@@ -48,6 +48,7 @@ export function useSocialIntegrationStatus() {
             description: "Could not load your social integrations.",
             variant: "destructive",
           });
+          throw error;
         } else {
           console.log("Received integration data:", integrations);
           

@@ -1,10 +1,11 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { SocialPlatform } from "@/types/socialIntegration";
 import { useSocialIntegrations } from "@/hooks/useSocialIntegrations";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
+import { Facebook, Twitter, Instagram, Linkedin, AlertTriangle } from "lucide-react";
 import SocialPlatformCard from "./SocialPlatformCard";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface SocialIntegrationsSectionProps {
   onConnectTwitter?: () => void;
@@ -18,7 +19,13 @@ const SocialIntegrationsSection: React.FC<SocialIntegrationsSectionProps> = ({ o
     connectPlatform,
     disconnectPlatform,
     syncContacts,
+    refreshStatus
   } = useSocialIntegrations();
+
+  // Refresh integration status when component mounts
+  useEffect(() => {
+    refreshStatus();
+  }, [refreshStatus]);
 
   const getPlatformIcon = (platform: string, size = 20) => {
     switch (platform) {
@@ -53,8 +60,21 @@ const SocialIntegrationsSection: React.FC<SocialIntegrationsSectionProps> = ({ o
 
   const platforms: SocialPlatform[] = ["twitter", "facebook", "linkedin", "instagram"];
 
+  // Check if we have any connected platforms
+  const hasConnectedPlatforms = integrationStatus.some(status => status.connected);
+
   return (
     <div className="space-y-4">
+      {/* Debug alert for auth issues */}
+      {!isLoading && !hasConnectedPlatforms && (
+        <Alert variant="default" className="bg-amber-50 border-amber-200">
+          <AlertTriangle className="h-4 w-4 text-amber-600" />
+          <AlertDescription className="text-amber-800">
+            You need to connect at least one social platform to see your integrations.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {platforms.map((platform) => {
         const status = integrationStatus.find(s => s.platform === platform);
         

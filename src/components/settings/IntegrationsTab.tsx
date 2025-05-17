@@ -24,16 +24,17 @@ const IntegrationsTab = () => {
   
   const [activeTab, setActiveTab] = useState<string>("social");
   
-  // Access the refreshStatus function from useSocialIntegrations
+  // Access the social integrations hook with refreshStatus function
   const { refreshStatus } = useSocialIntegrations();
 
-  // Check URL params for tab selection
+  // Check URL params for tab selection and integration refresh
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const tab = urlParams.get("tab");
     
     // If we're coming from an OAuth callback or tab=integrations is specified
     if (tab === "integrations") {
+      console.log("Integration tab opened via URL param, refreshing integration status");
       // Refresh integration status when integrations tab is opened via URL param
       refreshStatus();
     }

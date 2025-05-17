@@ -15,10 +15,14 @@ export function useTwitterOAuth(refreshCallback: () => Promise<void>) {
              localStorage.getItem("twitter_auth_state") !== null;
     };
     
-    // We don't handle the callback here anymore - it's handled in CallbackPage.tsx
-    // This is just for logging purposes
+    // Handle Twitter auth callback if needed
     if (isTwitterCallback()) {
       console.log("Twitter OAuth callback detected, will be handled by CallbackPage component");
+      
+      // Refresh integration status after callback handling
+      setTimeout(() => {
+        refreshCallback();
+      }, 1000);
     }
   }, [toast, refreshCallback]);
   
