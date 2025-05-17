@@ -14,7 +14,48 @@ export function useSocialIntegrations() {
   // Load integration statuses on mount
   useEffect(() => {
     fetchIntegrationStatus();
-  }, []);
+    
+    // Check for Twitter OAuth callback
+    const handleTwitterCallback = async () => {
+      if (window.location.pathname === "/auth/callback" && window.location.search.includes("code=")) {
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get("code");
+        const state = params.get("state");
+        const savedState = localStorage.getItem("twitter_auth_state");
+        
+        if (code && state && state === savedState) {
+          // Clear the saved state
+          localStorage.removeItem("twitter_auth_state");
+          
+          try {
+            // In a real app, we would exchange the code for an access token
+            console.log("Processing Twitter OAuth callback with code:", code);
+            
+            // Simulate the token exchange and user retrieval
+            const result = await socialIntegrationService.connectSocialPlatform("twitter");
+            
+            if (result.connected) {
+              toast({
+                title: "Twitter Connected",
+                description: `Successfully connected as ${result.username}`,
+              });
+              
+              fetchIntegrationStatus();
+            }
+          } catch (error) {
+            console.error("Error processing Twitter callback:", error);
+            toast({
+              title: "Connection Failed",
+              description: "Could not complete the Twitter connection",
+              variant: "destructive",
+            });
+          }
+        }
+      }
+    };
+    
+    handleTwitterCallback();
+  }, [toast]);
 
   const fetchIntegrationStatus = async () => {
     try {
@@ -36,7 +77,6 @@ export function useSocialIntegrations() {
   const connectPlatform = async (platform: SocialPlatform) => {
     try {
       // In a real implementation, this would redirect to OAuth flow
-      // For demo purposes, we're simulating a successful connection
       const result = await socialIntegrationService.connectSocialPlatform(platform);
       
       if (result.connected) {

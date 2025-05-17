@@ -4,11 +4,10 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { SecureHeaders } from "@/components/security/SecureHeaders";
 import AccountTab from "@/components/settings/AccountTab";
-import PreferencesTab from "@/components/settings/PreferencesTab";
+import IntegrationsTab from "@/components/settings/IntegrationsTab";
 import ProfileTab from "@/components/settings/ProfileTab";
 import ResourcesTab from "@/components/settings/ResourcesTab";
 import SubscriptionTab from "@/components/settings/SubscriptionTab";
-import SocialTab from "./settings/SocialTab";
 
 export default function Settings() {
   const location = useLocation();
@@ -19,7 +18,7 @@ export default function Settings() {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const tab = params.get("tab");
-    if (tab && ["profile", "account", "preferences", "social", "subscription", "resources"].includes(tab)) {
+    if (tab && ["profile", "account", "integrations", "subscription", "resources"].includes(tab)) {
       setActiveTab(tab);
     } else {
       setActiveTab("profile");
@@ -48,8 +47,7 @@ export default function Settings() {
           <TabsList className="mb-8">
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="account">Account</TabsTrigger>
-            <TabsTrigger value="preferences">Preferences</TabsTrigger>
-            <TabsTrigger value="social">Social</TabsTrigger>
+            <TabsTrigger value="integrations">Integrations</TabsTrigger>
             <TabsTrigger value="subscription">Subscription</TabsTrigger>
             <TabsTrigger value="resources">Resources</TabsTrigger>
           </TabsList>
@@ -62,12 +60,8 @@ export default function Settings() {
             <AccountTab />
           </TabsContent>
           
-          <TabsContent value="preferences" className="space-y-6">
-            <PreferencesTab />
-          </TabsContent>
-          
-          <TabsContent value="social" className="space-y-6">
-            <SocialTab />
+          <TabsContent value="integrations" className="space-y-6">
+            <IntegrationsTab />
           </TabsContent>
           
           <TabsContent value="subscription" className="space-y-6">

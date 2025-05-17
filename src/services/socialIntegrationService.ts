@@ -17,27 +17,25 @@ export const socialIntegrationService = {
       // Since we don't have the social_integrations table yet,
       // we'll return mock data instead of querying the database
       return [
-        { platform: "facebook", connected: true, username: "demo.user", last_synced: new Date().toISOString() },
         { platform: "twitter", connected: false },
+        { platform: "facebook", connected: true, username: "demo.user", last_synced: new Date().toISOString() },
         { platform: "linkedin", connected: false },
         { platform: "instagram", connected: false }
       ];
     } catch (error) {
       console.error("Error getting user social integrations:", error);
       return [
-        { platform: "facebook", connected: false },
         { platform: "twitter", connected: false },
+        { platform: "facebook", connected: false },
         { platform: "linkedin", connected: false },
         { platform: "instagram", connected: false }
       ];
     }
   },
 
-  // Demo function to simulate connecting to a social platform
+  // Connect to a social platform
   async connectSocialPlatform(platform: SocialPlatform): Promise<SocialIntegrationStatus> {
     try {
-      // In production, this would redirect to OAuth flow
-      // For this demo, we'll simulate a successful connection
       const userSessionResponse = await supabase.auth.getSession();
       const userSession = userSessionResponse.data.session;
       
@@ -48,9 +46,9 @@ export const socialIntegrationService = {
       // Simulate API connection - in production, this would use real OAuth
       console.log(`Connecting to ${platform}...`);
       
-      // Different demo data based on platform
+      // Different demo username based on platform
       const demoUsername = platform === "facebook" ? "demo.user" : 
-                          platform === "twitter" ? "demo_twitter" : 
+                          platform === "twitter" ? "circl_user" : 
                           `demo_${platform}`;
       
       const now = new Date().toISOString();
@@ -75,7 +73,7 @@ export const socialIntegrationService = {
     }
   },
 
-  // Demo function to simulate disconnecting from a platform
+  // Disconnect from a platform
   async disconnectSocialPlatform(platform: SocialPlatform): Promise<void> {
     try {
       const userSessionResponse = await supabase.auth.getSession();
@@ -93,7 +91,7 @@ export const socialIntegrationService = {
     }
   },
 
-  // Demo function to simulate importing contacts from a platform
+  // Sync contacts from a platform
   async syncContactsFromPlatform(platform: SocialPlatform): Promise<SocialSyncResult> {
     try {
       const userSessionResponse = await supabase.auth.getSession();
@@ -111,7 +109,7 @@ export const socialIntegrationService = {
       const result: SocialSyncResult = {
         contacts_imported: mockContacts.length,
         contacts_updated: 0,
-        posts_fetched: 0,
+        posts_fetched: platform === "twitter" ? 10 : 0, // Simulate fetching tweets for Twitter
         errors: []
       };
 
@@ -128,7 +126,7 @@ export const socialIntegrationService = {
     }
   },
 
-  // Demo function to fetch and summarize posts
+  // Fetch and summarize posts
   async fetchAndSummarizePosts(contactId: string): Promise<SocialPost[]> {
     try {
       // In a real implementation, this would:
@@ -145,69 +143,58 @@ export const socialIntegrationService = {
     }
   },
 
-  // Helper function to generate mock contacts - not private in an object literal
+  // Helper function to generate mock contacts
   generateMockContacts(platform: SocialPlatform, count: number): Contact[] {
     const mockContacts: Contact[] = [];
     
     try {
-      const userSessionResponse = supabase.auth.getSession();
-      // We need to handle this as a Promise
-      userSessionResponse.then(response => {
-        const userId = response.data.session?.user?.id;
-        if (!userId) return mockContacts;
-      }).catch(error => {
-        console.error("Error getting session:", error);
-        return mockContacts;
-      });
-    } catch (error) {
-      console.error("Error getting session:", error);
-      return mockContacts;
-    }
-    
-    // For demo, use a placeholder user ID if we can't get the real one
-    const userId = "mock-user-id";
+      // For demo, use a placeholder user ID
+      const userId = "mock-user-id";
 
-    for (let i = 1; i <= count; i++) {
-      let name = "";
-      let company = "";
-      let jobTitle = "";
-      
-      switch (platform) {
-        case "facebook":
-          name = `FB Friend ${i}`;
-          company = "Facebook Inc";
-          jobTitle = "Social Media Expert";
-          break;
-        case "twitter":
-          name = `Twitter User ${i}`;
-          company = "Media Company";
-          jobTitle = "Content Creator";
-          break;
-        default:
-          name = `${platform.charAt(0).toUpperCase() + platform.slice(1)} Contact ${i}`;
-          company = "Tech Company";
-          jobTitle = "Professional";
+      for (let i = 1; i <= count; i++) {
+        let name = "";
+        let company = "";
+        let jobTitle = "";
+        
+        switch (platform) {
+          case "facebook":
+            name = `FB Friend ${i}`;
+            company = "Facebook Inc";
+            jobTitle = "Social Media Expert";
+            break;
+          case "twitter":
+            name = `Twitter User ${i}`;
+            company = "Media Company";
+            jobTitle = "Content Creator";
+            break;
+          default:
+            name = `${platform.charAt(0).toUpperCase() + platform.slice(1)} Contact ${i}`;
+            company = "Tech Company";
+            jobTitle = "Professional";
+        }
+        
+        mockContacts.push({
+          id: `mock-${platform}-${i}`,
+          name,
+          user_id: userId,
+          circle: "outer",
+          company_name: company,
+          job_title: jobTitle,
+          tags: [platform],
+          notes: `Imported from ${platform} (demo)`
+        });
       }
-      
-      mockContacts.push({
-        id: `mock-${platform}-${i}`,
-        name,
-        user_id: userId,
-        circle: "outer",
-        company_name: company,
-        job_title: jobTitle,
-        tags: [platform],
-        notes: `Imported from ${platform} (demo)`
-      });
+    } catch (error) {
+      console.error("Error generating mock contacts:", error);
     }
     
     return mockContacts;
   },
 
-  // Helper function to generate mock posts - not private in an object literal
+  // Helper function to generate mock posts
   generateMockPosts(contactId: string, count: number): SocialPost[] {
     const mockPosts: SocialPost[] = [];
-    const platforms: SocialPlatform[] = ["facebook", "twitter"];
+    const platforms: SocialPlatform[] = ["twitter", "facebook"];
     
     for (let i = 1; i <= count; i++) {
       const platform = platforms[Math.floor(Math.random() * platforms.length)];
