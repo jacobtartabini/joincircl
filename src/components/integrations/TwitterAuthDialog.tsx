@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { Twitter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TwitterAuthDialogProps {
   isOpen: boolean;
@@ -19,37 +20,63 @@ export function TwitterAuthDialog({ isOpen, onOpenChange }: TwitterAuthDialogPro
   const REDIRECT_URI = "https://app.joincircl.com/auth/callback";
   const SCOPES = ["tweet.read", "users.read", "follows.read", "offline.access"];
   
-  const handleTwitterLogin = () => {
-    setIsAuthenticating(true);
+  // Function to generate a random string for PKCE code_verifier
+  const generateCodeVerifier = (): string => {
+    const array = new Uint8Array(32);
+    window.crypto.getRandomValues(array);
+    return Array.from(array, (byte) => 
+      ('0' + (byte & 0xFF).toString(16)).slice(-2)
+    ).join('');
+  };
+  
+  // Function to create code_challenge from code_verifier using SHA-256
+  const generateCodeChallenge = async (codeVerifier: string): Promise<string> => {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(codeVerifier);
+    const digest = await window.crypto.subtle.digest('SHA-256', data);
     
-    // Generate a random state value for CSRF protection
-    const state = Math.random().toString(36).substring(2);
-    localStorage.setItem("twitter_auth_state", state);
-    
-    // Build the authorization URL
-    const authUrl = new URL("https://twitter.com/i/oauth2/authorize");
-    authUrl.searchParams.append("response_type", "code");
-    authUrl.searchParams.append("client_id", CLIENT_ID);
-    authUrl.searchParams.append("redirect_uri", REDIRECT_URI);
-    authUrl.searchParams.append("scope", SCOPES.join(" "));
-    authUrl.searchParams.append("state", state);
-    authUrl.searchParams.append("code_challenge", "challenge"); // Would be generated in a real app
-    authUrl.searchParams.append("code_challenge_method", "S256");
-    
-    // In a real app, we would open a popup or redirect to this URL
-    console.log("Twitter OAuth URL:", authUrl.toString());
-    
-    // For demo purposes, simulate a successful auth after a short delay
-    setTimeout(() => {
-      setIsAuthenticating(false);
-      onOpenChange(false);
+    // Convert digest to base64url encoding
+    return btoa(String.fromCharCode(...new Uint8Array(digest)))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+  };
+  
+  const handleTwitterLogin = async () => {
+    try {
+      setIsAuthenticating(true);
       
-      // Simulate a successful connection
+      // Generate a random state value for CSRF protection
+      const state = Math.random().toString(36).substring(2);
+      localStorage.setItem("twitter_auth_state", state);
+      
+      // Generate code_verifier and code_challenge for PKCE
+      const codeVerifier = generateCodeVerifier();
+      localStorage.setItem("twitter_code_verifier", codeVerifier);
+      
+      const codeChallenge = await generateCodeChallenge(codeVerifier);
+      
+      // Build the authorization URL
+      const authUrl = new URL("https://twitter.com/i/oauth2/authorize");
+      authUrl.searchParams.append("response_type", "code");
+      authUrl.searchParams.append("client_id", CLIENT_ID);
+      authUrl.searchParams.append("redirect_uri", REDIRECT_URI);
+      authUrl.searchParams.append("scope", SCOPES.join(" "));
+      authUrl.searchParams.append("state", state);
+      authUrl.searchParams.append("code_challenge", codeChallenge);
+      authUrl.searchParams.append("code_challenge_method", "S256");
+      
+      // Open the OAuth URL in a new window
+      window.location.href = authUrl.toString();
+    } catch (error) {
+      console.error("Error initiating Twitter auth:", error);
+      setIsAuthenticating(false);
       toast({
-        title: "Twitter Connected",
-        description: "Successfully connected to Twitter as @circl_user",
+        title: "Authentication Error",
+        description: "Failed to initiate Twitter authentication.",
+        variant: "destructive",
       });
-    }, 2000);
+    }
   };
   
   return (

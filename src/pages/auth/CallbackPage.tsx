@@ -6,17 +6,35 @@ import { supabase } from "@/integrations/supabase/client";
 export default function CallbackPage() {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
+  const [processing, setProcessing] = useState(true);
 
   useEffect(() => {
-    // This handles the OAuth callback and redirects to the homepage
+    // Handle the OAuth callback
     const handleAuthCallback = async () => {
       try {
-        // Get the session - the OAuth exchange should already be complete
+        // Check if this is a Twitter OAuth callback
+        if (window.location.search.includes("code=") && window.location.search.includes("state=")) {
+          const params = new URLSearchParams(window.location.search);
+          const code = params.get("code");
+          const state = params.get("state");
+          const savedState = localStorage.getItem("twitter_auth_state");
+          const codeVerifier = localStorage.getItem("twitter_code_verifier");
+          
+          if (code && state && state === savedState && codeVerifier) {
+            // This is a valid Twitter callback, redirect to settings page
+            // The useSocialIntegrations hook will handle the token exchange
+            navigate("/settings?tab=integrations", { replace: true });
+            return;
+          }
+        }
+
+        // If not Twitter OAuth, handle regular auth callback
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error("Auth callback error:", error);
           setError(error.message);
+          setProcessing(false);
           return;
         }
 
@@ -33,6 +51,8 @@ export default function CallbackPage() {
       } catch (err) {
         console.error("Error in auth callback:", err);
         setError("An unexpected error occurred during authentication.");
+      } finally {
+        setProcessing(false);
       }
     };
 

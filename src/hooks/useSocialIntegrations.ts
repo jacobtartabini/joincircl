@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { socialIntegrationService } from '@/services/socialIntegrationService';
 import { SocialPlatform, SocialIntegrationStatus, SocialSyncResult } from '@/types/socialIntegration';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 export function useSocialIntegrations() {
   const { toast } = useToast();
@@ -22,25 +23,33 @@ export function useSocialIntegrations() {
         const code = params.get("code");
         const state = params.get("state");
         const savedState = localStorage.getItem("twitter_auth_state");
+        const codeVerifier = localStorage.getItem("twitter_code_verifier");
         
-        if (code && state && state === savedState) {
-          // Clear the saved state
+        if (code && state && state === savedState && codeVerifier) {
+          // Clear the saved state and code verifier
           localStorage.removeItem("twitter_auth_state");
+          localStorage.removeItem("twitter_code_verifier");
           
           try {
-            // In a real app, we would exchange the code for an access token
-            console.log("Processing Twitter OAuth callback with code:", code);
+            // Call the Twitter OAuth edge function to exchange code for token
+            const { data, error } = await supabase.functions.invoke('twitter-oauth', {
+              body: { code, codeVerifier }
+            });
             
-            // Simulate the token exchange and user retrieval
-            const result = await socialIntegrationService.connectSocialPlatform("twitter");
+            if (error) {
+              throw new Error(`Edge function error: ${error.message}`);
+            }
             
-            if (result.connected) {
+            if (data && data.success) {
               toast({
                 title: "Twitter Connected",
-                description: `Successfully connected as ${result.username}`,
+                description: `Successfully connected as @${data.profile.username}`,
               });
               
+              // Update the integration status
               fetchIntegrationStatus();
+            } else {
+              throw new Error("Failed to connect Twitter account");
             }
           } catch (error) {
             console.error("Error processing Twitter callback:", error);

@@ -5,8 +5,14 @@ const TWITTER_CLIENT_ID = "RmNzRlpWUGJ2d05ITXpKdGJlMDY6MTpjaQ";
 const TWITTER_CLIENT_SECRET = Deno.env.get("TWITTER_CLIENT_SECRET");
 const REDIRECT_URI = "https://app.joincircl.com/auth/callback";
 
+// Define CORS headers for the function
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
 // Create a Supabase client with the Auth context of the function
-const supabaseClient = createClient(
+const supabaseClient = (req: Request) => createClient(
   Deno.env.get('SUPABASE_URL') ?? '',
   Deno.env.get('SUPABASE_ANON_KEY') ?? '',
   {
@@ -17,13 +23,13 @@ const supabaseClient = createClient(
 );
 
 // This function exchanges the Twitter OAuth code for an access token
-async function exchangeCodeForToken(code: string): Promise<any> {
+async function exchangeCodeForToken(code: string, codeVerifier: string): Promise<any> {
   const params = new URLSearchParams();
   params.append('code', code);
   params.append('grant_type', 'authorization_code');
   params.append('client_id', TWITTER_CLIENT_ID);
   params.append('redirect_uri', REDIRECT_URI);
-  params.append('code_verifier', 'challenge'); // Should match the challenge used when redirecting to Twitter
+  params.append('code_verifier', codeVerifier);
 
   try {
     const response = await fetch('https://api.twitter.com/2/oauth2/token', {
@@ -37,6 +43,7 @@ async function exchangeCodeForToken(code: string): Promise<any> {
 
     if (!response.ok) {
       const errorData = await response.json();
+      console.error("Twitter token exchange error:", errorData);
       throw new Error(`Twitter API error: ${JSON.stringify(errorData)}`);
     }
 
@@ -58,6 +65,7 @@ async function getTwitterProfile(accessToken: string): Promise<any> {
 
     if (!response.ok) {
       const errorData = await response.json();
+      console.error("Twitter profile fetch error:", errorData);
       throw new Error(`Twitter API error: ${JSON.stringify(errorData)}`);
     }
 
@@ -69,10 +77,12 @@ async function getTwitterProfile(accessToken: string): Promise<any> {
 }
 
 // Store the Twitter token in Supabase
-async function storeTwitterToken(userId: string, tokenData: any, profile: any): Promise<void> {
+async function storeTwitterToken(supabase: any, userId: string, tokenData: any, profile: any): Promise<void> {
   try {
+    console.log("Storing Twitter token for user:", userId);
+    
     // In a real app, we would store this in a social_integrations table
-    const { error } = await supabaseClient
+    const { error } = await supabase
       .from('social_integrations')
       .upsert({
         user_id: userId,
@@ -89,6 +99,7 @@ async function storeTwitterToken(userId: string, tokenData: any, profile: any): 
       });
 
     if (error) {
+      console.error("Database error storing Twitter token:", error);
       throw error;
     }
   } catch (error) {
@@ -98,35 +109,51 @@ async function storeTwitterToken(userId: string, tokenData: any, profile: any): 
 }
 
 Deno.serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { 
+      status: 204, 
+      headers: corsHeaders 
+    });
+  }
+  
   try {
-    // Get the auth code from the request
-    const { code } = await req.json();
+    // Get the auth code and code verifier from the request
+    const { code, codeVerifier } = await req.json();
     
-    if (!code) {
+    if (!code || !codeVerifier) {
       return new Response(
-        JSON.stringify({ error: "Missing authorization code" }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: "Missing authorization code or code verifier" }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
     
+    // Create a supabase client with the user's context
+    const supabase = supabaseClient(req);
+    
     // Get the user session
-    const { data: { session } } = await supabaseClient.auth.getSession();
+    const { data: { session } } = await supabase.auth.getSession();
     
     if (!session) {
       return new Response(
         JSON.stringify({ error: "User not authenticated" }),
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
     
+    console.log("Processing OAuth callback for user:", session.user.id);
+    
     // Exchange code for token
-    const tokenData = await exchangeCodeForToken(code);
+    const tokenData = await exchangeCodeForToken(code, codeVerifier);
+    console.log("Received Twitter token data");
     
     // Get Twitter profile
     const profile = await getTwitterProfile(tokenData.access_token);
+    console.log("Retrieved Twitter profile for:", profile.data.username);
     
     // Store token and profile in Supabase
-    await storeTwitterToken(session.user.id, tokenData, profile);
+    await storeTwitterToken(supabase, session.user.id, tokenData, profile);
+    console.log("Stored Twitter token and profile data");
     
     return new Response(
       JSON.stringify({
@@ -137,13 +164,13 @@ Deno.serve(async (req) => {
           profileImageUrl: profile.data.profile_image_url
         }
       }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
     console.error("Twitter OAuth error:", error);
     return new Response(
       JSON.stringify({ error: error.message || "Unknown error occurred" }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
