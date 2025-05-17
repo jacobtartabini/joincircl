@@ -70,8 +70,9 @@ export function useSocialIntegrations() {
     try {
       setIsLoading(true);
       // Get actual integration status from the database
+      // Using any as a temporary type assertion until the Supabase types are regenerated
       const { data: integrations, error } = await supabase
-        .from('user_social_integrations')
+        .from('user_social_integrations' as any)
         .select('platform, username, last_synced, created_at');
       
       if (error) throw error;
@@ -86,7 +87,7 @@ export function useSocialIntegrations() {
       
       // Update with actual connected platforms
       if (integrations) {
-        integrations.forEach(integration => {
+        integrations.forEach((integration: any) => {
           const platformIndex = status.findIndex(s => s.platform === integration.platform);
           if (platformIndex >= 0) {
             status[platformIndex] = {
