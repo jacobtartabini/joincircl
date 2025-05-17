@@ -4,7 +4,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { Twitter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 
 interface TwitterAuthDialogProps {
   isOpen: boolean;
@@ -66,7 +65,7 @@ export function TwitterAuthDialog({ isOpen, onOpenChange }: TwitterAuthDialogPro
       authUrl.searchParams.append("code_challenge", codeChallenge);
       authUrl.searchParams.append("code_challenge_method", "S256");
       
-      // Open the OAuth URL in a new window
+      // Open the OAuth URL in the current window
       window.location.href = authUrl.toString();
     } catch (error) {
       console.error("Error initiating Twitter auth:", error);

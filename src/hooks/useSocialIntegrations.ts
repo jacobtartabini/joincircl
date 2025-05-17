@@ -69,7 +69,36 @@ export function useSocialIntegrations() {
   const fetchIntegrationStatus = async () => {
     try {
       setIsLoading(true);
-      const status = await socialIntegrationService.getUserSocialIntegrations();
+      // Get actual integration status from the database
+      const { data: integrations, error } = await supabase
+        .from('user_social_integrations')
+        .select('platform, username, last_synced, created_at');
+      
+      if (error) throw error;
+      
+      // Convert to expected format
+      const status: SocialIntegrationStatus[] = [
+        { platform: "twitter", connected: false },
+        { platform: "facebook", connected: false },
+        { platform: "linkedin", connected: false },
+        { platform: "instagram", connected: false }
+      ];
+      
+      // Update with actual connected platforms
+      if (integrations) {
+        integrations.forEach(integration => {
+          const platformIndex = status.findIndex(s => s.platform === integration.platform);
+          if (platformIndex >= 0) {
+            status[platformIndex] = {
+              platform: integration.platform as SocialPlatform,
+              connected: true,
+              username: integration.username,
+              last_synced: integration.last_synced || integration.created_at
+            };
+          }
+        });
+      }
+      
       setIntegrationStatus(status);
     } catch (error) {
       console.error("Error fetching social integration status:", error);

@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSocialIntegrations } from "@/hooks/useSocialIntegrations";
 import { SocialPlatform } from "@/types/socialIntegration";
 import { useEmailProviders } from "@/hooks/useEmailProviders";
@@ -42,9 +41,20 @@ const IntegrationsTab = () => {
     connectPlatform,
     disconnectPlatform,
     syncContacts,
+    refreshStatus
   } = useSocialIntegrations();
   
   const [activeTab, setActiveTab] = useState<string>("social");
+
+  // Check URL params for tab selection
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get("tab");
+    if (tab === "integrations") {
+      // If we're coming back from an OAuth callback, refresh integration status
+      refreshStatus();
+    }
+  }, [refreshStatus]);
 
   const handleConnect = (platform: SocialPlatform) => {
     if (platform === "twitter") {
@@ -113,19 +123,12 @@ const IntegrationsTab = () => {
             Social Media
           </TabsTrigger>
           <TabsTrigger value="email" className="flex items-center gap-2">
-            <Mail size={16} />
             Email
           </TabsTrigger>
           <TabsTrigger value="calendar" className="flex items-center gap-2">
-            <Calendar size={16} />
             Calendar
           </TabsTrigger>
-          <TabsTrigger value="phone" className="flex items-center gap-2">
-            <Phone size={16} />
-            Phone
-          </TabsTrigger>
           <TabsTrigger value="notifications" className="flex items-center gap-2">
-            <Bell size={16} />
             Notifications
           </TabsTrigger>
         </TabsList>
@@ -232,6 +235,7 @@ const IntegrationsTab = () => {
             );
           })}
           
+          {/* Info card remains the same */}
           <Card>
             <CardHeader>
               <CardTitle>About Social Integrations</CardTitle>

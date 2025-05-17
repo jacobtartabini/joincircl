@@ -1,4 +1,3 @@
-
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const TWITTER_CLIENT_ID = "RmNzRlpWUGJ2d05ITXpKdGJlMDY6MTpjaQ";
@@ -81,21 +80,18 @@ async function storeTwitterToken(supabase: any, userId: string, tokenData: any, 
   try {
     console.log("Storing Twitter token for user:", userId);
     
-    // In a real app, we would store this in a social_integrations table
+    // Store the token in the user_social_integrations table
     const { error } = await supabase
-      .from('social_integrations')
+      .from('user_social_integrations')
       .upsert({
         user_id: userId,
         platform: 'twitter',
         username: profile.data.username,
-        display_name: profile.data.name,
-        profile_url: `https://twitter.com/${profile.data.username}`,
-        avatar_url: profile.data.profile_image_url,
         access_token: tokenData.access_token,
         refresh_token: tokenData.refresh_token,
         expires_at: new Date(Date.now() + tokenData.expires_in * 1000).toISOString(),
-        connected_at: new Date().toISOString(),
-        last_synced: new Date().toISOString()
+        last_synced: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       });
 
     if (error) {
