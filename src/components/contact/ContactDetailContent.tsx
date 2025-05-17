@@ -42,7 +42,10 @@ export default function ContactDetailContent({
       
       {/* Right column (1/3 width) */}
       <div>
-        <ContactDetailRightColumn connectionStrength={connectionStrength} />
+        <ContactDetailRightColumn 
+          connectionStrength={connectionStrength} 
+          contactId={contact.id} 
+        />
       </div>
     </div>
   );
