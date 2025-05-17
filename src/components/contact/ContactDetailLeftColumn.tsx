@@ -40,11 +40,11 @@ export default function ContactDetailLeftColumn({
       />
       <SocialFeedSection contactId={contact.id} />
       <ContactMediaSection 
-        contact={contact} 
+        contactId={contact.id} 
         contactMedia={contactMedia} 
       />
       <ContactInsightsSection 
-        contact={contact} 
+        contactId={contact.id} 
       />
     </div>
   );

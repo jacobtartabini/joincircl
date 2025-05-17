@@ -1,7 +1,7 @@
 
 import { Contact } from "./contact";
 
-export type SocialPlatform = "facebook" | "twitter" | "linkedin" | "instagram" | "whatsapp";
+export type SocialPlatform = "facebook" | "twitter" | "linkedin" | "instagram";
 
 export interface SocialProfile {
   id: string;

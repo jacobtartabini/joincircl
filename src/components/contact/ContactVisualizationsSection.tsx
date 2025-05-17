@@ -22,7 +22,7 @@ export default function ContactVisualizationsSection({
   keystones 
 }: ContactVisualizationsSectionProps) {
   const { relatedContacts } = useRelatedContacts(contact.id, 5);
-  const { emailInteractions } = useEmailInteractions(contact.id);
+  const { interactions: emailInteractions } = useEmailInteractions(contact.id);
   const { calendarEvents } = useCalendarEvents(contact.id);
   const [activeTab, setActiveTab] = useState("relationship");
   

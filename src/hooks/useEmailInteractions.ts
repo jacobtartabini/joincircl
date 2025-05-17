@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { EmailProviderToken } from './useEmailProviders';
-import { SocialPost } from '@/types/socialIntegration';
+import { SocialPost, SocialPlatform } from '@/types/socialIntegration';
 import { socialIntegrationService } from '@/services/socialIntegrationService';
 
 // Define email interaction type
@@ -13,7 +13,7 @@ export interface EmailInteraction {
   subject?: string;
   preview?: string;
   provider?: 'gmail' | 'outlook';
-  platform?: 'facebook' | 'twitter' | 'linkedin' | 'instagram';
+  platform?: SocialPlatform;
   content?: string;
   summary?: string;
   post_url?: string;
@@ -114,10 +114,10 @@ export const useEmailInteractions = (contactId?: string) => {
             const socialPosts = await socialIntegrationService.fetchAndSummarizePosts(contactId);
             
             // Convert social posts to our interaction format
-            const socialInteractions: EmailInteraction[] = socialPosts.map(post => ({
+            const socialInteractions = socialPosts.map(post => ({
               id: post.id,
               date: post.posted_at,
-              type: 'social_post',
+              type: 'social_post' as const,
               platform: post.platform,
               content: post.content,
               summary: post.summary,

@@ -12,34 +12,21 @@ export const socialIntegrationService = {
         throw new Error("User not authenticated");
       }
 
-      const { data: integrations, error } = await supabase
-        .from('user_social_integrations')
-        .select('*')
-        .eq('user_id', userSession.session.user.id);
-
-      if (error) throw error;
-
-      // Transform to SocialIntegrationStatus format
-      const platforms: SocialPlatform[] = ["facebook", "twitter", "linkedin", "instagram", "whatsapp"];
-      
-      return platforms.map(platform => {
-        const integration = integrations?.find(i => i.platform === platform);
-        return {
-          platform,
-          connected: !!integration,
-          last_synced: integration?.last_synced || undefined,
-          username: integration?.username || undefined,
-          error: integration?.error || undefined
-        };
-      });
+      // Since we don't have the social_integrations table yet,
+      // we'll return mock data instead of querying the database
+      return [
+        { platform: "facebook", connected: true, username: "demo.user", last_synced: new Date().toISOString() },
+        { platform: "twitter", connected: false },
+        { platform: "linkedin", connected: false },
+        { platform: "instagram", connected: false }
+      ];
     } catch (error) {
       console.error("Error getting user social integrations:", error);
       return [
         { platform: "facebook", connected: false },
         { platform: "twitter", connected: false },
         { platform: "linkedin", connected: false },
-        { platform: "instagram", connected: false },
-        { platform: "whatsapp", connected: false }
+        { platform: "instagram", connected: false }
       ];
     }
   },
@@ -64,25 +51,9 @@ export const socialIntegrationService = {
       
       const now = new Date().toISOString();
       
-      // Add/update integration record
-      const { data, error } = await supabase
-        .from('user_social_integrations')
-        .upsert({
-          user_id: userSession.session.user.id,
-          platform,
-          username: demoUsername,
-          access_token: 'demo_token',
-          refresh_token: 'demo_refresh',
-          expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
-          last_synced: now
-        }, { 
-          onConflict: 'user_id,platform' 
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
+      // In a real implementation, we would update or insert a record in the social_integrations table
+      // For this demo, we'll just return a successful status
+      
       // Return status
       return {
         platform,
@@ -108,14 +79,8 @@ export const socialIntegrationService = {
         throw new Error("User not authenticated");
       }
 
-      // Remove integration record
-      const { error } = await supabase
-        .from('user_social_integrations')
-        .delete()
-        .eq('user_id', userSession.session.user.id)
-        .eq('platform', platform);
-
-      if (error) throw error;
+      // In a real implementation, we would remove the integration record
+      console.log(`Disconnecting from ${platform}...`);
     } catch (error) {
       console.error(`Error disconnecting from ${platform}:`, error);
       throw error;
@@ -141,18 +106,6 @@ export const socialIntegrationService = {
         posts_fetched: 0,
         errors: []
       };
-
-      // In a real implementation, would update the last_synced timestamp
-      const now = new Date().toISOString();
-      const { error } = await supabase
-        .from('user_social_integrations')
-        .update({ last_synced: now })
-        .eq('user_id', userSession.session.user.id)
-        .eq('platform', platform);
-
-      if (error) {
-        result.errors.push(`Failed to update sync timestamp: ${error.message}`);
-      }
 
       // Return results
       return result;

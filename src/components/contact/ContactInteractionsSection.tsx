@@ -16,7 +16,7 @@ export default function ContactInteractionsSection({
   return (
     <ContactInteractions 
       interactions={interactions} 
-      contact={contact} 
+      contactId={contact.id} 
       onInteractionAdded={onInteractionAdded} 
     />
   );

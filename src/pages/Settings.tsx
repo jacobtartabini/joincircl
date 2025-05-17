@@ -34,7 +34,7 @@ export default function Settings() {
 
   return (
     <>
-      <SecureHeaders title="Settings | Circl" />
+      <SecureHeaders />
       
       <div className="space-y-6 animate-fade-in">
         <div>
