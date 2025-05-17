@@ -93,27 +93,41 @@ export function useSocialIntegrationStatus() {
         }
         
         // Add Gmail as a connected platform if present
-        if (emailIntegrations && emailIntegrations.length > 0) {
+        // Ensure we have valid data before accessing properties
+        if (emailIntegrations && !emailError && emailIntegrations.length > 0) {
+          // Safely access the first integration
           const gmailIntegration = emailIntegrations[0];
-          // Type-safe way to access properties, checking if they exist first
-          const emailUsername = gmailIntegration.email || "Gmail User";
-          const emailUpdatedAt = gmailIntegration.updated_at || new Date().toISOString();
+          
+          // Since the database schema might have changed, let's handle this defensively
+          // TypeScript is reporting that these fields might not exist on the actual data
+          const emailAddress = typeof gmailIntegration === 'object' && gmailIntegration !== null 
+            ? (gmailIntegration.email as string || "Gmail User") 
+            : "Gmail User";
+            
+          const lastUpdated = typeof gmailIntegration === 'object' && gmailIntegration !== null 
+            ? (gmailIntegration.updated_at as string || new Date().toISOString()) 
+            : new Date().toISOString();
           
           status.push({
             platform: 'gmail' as SocialPlatform,
             connected: true,
-            username: emailUsername,
-            last_synced: emailUpdatedAt
+            username: emailAddress,
+            last_synced: lastUpdated
           });
         }
         
         // Add Google Calendar as a connected platform if present
         if (calendarIntegrations && calendarIntegrations.length > 0) {
+          const calendarIntegration = calendarIntegrations[0];
+          const lastUpdated = typeof calendarIntegration === 'object' && calendarIntegration !== null 
+            ? (calendarIntegration.updated_at as string || new Date().toISOString()) 
+            : new Date().toISOString();
+            
           status.push({
             platform: 'calendar' as SocialPlatform,
             connected: true,
             username: 'Google Calendar',
-            last_synced: calendarIntegrations[0].updated_at || new Date().toISOString()
+            last_synced: lastUpdated
           });
         }
         
