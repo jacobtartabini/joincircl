@@ -10,6 +10,8 @@ import EmailIntegrationsTab from "@/components/integrations/EmailIntegrationsTab
 import CalendarTab from "@/components/integrations/CalendarTab";
 import NotificationsTab from "@/components/integrations/NotificationsTab";
 import { useSocialIntegrations } from "@/hooks/useSocialIntegrations";
+import { useSearchParams } from "react-router-dom";
+import { useGoogleIntegrations } from "@/hooks/useGoogleIntegrations";
 
 const IntegrationsTab = () => {
   // Email integration state
@@ -23,28 +25,51 @@ const IntegrationsTab = () => {
   const [isTwitterDialogOpen, setIsTwitterDialogOpen] = useState(false);
   
   const [activeTab, setActiveTab] = useState<string>("social");
+  const [searchParams] = useSearchParams();
   
   // Access the social integrations hook with refreshStatus function
   const { refreshStatus } = useSocialIntegrations();
+  
+  // Access Google integrations
+  const { refreshIntegrationStatus } = useGoogleIntegrations();
 
-  // Check URL params for tab selection and integration refresh
+  // Check URL params for tab selection, integration refresh, and provider
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const tab = urlParams.get("tab");
+    // Get URL parameters
+    const tab = searchParams.get("tab");
+    const provider = searchParams.get("provider");
     
     // If we're coming from an OAuth callback or tab=integrations is specified
     if (tab === "integrations") {
-      console.log("Integration tab opened via URL param, refreshing integration status");
-      // Refresh integration status when integrations tab is opened via URL param
-      refreshStatus();
+      console.log("Integration tab opened via URL param");
+      
+      // Check if provider is specified to determine which tab to show
+      if (provider) {
+        if (provider === "gmail" || provider === "outlook") {
+          setActiveTab("email");
+          refreshIntegrationStatus();
+        } else if (provider === "calendar") {
+          setActiveTab("calendar");
+          refreshIntegrationStatus();
+        } else if (provider === "twitter" || provider === "facebook" || provider === "linkedin" || provider === "instagram") {
+          setActiveTab("social");
+          refreshStatus();
+        } else {
+          // Default to social tab
+          setActiveTab("social");
+        }
+      } else {
+        // If no provider is specified, just refresh all statuses
+        refreshStatus();
+        refreshIntegrationStatus();
+      }
     }
     
     // Check if we have a platform param to open the relevant dialog
-    const platform = urlParams.get("platform");
-    if (platform === "twitter") {
+    if (provider === "twitter") {
       setIsTwitterDialogOpen(true);
     }
-  }, [refreshStatus]);
+  }, [searchParams, refreshStatus, refreshIntegrationStatus]);
   
   // Handle connect platform directly from this component
   const handleConnectTwitter = () => {
@@ -115,7 +140,7 @@ const IntegrationsTab = () => {
         isOpen={isGmailDialogOpen}
         onOpenChange={setIsGmailDialogOpen}
         provider="gmail"
-        onSuccess={() => {}}
+        onSuccess={() => refreshIntegrationStatus()}
       />
       
       <EmailConnectionDialog

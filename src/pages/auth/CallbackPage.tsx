@@ -1,111 +1,209 @@
 
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { googleService, GMAIL_SCOPE, CALENDAR_SCOPE } from "@/services/googleService";
 
 export default function CallbackPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
-  const [error, setError] = useState<string | null>(null);
   const [processing, setProcessing] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  // Process OAuth callback
   useEffect(() => {
-    // Handle the OAuth callback
-    const handleAuthCallback = async () => {
+    const processCallback = async () => {
+      setProcessing(true);
+      setError(null);
+
       try {
-        // Check if this is a Twitter OAuth callback
-        if (window.location.search.includes("code=") && window.location.search.includes("state=")) {
-          const params = new URLSearchParams(window.location.search);
-          const code = params.get("code");
-          const state = params.get("state");
-          const savedState = localStorage.getItem("twitter_auth_state");
-          const codeVerifier = localStorage.getItem("twitter_code_verifier");
+        const code = searchParams.get("code");
+        const state = searchParams.get("state");
+        const provider = searchParams.get("provider");
+
+        if (!code) {
+          console.error("No code found in URL parameters");
+          setError("Authentication failed: No authorization code received");
+          return;
+        }
+
+        // Handle Twitter callback
+        if (state && localStorage.getItem("twitter_auth_state") === state) {
+          await handleTwitterCallback(code);
+          return;
+        }
+        
+        // Handle Google callback
+        if (state && state.includes("_")) {
+          const [providerType, stateValue] = state.split("_");
           
-          if (code && state && state === savedState && codeVerifier) {
-            console.log("Valid Twitter callback detected, processing OAuth exchange");
-            
-            try {
-              // Call the Twitter OAuth edge function to exchange code for token
-              const { data, error } = await supabase.functions.invoke('twitter-oauth', {
-                body: { code, codeVerifier }
-              });
-              
-              if (error) {
-                console.error("Edge function error:", error);
-                toast({
-                  title: "Twitter Connection Failed",
-                  description: `Error: ${error.message || "Unknown error"}`,
-                  variant: "destructive",
-                });
-                setError("Failed to connect Twitter account");
-              } else if (data && data.success) {
-                console.log("Twitter connection successful:", data);
-                toast({
-                  title: "Twitter Connected",
-                  description: `Successfully connected as @${data.profile.username}`,
-                });
-                
-                // Clear auth state data
-                localStorage.removeItem("twitter_auth_state");
-                localStorage.removeItem("twitter_code_verifier");
-                
-                // Redirect to integrations page
-                navigate("/settings?tab=integrations", { replace: true });
-                return;
-              } else {
-                console.error("Unexpected response from edge function:", data);
-                setError("Failed to connect Twitter account: Unexpected response");
-              }
-            } catch (edgeFnError) {
-              console.error("Error calling edge function:", edgeFnError);
-              setError(`Failed to connect Twitter account: ${edgeFnError instanceof Error ? edgeFnError.message : "Unknown error"}`);
-            }
-            
-            // If we're still here, something went wrong
-            setTimeout(() => navigate("/settings?tab=integrations", { replace: true }), 2000);
+          if (providerType === "gmail" && localStorage.getItem(`google_gmail_state`) === stateValue) {
+            await handleGmailCallback(code);
+            return;
+          }
+          
+          if (providerType === "calendar" && localStorage.getItem(`google_calendar_state`) === stateValue) {
+            await handleCalendarCallback(code);
             return;
           }
         }
 
-        // If not Twitter OAuth, handle regular auth callback
-        const { data, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error("Auth callback error:", error);
-          setError(error.message);
-          setProcessing(false);
-          return;
-        }
-
-        if (data && data.session) {
-          console.log("Auth callback successful, redirecting to homepage");
-          // Successful authentication, redirect to the home page
-          navigate("/", { replace: true });
-        } else {
-          // No session found, might be an error in the OAuth flow
-          console.error("No session found in callback");
-          setError("Authentication failed. Please try again.");
-          setTimeout(() => navigate("/auth/sign-in", { replace: true }), 2000);
-        }
+        // Unknown callback type
+        setError("Unknown authentication callback");
       } catch (err) {
-        console.error("Error in auth callback:", err);
-        setError("An unexpected error occurred during authentication.");
+        console.error("Error in callback processing:", err);
+        setError(`Authentication error: ${err instanceof Error ? err.message : "Unknown error"}`);
       } finally {
         setProcessing(false);
       }
     };
 
-    handleAuthCallback();
-  }, [navigate, toast]);
+    processCallback();
+  }, [searchParams, toast, navigate]);
+
+  // Handle Twitter callback
+  const handleTwitterCallback = async (code: string) => {
+    try {
+      // Build the redirect URI
+      const redirectUri = `${window.location.origin}/auth/callback`;
+
+      // Exchange code for tokens via Edge Function
+      const { data, error } = await supabase.functions.invoke("twitter-oauth", {
+        body: { 
+          action: "exchange",
+          code: code, 
+          redirectUri: redirectUri,
+        },
+      });
+
+      if (error || !data?.access_token) {
+        throw new Error(error?.message || "Failed to exchange authorization code");
+      }
+
+      // Clean up
+      localStorage.removeItem("twitter_auth_state");
+      
+      toast({
+        title: "Connected",
+        description: "Twitter account connected successfully",
+      });
+      
+      // Navigate to settings with integrations tab active
+      navigate("/settings?tab=integrations");
+    } catch (err) {
+      console.error("Twitter OAuth error:", err);
+      toast({
+        title: "Connection Failed",
+        description: "Could not connect Twitter account",
+        variant: "destructive",
+      });
+      navigate("/settings?tab=integrations");
+    }
+  };
+  
+  // Handle Gmail callback
+  const handleGmailCallback = async (code: string) => {
+    try {
+      // Build the redirect URI
+      const redirectUri = `${window.location.origin}/auth/callback/google`;
+
+      // Exchange code for tokens
+      const tokenData = await googleService.exchangeCodeForToken(code, redirectUri, GMAIL_SCOPE);
+      if (!tokenData) {
+        throw new Error("Failed to exchange authorization code for Gmail");
+      }
+      
+      // Clean up
+      localStorage.removeItem("google_gmail_state");
+      
+      toast({
+        title: "Connected",
+        description: "Gmail account connected successfully",
+      });
+      
+      // Navigate back to the integrations tab
+      navigate("/settings?tab=integrations&provider=gmail");
+    } catch (err) {
+      console.error("Gmail OAuth error:", err);
+      toast({
+        title: "Connection Failed",
+        description: "Could not connect Gmail account",
+        variant: "destructive",
+      });
+      navigate("/settings?tab=integrations");
+    } finally {
+      setProcessing(false);
+    }
+  };
+  
+  // Handle Calendar callback
+  const handleCalendarCallback = async (code: string) => {
+    try {
+      // Build the redirect URI
+      const redirectUri = `${window.location.origin}/auth/callback/google`;
+
+      // Exchange code for tokens
+      const tokenData = await googleService.exchangeCodeForToken(code, redirectUri, CALENDAR_SCOPE);
+      if (!tokenData) {
+        throw new Error("Failed to exchange authorization code for Calendar");
+      }
+      
+      // Clean up
+      localStorage.removeItem("google_calendar_state");
+      
+      toast({
+        title: "Connected",
+        description: "Google Calendar connected successfully",
+      });
+      
+      // Navigate back to the integrations tab
+      navigate("/settings?tab=integrations&provider=calendar");
+    } catch (err) {
+      console.error("Calendar OAuth error:", err);
+      toast({
+        title: "Connection Failed",
+        description: "Could not connect Google Calendar",
+        variant: "destructive",
+      });
+      navigate("/settings?tab=integrations");
+    } finally {
+      setProcessing(false);
+    }
+  };
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4 bg-background">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
-        <h2 className="text-2xl font-bold mb-2">Authenticating...</h2>
-        <p className="mb-1">Please wait while we complete the authentication process.</p>
-        {error && <p className="text-destructive">{error}</p>}
+    <div className="flex items-center justify-center min-h-screen p-4">
+      <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-lg">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold">
+            {error ? "Authentication Error" : "Processing Authentication"}
+          </h1>
+          
+          <div className="mt-4">
+            {processing ? (
+              <div className="flex flex-col items-center justify-center space-y-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <p className="text-gray-500">Please wait while we verify your account...</p>
+              </div>
+            ) : error ? (
+              <div className="text-red-500">
+                <p>{error}</p>
+                <button
+                  onClick={() => navigate("/settings?tab=integrations")}
+                  className="mt-4 px-4 py-2 bg-primary text-white rounded hover:bg-primary/80"
+                >
+                  Return to Settings
+                </button>
+              </div>
+            ) : (
+              <div>
+                <p className="text-green-500 mb-4">Authentication successful! Redirecting...</p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
