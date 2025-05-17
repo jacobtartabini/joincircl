@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import { SocialPlatform } from "@/types/socialIntegration";
 import { useSocialIntegrations } from "@/hooks/useSocialIntegrations";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Facebook, Twitter, Instagram, Linkedin, AlertTriangle } from "lucide-react";
+import { Facebook, Twitter, Instagram, Linkedin, AlertTriangle, Loader2 } from "lucide-react";
 import SocialPlatformCard from "./SocialPlatformCard";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -15,6 +15,7 @@ const SocialIntegrationsSection: React.FC<SocialIntegrationsSectionProps> = ({ o
   const {
     integrationStatus,
     isLoading,
+    loadError,
     isSyncing,
     connectPlatform,
     disconnectPlatform,
@@ -37,6 +38,10 @@ const SocialIntegrationsSection: React.FC<SocialIntegrationsSectionProps> = ({ o
         return <Linkedin size={size} className="text-blue-700" />;
       case "instagram":
         return <Instagram size={size} className="text-pink-600" />;
+      case "gmail":
+        return <img src="https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg" alt="Gmail" className="h-5 w-5" />;
+      case "calendar":
+        return <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg" alt="Google Calendar" className="h-5 w-5" />;
       default:
         return null;
     }
@@ -58,14 +63,32 @@ const SocialIntegrationsSection: React.FC<SocialIntegrationsSectionProps> = ({ o
     syncContacts(platform);
   };
 
+  // Only show main social platforms in this component
   const platforms: SocialPlatform[] = ["twitter", "facebook", "linkedin", "instagram"];
 
   // Check if we have any connected platforms
   const hasConnectedPlatforms = integrationStatus.some(status => status.connected);
 
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 space-y-4">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground">Loading integration status...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
-      {/* Debug alert for auth issues */}
+      {/* Show error if present */}
+      {loadError && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>{loadError}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* No connected platforms message */}
       {!isLoading && !hasConnectedPlatforms && (
         <Alert variant="default" className="bg-amber-50 border-amber-200">
           <AlertTriangle className="h-4 w-4 text-amber-600" />

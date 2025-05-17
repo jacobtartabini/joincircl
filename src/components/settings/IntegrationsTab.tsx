@@ -35,7 +35,6 @@ const IntegrationsTab = () => {
 
   // Check URL params for tab selection, integration refresh, and provider
   useEffect(() => {
-    // Get URL parameters
     const tab = searchParams.get("tab");
     const provider = searchParams.get("provider");
     
@@ -43,25 +42,20 @@ const IntegrationsTab = () => {
     if (tab === "integrations") {
       console.log("Integration tab opened via URL param");
       
-      // Check if provider is specified to determine which tab to show
+      // Refresh all integration statuses regardless of provider
+      // This ensures we have the most up-to-date data
+      refreshStatus();
+      refreshIntegrationStatus();
+      
+      // If provider is specified, set the appropriate tab
       if (provider) {
         if (provider === "gmail" || provider === "outlook") {
           setActiveTab("email");
-          refreshIntegrationStatus();
         } else if (provider === "calendar") {
           setActiveTab("calendar");
-          refreshIntegrationStatus();
         } else if (provider === "twitter" || provider === "facebook" || provider === "linkedin" || provider === "instagram") {
           setActiveTab("social");
-          refreshStatus();
-        } else {
-          // Default to social tab
-          setActiveTab("social");
         }
-      } else {
-        // If no provider is specified, just refresh all statuses
-        refreshStatus();
-        refreshIntegrationStatus();
       }
     }
     
@@ -140,7 +134,10 @@ const IntegrationsTab = () => {
         isOpen={isGmailDialogOpen}
         onOpenChange={setIsGmailDialogOpen}
         provider="gmail"
-        onSuccess={() => refreshIntegrationStatus()}
+        onSuccess={() => {
+          refreshIntegrationStatus();
+          refreshStatus(); // Also refresh social integrations to show Gmail
+        }}
       />
       
       <EmailConnectionDialog

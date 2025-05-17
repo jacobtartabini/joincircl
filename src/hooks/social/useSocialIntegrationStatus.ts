@@ -13,14 +13,16 @@ export function useSocialIntegrationStatus() {
     { platform: "instagram", connected: false }
   ]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const fetchIntegrationStatus = async () => {
     try {
       setIsLoading(true);
+      setLoadError(null);
       
       // Check if user is logged in
       const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData.session) {
+      if (!sessionData?.session) {
         console.log("No session found, user not logged in");
         setIsLoading(false);
         return;
@@ -34,54 +36,109 @@ export function useSocialIntegrationStatus() {
         { platform: "instagram", connected: false }
       ];
       
-      // Get actual integration status from the database
       try {
         console.log("Fetching social integrations from database...");
-        const { data: integrations, error } = await supabase
+        
+        // Fetch social integrations
+        const { data: socialIntegrations, error: socialError } = await supabase
           .from('user_social_integrations')
           .select('platform, username, last_synced, created_at');
         
-        if (error) {
-          console.error("Error fetching integrations:", error);
+        if (socialError) {
+          console.error("Error fetching social integrations:", socialError);
+          throw socialError;
+        }
+        
+        // Fetch email integrations (Gmail)
+        const { data: emailIntegrations, error: emailError } = await supabase
+          .from('user_email_tokens')
+          .select('provider, username, email, updated_at')
+          .eq('provider', 'gmail');
+          
+        if (emailError) {
+          console.error("Error fetching email integrations:", emailError);
+          throw emailError;
+        }
+        
+        // Fetch calendar integrations (Google Calendar)
+        const { data: calendarIntegrations, error: calendarError } = await supabase
+          .from('user_calendar_tokens')
+          .select('provider, updated_at')
+          .eq('provider', 'google');
+          
+        if (calendarError) {
+          console.error("Error fetching calendar integrations:", calendarError);
+          throw calendarError;
+        }
+        
+        console.log("Received integration data:", {
+          social: socialIntegrations,
+          email: emailIntegrations, 
+          calendar: calendarIntegrations
+        });
+        
+        // Update with social platform integrations
+        if (socialIntegrations && socialIntegrations.length > 0) {
+          socialIntegrations.forEach((integration) => {
+            const platformIndex = status.findIndex(s => s.platform === integration.platform);
+            if (platformIndex >= 0) {
+              status[platformIndex] = {
+                platform: integration.platform as SocialPlatform,
+                connected: true,
+                username: integration.username,
+                last_synced: integration.last_synced || integration.created_at
+              };
+            }
+          });
+        }
+        
+        // Add Gmail as a connected platform if present
+        if (emailIntegrations && emailIntegrations.length > 0) {
+          const gmailIndex = status.findIndex(s => s.platform === 'twitter'); // Use Twitter slot for now
+          if (gmailIndex >= 0) {
+            const gmailIntegration = emailIntegrations[0];
+            status.push({
+              platform: 'gmail' as SocialPlatform,
+              connected: true,
+              username: gmailIntegration.username || gmailIntegration.email,
+              last_synced: gmailIntegration.updated_at
+            });
+          }
+        }
+        
+        // Add Google Calendar as a connected platform if present
+        if (calendarIntegrations && calendarIntegrations.length > 0) {
+          status.push({
+            platform: 'calendar' as SocialPlatform,
+            connected: true,
+            username: 'Google Calendar',
+            last_synced: calendarIntegrations[0].updated_at
+          });
+        }
+        
+        // Update the state with actual data
+        setIntegrationStatus([...status]);
+        
+      } catch (dbError) {
+        console.error("Database error:", dbError);
+        setLoadError("Failed to load integration status. Please try again later.");
+        
+        // Still set the default statuses so the UI can render something
+        setIntegrationStatus(status);
+        
+        // Don't show toast for every error - only show if there's genuinely an issue
+        // and not just an empty result set
+        if (!(dbError instanceof Error && dbError.message.includes("No rows returned"))) {
           toast({
             title: "Data Loading Error",
             description: "Could not load your social integrations.",
             variant: "destructive",
           });
-          throw error;
-        } else {
-          console.log("Received integration data:", integrations);
-          
-          if (integrations && integrations.length > 0) {
-            // Update with actual connected platforms
-            integrations.forEach((integration) => {
-              const platformIndex = status.findIndex(s => s.platform === integration.platform);
-              if (platformIndex >= 0) {
-                status[platformIndex] = {
-                  platform: integration.platform as SocialPlatform,
-                  connected: true,
-                  username: integration.username,
-                  last_synced: integration.last_synced || integration.created_at
-                };
-              }
-            });
-          } else {
-            console.log("No social integrations found in database");
-          }
-          
-          // Update the state with actual data
-          setIntegrationStatus([...status]);
         }
-      } catch (dbError) {
-        console.error("Database error:", dbError);
       }
     } catch (error) {
       console.error("Error in fetchIntegrationStatus:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load social integration status",
-        variant: "destructive",
-      });
+      setLoadError("Failed to check integration status.");
     } finally {
       setIsLoading(false);
     }
@@ -94,7 +151,8 @@ export function useSocialIntegrationStatus() {
 
   return { 
     integrationStatus, 
-    isLoading, 
+    isLoading,
+    loadError, 
     refreshStatus: fetchIntegrationStatus 
   };
 }

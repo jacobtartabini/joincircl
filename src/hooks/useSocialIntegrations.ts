@@ -6,7 +6,7 @@ import { SocialPlatform, SocialIntegrationStatus, SocialSyncResult } from '@/typ
 
 export function useSocialIntegrations() {
   // Get integration status
-  const { integrationStatus, isLoading, refreshStatus } = useSocialIntegrationStatus();
+  const { integrationStatus, isLoading, loadError, refreshStatus } = useSocialIntegrationStatus();
   
   // Get platform operations
   const { 
@@ -23,6 +23,7 @@ export function useSocialIntegrations() {
   return {
     integrationStatus,
     isLoading,
+    loadError,
     isSyncing,
     syncResults,
     connectPlatform,

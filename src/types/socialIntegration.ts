@@ -1,18 +1,23 @@
 
-import { Contact } from "./contact";
+export type SocialPlatform = "twitter" | "facebook" | "linkedin" | "instagram" | "gmail" | "calendar";
 
-export type SocialPlatform = "facebook" | "twitter" | "linkedin" | "instagram";
+export interface SocialIntegrationStatus {
+  platform: SocialPlatform;
+  connected: boolean;
+  username?: string;
+  last_synced?: string;
+  error?: string;
+}
 
 export interface SocialProfile {
   id: string;
   platform: SocialPlatform;
   username: string;
   display_name?: string;
-  profile_url: string;
+  profile_url?: string;
   avatar_url?: string;
-  user_id: string;
   contact_id?: string;
-  last_synced?: string;
+  user_id: string;
 }
 
 export interface SocialPost {
@@ -24,14 +29,6 @@ export interface SocialPost {
   posted_at: string;
   social_profile_id: string;
   contact_id?: string;
-}
-
-export interface SocialIntegrationStatus {
-  platform: SocialPlatform;
-  connected: boolean;
-  last_synced?: string;
-  username?: string;
-  error?: string;
 }
 
 export interface SocialSyncResult {

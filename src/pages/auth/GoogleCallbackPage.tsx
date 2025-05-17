@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { GMAIL_SCOPE, CALENDAR_SCOPE, googleService } from "@/services/googleService";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function GoogleCallbackPage() {
   const navigate = useNavigate();
@@ -86,6 +87,45 @@ export default function GoogleCallbackPage() {
         const tokenData = await googleService.exchangeCodeForToken(code, redirectUri, scope);
         if (!tokenData) {
           throw new Error(`Failed to exchange authorization code for ${providerType}`);
+        }
+        
+        // After successfully exchanging token, add or update the integration status in user_social_integrations
+        // This ensures the UI properly shows the connected status
+        try {
+          // Get user data
+          const { data: session } = await supabase.auth.getSession();
+          if (!session.session) {
+            throw new Error("User not authenticated");
+          }
+          
+          const userId = session.session.user.id;
+          
+          // Use user_social_integrations table to track integration status
+          // This will allow us to consistently show all integrations in one place
+          const now = new Date().toISOString();
+          
+          const { error: integrationError } = await supabase
+            .from('user_social_integrations')
+            .upsert({
+              user_id: userId,
+              platform: providerType, // 'gmail' or 'calendar'
+              username: providerType === 'gmail' ? 'Gmail' : 'Google Calendar',
+              access_token: 'stored_securely_elsewhere', // We don't store the actual token here
+              last_synced: now,
+              expires_at: now,
+              created_at: now,
+              updated_at: now
+            });
+          
+          if (integrationError) {
+            console.error("Failed to update social integration status:", integrationError);
+            // Continue anyway since the tokens are already saved in their specific tables
+          } else {
+            console.log(`Successfully updated ${providerType} integration status`);
+          }
+        } catch (statusError) {
+          console.error("Error updating integration status:", statusError);
+          // Continue anyway since this is not critical
         }
         
         // Clean up state

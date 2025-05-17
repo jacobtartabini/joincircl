@@ -29,11 +29,17 @@ const SocialPlatformCard: React.FC<SocialPlatformCardProps> = ({
   onDisconnect,
   onSync,
 }) => {
+  // Default to not connected if status is undefined
   const isConnected = status?.connected || false;
   
   const formatLastSynced = (dateStr: string | undefined) => {
     if (!dateStr) return "Never";
-    return formatDistanceToNow(new Date(dateStr), { addSuffix: true });
+    try {
+      return formatDistanceToNow(new Date(dateStr), { addSuffix: true });
+    } catch (error) {
+      console.error("Date formatting error:", error);
+      return "Unknown";
+    }
   };
   
   const getCardDescription = () => {
@@ -46,6 +52,10 @@ const SocialPlatformCard: React.FC<SocialPlatformCardProps> = ({
         return "Import professional connections from LinkedIn";
       case "instagram":
         return "Connect to view Instagram activity";
+      case "gmail":
+        return "Connect Gmail to sync contacts from your emails";
+      case "calendar":
+        return "Sync Google Calendar events with your contacts";
       default:
         return "";
     }
