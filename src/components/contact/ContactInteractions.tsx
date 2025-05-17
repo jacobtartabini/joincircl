@@ -13,9 +13,10 @@ import SocialInteractionItem from "./SocialInteractionItem";
 interface ContactInteractionsProps {
   contactId: string;
   interactions: Interaction[];
+  onInteractionAdded: () => Promise<void>;
 }
 
-export default function ContactInteractions({ contactId, interactions }: ContactInteractionsProps) {
+export default function ContactInteractions({ contactId, interactions, onInteractionAdded }: ContactInteractionsProps) {
   const [activeTab, setActiveTab] = useState("all");
   const { interactions: emailInteractions, loading: emailLoading } = useEmailInteractions(contactId);
 

@@ -4,13 +4,14 @@ import { FileImage, File } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface ContactMediaSectionProps {
-  media: ContactMedia[];
+  contactId: string;
+  contactMedia: ContactMedia[];
 }
 
-export default function ContactMediaSection({ media }: ContactMediaSectionProps) {
+export default function ContactMediaSection({ contactId, contactMedia }: ContactMediaSectionProps) {
   // Group media by type for display
-  const images = media.filter(item => item.is_image);
-  const documents = media.filter(item => !item.is_image);
+  const images = contactMedia.filter(item => item.is_image);
+  const documents = contactMedia.filter(item => !item.is_image);
   
   if (images.length === 0 && documents.length === 0) {
     return null;
