@@ -2,26 +2,32 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { EmailProviderToken } from './useEmailProviders';
+import { SocialPost } from '@/types/socialIntegration';
+import { socialIntegrationService } from '@/services/socialIntegrationService';
 
 // Define email interaction type
-interface EmailInteraction {
+export interface EmailInteraction {
   id: string;
   date: string;
-  type: 'email';
-  subject: string;
-  preview: string;
-  provider: 'gmail' | 'outlook';
+  type: 'email' | 'social_post';
+  subject?: string;
+  preview?: string;
+  provider?: 'gmail' | 'outlook';
+  platform?: 'facebook' | 'twitter' | 'linkedin' | 'instagram';
+  content?: string;
+  summary?: string;
+  post_url?: string;
   contact_id: string;
   user_id: string;
 }
 
 export const useEmailInteractions = (contactId?: string) => {
-  const [emailInteractions, setEmailInteractions] = useState<EmailInteraction[]>([]);
+  const [interactions, setInteractions] = useState<EmailInteraction[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    const fetchEmailInteractions = async () => {
+    const fetchInteractions = async () => {
       if (!contactId) return;
       
       try {
@@ -103,20 +109,48 @@ export const useEmailInteractions = (contactId?: string) => {
             demoEmails.push(...outlookEmails);
           }
           
-          setEmailInteractions(demoEmails);
+          // Fetch social media posts as well
+          try {
+            const socialPosts = await socialIntegrationService.fetchAndSummarizePosts(contactId);
+            
+            // Convert social posts to our interaction format
+            const socialInteractions: EmailInteraction[] = socialPosts.map(post => ({
+              id: post.id,
+              date: post.posted_at,
+              type: 'social_post',
+              platform: post.platform,
+              content: post.content,
+              summary: post.summary,
+              post_url: post.post_url,
+              contact_id: contactId,
+              user_id: userSession.session.user.id
+            }));
+            
+            demoEmails.push(...socialInteractions);
+          } catch (socialError) {
+            console.warn('Error fetching social posts:', socialError);
+            // Continue with email interactions only
+          }
+          
+          // Sort all interactions by date (newest first)
+          const sortedInteractions = demoEmails.sort((a, b) => 
+            new Date(b.date).getTime() - new Date(a.date).getTime()
+          );
+          
+          setInteractions(sortedInteractions);
         }
         
       } catch (err) {
-        console.error('Error fetching email interactions:', err);
+        console.error('Error fetching interactions:', err);
         setError(err as Error);
-        setEmailInteractions([]);
+        setInteractions([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchEmailInteractions();
+    fetchInteractions();
   }, [contactId]);
 
-  return { emailInteractions, loading, error };
+  return { interactions, loading, error };
 };
