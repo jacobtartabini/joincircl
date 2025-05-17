@@ -6,7 +6,11 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
 import SocialPlatformCard from "./SocialPlatformCard";
 
-const SocialIntegrationsSection: React.FC = () => {
+interface SocialIntegrationsSectionProps {
+  onConnectTwitter?: () => void;
+}
+
+const SocialIntegrationsSection: React.FC<SocialIntegrationsSectionProps> = ({ onConnectTwitter }) => {
   const {
     integrationStatus,
     isLoading,
@@ -32,7 +36,11 @@ const SocialIntegrationsSection: React.FC = () => {
   };
 
   const handleConnect = (platform: SocialPlatform) => {
-    connectPlatform(platform);
+    if (platform === 'twitter' && onConnectTwitter) {
+      onConnectTwitter();
+    } else {
+      connectPlatform(platform);
+    }
   };
 
   const handleDisconnect = (platform: SocialPlatform) => {

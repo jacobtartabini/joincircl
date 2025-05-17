@@ -2,9 +2,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export default function CallbackPage() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [error, setError] = useState<string | null>(null);
   const [processing, setProcessing] = useState(true);
 
@@ -21,9 +23,47 @@ export default function CallbackPage() {
           const codeVerifier = localStorage.getItem("twitter_code_verifier");
           
           if (code && state && state === savedState && codeVerifier) {
-            // This is a valid Twitter callback, redirect to settings page
-            // The useSocialIntegrations hook will handle the token exchange
-            navigate("/settings?tab=integrations", { replace: true });
+            console.log("Valid Twitter callback detected, processing OAuth exchange");
+            
+            try {
+              // Call the Twitter OAuth edge function to exchange code for token
+              const { data, error } = await supabase.functions.invoke('twitter-oauth', {
+                body: { code, codeVerifier }
+              });
+              
+              if (error) {
+                console.error("Edge function error:", error);
+                toast({
+                  title: "Twitter Connection Failed",
+                  description: `Error: ${error.message || "Unknown error"}`,
+                  variant: "destructive",
+                });
+                setError("Failed to connect Twitter account");
+              } else if (data && data.success) {
+                console.log("Twitter connection successful:", data);
+                toast({
+                  title: "Twitter Connected",
+                  description: `Successfully connected as @${data.profile.username}`,
+                });
+                
+                // Clear auth state data
+                localStorage.removeItem("twitter_auth_state");
+                localStorage.removeItem("twitter_code_verifier");
+                
+                // Redirect to integrations page
+                navigate("/settings?tab=integrations", { replace: true });
+                return;
+              } else {
+                console.error("Unexpected response from edge function:", data);
+                setError("Failed to connect Twitter account: Unexpected response");
+              }
+            } catch (edgeFnError) {
+              console.error("Error calling edge function:", edgeFnError);
+              setError(`Failed to connect Twitter account: ${edgeFnError instanceof Error ? edgeFnError.message : "Unknown error"}`);
+            }
+            
+            // If we're still here, something went wrong
+            setTimeout(() => navigate("/settings?tab=integrations", { replace: true }), 2000);
             return;
           }
         }
@@ -57,7 +97,7 @@ export default function CallbackPage() {
     };
 
     handleAuthCallback();
-  }, [navigate]);
+  }, [navigate, toast]);
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4 bg-background">

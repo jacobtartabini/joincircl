@@ -9,6 +9,7 @@ import SocialIntegrationsSection from "@/components/integrations/SocialIntegrati
 import EmailIntegrationsTab from "@/components/integrations/EmailIntegrationsTab";
 import CalendarTab from "@/components/integrations/CalendarTab";
 import NotificationsTab from "@/components/integrations/NotificationsTab";
+import { useSocialIntegrations } from "@/hooks/useSocialIntegrations";
 
 const IntegrationsTab = () => {
   // Email integration state
@@ -22,16 +23,32 @@ const IntegrationsTab = () => {
   const [isTwitterDialogOpen, setIsTwitterDialogOpen] = useState(false);
   
   const [activeTab, setActiveTab] = useState<string>("social");
+  
+  // Access the refreshStatus function from useSocialIntegrations
+  const { refreshStatus } = useSocialIntegrations();
 
   // Check URL params for tab selection
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const tab = params.get("tab");
+    const urlParams = new URLSearchParams(window.location.search);
+    const tab = urlParams.get("tab");
+    
+    // If we're coming from an OAuth callback or tab=integrations is specified
     if (tab === "integrations") {
-      // If we're coming back from an OAuth callback, refresh integration status
-      // No need to call refreshStatus here as it's handled in the useSocialIntegrations hook
+      // Refresh integration status when integrations tab is opened via URL param
+      refreshStatus();
     }
-  }, []);
+    
+    // Check if we have a platform param to open the relevant dialog
+    const platform = urlParams.get("platform");
+    if (platform === "twitter") {
+      setIsTwitterDialogOpen(true);
+    }
+  }, [refreshStatus]);
+  
+  // Handle connect platform directly from this component
+  const handleConnectTwitter = () => {
+    setIsTwitterDialogOpen(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -63,7 +80,7 @@ const IntegrationsTab = () => {
 
         {/* Social Media Tab */}
         <TabsContent value="social" className="space-y-4">
-          <SocialIntegrationsSection />
+          <SocialIntegrationsSection onConnectTwitter={handleConnectTwitter} />
         </TabsContent>
 
         {/* Email Integrations Tab */}

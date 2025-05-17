@@ -80,9 +80,10 @@ async function getTwitterProfile(accessToken: string): Promise<any> {
 async function storeTwitterToken(supabase: any, userId: string, tokenData: any, profile: any): Promise<void> {
   try {
     console.log("Storing Twitter token for user:", userId);
+    console.log("Profile data:", JSON.stringify(profile));
     
     // Store the token in the user_social_integrations table
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('user_social_integrations')
       .upsert({
         user_id: userId,
@@ -93,12 +94,14 @@ async function storeTwitterToken(supabase: any, userId: string, tokenData: any, 
         expires_at: new Date(Date.now() + tokenData.expires_in * 1000).toISOString(),
         last_synced: new Date().toISOString(),
         updated_at: new Date().toISOString()
-      });
+      }, { onConflict: 'user_id,platform' });
 
     if (error) {
       console.error("Database error storing Twitter token:", error);
       throw error;
     }
+    
+    console.log("Successfully stored Twitter integration data:", data);
   } catch (error) {
     console.error("Error storing Twitter token:", error);
     throw error;
