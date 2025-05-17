@@ -2,11 +2,12 @@
 import React, { useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Mail, RefreshCw } from "lucide-react";
+import { Mail, RefreshCw, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useGoogleIntegrations } from "@/hooks/useGoogleIntegrations";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSearchParams } from "react-router-dom";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface EmailIntegrationsTabProps {
   onOpenGmailDialog: () => void;
@@ -21,6 +22,7 @@ const EmailIntegrationsTab: React.FC<EmailIntegrationsTabProps> = ({
     isGmailConnected, 
     isLoading, 
     isSyncing,
+    error,
     connectGmail,
     syncGmail,
     disconnectGmail,
@@ -39,6 +41,14 @@ const EmailIntegrationsTab: React.FC<EmailIntegrationsTabProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* Error display */}
+      {error && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      
       {/* Gmail Integration */}
       <Card>
         <CardHeader className="flex flex-row items-center gap-2">

@@ -22,6 +22,31 @@ export default function CallbackPage() {
         const code = searchParams.get("code");
         const state = searchParams.get("state");
         const provider = searchParams.get("provider");
+        const errorParam = searchParams.get("error");
+        const errorDescription = searchParams.get("error_description");
+
+        // Check for errors from OAuth provider
+        if (errorParam) {
+          console.error(`OAuth error: ${errorParam} - ${errorDescription}`);
+          
+          // Handle specific error types with user-friendly messages
+          if (errorParam === 'redirect_uri_mismatch') {
+            setError("Authentication failed: The redirect URI doesn't match what's configured in the Google Cloud Console. Please contact support.");
+            toast({
+              title: "Connection Failed",
+              description: "The redirect URI doesn't match what's configured in Google Cloud Console.",
+              variant: "destructive",
+            });
+          } else {
+            setError(`Authentication error: ${errorDescription || errorParam}`);
+            toast({
+              title: "Authentication Failed",
+              description: errorDescription || "Could not complete authentication",
+              variant: "destructive",
+            });
+          }
+          return;
+        }
 
         if (!code) {
           console.error("No code found in URL parameters");
@@ -106,8 +131,8 @@ export default function CallbackPage() {
   // Handle Gmail callback
   const handleGmailCallback = async (code: string) => {
     try {
-      // Build the redirect URI
-      const redirectUri = `${window.location.origin}/auth/callback/google`;
+      // Use the production redirect URI
+      const redirectUri = `https://app.joincircl.com/auth/callback/google`;
 
       // Exchange code for tokens
       const tokenData = await googleService.exchangeCodeForToken(code, redirectUri, GMAIL_SCOPE);
@@ -127,11 +152,22 @@ export default function CallbackPage() {
       navigate("/settings?tab=integrations&provider=gmail");
     } catch (err) {
       console.error("Gmail OAuth error:", err);
-      toast({
-        title: "Connection Failed",
-        description: "Could not connect Gmail account",
-        variant: "destructive",
-      });
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      
+      // Check for redirect URI mismatch error
+      if (errorMessage.includes('redirect_uri_mismatch') || errorMessage.includes('redirect')) {
+        toast({
+          title: "Connection Failed",
+          description: "The redirect URI doesn't match what's configured in Google Cloud Console.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Connection Failed",
+          description: "Could not connect Gmail account",
+          variant: "destructive",
+        });
+      }
       navigate("/settings?tab=integrations");
     } finally {
       setProcessing(false);
@@ -141,8 +177,8 @@ export default function CallbackPage() {
   // Handle Calendar callback
   const handleCalendarCallback = async (code: string) => {
     try {
-      // Build the redirect URI
-      const redirectUri = `${window.location.origin}/auth/callback/google`;
+      // Use the production redirect URI
+      const redirectUri = `https://app.joincircl.com/auth/callback/google`;
 
       // Exchange code for tokens
       const tokenData = await googleService.exchangeCodeForToken(code, redirectUri, CALENDAR_SCOPE);
@@ -162,11 +198,22 @@ export default function CallbackPage() {
       navigate("/settings?tab=integrations&provider=calendar");
     } catch (err) {
       console.error("Calendar OAuth error:", err);
-      toast({
-        title: "Connection Failed",
-        description: "Could not connect Google Calendar",
-        variant: "destructive",
-      });
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      
+      // Check for redirect URI mismatch error
+      if (errorMessage.includes('redirect_uri_mismatch') || errorMessage.includes('redirect')) {
+        toast({
+          title: "Connection Failed",
+          description: "The redirect URI doesn't match what's configured in Google Cloud Console.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Connection Failed",
+          description: "Could not connect Google Calendar",
+          variant: "destructive",
+        });
+      }
       navigate("/settings?tab=integrations");
     } finally {
       setProcessing(false);

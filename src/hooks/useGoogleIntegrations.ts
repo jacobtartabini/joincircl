@@ -8,12 +8,14 @@ export function useGoogleIntegrations() {
   const [isCalendarConnected, setIsCalendarConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   // Check integration status on mount
   useEffect(() => {
     const checkIntegrations = async () => {
       setIsLoading(true);
+      setError(null);
       try {
         const [gmailStatus, calendarStatus] = await Promise.all([
           googleService.isConnected('gmail'),
@@ -24,6 +26,7 @@ export function useGoogleIntegrations() {
         setIsCalendarConnected(calendarStatus);
       } catch (error) {
         console.error('Error checking Google integrations:', error);
+        setError('Failed to check integration status');
       } finally {
         setIsLoading(false);
       }
@@ -35,15 +38,29 @@ export function useGoogleIntegrations() {
   // Connect to Gmail
   const connectGmail = async () => {
     try {
+      setError(null);
       await googleService.connectGmail();
       return true;
     } catch (error) {
       console.error('Error connecting to Gmail:', error);
-      toast({
-        title: "Connection Failed",
-        description: "Could not connect to Gmail",
-        variant: "destructive",
-      });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      
+      // Check for redirect URI mismatch errors
+      if (errorMessage.includes('redirect_uri_mismatch')) {
+        setError('The redirect URI does not match what is configured in Google Cloud Console');
+        toast({
+          title: "Connection Failed",
+          description: "The redirect URI doesn't match what's configured in Google Cloud Console.",
+          variant: "destructive",
+        });
+      } else {
+        setError('Failed to connect to Gmail');
+        toast({
+          title: "Connection Failed",
+          description: "Could not connect to Gmail",
+          variant: "destructive",
+        });
+      }
       return false;
     }
   };
@@ -51,15 +68,29 @@ export function useGoogleIntegrations() {
   // Connect to Google Calendar
   const connectCalendar = async () => {
     try {
+      setError(null);
       await googleService.connectCalendar();
       return true;
     } catch (error) {
       console.error('Error connecting to Google Calendar:', error);
-      toast({
-        title: "Connection Failed",
-        description: "Could not connect to Google Calendar",
-        variant: "destructive",
-      });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      
+      // Check for redirect URI mismatch errors
+      if (errorMessage.includes('redirect_uri_mismatch')) {
+        setError('The redirect URI does not match what is configured in Google Cloud Console');
+        toast({
+          title: "Connection Failed",
+          description: "The redirect URI doesn't match what's configured in Google Cloud Console.",
+          variant: "destructive",
+        });
+      } else {
+        setError('Failed to connect to Google Calendar');
+        toast({
+          title: "Connection Failed",
+          description: "Could not connect to Google Calendar",
+          variant: "destructive",
+        });
+      }
       return false;
     }
   };
@@ -68,6 +99,7 @@ export function useGoogleIntegrations() {
   const syncGmail = async () => {
     try {
       setIsSyncing(true);
+      setError(null);
       const { data, error } = await googleService.fetchRecentEmails();
       
       if (error) {
@@ -82,6 +114,7 @@ export function useGoogleIntegrations() {
       return data;
     } catch (error) {
       console.error('Error syncing Gmail:', error);
+      setError('Failed to sync Gmail');
       toast({
         title: "Sync Failed",
         description: "Could not sync Gmail",
@@ -97,6 +130,7 @@ export function useGoogleIntegrations() {
   const syncCalendar = async () => {
     try {
       setIsSyncing(true);
+      setError(null);
       const { data, error } = await googleService.fetchUpcomingEvents();
       
       if (error) {
@@ -111,6 +145,7 @@ export function useGoogleIntegrations() {
       return data;
     } catch (error) {
       console.error('Error syncing Google Calendar:', error);
+      setError('Failed to sync Google Calendar');
       toast({
         title: "Sync Failed",
         description: "Could not sync Google Calendar",
@@ -125,6 +160,7 @@ export function useGoogleIntegrations() {
   // Refresh status (useful after OAuth callback)
   const refreshIntegrationStatus = async () => {
     try {
+      setError(null);
       const [gmailStatus, calendarStatus] = await Promise.all([
         googleService.isConnected('gmail'),
         googleService.isConnected('calendar')
@@ -136,6 +172,7 @@ export function useGoogleIntegrations() {
       return { isGmailConnected: gmailStatus, isCalendarConnected: calendarStatus };
     } catch (error) {
       console.error('Error refreshing Google integration status:', error);
+      setError('Failed to refresh integration status');
       return { isGmailConnected, isCalendarConnected };
     }
   };
@@ -143,6 +180,7 @@ export function useGoogleIntegrations() {
   // Disconnect Gmail
   const disconnectGmail = async () => {
     try {
+      setError(null);
       await googleService.disconnect('gmail');
       setIsGmailConnected(false);
       toast({
@@ -152,6 +190,7 @@ export function useGoogleIntegrations() {
       return true;
     } catch (error) {
       console.error('Error disconnecting Gmail:', error);
+      setError('Failed to disconnect Gmail');
       toast({
         title: "Failed",
         description: "Could not disconnect Gmail",
@@ -164,6 +203,7 @@ export function useGoogleIntegrations() {
   // Disconnect Calendar
   const disconnectCalendar = async () => {
     try {
+      setError(null);
       await googleService.disconnect('calendar');
       setIsCalendarConnected(false);
       toast({
@@ -173,6 +213,7 @@ export function useGoogleIntegrations() {
       return true;
     } catch (error) {
       console.error('Error disconnecting Google Calendar:', error);
+      setError('Failed to disconnect Google Calendar');
       toast({
         title: "Failed",
         description: "Could not disconnect Google Calendar",
@@ -187,6 +228,7 @@ export function useGoogleIntegrations() {
     isCalendarConnected,
     isLoading,
     isSyncing,
+    error,
     connectGmail,
     connectCalendar,
     syncGmail,

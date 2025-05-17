@@ -83,8 +83,8 @@ export const generateGoogleAuthUrl = (provider: GoogleProvider): string => {
   const state = Math.random().toString(36).substring(2);
   localStorage.setItem(`google_${provider}_state`, state);
   
-  // Set the current URL as the redirect URI
-  const redirectUri = `${window.location.origin}/auth/callback/google`;
+  // Set the fixed production redirect URI
+  const redirectUri = `https://app.joincircl.com/auth/callback/google`;
   
   const params = new URLSearchParams({
     client_id: GOOGLE_CLIENT_ID,

@@ -2,12 +2,14 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, RefreshCw } from "lucide-react";
+import { Calendar, RefreshCw, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { googleService } from "@/services/googleService";
 import { calendarService } from "@/services/calendarService";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useGoogleIntegrations } from "@/hooks/useGoogleIntegrations";
 
 interface CalendarTabProps {
   onOpenCalendarDialog: () => void;
@@ -15,74 +17,36 @@ interface CalendarTabProps {
 
 const CalendarTab: React.FC<CalendarTabProps> = ({ onOpenCalendarDialog }) => {
   const { toast } = useToast();
-  const [isGoogleConnected, setIsGoogleConnected] = useState<boolean>(false);
-  const [isConnecting, setIsConnecting] = useState<boolean>(false);
-  const [isSyncing, setIsSyncing] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-
-  // Check if Google Calendar is connected on mount
+  const { 
+    isCalendarConnected, 
+    isLoading, 
+    isSyncing, 
+    error,
+    connectCalendar, 
+    syncCalendar, 
+    disconnectCalendar,
+    refreshIntegrationStatus 
+  } = useGoogleIntegrations();
+  
+  // Check if we need to refresh the status based on URL parameters
   useEffect(() => {
-    const checkCalendarConnection = async () => {
-      try {
-        setIsLoading(true);
-        const isConnected = await googleService.isConnected('calendar');
-        setIsGoogleConnected(isConnected);
-      } catch (error) {
-        console.error('Error checking calendar connection:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkCalendarConnection();
-  }, []);
-
-  // Handle connect to Google Calendar
-  const handleConnectGoogle = async () => {
-    try {
-      setIsConnecting(true);
-      await googleService.connectCalendar();
-    } catch (error) {
-      console.error('Error connecting to Google Calendar:', error);
-      toast({
-        title: "Connection Failed",
-        description: "Could not connect to Google Calendar",
-        variant: "destructive",
-      });
-    } finally {
-      setIsConnecting(false);
+    const params = new URLSearchParams(window.location.search);
+    const provider = params.get('provider');
+    if (provider === 'calendar') {
+      refreshIntegrationStatus();
     }
-  };
-
-  // Handle sync Google Calendar
-  const handleSyncGoogle = async () => {
-    try {
-      setIsSyncing(true);
-      
-      const { data, error } = await googleService.fetchUpcomingEvents();
-      
-      if (error) {
-        throw error;
-      }
-      
-      toast({
-        title: "Calendar Synced",
-        description: `Successfully synced ${data.length} upcoming events`,
-      });
-    } catch (error) {
-      console.error('Error syncing Google Calendar:', error);
-      toast({
-        title: "Sync Failed",
-        description: "Could not sync Google Calendar",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSyncing(false);
-    }
-  };
+  }, [refreshIntegrationStatus]);
 
   return (
     <div className="space-y-6">
+      {/* Error display */}
+      {error && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      
       {/* Google Calendar Integration */}
       <Card>
         <CardHeader className="flex flex-row items-center gap-2">
@@ -108,11 +72,11 @@ const CalendarTab: React.FC<CalendarTabProps> = ({ onOpenCalendarDialog }) => {
             <>
               <div className="flex items-center">
                 <p className="text-sm flex-1">
-                  {isGoogleConnected 
+                  {isCalendarConnected 
                     ? "Your Google Calendar is connected" 
                     : "Connect your Google Calendar to sync events"}
                 </p>
-                {isGoogleConnected && (
+                {isCalendarConnected && (
                   <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
                     Connected
                   </Badge>
@@ -120,10 +84,10 @@ const CalendarTab: React.FC<CalendarTabProps> = ({ onOpenCalendarDialog }) => {
               </div>
               
               <div className="flex flex-wrap gap-3">
-                {isGoogleConnected ? (
+                {isCalendarConnected ? (
                   <>
                     <Button 
-                      onClick={handleSyncGoogle} 
+                      onClick={syncCalendar} 
                       variant="default"
                       disabled={isSyncing}
                     >
@@ -132,24 +96,15 @@ const CalendarTab: React.FC<CalendarTabProps> = ({ onOpenCalendarDialog }) => {
                     </Button>
                     <Button 
                       variant="outline" 
-                      onClick={async () => {
-                        const success = await googleService.disconnect('calendar');
-                        if (success) {
-                          setIsGoogleConnected(false);
-                          toast({
-                            title: "Disconnected",
-                            description: "Google Calendar disconnected successfully",
-                          });
-                        }
-                      }}
+                      onClick={disconnectCalendar}
                     >
                       Disconnect
                     </Button>
                   </>
                 ) : (
                   <Button 
-                    onClick={handleConnectGoogle}
-                    disabled={isConnecting}
+                    onClick={connectCalendar}
+                    disabled={isSyncing}
                   >
                     Connect Google Calendar
                   </Button>

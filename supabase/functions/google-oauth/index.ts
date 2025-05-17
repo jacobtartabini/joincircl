@@ -19,6 +19,8 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 async function exchangeGoogleCode(code: string, redirectUri: string, scope: string) {
   const googleClientId = "1082106594085-er19ne14fh1si3391t8rbls3jfsbppa2.apps.googleusercontent.com";
   
+  console.log(`Exchanging code for token with redirect URI: ${redirectUri}`);
+  
   const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
     headers: {
@@ -35,6 +37,7 @@ async function exchangeGoogleCode(code: string, redirectUri: string, scope: stri
 
   if (!tokenResponse.ok) {
     const error = await tokenResponse.json();
+    console.error('Google OAuth token exchange failed:', error);
     throw new Error(`Google OAuth token exchange failed: ${JSON.stringify(error)}`);
   }
 
@@ -130,14 +133,39 @@ serve(async (req) => {
         if (!code || !redirectUri || !scope) {
           throw new Error('Missing required parameters for token exchange');
         }
-        const result = await exchangeGoogleCode(code, redirectUri, scope);
-        response = result.tokenData;
         
-        // Get Google user info
-        const userInfo = await fetchGoogleUserInfo(response.access_token);
+        console.log(`Processing exchange action with redirectUri: ${redirectUri}`);
         
-        // Store in appropriate table based on provider
-        await storeGoogleToken(user.id, result.provider, response, userInfo);
+        try {
+          const result = await exchangeGoogleCode(code, redirectUri, scope);
+          response = result.tokenData;
+          
+          // Get Google user info
+          const userInfo = await fetchGoogleUserInfo(response.access_token);
+          
+          // Store in appropriate table based on provider
+          await storeGoogleToken(user.id, result.provider, response, userInfo);
+        } catch (exchangeError) {
+          console.error("Error during code exchange:", exchangeError);
+          
+          // Check specifically for redirect_uri_mismatch error
+          if (exchangeError.message && 
+              (exchangeError.message.includes('redirect_uri_mismatch') || 
+               exchangeError.message.includes('redirect'))) {
+            return new Response(
+              JSON.stringify({ 
+                error: 'redirect_uri_mismatch', 
+                message: 'The redirect URI does not match the one registered in the Google Cloud Console.' 
+              }),
+              {
+                status: 400,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              }
+            );
+          }
+          
+          throw exchangeError;
+        }
         break;
         
       case 'refresh':
