@@ -52,7 +52,7 @@ export function useSocialIntegrationStatus() {
         // Fetch email integrations (Gmail)
         const { data: emailIntegrations, error: emailError } = await supabase
           .from('user_email_tokens')
-          .select('provider, username, email, updated_at')
+          .select('provider, email, updated_at')
           .eq('provider', 'gmail');
           
         if (emailError) {
@@ -94,16 +94,17 @@ export function useSocialIntegrationStatus() {
         
         // Add Gmail as a connected platform if present
         if (emailIntegrations && emailIntegrations.length > 0) {
-          const gmailIndex = status.findIndex(s => s.platform === 'twitter'); // Use Twitter slot for now
-          if (gmailIndex >= 0) {
-            const gmailIntegration = emailIntegrations[0];
-            status.push({
-              platform: 'gmail' as SocialPlatform,
-              connected: true,
-              username: gmailIntegration.username || gmailIntegration.email,
-              last_synced: gmailIntegration.updated_at
-            });
-          }
+          const gmailIntegration = emailIntegrations[0];
+          // Type-safe way to access properties, checking if they exist first
+          const emailUsername = gmailIntegration.email || "Gmail User";
+          const emailUpdatedAt = gmailIntegration.updated_at || new Date().toISOString();
+          
+          status.push({
+            platform: 'gmail' as SocialPlatform,
+            connected: true,
+            username: emailUsername,
+            last_synced: emailUpdatedAt
+          });
         }
         
         // Add Google Calendar as a connected platform if present
@@ -112,7 +113,7 @@ export function useSocialIntegrationStatus() {
             platform: 'calendar' as SocialPlatform,
             connected: true,
             username: 'Google Calendar',
-            last_synced: calendarIntegrations[0].updated_at
+            last_synced: calendarIntegrations[0].updated_at || new Date().toISOString()
           });
         }
         
