@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,6 +15,7 @@ import SignUp from "./pages/auth/SignUp";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
 import CallbackPage from "./pages/auth/CallbackPage";
+import GoogleCallbackPage from "./pages/auth/GoogleCallbackPage";
 import ContactDetail from "./pages/contact/ContactDetail";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { RequireAuth } from "@/components/guards/RequireAuth";
@@ -43,6 +45,7 @@ function App() {
               <Route path="/auth/forgot-password" element={<ForgotPassword />} />
               <Route path="/auth/reset-password" element={<ResetPassword />} />
               <Route path="/auth/callback" element={<CallbackPage />} />
+              <Route path="/auth/callback/google" element={<GoogleCallbackPage />} />
               
               {/* Share target route */}
               <Route
