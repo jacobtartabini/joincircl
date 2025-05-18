@@ -1,7 +1,8 @@
+
 // This is a file that shows how the routes should be updated in App.tsx
 // Replace the existing routes with these routes in App.tsx
 
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Outlet } from "react-router-dom";
 import { RequireAuth } from "@/components/guards/RequireAuth";
 import MainLayout from "@/components/layout/MainLayout";
 import Home from "@/pages/home/index";
@@ -43,11 +44,15 @@ const routes = (
     <Route path="/auth/google/callback" element={<GoogleCallbackPage />} />
 
     {/* Protected routes */}
-    <Route element={<RequireAuth>
-      <MainLayout>
-        {/* This MainLayout will now properly receive children */}
-      </MainLayout>
-    </RequireAuth>}>
+    <Route
+      element={
+        <RequireAuth>
+          <MainLayout>
+            <Outlet />
+          </MainLayout>
+        </RequireAuth>
+      }
+    >
       <Route path="/" element={<Home />} />
       <Route path="/index" element={<Index />} />
       
