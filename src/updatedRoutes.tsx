@@ -2,7 +2,7 @@
 // Replace the existing routes with these routes in App.tsx
 
 import { Routes, Route } from "react-router-dom";
-import RequireAuth from "@/components/guards/RequireAuth";
+import { RequireAuth } from "@/components/guards/RequireAuth";
 import MainLayout from "@/components/layout/MainLayout";
 import Home from "@/pages/home/index";
 import Index from "@/pages/Index";
@@ -43,26 +43,28 @@ const routes = (
     <Route path="/auth/google/callback" element={<GoogleCallbackPage />} />
 
     {/* Protected routes */}
-    <Route element={<RequireAuth />}>
-      <Route element={<MainLayout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/index" element={<Index />} />
-        
-        {/* Redesigned Routes */}
-        <Route path="/circles" element={<RedesignedCircles />} />
-        <Route path="/contacts/:id" element={<RedesignedContactDetail />} />
-        
-        {/* Other routes */}
-        <Route path="/keystones" element={<Keystones />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/notifications" element={<Notifications />} />
-        <Route path="/help" element={<Help />} />
-        <Route path="/bugs" element={<Bugs />} />
-        <Route path="/legal" element={<Legal />} />
-        <Route path="/security" element={<SecurityGuide />} />
-        <Route path="/duplicates" element={<Duplicates />} />
-        <Route path="/share-target" element={<ShareTarget />} />
-      </Route>
+    <Route element={<RequireAuth>
+      <MainLayout>
+        {/* This MainLayout will now properly receive children */}
+      </MainLayout>
+    </RequireAuth>}>
+      <Route path="/" element={<Home />} />
+      <Route path="/index" element={<Index />} />
+      
+      {/* Redesigned Routes */}
+      <Route path="/circles" element={<RedesignedCircles />} />
+      <Route path="/contacts/:id" element={<RedesignedContactDetail />} />
+      
+      {/* Other routes */}
+      <Route path="/keystones" element={<Keystones />} />
+      <Route path="/settings" element={<Settings />} />
+      <Route path="/notifications" element={<Notifications />} />
+      <Route path="/help" element={<Help />} />
+      <Route path="/bugs" element={<Bugs />} />
+      <Route path="/legal" element={<Legal />} />
+      <Route path="/security" element={<SecurityGuide />} />
+      <Route path="/duplicates" element={<Duplicates />} />
+      <Route path="/share-target" element={<ShareTarget />} />
     </Route>
     
     <Route path="*" element={<NotFound />} />
