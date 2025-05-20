@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 import { useContactDetail } from "@/hooks/useContactDetail";
 import { ThreePanelLayout } from "@/components/layout/ThreePanelLayout";
 import { NavigationPanel } from "@/components/layout/NavigationPanel";
-import { ActivityFeed } from "@/components/activity/ActivityFeed";
+import { EnhancedActivityFeed } from "@/components/activity/EnhancedActivityFeed";
 import { EnhancedContactDetail } from "@/components/contact/EnhancedContactDetail";
 import EditContactDialog from "@/components/dialogs/EditContactDialog";
 import DeleteContactDialog from "@/components/dialogs/DeleteContactDialog";
@@ -37,12 +37,19 @@ export default function RedesignedContactDetail() {
            />;
   }
 
+  const handleSelectActivity = (activity: any) => {
+    // This could be expanded to handle selecting specific interactions
+    console.log("Selected activity:", activity);
+  };
+
   return (
     <div className="h-[calc(100vh-2rem)] animate-fade-in">
       <ThreePanelLayout
         leftPanel={<NavigationPanel />}
         middlePanel={
-          <ActivityFeed />
+          <EnhancedActivityFeed 
+            onSelectActivity={handleSelectActivity}
+          />
         }
         rightPanel={
           <EnhancedContactDetail 

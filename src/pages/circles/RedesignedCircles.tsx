@@ -1,13 +1,15 @@
 
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { useCirclesState } from "./hooks/useCirclesState";
 import { ThreePanelLayout } from "@/components/layout/ThreePanelLayout";
 import { NavigationPanel } from "@/components/layout/NavigationPanel";
-import { ActivityFeed } from "@/components/activity/ActivityFeed";
+import { EnhancedActivityFeed } from "@/components/activity/EnhancedActivityFeed";
 import { EnhancedContactDetail } from "@/components/contact/EnhancedContactDetail";
 import { Contact } from "@/types/contact";
 
 export default function RedesignedCircles() {
+  const navigate = useNavigate();
   const {
     contacts,
     isLoading,
@@ -24,8 +26,6 @@ export default function RedesignedCircles() {
     setIsInteractionDialogOpen,
     isInsightsDialogOpen,
     setIsInsightsDialogOpen,
-    searchQuery,
-    setSearchQuery,
   } = useCirclesState();
 
   // Local state for the selected contact (used in detail panel)
@@ -82,7 +82,7 @@ export default function RedesignedCircles() {
       <ThreePanelLayout
         leftPanel={<NavigationPanel />}
         middlePanel={
-          <ActivityFeed 
+          <EnhancedActivityFeed 
             onSelectActivity={handleSelectActivity}
           />
         }
@@ -93,8 +93,13 @@ export default function RedesignedCircles() {
               interactions={selectedContactInteractions}
             />
           ) : (
-            <div className="flex items-center justify-center h-full text-muted-foreground">
-              Select a contact to view details
+            <div className="flex items-center justify-center h-full p-6 text-muted-foreground">
+              <div className="text-center">
+                <h3 className="text-lg font-medium mb-2">No contact selected</h3>
+                <p className="text-sm max-w-md">
+                  Select someone from the activity feed to view their details, or add a new person to your circles.
+                </p>
+              </div>
             </div>
           )
         }

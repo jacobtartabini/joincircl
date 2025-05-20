@@ -151,6 +151,51 @@
   .status-bar {
     @apply h-14 flex items-center justify-center;
   }
+
+  /* Timeline styles */
+  .timeline-item {
+    @apply relative pl-6 pb-6 last:pb-0;
+  }
+
+  .timeline-item::before {
+    content: "";
+    @apply absolute top-1 left-1 h-2 w-2 rounded-full bg-primary;
+  }
+
+  .timeline-item::after {
+    content: "";
+    @apply absolute top-3 left-[0.3125rem] h-full w-[0.0625rem] bg-border;
+  }
+
+  .timeline-item:last-child::after {
+    @apply h-0;
+  }
+
+  /* Contact card hover effect */
+  .contact-card {
+    @apply transition-all duration-200;
+  }
+
+  .contact-card:hover {
+    @apply shadow-md -translate-y-0.5;
+  }
+
+  /* Warm minimalist colors */
+  .bg-warm-white {
+    @apply bg-[#F1F0FB];
+  }
+
+  .text-dark-gray {
+    @apply text-[#333333];
+  }
+
+  .text-muted-gray {
+    @apply text-[#999999];
+  }
+
+  .border-light {
+    @apply border-[#eee];
+  }
 }
 
 /* Add keyframes for slide animations */
@@ -195,5 +240,27 @@
   to {
     transform: translateX(100%);
     opacity: 0;
+  }
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  0% {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
   }
 }
