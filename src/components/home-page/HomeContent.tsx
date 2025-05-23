@@ -3,12 +3,10 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { WelcomeBanner } from './WelcomeBanner';
 import { useContacts } from '@/hooks/use-contacts';
 import { DashboardStats } from './DashboardStats';
-import { RecentContacts } from '../home/RecentContacts';
 import NetworkRecommendations from '../home/NetworkRecommendations';
-import { UpcomingKeystones } from './UpcomingKeystones';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
-import { CalendarDays, PlusCircle, ArrowRight } from 'lucide-react';
+import { ArrowRight, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import MobileHeader from './MobileHeader';
 import HomeActionBar from './HomeActionBar';
@@ -17,6 +15,7 @@ import { Dialog, DialogContent } from '../ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '../ui/sheet';
 import ContactForm from '../contact/ContactForm';
 import KeystoneForm from '../keystone/KeystoneForm';
+import UnifiedTimeline from './UnifiedTimeline';
 
 const HomeContent: React.FC = () => {
   const isMobile = useIsMobile();
@@ -25,8 +24,7 @@ const HomeContent: React.FC = () => {
     contacts, 
     isLoading, 
     followUpStats, 
-    getContactDistribution, 
-    getRecentContacts 
+    getContactDistribution
   } = useContacts();
   
   const [isAddContactDialogOpen, setIsAddContactDialogOpen] = useState(false);
@@ -45,22 +43,9 @@ const HomeContent: React.FC = () => {
     distribution: getContactDistribution(),
     followUpStats: followUpStats
   };
-
-  const recentContacts = getRecentContacts(3);
   
-  const recentContactsProps = {
-    contacts: recentContacts,
-    isLoading: isLoading,
-    onContactChange: () => console.log('Contact changed'),
-    onAddContact: handleAddContact
-  };
-
   const handleViewAllContacts = () => {
     navigate('/circles');
-  };
-  
-  const handleViewAllKeystones = () => {
-    navigate('/keystones');
   };
   
   const handleContactFormSuccess = () => {
@@ -107,43 +92,25 @@ const HomeContent: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Main column - 2/3 width on desktop */}
         <div className="md:col-span-2 space-y-6">
-          {/* Recent Contacts Section - Added icon to View all button */}
+          {/* Unified Timeline replacing Recent Contacts and Upcoming Keystones */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-3">
-              <CardTitle className="text-xl font-medium">Recent Contacts</CardTitle>
-              <Button variant="ghost" size="sm" onClick={handleViewAllContacts}>
-                View all <ArrowRight size={16} className="ml-1" />
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <RecentContacts 
-                contacts={recentContactsProps.contacts}
-                isLoading={recentContactsProps.isLoading}
-                onContactChange={recentContactsProps.onContactChange}
-                onAddContact={recentContactsProps.onAddContact}
-              />
-            </CardContent>
-          </Card>
-          
-          {/* Upcoming Keystones section */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-3">
-              <CardTitle className="text-xl font-medium">Upcoming Keystones</CardTitle>
-              <div className="flex items-center gap-2">
+              <CardTitle className="text-xl font-medium">Timeline</CardTitle>
+              <div className="flex gap-2">
                 <Button 
                   variant="outline" 
-                  size="sm"
+                  size="sm" 
                   onClick={handleAddKeystone}
                 >
-                  <PlusCircle size={16} className="mr-1" /> New
+                  <Plus className="h-4 w-4 mr-1" /> Add Event
                 </Button>
-                <Button variant="ghost" size="sm" onClick={handleViewAllKeystones}>
-                  <CalendarDays size={16} className="mr-1" /> View all
+                <Button variant="ghost" size="sm" onClick={handleViewAllContacts}>
+                  View All <ArrowRight size={16} className="ml-1" />
                 </Button>
               </div>
             </CardHeader>
             <CardContent>
-              <UpcomingKeystones />
+              <UnifiedTimeline />
             </CardContent>
           </Card>
         </div>

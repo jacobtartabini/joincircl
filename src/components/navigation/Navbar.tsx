@@ -5,6 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription 
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 interface NavigationGroup {
   id: string;
@@ -16,21 +24,63 @@ interface NavigationGroup {
 export function Navbar() {
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
+  const [isTagDialogOpen, setIsTagDialogOpen] = useState(false);
+  const [newTagName, setNewTagName] = useState("");
+  const [newTagColor, setNewTagColor] = useState("bg-blue-500");
   
-  // Example custom groups - in a real app, these would come from an API or database
-  const [customGroups, setCustomGroups] = useState<NavigationGroup[]>([
-    { id: "1", name: "B.E.T.", color: "bg-blue-500", pinned: true },
-    { id: "2", name: "Emmy Awards", color: "bg-green-500", pinned: true },
-    { id: "3", name: "Lunch Party", color: "bg-purple-500", pinned: false },
-    { id: "4", name: "LVMH", color: "bg-red-500", pinned: true },
+  // Default contact categories as requested
+  const [contactGroups, setContactGroups] = useState<NavigationGroup[]>([
+    { id: "1", name: "Work", color: "bg-blue-500", pinned: true },
+    { id: "2", name: "Friend", color: "bg-green-500", pinned: true },
+    { id: "3", name: "Family", color: "bg-purple-500", pinned: true },
   ]);
 
   const navItems = [
     { icon: Home, label: "Home", path: "/" },
     { icon: Circle, label: "Circles", path: "/circles" },
-    { icon: Calendar, label: "Keystones", path: "/keystones" },
+    { icon: Calendar, label: "Keystones", path: "/keystones", iconSize: "h-5 w-5" }, // Increased icon size
     { icon: Settings, label: "Settings", path: "/settings" },
   ];
+
+  const handleAddNewTag = () => {
+    if (newTagName.trim() === "") {
+      toast.error("Please enter a tag name");
+      return;
+    }
+    
+    // Add the new tag
+    const newTag = {
+      id: Date.now().toString(),
+      name: newTagName,
+      color: newTagColor,
+      pinned: false,
+    };
+    
+    setContactGroups([...contactGroups, newTag]);
+    setNewTagName("");
+    setIsTagDialogOpen(false);
+    
+    toast.success(`Tag "${newTagName}" has been created`);
+  };
+  
+  const colorOptions = [
+    { value: "bg-blue-500", label: "Blue" },
+    { value: "bg-green-500", label: "Green" },
+    { value: "bg-purple-500", label: "Purple" },
+    { value: "bg-red-500", label: "Red" },
+    { value: "bg-amber-500", label: "Amber" },
+    { value: "bg-pink-500", label: "Pink" },
+    { value: "bg-teal-500", label: "Teal" },
+    { value: "bg-indigo-500", label: "Indigo" },
+  ];
+
+  const togglePinned = (id: string) => {
+    setContactGroups(
+      contactGroups.map(group => 
+        group.id === id ? { ...group, pinned: !group.pinned } : group
+      )
+    );
+  };
 
   return (
     <div className="flex flex-col h-full p-4 bg-white">
@@ -73,7 +123,7 @@ export function Navbar() {
                   : "hover:bg-muted text-gray-700"
               )}
             >
-              <item.icon className="h-4 w-4" />
+              <item.icon className={item.iconSize || "h-4 w-4"} />
               <span className="font-medium">{item.label}</span>
             </Link>
           );
@@ -82,9 +132,12 @@ export function Navbar() {
 
       {/* Tags Section */}
       <div className="mb-8">
-        <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase mb-3 px-3">Tags</h3>
+        <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase mb-3 px-3 flex items-center">
+          <Tag className="h-3.5 w-3.5 mr-1.5" />
+          Tags
+        </h3>
         <div className="space-y-1.5">
-          {customGroups.map((group) => (
+          {contactGroups.map((group) => (
             <div 
               key={group.id}
               className="flex items-center justify-between px-3 py-2 rounded-md text-sm hover:bg-muted cursor-pointer"
@@ -93,12 +146,25 @@ export function Navbar() {
                 <div className={cn("w-2 h-2 rounded-full", group.color)} />
                 <span>{group.name}</span>
               </div>
-              {group.pinned && <Pin className="h-3 w-3 text-muted-foreground" />}
+              <button 
+                className="text-muted-foreground hover:text-foreground"
+                onClick={() => togglePinned(group.id)}
+              >
+                <Pin 
+                  className={cn(
+                    "h-3 w-3 transition-opacity", 
+                    group.pinned ? "opacity-100" : "opacity-30"
+                  )} 
+                />
+              </button>
             </div>
           ))}
           
-          {/* Add new group button */}
-          <button className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm text-muted-foreground hover:bg-muted">
+          {/* Add new tag button */}
+          <button 
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            onClick={() => setIsTagDialogOpen(true)}
+          >
             <Plus className="h-3 w-3" />
             <span>Add new tag</span>
           </button>
@@ -113,6 +179,62 @@ export function Navbar() {
         <Plus className="h-4 w-4 mr-2" />
         New Person
       </Button>
+      
+      {/* New Tag Dialog */}
+      <Dialog open={isTagDialogOpen} onOpenChange={setIsTagDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create New Tag</DialogTitle>
+            <DialogDescription>
+              Add a new tag to organize your contacts
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label htmlFor="name" className="text-sm font-medium">
+                Tag Name
+              </label>
+              <Input 
+                id="name"
+                placeholder="Enter tag name..."
+                value={newTagName}
+                onChange={(e) => setNewTagName(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Tag Color</label>
+              <div className="grid grid-cols-4 gap-2">
+                {colorOptions.map((color) => (
+                  <button
+                    key={color.value}
+                    type="button"
+                    className={cn(
+                      "h-8 rounded-md border-2 transition-all",
+                      newTagColor === color.value 
+                        ? "border-primary" 
+                        : "border-transparent hover:border-muted"
+                    )}
+                    onClick={() => setNewTagColor(color.value)}
+                  >
+                    <div className={cn("h-full w-full rounded-sm", color.value)} />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex justify-end gap-3">
+            <Button variant="outline" onClick={() => setIsTagDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddNewTag}>
+              Create Tag
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

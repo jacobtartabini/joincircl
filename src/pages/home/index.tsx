@@ -13,7 +13,11 @@ const Home = () => {
         <HomeContent />
       ) : (
         <div className="h-[calc(100vh-2rem)] animate-fade-in">
-          <HomeContent />
+          <ThreePanelLayout
+            leftPanel={<Navbar />}
+            middlePanel={<HomeContent />}
+            rightPanel={null}
+          />
         </div>
       )}
     </>

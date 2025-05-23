@@ -2,8 +2,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCirclesState } from "./hooks/useCirclesState";
-import { ThreePanelLayout } from "@/components/layout/ThreePanelLayout";
-import { Navbar } from "@/components/navigation/Navbar";
 import { CirclesList } from "@/components/circles/CirclesList";
 import { CirclesFilter } from "@/components/circles/CirclesFilter";
 import { EnhancedContactDetail } from "@/components/contact/EnhancedContactDetail";
@@ -123,44 +121,42 @@ export default function RedesignedCircles() {
   }, [selectedContact]);
 
   return (
-    <div className="h-[calc(100vh-2rem)] animate-fade-in">
-      <ThreePanelLayout
-        leftPanel={<Navbar />}
-        middlePanel={
-          <div className="px-1">
-            <CirclesFilter
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              onAddContact={() => setIsAddDialogOpen(true)}
-              onSort={setSortBy}
-              onFilter={setFilterBy}
-            />
-            <CirclesList
-              contacts={filteredSortedContacts}
-              isLoading={isLoading}
-              onSelectContact={handleSelectContact}
-              selectedContactId={selectedContactId}
-            />
-          </div>
-        }
-        rightPanel={
-          selectedContact ? (
-            <EnhancedContactDetail 
-              contact={selectedContact}
-              interactions={selectedContactInteractions}
-            />
-          ) : (
-            <div className="flex items-center justify-center h-full p-6 text-muted-foreground">
-              <div className="text-center">
-                <h3 className="text-lg font-medium mb-2">No contact selected</h3>
-                <p className="text-sm max-w-md">
-                  Select someone from the list to view their details, or add a new person to your circles.
-                </p>
-              </div>
+    <div className="h-[calc(100vh-2rem)] animate-fade-in flex">
+      {/* Middle Panel - Contact List */}
+      <div className="flex-1 px-4 overflow-auto border-r">
+        <CirclesFilter
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onAddContact={() => setIsAddDialogOpen(true)}
+          onSort={setSortBy}
+          onFilter={setFilterBy}
+        />
+        <CirclesList
+          contacts={filteredSortedContacts}
+          isLoading={isLoading}
+          onSelectContact={handleSelectContact}
+          selectedContactId={selectedContactId}
+        />
+      </div>
+      
+      {/* Right Panel - Contact Details */}
+      <div className="w-1/2 overflow-auto">
+        {selectedContact ? (
+          <EnhancedContactDetail 
+            contact={selectedContact}
+            interactions={selectedContactInteractions}
+          />
+        ) : (
+          <div className="flex items-center justify-center h-full p-6 text-muted-foreground">
+            <div className="text-center">
+              <h3 className="text-lg font-medium mb-2">No contact selected</h3>
+              <p className="text-sm max-w-md">
+                Select someone from the list to view their details, or add a new person to your circles.
+              </p>
             </div>
-          )
-        }
-      />
+          </div>
+        )}
+      </div>
       
       {/* Dialogs */}
       <AddContactDialog
