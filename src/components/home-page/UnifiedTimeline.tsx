@@ -42,7 +42,7 @@ const UnifiedTimeline: React.FC = () => {
         type: 'twitter',
         date: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
         title: 'New tweet from Sarah Johnson',
-        description: 'Just announced our new product launch. So excited for everyone to see what we've been working on!',
+        description: "Just announced our new product launch. So excited for everyone to see what we've been working on!",
         contactId: 'contact1',
         contactName: 'Sarah Johnson',
         contactAvatar: '',
