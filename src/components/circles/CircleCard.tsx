@@ -25,7 +25,7 @@ export function CircleCard({ contact, onClick, isSelected }: CircleCardProps) {
   };
   
   // Format the last interaction date
-  const formatDate = (date: string | Date) => {
+  const formatDate = (date: string | undefined) => {
     if (!date) return "No recent interaction";
     const interactionDate = new Date(date);
     return format(interactionDate, 'MMM d, yyyy');
@@ -67,28 +67,28 @@ export function CircleCard({ contact, onClick, isSelected }: CircleCardProps) {
             </div>
             
             <p className="text-sm text-muted-foreground mt-1">
-              {contact.company ? `${contact.position} at ${contact.company}` : contact.position}
+              {contact.job_title ? `${contact.job_title} at ${contact.company_name || ''}` : ''}
             </p>
             
             <div className="flex flex-wrap gap-3 mt-3">
-              {contact.email && (
+              {contact.personal_email && (
                 <div className="flex items-center text-xs text-muted-foreground">
                   <Mail className="h-3 w-3 mr-1" />
-                  <span>{contact.email}</span>
+                  <span>{contact.personal_email}</span>
                 </div>
               )}
               
-              {contact.phone && (
+              {contact.mobile_phone && (
                 <div className="flex items-center text-xs text-muted-foreground">
                   <Phone className="h-3 w-3 mr-1" />
-                  <span>{contact.phone}</span>
+                  <span>{contact.mobile_phone}</span>
                 </div>
               )}
               
-              {contact.last_interaction && (
+              {contact.last_contact && (
                 <div className="flex items-center text-xs text-muted-foreground ml-auto">
                   <Calendar className="h-3 w-3 mr-1" />
-                  <span>{formatDate(contact.last_interaction)}</span>
+                  <span>{formatDate(contact.last_contact)}</span>
                 </div>
               )}
             </div>

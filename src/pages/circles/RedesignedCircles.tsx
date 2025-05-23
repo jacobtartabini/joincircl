@@ -63,9 +63,9 @@ export default function RedesignedCircles() {
       const query = searchQuery.toLowerCase();
       return (
         contact.name?.toLowerCase().includes(query) ||
-        contact.email?.toLowerCase().includes(query) ||
-        contact.company?.toLowerCase().includes(query) ||
-        contact.position?.toLowerCase().includes(query)
+        contact.personal_email?.toLowerCase().includes(query) ||
+        contact.company_name?.toLowerCase().includes(query) ||
+        contact.job_title?.toLowerCase().includes(query)
       );
     });
     
@@ -79,8 +79,8 @@ export default function RedesignedCircles() {
       if (sortBy === "name") {
         return a.name.localeCompare(b.name);
       } else if (sortBy === "recent") {
-        const dateA = a.last_interaction ? new Date(a.last_interaction).getTime() : 0;
-        const dateB = b.last_interaction ? new Date(b.last_interaction).getTime() : 0;
+        const dateA = a.last_contact ? new Date(a.last_contact).getTime() : 0;
+        const dateB = b.last_contact ? new Date(b.last_contact).getTime() : 0;
         return dateB - dateA; // Sort by most recent first
       }
       return 0;
@@ -174,6 +174,7 @@ export default function RedesignedCircles() {
         onOpenChange={setIsEditDialogOpen}
         contact={initialSelectedContact}
         onSuccess={fetchContacts}
+        onCancel={() => setIsEditDialogOpen(false)}
       />
       
       <InteractionDialog
@@ -181,6 +182,7 @@ export default function RedesignedCircles() {
         onOpenChange={setIsInteractionDialogOpen}
         contact={initialSelectedContact}
         onSuccess={fetchContacts}
+        onCancel={() => setIsInteractionDialogOpen(false)}
       />
       
       <InsightsDialog
