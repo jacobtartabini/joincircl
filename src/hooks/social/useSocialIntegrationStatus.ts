@@ -89,7 +89,7 @@ export function useSocialIntegrationStatus() {
         // Fetch email integrations (Gmail) - handle independently
         const { data: emailIntegrations, error: emailError } = await supabase
           .from('user_email_tokens')
-          .select('provider, email, updated_at')
+          .select('provider, updated_at')
           .eq('provider', 'gmail');
           
         if (emailError) {
@@ -101,14 +101,14 @@ export function useSocialIntegrationStatus() {
             status[gmailIndex] = {
               platform: 'gmail' as SocialPlatform,
               connected: true,
-              username: emailIntegrations[0].email || "Gmail User",
+              username: 'Gmail User', // Using a default value since email column doesn't exist
               last_synced: emailIntegrations[0].updated_at || new Date().toISOString()
             };
           } else {
             status.push({
               platform: 'gmail' as SocialPlatform,
               connected: true,
-              username: emailIntegrations[0].email || "Gmail User",
+              username: 'Gmail User', // Using a default value since email column doesn't exist
               last_synced: emailIntegrations[0].updated_at || new Date().toISOString()
             });
           }
