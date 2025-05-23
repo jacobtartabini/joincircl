@@ -16,14 +16,14 @@ export function ThreePanelLayout({
   className,
 }: ThreePanelLayoutProps) {
   return (
-    <div className={cn("grid grid-cols-12 gap-4 h-full", className)}>
+    <div className={cn("grid grid-cols-12 gap-4 h-full overflow-hidden", className)}>
       {/* Left Navigation Panel */}
       <div className="col-span-2 border-r bg-white rounded-lg shadow-sm overflow-y-auto">
         {leftPanel}
       </div>
       
       {/* Middle Content Panel */}
-      <div className="col-span-6 overflow-y-auto">
+      <div className="col-span-rightPanel ? 6 : 10 overflow-y-auto">
         {middlePanel}
       </div>
       

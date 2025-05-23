@@ -1,3 +1,4 @@
+
 import { ReactNode } from "react";
 import MobileNav from "./MobileNav";
 import { TopStatusBar } from "./TopStatusBar";
@@ -26,14 +27,18 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       {/* Apply security headers */}
       <SecureHeaders />
       
-      {!isMobile && <DesktopNav />}
-      {isMobile && <TopStatusBar />}
-      <main className={`flex-1 ${isMobile ? 'pb-20 pt-14' : 'pl-16'}`}>
-        <div className="container max-w-5xl mx-auto py-4 px-4 md:px-6 md:py-8">
-          {children}
-        </div>
-      </main>
-      {isMobile && <MobileNav />}
+      <div className="flex flex-1 overflow-hidden">
+        {!isMobile && <DesktopNav />}
+        {isMobile && <TopStatusBar />}
+        
+        <main className={`flex-1 ${isMobile ? 'pb-20 pt-14' : 'pl-16'} overflow-hidden`}>
+          <div className="h-full max-w-7xl mx-auto py-4 px-4 md:px-6">
+            {children}
+          </div>
+        </main>
+        
+        {isMobile && <MobileNav />}
+      </div>
     </div>
   );
 };
