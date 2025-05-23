@@ -8,6 +8,9 @@ import { SecureHeaders } from "@/components/security/SecureHeaders";
 import { useEffect } from "react";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { useSyncManager } from "@/utils/syncManager";
+import { ThreePanelLayout } from "./ThreePanelLayout";
+import { Navbar } from "@/components/navigation/Navbar";
+import { Outlet } from "react-router-dom";
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -28,12 +31,22 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       <SecureHeaders />
       
       <div className="flex flex-1 overflow-hidden">
-        {!isMobile && <DesktopNav />}
+        {/* Mobile navigation */}
         {isMobile && <TopStatusBar />}
         
-        <main className={`flex-1 ${isMobile ? 'pb-20 pt-14' : 'pl-16'} overflow-hidden`}>
+        <main className={`flex-1 ${isMobile ? 'pb-20 pt-14' : ''} overflow-hidden`}>
           <div className="h-full max-w-7xl mx-auto py-4 px-4 md:px-6">
-            {children}
+            {/* On desktop, use ThreePanelLayout with Navbar */}
+            {!isMobile ? (
+              <ThreePanelLayout
+                leftPanel={<Navbar />}
+                middlePanel={children}
+                rightPanel={null}
+              />
+            ) : (
+              // On mobile, just render the children directly
+              children
+            )}
           </div>
         </main>
         

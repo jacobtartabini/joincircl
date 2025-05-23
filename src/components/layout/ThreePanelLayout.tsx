@@ -23,7 +23,7 @@ export function ThreePanelLayout({
       </div>
       
       {/* Middle Content Panel */}
-      <div className="col-span-rightPanel ? 6 : 10 overflow-y-auto">
+      <div className={cn("overflow-y-auto", rightPanel ? "col-span-6" : "col-span-10")}>
         {middlePanel}
       </div>
       
