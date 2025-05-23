@@ -3,9 +3,10 @@ import React, { useEffect } from "react";
 import { SocialPlatform } from "@/types/socialIntegration";
 import { useSocialIntegrations } from "@/hooks/useSocialIntegrations";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Facebook, Twitter, Instagram, Linkedin, AlertTriangle, Loader2, Mail, Calendar } from "lucide-react";
+import { Facebook, Twitter, Instagram, Linkedin, AlertTriangle, Loader2, Mail, Calendar, RefreshCw } from "lucide-react";
 import SocialPlatformCard from "./SocialPlatformCard";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 
 interface SocialIntegrationsSectionProps {
   onConnectTwitter?: () => void;
@@ -63,11 +64,12 @@ const SocialIntegrationsSection: React.FC<SocialIntegrationsSectionProps> = ({ o
     syncContacts(platform);
   };
 
+  const handleRefresh = () => {
+    refreshStatus();
+  };
+
   // Only show main social platforms in this component
   const platforms: SocialPlatform[] = ["twitter", "facebook", "linkedin", "instagram"];
-
-  // Check if we have any connected platforms
-  const hasConnectedPlatforms = integrationStatus.some(status => status.connected);
 
   if (isLoading) {
     return (
@@ -84,17 +86,15 @@ const SocialIntegrationsSection: React.FC<SocialIntegrationsSectionProps> = ({ o
       {loadError && (
         <Alert variant="destructive" className="mb-4">
           <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>{loadError}</AlertDescription>
-        </Alert>
-      )}
-
-      {/* No connected platforms message */}
-      {!isLoading && !hasConnectedPlatforms && (
-        <Alert variant="default" className="bg-amber-50 border-amber-200">
-          <AlertTriangle className="h-4 w-4 text-amber-600" />
-          <AlertDescription className="text-amber-800">
-            You need to connect at least one social platform to see your integrations.
-          </AlertDescription>
+          <div className="ml-2">
+            <AlertDescription className="flex justify-between items-center">
+              <span>{loadError}</span>
+              <Button variant="outline" size="sm" onClick={handleRefresh} className="ml-4">
+                <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+                Retry
+              </Button>
+            </AlertDescription>
+          </div>
         </Alert>
       )}
 

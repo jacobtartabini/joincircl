@@ -10,10 +10,14 @@ export function useSocialIntegrationStatus() {
     { platform: "twitter", connected: false },
     { platform: "facebook", connected: false },
     { platform: "linkedin", connected: false },
-    { platform: "instagram", connected: false }
+    { platform: "instagram", connected: false },
+    { platform: "gmail", connected: false },
+    { platform: "calendar", connected: false }
   ]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_RETRIES = 3;
 
   const fetchIntegrationStatus = async () => {
     try {
@@ -21,7 +25,14 @@ export function useSocialIntegrationStatus() {
       setLoadError(null);
       
       // Check if user is logged in
-      const { data: sessionData } = await supabase.auth.getSession();
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) {
+        console.error("Session error:", sessionError);
+        setLoadError("Authentication error: " + sessionError.message);
+        setIsLoading(false);
+        return;
+      }
+      
       if (!sessionData?.session) {
         console.log("No session found, user not logged in");
         setIsLoading(false);
@@ -33,9 +44,12 @@ export function useSocialIntegrationStatus() {
         { platform: "twitter", connected: false },
         { platform: "facebook", connected: false },
         { platform: "linkedin", connected: false },
-        { platform: "instagram", connected: false }
+        { platform: "instagram", connected: false },
+        { platform: "gmail", connected: false },
+        { platform: "calendar", connected: false }
       ];
       
+      // Fetch social integrations with better error handling
       try {
         console.log("Fetching social integrations from database...");
         
@@ -46,39 +60,11 @@ export function useSocialIntegrationStatus() {
         
         if (socialError) {
           console.error("Error fetching social integrations:", socialError);
-          throw socialError;
-        }
-        
-        // Fetch email integrations (Gmail)
-        const { data: emailIntegrations, error: emailError } = await supabase
-          .from('user_email_tokens')
-          .select('provider, email, updated_at')
-          .eq('provider', 'gmail');
+          // Continue with the other fetches instead of throwing
+        } else if (socialIntegrations) {
+          console.log("Social integrations data received:", socialIntegrations);
           
-        if (emailError) {
-          console.error("Error fetching email integrations:", emailError);
-          throw emailError;
-        }
-        
-        // Fetch calendar integrations (Google Calendar)
-        const { data: calendarIntegrations, error: calendarError } = await supabase
-          .from('user_calendar_tokens')
-          .select('provider, updated_at')
-          .eq('provider', 'google');
-          
-        if (calendarError) {
-          console.error("Error fetching calendar integrations:", calendarError);
-          throw calendarError;
-        }
-        
-        console.log("Received integration data:", {
-          social: socialIntegrations,
-          email: emailIntegrations, 
-          calendar: calendarIntegrations
-        });
-        
-        // Update with social platform integrations
-        if (socialIntegrations && socialIntegrations.length > 0) {
+          // Update with social platform integrations
           socialIntegrations.forEach((integration) => {
             const platformIndex = status.findIndex(s => s.platform === integration.platform);
             if (platformIndex >= 0) {
@@ -88,58 +74,70 @@ export function useSocialIntegrationStatus() {
                 username: integration.username,
                 last_synced: integration.last_synced || integration.created_at
               };
+            } else {
+              // If the platform is not in our initial list, add it
+              status.push({
+                platform: integration.platform as SocialPlatform,
+                connected: true,
+                username: integration.username,
+                last_synced: integration.last_synced || integration.created_at
+              });
             }
           });
         }
         
-        // Add Gmail as a connected platform if present
-        // Ensure we have valid data before accessing properties
-        if (emailIntegrations && !emailError && emailIntegrations.length > 0) {
-          // Safely access the first integration
-          const gmailIntegration = emailIntegrations[0];
+        // Fetch email integrations (Gmail) - handle independently
+        const { data: emailIntegrations, error: emailError } = await supabase
+          .from('user_email_tokens')
+          .select('provider, email, updated_at')
+          .eq('provider', 'gmail');
           
-          // Ensure gmailIntegration is not null before accessing any properties
-          if (gmailIntegration) {
-            // Create local variables first to avoid direct property access
-            let emailAddress: string = "Gmail User";
-            let lastUpdated: string = new Date().toISOString();
-            
-            // Only try to access properties if it's an object
-            if (typeof gmailIntegration === 'object') {
-              // Type assertion to access properties safely
-              const gmailObj = gmailIntegration as Record<string, unknown>;
-              emailAddress = (gmailObj.email as string) || emailAddress;
-              lastUpdated = (gmailObj.updated_at as string) || lastUpdated;
-            }
-            
+        if (emailError) {
+          console.error("Error fetching email integrations:", emailError);
+        } else if (emailIntegrations && emailIntegrations.length > 0) {
+          // Find or add Gmail to status
+          const gmailIndex = status.findIndex(s => s.platform === 'gmail');
+          if (gmailIndex >= 0) {
+            status[gmailIndex] = {
+              platform: 'gmail' as SocialPlatform,
+              connected: true,
+              username: emailIntegrations[0].email || "Gmail User",
+              last_synced: emailIntegrations[0].updated_at || new Date().toISOString()
+            };
+          } else {
             status.push({
               platform: 'gmail' as SocialPlatform,
               connected: true,
-              username: emailAddress,
-              last_synced: lastUpdated
+              username: emailIntegrations[0].email || "Gmail User",
+              last_synced: emailIntegrations[0].updated_at || new Date().toISOString()
             });
           }
         }
         
-        // Add Google Calendar as a connected platform if present
-        if (calendarIntegrations && calendarIntegrations.length > 0) {
-          const calendarIntegration = calendarIntegrations[0];
+        // Fetch calendar integrations (Google Calendar) - handle independently
+        const { data: calendarIntegrations, error: calendarError } = await supabase
+          .from('user_calendar_tokens')
+          .select('provider, updated_at')
+          .eq('provider', 'google');
           
-          // Add null check for calendarIntegration
-          if (calendarIntegration) {
-            let lastUpdated: string = new Date().toISOString();
-            
-            // Only try to access properties if it's an object
-            if (typeof calendarIntegration === 'object') {
-              const calendarObj = calendarIntegration as Record<string, unknown>;
-              lastUpdated = (calendarObj.updated_at as string) || lastUpdated;
-            }
-              
+        if (calendarError) {
+          console.error("Error fetching calendar integrations:", calendarError);
+        } else if (calendarIntegrations && calendarIntegrations.length > 0) {
+          // Find or add Calendar to status
+          const calendarIndex = status.findIndex(s => s.platform === 'calendar');
+          if (calendarIndex >= 0) {
+            status[calendarIndex] = {
+              platform: 'calendar' as SocialPlatform,
+              connected: true,
+              username: 'Google Calendar',
+              last_synced: calendarIntegrations[0].updated_at || new Date().toISOString()
+            };
+          } else {
             status.push({
               platform: 'calendar' as SocialPlatform,
               connected: true,
               username: 'Google Calendar',
-              last_synced: lastUpdated
+              last_synced: calendarIntegrations[0].updated_at || new Date().toISOString()
             });
           }
         }
@@ -167,20 +165,36 @@ export function useSocialIntegrationStatus() {
     } catch (error) {
       console.error("Error in fetchIntegrationStatus:", error);
       setLoadError("Failed to check integration status.");
+      
+      // Retry logic for transient errors
+      if (retryCount < MAX_RETRIES) {
+        console.log(`Retrying fetch attempt ${retryCount + 1} of ${MAX_RETRIES}...`);
+        setRetryCount(prev => prev + 1);
+        // Retry with exponential backoff
+        setTimeout(() => {
+          fetchIntegrationStatus();
+        }, Math.pow(2, retryCount) * 1000);
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Load integration statuses on mount
+  // Load integration statuses on mount and when retry count changes
   useEffect(() => {
     fetchIntegrationStatus();
   }, []);
+
+  // Allow manual refresh
+  const refreshStatus = async () => {
+    setRetryCount(0); // Reset retry count on manual refresh
+    return fetchIntegrationStatus();
+  };
 
   return { 
     integrationStatus, 
     isLoading,
     loadError, 
-    refreshStatus: fetchIntegrationStatus 
+    refreshStatus 
   };
 }

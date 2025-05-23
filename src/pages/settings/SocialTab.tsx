@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import {
   Card,
@@ -38,6 +39,7 @@ export default function SocialTab() {
     connectPlatform,
     disconnectPlatform,
     syncContacts,
+    refreshStatus
   } = useSocialIntegrations();
 
   const [activeTab, setActiveTab] = useState<string>("facebook");
@@ -52,6 +54,10 @@ export default function SocialTab() {
 
   const handleSync = (platform: SocialPlatform) => {
     syncContacts(platform);
+  };
+
+  const handleRefresh = () => {
+    refreshStatus();
   };
 
   const getPlatformIcon = (platform: string, size = 20) => {
@@ -75,7 +81,12 @@ export default function SocialTab() {
 
   const formatLastSynced = (dateStr: string | undefined) => {
     if (!dateStr) return "Never";
-    return formatDistanceToNow(new Date(dateStr), { addSuffix: true });
+    try {
+      return formatDistanceToNow(new Date(dateStr), { addSuffix: true });
+    } catch (error) {
+      console.error("Date formatting error:", error);
+      return "Unknown";
+    }
   };
 
   if (isLoading) {
@@ -108,12 +119,15 @@ export default function SocialTab() {
       <div className="p-4 rounded-lg border border-red-200 bg-red-50">
         <div className="flex items-start gap-3">
           <AlertTriangle className="text-red-500 h-5 w-5 mt-0.5" />
-          <div>
+          <div className="flex-1">
             <h3 className="font-medium text-red-800">Error Loading Integrations</h3>
             <p className="text-sm text-red-700 mt-1">{loadError}</p>
-            <Button variant="outline" className="mt-3" onClick={() => window.location.reload()}>
-              Try Again
-            </Button>
+            <div className="flex justify-end mt-3">
+              <Button variant="outline" onClick={handleRefresh}>
+                <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+                Try Again
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -130,6 +144,10 @@ export default function SocialTab() {
             Connect your accounts to sync contacts and activity
           </p>
         </div>
+        <Button variant="outline" size="sm" onClick={handleRefresh}>
+          <RefreshCw className={cn("h-4 w-4 mr-2", isLoading ? "animate-spin" : "")} />
+          Refresh
+        </Button>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
