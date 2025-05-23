@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import { SocialPlatform } from "@/types/socialIntegration";
 import { useSocialIntegrations } from "@/hooks/useSocialIntegrations";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Facebook, Twitter, Instagram, Linkedin, AlertTriangle, Loader2 } from "lucide-react";
+import { Facebook, Twitter, Instagram, Linkedin, AlertTriangle, Loader2, Mail, Calendar } from "lucide-react";
 import SocialPlatformCard from "./SocialPlatformCard";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -39,9 +39,9 @@ const SocialIntegrationsSection: React.FC<SocialIntegrationsSectionProps> = ({ o
       case "instagram":
         return <Instagram size={size} className="text-pink-600" />;
       case "gmail":
-        return <img src="https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg" alt="Gmail" className="h-5 w-5" />;
+        return <Mail size={size} className="text-red-500" />;
       case "calendar":
-        return <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg" alt="Google Calendar" className="h-5 w-5" />;
+        return <Calendar size={size} className="text-amber-500" />;
       default:
         return null;
     }
@@ -98,23 +98,25 @@ const SocialIntegrationsSection: React.FC<SocialIntegrationsSectionProps> = ({ o
         </Alert>
       )}
 
-      {platforms.map((platform) => {
-        const status = integrationStatus.find(s => s.platform === platform);
-        
-        return (
-          <SocialPlatformCard
-            key={platform}
-            platform={platform}
-            status={status}
-            isLoading={isLoading}
-            isSyncing={isSyncing}
-            getPlatformIcon={getPlatformIcon}
-            onConnect={handleConnect}
-            onDisconnect={handleDisconnect}
-            onSync={handleSync}
-          />
-        );
-      })}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {platforms.map((platform) => {
+          const status = integrationStatus.find(s => s.platform === platform);
+          
+          return (
+            <SocialPlatformCard
+              key={platform}
+              platform={platform}
+              status={status}
+              isLoading={isLoading}
+              isSyncing={isSyncing}
+              getPlatformIcon={getPlatformIcon}
+              onConnect={handleConnect}
+              onDisconnect={handleDisconnect}
+              onSync={handleSync}
+            />
+          );
+        })}
+      </div>
       
       {/* Info card */}
       <Card>

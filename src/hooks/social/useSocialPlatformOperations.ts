@@ -8,9 +8,11 @@ export function useSocialPlatformOperations(refreshCallback: () => Promise<void>
   const { toast } = useToast();
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncResults, setSyncResults] = useState<SocialSyncResult | null>(null);
+  const [connectingPlatform, setConnectingPlatform] = useState<SocialPlatform | null>(null);
 
   const connectPlatform = async (platform: SocialPlatform) => {
     try {
+      setConnectingPlatform(platform);
       // Check if user is logged in
       const { data: sessionData } = await supabase.auth.getSession();
       if (!sessionData.session) {
@@ -29,6 +31,15 @@ export function useSocialPlatformOperations(refreshCallback: () => Promise<void>
         return;
       }
       
+      if (platform === 'gmail' || platform === 'calendar') {
+        // These are handled in separate components
+        toast({
+          title: "Integration Available",
+          description: `Please use the ${platform.charAt(0).toUpperCase() + platform.slice(1)} tab to connect this service.`,
+        });
+        return;
+      }
+      
       // For other platforms, use the social integration service
       // In a real implementation, this would redirect to OAuth flow for other platforms
       toast({
@@ -43,6 +54,8 @@ export function useSocialPlatformOperations(refreshCallback: () => Promise<void>
         description: `Failed to connect to ${platform}: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       });
+    } finally {
+      setConnectingPlatform(null);
     }
   };
 
@@ -109,9 +122,9 @@ export function useSocialPlatformOperations(refreshCallback: () => Promise<void>
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       const result: SocialSyncResult = {
-        contacts_imported: 5,
-        contacts_updated: 2,
-        posts_fetched: platform === 'twitter' ? 10 : 0,
+        contacts_imported: Math.floor(Math.random() * 5) + 1,
+        contacts_updated: Math.floor(Math.random() * 3),
+        posts_fetched: platform === 'twitter' ? Math.floor(Math.random() * 10) + 5 : 0,
         errors: []
       };
       
@@ -127,6 +140,7 @@ export function useSocialPlatformOperations(refreshCallback: () => Promise<void>
       
       if (error) {
         console.error("Error updating last_synced:", error);
+        throw error;
       }
       
       toast({
@@ -151,6 +165,7 @@ export function useSocialPlatformOperations(refreshCallback: () => Promise<void>
   return {
     isSyncing,
     syncResults,
+    connectingPlatform,
     connectPlatform,
     disconnectPlatform,
     syncContacts

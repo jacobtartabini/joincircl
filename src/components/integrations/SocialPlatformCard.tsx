@@ -1,12 +1,14 @@
 
 import React from "react";
 import { SocialPlatform, SocialIntegrationStatus } from "@/types/socialIntegration";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { RefreshCw, AlertTriangle } from "lucide-react";
+import { RefreshCw, AlertTriangle, CheckCircle, XCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { cn } from "@/lib/utils";
+import { Separator } from "@/components/ui/separator";
 
 interface SocialPlatformCardProps {
   platform: SocialPlatform;
@@ -61,95 +63,123 @@ const SocialPlatformCard: React.FC<SocialPlatformCardProps> = ({
     }
   };
 
-  return (
-    <Card key={platform}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <div className="flex items-center gap-2">
-          {getPlatformIcon(platform)}
-          <CardTitle className="text-xl capitalize">{platform}</CardTitle>
-        </div>
-        {isConnected && (
-          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-            Connected
-          </Badge>
-        )}
-      </CardHeader>
-      <CardContent>
-        <CardDescription className="mb-4">
-          {getCardDescription()}
-        </CardDescription>
-        
-        {isLoading ? (
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader className="pb-2">
+          <div className="flex justify-between items-center">
+            <Skeleton className="h-6 w-24" />
+            <Skeleton className="h-5 w-20" />
+          </div>
+          <Skeleton className="h-4 w-full mt-2" />
+        </CardHeader>
+        <CardContent>
           <div className="space-y-2">
             <Skeleton className="h-8 w-40" />
             <Skeleton className="h-4 w-60" />
             <Skeleton className="h-10 w-32 mt-4" />
           </div>
-        ) : (
-          <>
-            {isConnected ? (
-              <div className="space-y-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1">
-                    <span className="text-sm font-medium">Username:</span>
-                    <span className="text-sm">{status?.username || "N/A"}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-sm font-medium">Last synced:</span>
-                    <span className="text-sm">
-                      {formatLastSynced(status?.last_synced)}
-                    </span>
-                  </div>
-                </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
-                <div className="flex gap-3 mt-4">
-                  <Button
-                    variant="default"
-                    onClick={() => onSync(platform)}
-                    disabled={isSyncing}
-                  >
-                    <RefreshCw className={`h-4 w-4 mr-1.5 ${isSyncing ? "animate-spin" : ""}`} />
-                    Sync Contacts
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => onDisconnect(platform)}
-                  >
-                    Disconnect
-                  </Button>
-                </div>
-              </div>
-            ) : (
+  return (
+    <Card key={platform} className="overflow-hidden border-solid">
+      <CardHeader className="pb-3">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            {getPlatformIcon(platform)}
+            <CardTitle className="capitalize">{platform}</CardTitle>
+          </div>
+          
+          {isConnected ? (
+            <Badge className="bg-green-100 text-green-700 border-green-200 hover:bg-green-200">
+              <CheckCircle className="h-3.5 w-3.5 mr-1" />
+              Connected
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="bg-gray-100 text-gray-500">
+              <XCircle className="h-3.5 w-3.5 mr-1" />
+              Not Connected
+            </Badge>
+          )}
+        </div>
+        
+        <CardDescription className="mt-2">
+          {getCardDescription()}
+        </CardDescription>
+      </CardHeader>
+      
+      <CardContent className="pb-3">
+        {isConnected ? (
+          <div>
+            <div className="grid grid-cols-2 gap-2 text-sm">
               <div>
-                {platform === "linkedin" || platform === "instagram" ? (
-                  <div className="bg-amber-50 border border-amber-200 p-3 rounded-md flex items-start gap-2 mb-4">
-                    <AlertTriangle className="text-amber-500 h-5 w-5 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium text-amber-800">
-                        Limited Availability
-                      </p>
-                      <p className="text-sm text-amber-700">
-                        {platform === "linkedin" 
-                          ? "LinkedIn integration is available with Business tier subscriptions only."
-                          : "Instagram integration is currently in beta."}
-                      </p>
-                    </div>
-                  </div>
-                ) : null}
-
-                <Button
-                  onClick={() => onConnect(platform)}
-                  className={platform === "linkedin" || platform === "instagram" ? "opacity-50" : ""}
-                  disabled={platform === "linkedin" || platform === "instagram"}
-                >
-                  {getPlatformIcon(platform, 16)}
-                  <span className="ml-1.5">Connect {platform.charAt(0).toUpperCase() + platform.slice(1)}</span>
-                </Button>
+                <span className="text-muted-foreground">Username:</span>
+                <p className="font-medium">{status?.username || "N/A"}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Last synced:</span>
+                <p className="font-medium">{formatLastSynced(status?.last_synced)}</p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div>
+            {(platform === "linkedin" || platform === "instagram") && (
+              <div className="bg-amber-50 border border-amber-200 p-3 rounded-md flex items-start gap-2 mb-4">
+                <AlertTriangle className="text-amber-500 h-5 w-5 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-amber-800">
+                    Limited Availability
+                  </p>
+                  <p className="text-sm text-amber-700">
+                    {platform === "linkedin" 
+                      ? "Available with Business tier subscriptions only."
+                      : "Currently in beta testing."}
+                  </p>
+                </div>
               </div>
             )}
-          </>
+          </div>
         )}
       </CardContent>
+      
+      <Separator />
+      
+      <CardFooter className="pt-4 flex justify-end gap-2">
+        {isConnected ? (
+          <>
+            <Button
+              variant="outline" 
+              size="sm"
+              onClick={() => onDisconnect(platform)}
+            >
+              Disconnect
+            </Button>
+            <Button 
+              variant="default"
+              size="sm"
+              onClick={() => onSync(platform)}
+              disabled={isSyncing}
+            >
+              <RefreshCw className={cn("h-3.5 w-3.5 mr-1.5", isSyncing ? "animate-spin" : "")} />
+              Sync
+            </Button>
+          </>
+        ) : (
+          <Button 
+            size="sm"
+            onClick={() => onConnect(platform)}
+            disabled={platform === "linkedin" || platform === "instagram"}
+            className={platform === "linkedin" || platform === "instagram" ? "opacity-50" : ""}
+          >
+            {getPlatformIcon(platform, 16)}
+            <span className="ml-1.5">Connect</span>
+          </Button>
+        )}
+      </CardFooter>
     </Card>
   );
 };

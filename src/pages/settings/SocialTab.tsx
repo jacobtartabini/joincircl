@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   Card,
@@ -28,6 +27,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 export default function SocialTab() {
   const {
