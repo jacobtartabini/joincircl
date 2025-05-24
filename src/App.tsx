@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,7 +8,6 @@ import { RequireAuth } from "@/components/guards/RequireAuth";
 import MainLayout from "@/components/layout/MainLayout";
 import Home from "@/pages/home";
 import NotFound from "./pages/NotFound";
-import Index from "./pages/Index";
 
 // Import redesigned pages
 import RedesignedCircles from "@/pages/circles/RedesignedCircles";
@@ -67,21 +67,25 @@ function App() {
                 }
               >
                 <Route path="/" element={<Home />} />
-                <Route path="/index" element={<Index />} />
                 
-                {/* Redesigned Routes */}
+                {/* Core application routes */}
                 <Route path="/circles" element={<RedesignedCircles />} />
                 <Route path="/contacts/:id" element={<RedesignedContactDetail />} />
-                
-                {/* Other routes */}
                 <Route path="/keystones" element={<Keystones />} />
-                <Route path="/settings" element={<Settings />} />
                 <Route path="/notifications" element={<Notifications />} />
+                
+                {/* Settings and management */}
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/duplicates" element={<Duplicates />} />
+                
+                {/* Support and information */}
                 <Route path="/help" element={<Help />} />
+                <Route path="/contact" element={<Contact />} />
                 <Route path="/bugs" element={<Bugs />} />
                 <Route path="/legal" element={<Legal />} />
                 <Route path="/security" element={<SecurityGuide />} />
-                <Route path="/duplicates" element={<Duplicates />} />
+                
+                {/* PWA functionality */}
                 <Route path="/share-target" element={<ShareTarget />} />
               </Route>
               
