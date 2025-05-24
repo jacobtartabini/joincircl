@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCirclesState } from "./hooks/useCirclesState";
@@ -48,6 +47,31 @@ export default function RedesignedCircles() {
   const handleSelectContact = (contact: Contact) => {
     setSelectedContactId(contact.id);
     setInitialSelectedContact(contact);
+  };
+
+  // Handle edit action from contact detail panel
+  const handleEditContact = () => {
+    if (selectedContact) {
+      setInitialSelectedContact(selectedContact);
+      setIsEditDialogOpen(true);
+    }
+  };
+
+  // Handle delete action from contact detail panel
+  const handleDeleteContact = () => {
+    if (selectedContact) {
+      // You might want to implement a delete confirmation dialog here
+      console.log("Delete contact:", selectedContact.id);
+      // For now, just navigate to the full contact page where delete functionality exists
+      navigate(`/contacts/${selectedContact.id}`);
+    }
+  };
+
+  // Handle view all action from contact detail panel
+  const handleViewAllDetails = () => {
+    if (selectedContact) {
+      navigate(`/contacts/${selectedContact.id}`);
+    }
   };
 
   // Filter and sort contacts based on search query, filter, and sort options
@@ -145,6 +169,9 @@ export default function RedesignedCircles() {
           <EnhancedContactDetail 
             contact={selectedContact}
             interactions={selectedContactInteractions}
+            onEdit={handleEditContact}
+            onDelete={handleDeleteContact}
+            onViewAll={handleViewAllDetails}
           />
         ) : (
           <div className="flex items-center justify-center h-full p-6 text-muted-foreground">

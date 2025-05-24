@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Calendar, Mail, Twitter, Gift, Bell, ExternalLink } from 'lucide-react';
 import { Card } from '../ui/card';
@@ -118,19 +117,19 @@ const UnifiedTimeline: React.FC = () => {
   const getItemIcon = (type: TimelineItemType) => {
     switch (type) {
       case 'twitter':
-        return <Twitter className="h-4 w-4 text-sky-400" />;
+        return <Twitter className="h-3 w-3 text-sky-400" />;
       case 'email':
-        return <Mail className="h-4 w-4 text-blue-500" />;
+        return <Mail className="h-3 w-3 text-blue-500" />;
       case 'calendar':
-        return <Calendar className="h-4 w-4 text-green-500" />;
+        return <Calendar className="h-3 w-3 text-green-500" />;
       case 'birthday':
-        return <Gift className="h-4 w-4 text-pink-500" />;
+        return <Gift className="h-3 w-3 text-pink-500" />;
       case 'keystone':
-        return <Bell className="h-4 w-4 text-amber-500" />;
+        return <Bell className="h-3 w-3 text-amber-500" />;
       case 'interaction':
-        return <ExternalLink className="h-4 w-4 text-purple-500" />;
+        return <ExternalLink className="h-3 w-3 text-purple-500" />;
       default:
-        return <Bell className="h-4 w-4" />;
+        return <Bell className="h-3 w-3" />;
     }
   };
 
@@ -188,17 +187,15 @@ const UnifiedTimeline: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-2">
         {[1, 2, 3, 4].map((i) => (
-          <Card key={i} className="p-4">
-            <div className="flex items-start space-x-4">
-              <Skeleton className="h-10 w-10 rounded-full" />
-              <div className="space-y-2 flex-1">
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-3 w-1/2" />
-              </div>
+          <div key={i} className="flex items-start space-x-3 p-2">
+            <Skeleton className="h-6 w-6 rounded-full" />
+            <div className="space-y-1 flex-1">
+              <Skeleton className="h-3 w-3/4" />
+              <Skeleton className="h-2 w-1/2" />
             </div>
-          </Card>
+          </div>
         ))}
       </div>
     );
@@ -206,45 +203,45 @@ const UnifiedTimeline: React.FC = () => {
 
   if (timelineItems.length === 0) {
     return (
-      <div className="text-center py-8 text-muted-foreground">
-        <p>No recent activities to display.</p>
-        <p className="text-sm mt-2">Connect your social accounts or add more contacts to see updates here.</p>
+      <div className="text-center py-4 text-muted-foreground">
+        <p className="text-sm">No recent activities to display.</p>
+        <p className="text-xs mt-1">Connect your social accounts or add more contacts to see updates here.</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-1">
       {timelineItems.map((item) => (
-        <div key={item.id} className="rounded-lg border p-4 hover:bg-accent/5 transition-colors">
-          <div className="flex items-start">
+        <div key={item.id} className="rounded-md border p-2 hover:bg-accent/5 transition-colors">
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className={cn("py-0 px-1 text-xs flex items-center gap-1", getTypeBadgeColor(item.type))}>
+                {getItemIcon(item.type)}
+                <span>{getTypeLabel(item.type)}</span>
+              </Badge>
+              <span className="text-xs text-muted-foreground">{formatTimelineDate(item.date)}</span>
+            </div>
+            <Button variant="ghost" size="sm" className="text-xs h-6 px-2">View</Button>
+          </div>
+          
+          <div className="flex items-start gap-2">
             {item.contactName && (
-              <Avatar className="h-10 w-10 mr-3">
+              <Avatar className="h-6 w-6">
                 <AvatarImage src={item.contactAvatar} alt={item.contactName} />
-                <AvatarFallback>
+                <AvatarFallback className="text-xs">
                   {item.contactName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
                 </AvatarFallback>
               </Avatar>
             )}
             <div className="flex-1">
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className={cn("py-1 px-2 text-xs flex items-center gap-1", getTypeBadgeColor(item.type))}>
-                    {getItemIcon(item.type)}
-                    <span>{getTypeLabel(item.type)}</span>
-                  </Badge>
-                  <span className="text-xs text-muted-foreground">{formatTimelineDate(item.date)}</span>
-                </div>
-              </div>
-              <h4 className="font-medium">{item.title}</h4>
-              {item.description && <p className="text-sm text-muted-foreground mt-1">{item.description}</p>}
-              
-              <div className="flex justify-between items-center mt-2">
-                <div className="text-sm font-medium text-primary">
+              <h4 className="font-medium text-sm">{item.title}</h4>
+              {item.description && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{item.description}</p>}
+              {item.contactName && (
+                <div className="text-xs font-medium text-primary mt-1">
                   {item.contactName}
                 </div>
-                <Button variant="ghost" size="sm" className="text-xs">View Details</Button>
-              </div>
+              )}
             </div>
           </div>
         </div>

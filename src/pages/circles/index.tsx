@@ -78,7 +78,7 @@ const Circles = () => {
   console.log("Rendering Circles component with contacts:", safeContacts?.length || 0);
   
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 animate-fade-in px-4 py-4">
       <CirclesHeader 
         onAddContact={() => setIsAddDialogOpen(true)} 
         hasDuplicates={hasDuplicates}

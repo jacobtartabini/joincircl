@@ -35,11 +35,11 @@ export function CircleCard({ contact, onClick, isSelected }: CircleCardProps) {
   const getCircleBadge = () => {
     switch (contact.circle) {
       case "inner":
-        return <Badge className="bg-rose-500">Inner</Badge>;
+        return <Badge className="bg-rose-500 text-xs py-0">Inner</Badge>;
       case "middle": 
-        return <Badge className="bg-amber-500">Middle</Badge>;
+        return <Badge className="bg-amber-500 text-xs py-0">Middle</Badge>;
       case "outer":
-        return <Badge className="bg-blue-500">Outer</Badge>;
+        return <Badge className="bg-blue-500 text-xs py-0">Outer</Badge>;
       default:
         return null;
     }
@@ -53,28 +53,28 @@ export function CircleCard({ contact, onClick, isSelected }: CircleCardProps) {
       )}
       onClick={onClick}
     >
-      <CardContent className="p-4">
+      <CardContent className="p-3">
         <div className="flex items-start">
-          <Avatar className="h-12 w-12">
+          <Avatar className="h-8 w-8">
             <AvatarImage src={contact.avatar_url || ''} alt={contact.name} />
-            <AvatarFallback>{getInitials(contact.name)}</AvatarFallback>
+            <AvatarFallback className="text-xs">{getInitials(contact.name)}</AvatarFallback>
           </Avatar>
           
-          <div className="ml-4 flex-1">
+          <div className="ml-3 flex-1">
             <div className="flex items-center justify-between">
-              <h3 className="font-medium text-lg">{contact.name}</h3>
+              <h3 className="font-medium text-sm">{contact.name}</h3>
               {getCircleBadge()}
             </div>
             
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground mt-0.5">
               {contact.job_title ? `${contact.job_title} at ${contact.company_name || ''}` : ''}
             </p>
             
-            <div className="flex flex-wrap gap-3 mt-3">
+            <div className="flex flex-wrap gap-2 mt-2">
               {contact.personal_email && (
                 <div className="flex items-center text-xs text-muted-foreground">
                   <Mail className="h-3 w-3 mr-1" />
-                  <span>{contact.personal_email}</span>
+                  <span className="truncate max-w-[120px]">{contact.personal_email}</span>
                 </div>
               )}
               

@@ -14,10 +14,10 @@ const CirclesHeader = ({ onAddContact, hasDuplicates = false }: CirclesHeaderPro
   const isOnline = useOnlineStatus();
   
   return (
-    <div className="flex items-center justify-between mb-6">
+    <div className="flex items-center justify-between">
       <div>
-        <h1 className="text-3xl font-bold">Contacts</h1>
-        <p className="text-muted-foreground mt-1">
+        <h1 className="text-2xl font-bold">Contacts</h1>
+        <p className="text-muted-foreground text-sm">
           Manage your network of personal and professional connections
         </p>
       </div>
@@ -27,7 +27,7 @@ const CirclesHeader = ({ onAddContact, hasDuplicates = false }: CirclesHeaderPro
           <Button
             variant="outline"
             size="sm"
-            className="hidden md:flex"
+            className="hidden md:flex rounded-md"
             asChild
           >
             <Link to="/duplicates">
@@ -46,9 +46,10 @@ const CirclesHeader = ({ onAddContact, hasDuplicates = false }: CirclesHeaderPro
           size="sm"
           onClick={onAddContact}
           disabled={!isOnline}
+          className="rounded-md"
         >
           <Plus size={16} className="mr-2" /> 
-          New Contact
+          Add Contact
         </Button>
       </div>
     </div>
