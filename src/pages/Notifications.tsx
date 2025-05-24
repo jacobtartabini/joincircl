@@ -10,7 +10,7 @@ const Notifications = () => {
   
   return (
     <MainLayout>
-      <div className="h-full flex flex-col animate-fade-in">
+      <div className="h-full flex flex-col animate-fade-in p-6">
         {!isMobile && <NotificationsHeader />}
         <div className="flex-1 overflow-hidden">
           <NotificationsContent />
