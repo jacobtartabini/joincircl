@@ -11,6 +11,7 @@ import { useSyncManager } from "@/utils/syncManager";
 import { ThreePanelLayout } from "./ThreePanelLayout";
 import { Navbar } from "@/components/navigation/Navbar";
 import { cn } from "@/lib/utils";
+import { useLocation } from "react-router-dom";
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -20,6 +21,11 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const isMobile = useIsMobile();
   const isOnline = useOnlineStatus();
   const { handleOnlineStatusChange } = useSyncManager();
+  const location = useLocation();
+  
+  // Pages that should use full-width layout without left panel
+  const fullWidthPages = ['/notifications'];
+  const shouldUseFullWidth = fullWidthPages.includes(location.pathname);
 
   useEffect(() => {
     handleOnlineStatusChange(isOnline);
@@ -39,17 +45,25 @@ const MainLayout = ({ children }: MainLayoutProps) => {
           isMobile ? 'pb-20 pt-14' : ''
         )}>
           <div className="h-full w-full">
-            {/* On desktop, use ThreePanelLayout with Navbar */}
+            {/* On desktop, conditionally use ThreePanelLayout or full-width layout */}
             {!isMobile ? (
-              <ThreePanelLayout
-                leftPanel={<Navbar />}
-                middlePanel={
-                  <div className="responsive-container h-full overflow-hidden">
-                    {children}
-                  </div>
-                }
-                rightPanel={null}
-              />
+              shouldUseFullWidth ? (
+                // Full-width layout for specific pages like notifications
+                <div className="h-full w-full overflow-hidden">
+                  {children}
+                </div>
+              ) : (
+                // Standard three-panel layout for other pages
+                <ThreePanelLayout
+                  leftPanel={<Navbar />}
+                  middlePanel={
+                    <div className="responsive-container h-full overflow-hidden">
+                      {children}
+                    </div>
+                  }
+                  rightPanel={null}
+                />
+              )
             ) : (
               // On mobile, render children directly with responsive container
               <div className="responsive-container h-full overflow-hidden p-4">
