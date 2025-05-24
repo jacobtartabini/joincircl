@@ -27,6 +27,27 @@ interface ContactTimelineProps {
 export function ContactTimeline({ contact, interactions, keystones, contactMedia }: ContactTimelineProps) {
   const [filter, setFilter] = useState("all");
   
+  // Helper functions defined before useMemo
+  const getInteractionIcon = (type: string) => {
+    switch (type.toLowerCase()) {
+      case "call": return <Clock className="h-4 w-4 text-blue-500" />;
+      case "meeting": return <Coffee className="h-4 w-4 text-green-500" />;
+      case "email": return <Mail className="h-4 w-4 text-blue-500" />;
+      case "message": return <MessageSquare className="h-4 w-4 text-purple-500" />;
+      default: return <Hash className="h-4 w-4 text-gray-500" />;
+    }
+  };
+
+  const getInteractionColor = (type: string) => {
+    switch (type.toLowerCase()) {
+      case "call": return "blue";
+      case "meeting": return "green";
+      case "email": return "blue";
+      case "message": return "purple";
+      default: return "gray";
+    }
+  };
+  
   // Convert all contact-related data into timeline items
   const timelineItems: TimelineItem[] = useMemo(() => {
     const items: TimelineItem[] = [];
@@ -103,26 +124,6 @@ export function ContactTimeline({ contact, interactions, keystones, contactMedia
       return acc;
     }, {} as Record<string, TimelineItem[]>);
   }, [timelineItems]);
-
-  const getInteractionIcon = (type: string) => {
-    switch (type.toLowerCase()) {
-      case "call": return <Clock className="h-4 w-4 text-blue-500" />;
-      case "meeting": return <Coffee className="h-4 w-4 text-green-500" />;
-      case "email": return <Mail className="h-4 w-4 text-blue-500" />;
-      case "message": return <MessageSquare className="h-4 w-4 text-purple-500" />;
-      default: return <Hash className="h-4 w-4 text-gray-500" />;
-    }
-  };
-
-  const getInteractionColor = (type: string) => {
-    switch (type.toLowerCase()) {
-      case "call": return "blue";
-      case "meeting": return "green";
-      case "email": return "blue";
-      case "message": return "purple";
-      default: return "gray";
-    }
-  };
 
   return (
     <div className="h-full flex flex-col">
