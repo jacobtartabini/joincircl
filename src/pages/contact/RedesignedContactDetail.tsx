@@ -2,13 +2,13 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useContactDetail } from "@/hooks/useContactDetail";
-import { EnhancedActivityFeed } from "@/components/activity/EnhancedActivityFeed";
 import { EnhancedContactDetail } from "@/components/contact/EnhancedContactDetail";
 import EditContactDialog from "@/components/dialogs/EditContactDialog";
 import DeleteContactDialog from "@/components/dialogs/DeleteContactDialog";
 import ContactDetailSkeleton from "@/components/contact/ContactDetailSkeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import { ContactTimeline } from "@/components/contact/ContactTimeline";
 
 export default function RedesignedContactDetail() {
   const { id } = useParams<{ id: string }>();
@@ -37,10 +37,6 @@ export default function RedesignedContactDetail() {
              errorMessage="The contact you're looking for doesn't exist or you don't have access to it." 
            />;
   }
-
-  const handleSelectActivity = (activity: any) => {
-    console.log("Selected activity:", activity);
-  };
 
   if (isMobile) {
     return (
@@ -74,11 +70,14 @@ export default function RedesignedContactDetail() {
   return (
     <div className="h-full animate-fade-in overflow-hidden">
       <div className={cn("flex h-full w-full overflow-hidden")}>
-        {/* Main Content Panel - Left Side */}
+        {/* Contact Timeline Panel - Middle */}
         <div className="flex-1 overflow-hidden min-w-0 max-w-[calc(100%-20rem)] border-r bg-white/95 backdrop-blur-sm">
           <div className="panel-container">
-            <EnhancedActivityFeed 
-              onSelectActivity={handleSelectActivity}
+            <ContactTimeline 
+              contact={contact}
+              interactions={interactions}
+              keystones={keystones}
+              contactMedia={contactMedia}
             />
           </div>
         </div>
