@@ -14,7 +14,7 @@ const Home = () => {
       ) : (
         <div className="h-[calc(100vh-2rem)] animate-fade-in">
           <ThreePanelLayout
-            leftPanel={<Navbar />}
+            leftPanel={null}
             middlePanel={<HomeContent />}
             rightPanel={null}
           />
