@@ -27,7 +27,7 @@ export function Navbar() {
     pinned: true
   }, {
     id: "2",
-    name: "Friend",
+    name: "Friends",
     color: "bg-green-500",
     pinned: true
   }, {
@@ -161,7 +161,7 @@ export function Navbar() {
       {/* Add New Person Button */}
       <Button className="rounded-xl">
         <Plus className="h-4 w-4 mr-2" />
-        New Person
+        New Contact
       </Button>
       
       {/* New Tag Dialog */}
