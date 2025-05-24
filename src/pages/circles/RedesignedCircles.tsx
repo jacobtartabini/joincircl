@@ -1,3 +1,4 @@
+
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCirclesState } from "./hooks/useCirclesState";
@@ -9,9 +10,11 @@ import { AddContactDialog } from "./dialogs/AddContactDialog";
 import { EditContactDialog } from "./dialogs/EditContactDialog";
 import { InteractionDialog } from "./dialogs/InteractionDialog";
 import { InsightsDialog } from "./dialogs/InsightsDialog";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function RedesignedCircles() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const {
     contacts,
     isLoading,
@@ -60,9 +63,7 @@ export default function RedesignedCircles() {
   // Handle delete action from contact detail panel
   const handleDeleteContact = () => {
     if (selectedContact) {
-      // You might want to implement a delete confirmation dialog here
       console.log("Delete contact:", selectedContact.id);
-      // For now, just navigate to the full contact page where delete functionality exists
       navigate(`/contacts/${selectedContact.id}`);
     }
   };
@@ -74,11 +75,10 @@ export default function RedesignedCircles() {
     }
   };
 
-  // Filter and sort contacts based on search query, filter, and sort options
+  // Filter and sort contacts
   const filteredSortedContacts = useMemo(() => {
     if (!contacts) return [];
 
-    // Start with filtering by search query
     let result = contacts.filter(contact => {
       if (!searchQuery) return true;
       
@@ -91,26 +91,23 @@ export default function RedesignedCircles() {
       );
     });
     
-    // Apply circle filter if set
     if (filterBy) {
       result = result.filter(contact => contact.circle === filterBy);
     }
     
-    // Apply sorting
     return [...result].sort((a, b) => {
       if (sortBy === "name") {
         return a.name.localeCompare(b.name);
       } else if (sortBy === "recent") {
         const dateA = a.last_contact ? new Date(a.last_contact).getTime() : 0;
         const dateB = b.last_contact ? new Date(b.last_contact).getTime() : 0;
-        return dateB - dateA; // Sort by most recent first
+        return dateB - dateA;
       }
       return 0;
     });
   }, [contacts, searchQuery, filterBy, sortBy]);
 
-  // Interactions for the selected contact would normally come from a separate API call
-  // Mock data for demonstration purposes
+  // Mock interactions for selected contact
   const selectedContactInteractions = useMemo(() => {
     if (!selectedContact) return [];
     return [
@@ -129,7 +126,7 @@ export default function RedesignedCircles() {
         contact_id: selectedContact.id,
         type: "Email",
         notes: "Sent follow-up email with meeting notes",
-        date: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+        date: new Date(Date.now() - 86400000).toISOString(),
         created_at: new Date(Date.now() - 86400000).toISOString(),
       },
       {
@@ -138,33 +135,90 @@ export default function RedesignedCircles() {
         contact_id: selectedContact.id,
         type: "Phone",
         notes: "Quick call to discuss budget changes",
-        date: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
+        date: new Date(Date.now() - 172800000).toISOString(),
         created_at: new Date(Date.now() - 172800000).toISOString(),
       }
     ];
   }, [selectedContact]);
 
+  if (isMobile) {
+    return (
+      <div className="h-full flex flex-col animate-fade-in">
+        <div className="panel-header">
+          <CirclesFilter
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            onAddContact={() => setIsAddDialogOpen(true)}
+            onSort={setSortBy}
+            onFilter={setFilterBy}
+          />
+        </div>
+        <div className="panel-content">
+          <CirclesList
+            contacts={filteredSortedContacts}
+            isLoading={isLoading}
+            onSelectContact={handleSelectContact}
+            selectedContactId={selectedContactId}
+          />
+        </div>
+        
+        {/* Dialogs */}
+        <AddContactDialog
+          isOpen={isAddDialogOpen}
+          onOpenChange={setIsAddDialogOpen}
+          onSuccess={fetchContacts}
+        />
+        
+        <EditContactDialog
+          isOpen={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          contact={initialSelectedContact}
+          onSuccess={fetchContacts}
+          onCancel={() => setIsEditDialogOpen(false)}
+        />
+        
+        <InteractionDialog
+          isOpen={isInteractionDialogOpen}
+          onOpenChange={setIsInteractionDialogOpen}
+          contact={initialSelectedContact}
+          onSuccess={fetchContacts}
+          onCancel={() => setIsInteractionDialogOpen(false)}
+        />
+        
+        <InsightsDialog
+          isOpen={isInsightsDialogOpen}
+          onOpenChange={setIsInsightsDialogOpen}
+          contact={initialSelectedContact}
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className="h-[calc(100vh-2rem)] animate-fade-in flex">
+    <div className="h-full animate-fade-in flex overflow-hidden">
       {/* Middle Panel - Contact List */}
-      <div className="flex-1 px-4 overflow-auto border-r">
-        <CirclesFilter
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          onAddContact={() => setIsAddDialogOpen(true)}
-          onSort={setSortBy}
-          onFilter={setFilterBy}
-        />
-        <CirclesList
-          contacts={filteredSortedContacts}
-          isLoading={isLoading}
-          onSelectContact={handleSelectContact}
-          selectedContactId={selectedContactId}
-        />
+      <div className="flex-1 flex flex-col border-r overflow-hidden min-w-0">
+        <div className="panel-header">
+          <CirclesFilter
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            onAddContact={() => setIsAddDialogOpen(true)}
+            onSort={setSortBy}
+            onFilter={setFilterBy}
+          />
+        </div>
+        <div className="panel-content">
+          <CirclesList
+            contacts={filteredSortedContacts}
+            isLoading={isLoading}
+            onSelectContact={handleSelectContact}
+            selectedContactId={selectedContactId}
+          />
+        </div>
       </div>
       
       {/* Right Panel - Contact Details */}
-      <div className="w-1/2 overflow-auto">
+      <div className="w-80 flex-shrink-0 overflow-hidden">
         {selectedContact ? (
           <EnhancedContactDetail 
             contact={selectedContact}
@@ -175,9 +229,9 @@ export default function RedesignedCircles() {
           />
         ) : (
           <div className="flex items-center justify-center h-full p-6 text-muted-foreground">
-            <div className="text-center">
+            <div className="text-center max-w-sm">
               <h3 className="text-lg font-medium mb-2">No contact selected</h3>
-              <p className="text-sm max-w-md">
+              <p className="text-sm leading-relaxed">
                 Select someone from the list to view their details, or add a new person to your circles.
               </p>
             </div>

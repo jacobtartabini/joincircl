@@ -28,18 +28,18 @@ export function CircleCard({ contact, onClick, isSelected }: CircleCardProps) {
   const formatDate = (date: string | undefined) => {
     if (!date) return "No recent interaction";
     const interactionDate = new Date(date);
-    return format(interactionDate, 'MMM d, yyyy');
+    return format(interactionDate, 'MMM d');
   };
   
   // Determine circle type badge
   const getCircleBadge = () => {
     switch (contact.circle) {
       case "inner":
-        return <Badge className="bg-rose-500 text-xs py-0">Inner</Badge>;
+        return <Badge className="bg-rose-500 text-xs py-0 px-1">Inner</Badge>;
       case "middle": 
-        return <Badge className="bg-amber-500 text-xs py-0">Middle</Badge>;
+        return <Badge className="bg-amber-500 text-xs py-0 px-1">Middle</Badge>;
       case "outer":
-        return <Badge className="bg-blue-500 text-xs py-0">Outer</Badge>;
+        return <Badge className="bg-blue-500 text-xs py-0 px-1">Outer</Badge>;
       default:
         return null;
     }
@@ -48,46 +48,48 @@ export function CircleCard({ contact, onClick, isSelected }: CircleCardProps) {
   return (
     <Card 
       className={cn(
-        "cursor-pointer transition-all duration-200 hover:shadow-md", 
-        isSelected ? "ring-2 ring-primary" : ""
+        "cursor-pointer transition-all duration-200 hover:shadow-md contact-card border-0 shadow-sm", 
+        isSelected ? "ring-2 ring-primary shadow-md" : "hover:shadow-lg"
       )}
       onClick={onClick}
     >
       <CardContent className="p-3">
-        <div className="flex items-start">
-          <Avatar className="h-8 w-8">
+        <div className="flex items-center gap-3">
+          <Avatar className="h-10 w-10 flex-shrink-0">
             <AvatarImage src={contact.avatar_url || ''} alt={contact.name} />
-            <AvatarFallback className="text-xs">{getInitials(contact.name)}</AvatarFallback>
+            <AvatarFallback className="text-xs font-medium">{getInitials(contact.name)}</AvatarFallback>
           </Avatar>
           
-          <div className="ml-3 flex-1">
-            <div className="flex items-center justify-between">
-              <h3 className="font-medium text-sm">{contact.name}</h3>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="font-medium text-sm truncate pr-2">{contact.name}</h3>
               {getCircleBadge()}
             </div>
             
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {contact.job_title ? `${contact.job_title} at ${contact.company_name || ''}` : ''}
-            </p>
+            {(contact.job_title || contact.company_name) && (
+              <p className="text-xs text-muted-foreground truncate mb-2">
+                {contact.job_title ? `${contact.job_title}${contact.company_name ? ` at ${contact.company_name}` : ''}` : contact.company_name}
+              </p>
+            )}
             
-            <div className="flex flex-wrap gap-2 mt-2">
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
               {contact.personal_email && (
-                <div className="flex items-center text-xs text-muted-foreground">
-                  <Mail className="h-3 w-3 mr-1" />
-                  <span className="truncate max-w-[120px]">{contact.personal_email}</span>
+                <div className="flex items-center gap-1 min-w-0">
+                  <Mail className="h-3 w-3 flex-shrink-0" />
+                  <span className="truncate max-w-[100px]">{contact.personal_email}</span>
                 </div>
               )}
               
               {contact.mobile_phone && (
-                <div className="flex items-center text-xs text-muted-foreground">
-                  <Phone className="h-3 w-3 mr-1" />
-                  <span>{contact.mobile_phone}</span>
+                <div className="flex items-center gap-1">
+                  <Phone className="h-3 w-3 flex-shrink-0" />
+                  <span className="truncate">{contact.mobile_phone}</span>
                 </div>
               )}
               
               {contact.last_contact && (
-                <div className="flex items-center text-xs text-muted-foreground ml-auto">
-                  <Calendar className="h-3 w-3 mr-1" />
+                <div className="flex items-center gap-1 ml-auto flex-shrink-0">
+                  <Calendar className="h-3 w-3" />
                   <span>{formatDate(contact.last_contact)}</span>
                 </div>
               )}

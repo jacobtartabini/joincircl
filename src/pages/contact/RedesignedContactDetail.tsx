@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useContactDetail } from "@/hooks/useContactDetail";
 import { ThreePanelLayout } from "@/components/layout/ThreePanelLayout";
@@ -9,9 +9,11 @@ import { EnhancedContactDetail } from "@/components/contact/EnhancedContactDetai
 import EditContactDialog from "@/components/dialogs/EditContactDialog";
 import DeleteContactDialog from "@/components/dialogs/DeleteContactDialog";
 import ContactDetailSkeleton from "@/components/contact/ContactDetailSkeleton";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function RedesignedContactDetail() {
   const { id } = useParams<{ id: string }>();
+  const isMobile = useIsMobile();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   
@@ -38,23 +40,54 @@ export default function RedesignedContactDetail() {
   }
 
   const handleSelectActivity = (activity: any) => {
-    // This could be expanded to handle selecting specific interactions
     console.log("Selected activity:", activity);
   };
 
+  if (isMobile) {
+    return (
+      <div className="h-full animate-fade-in overflow-hidden">
+        <EnhancedContactDetail 
+          contact={contact}
+          interactions={interactions}
+          onEdit={() => setIsEditDialogOpen(true)}
+          onDelete={() => setIsDeleteDialogOpen(true)}
+        />
+        
+        {/* Dialogs */}
+        <EditContactDialog
+          contact={contact}
+          isOpen={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          onContactUpdate={handleContactUpdate}
+        />
+        
+        <DeleteContactDialog
+          contact={contact}
+          isOpen={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+          onDelete={handleDelete}
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className="h-[calc(100vh-2rem)] animate-fade-in">
+    <div className="h-full animate-fade-in overflow-hidden">
       <ThreePanelLayout
         leftPanel={<Navbar />}
         middlePanel={
-          <EnhancedActivityFeed 
-            onSelectActivity={handleSelectActivity}
-          />
+          <div className="panel-container">
+            <EnhancedActivityFeed 
+              onSelectActivity={handleSelectActivity}
+            />
+          </div>
         }
         rightPanel={
           <EnhancedContactDetail 
             contact={contact}
             interactions={interactions}
+            onEdit={() => setIsEditDialogOpen(true)}
+            onDelete={() => setIsDeleteDialogOpen(true)}
           />
         }
       />

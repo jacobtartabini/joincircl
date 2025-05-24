@@ -1,6 +1,7 @@
 
 import { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ThreePanelLayoutProps {
   leftPanel: ReactNode;
@@ -15,22 +16,44 @@ export function ThreePanelLayout({
   rightPanel,
   className,
 }: ThreePanelLayoutProps) {
+  const isMobile = useIsMobile();
+
+  if (isMobile) {
+    return (
+      <div className={cn("flex flex-col h-full w-full overflow-hidden", className)}>
+        {/* On mobile, show only the middle panel by default */}
+        <div className="flex-1 overflow-hidden">
+          {middlePanel}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className={cn("grid grid-cols-12 gap-4 h-full overflow-hidden", className)}>
+    <div className={cn("flex h-full w-full overflow-hidden", className)}>
       {/* Left Navigation Panel */}
-      <div className="col-span-2 border-r bg-white rounded-lg shadow-sm overflow-y-auto">
-        {leftPanel}
+      <div className="w-64 flex-shrink-0 border-r bg-white/95 backdrop-blur-sm overflow-hidden">
+        <div className="panel-container">
+          {leftPanel}
+        </div>
       </div>
       
       {/* Middle Content Panel */}
-      <div className={cn("overflow-y-auto", rightPanel ? "col-span-6" : "col-span-10")}>
-        {middlePanel}
+      <div className={cn(
+        "flex-1 overflow-hidden min-w-0",
+        rightPanel ? "max-w-[calc(100%-32rem)]" : "max-w-full"
+      )}>
+        <div className="panel-container">
+          {middlePanel}
+        </div>
       </div>
       
       {/* Right Detail Panel (optional) */}
       {rightPanel && (
-        <div className="col-span-4 border-l bg-white rounded-lg shadow-sm overflow-y-auto">
-          {rightPanel}
+        <div className="w-80 flex-shrink-0 border-l bg-white/95 backdrop-blur-sm overflow-hidden">
+          <div className="panel-container">
+            {rightPanel}
+          </div>
         </div>
       )}
     </div>

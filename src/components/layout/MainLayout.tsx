@@ -10,7 +10,6 @@ import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { useSyncManager } from "@/utils/syncManager";
 import { ThreePanelLayout } from "./ThreePanelLayout";
 import { Navbar } from "@/components/navigation/Navbar";
-import { Outlet } from "react-router-dom";
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -26,7 +25,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   }, [isOnline]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background overflow-hidden">
       {/* Apply security headers */}
       <SecureHeaders />
       
@@ -34,18 +33,27 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         {/* Mobile navigation */}
         {isMobile && <TopStatusBar />}
         
-        <main className={`flex-1 ${isMobile ? 'pb-20 pt-14' : ''} overflow-hidden`}>
-          <div className="h-full max-w-7xl mx-auto py-4 px-4 md:px-6">
+        <main className={cn(
+          "flex-1 overflow-hidden",
+          isMobile ? 'pb-20 pt-14' : ''
+        )}>
+          <div className="h-full w-full">
             {/* On desktop, use ThreePanelLayout with Navbar */}
             {!isMobile ? (
               <ThreePanelLayout
                 leftPanel={<Navbar />}
-                middlePanel={children}
+                middlePanel={
+                  <div className="responsive-container h-full overflow-hidden">
+                    {children}
+                  </div>
+                }
                 rightPanel={null}
               />
             ) : (
-              // On mobile, just render the children directly
-              children
+              // On mobile, render children directly with responsive container
+              <div className="responsive-container h-full overflow-hidden p-4">
+                {children}
+              </div>
             )}
           </div>
         </main>
