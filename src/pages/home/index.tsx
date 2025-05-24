@@ -5,7 +5,7 @@ const Home = () => {
   const isMobile = useIsMobile();
 
   return (
-    <div className="h-[calc(100vh-2rem)] animate-fade-in">
+    <div className="w-full h-full min-h-screen">
       <HomeContent />
     </div>
   );
