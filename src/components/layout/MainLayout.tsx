@@ -24,8 +24,10 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const location = useLocation();
   
   // Pages that should use full-width layout without left panel
-  const fullWidthPages = ['/notifications'];
-  const shouldUseFullWidth = fullWidthPages.includes(location.pathname);
+  const fullWidthPages = ['/contacts'];
+  const shouldUseFullWidth = fullWidthPages.some(page => 
+    location.pathname.startsWith(page) && location.pathname !== '/contacts'
+  );
 
   useEffect(() => {
     handleOnlineStatusChange(isOnline);
@@ -48,12 +50,12 @@ const MainLayout = ({ children }: MainLayoutProps) => {
             {/* On desktop, conditionally use ThreePanelLayout or full-width layout */}
             {!isMobile ? (
               shouldUseFullWidth ? (
-                // Full-width layout for specific pages like notifications
+                // Full-width layout for specific pages like contact detail
                 <div className="h-full w-full overflow-hidden">
                   {children}
                 </div>
               ) : (
-                // Standard three-panel layout for other pages
+                // Standard three-panel layout for other pages including notifications
                 <ThreePanelLayout
                   leftPanel={<Navbar />}
                   middlePanel={
