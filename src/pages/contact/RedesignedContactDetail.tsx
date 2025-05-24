@@ -2,14 +2,13 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useContactDetail } from "@/hooks/useContactDetail";
-import { ThreePanelLayout } from "@/components/layout/ThreePanelLayout";
-import { Navbar } from "@/components/navigation/Navbar";
 import { EnhancedActivityFeed } from "@/components/activity/EnhancedActivityFeed";
 import { EnhancedContactDetail } from "@/components/contact/EnhancedContactDetail";
 import EditContactDialog from "@/components/dialogs/EditContactDialog";
 import DeleteContactDialog from "@/components/dialogs/DeleteContactDialog";
 import ContactDetailSkeleton from "@/components/contact/ContactDetailSkeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 export default function RedesignedContactDetail() {
   const { id } = useParams<{ id: string }>();
@@ -71,26 +70,29 @@ export default function RedesignedContactDetail() {
     );
   }
 
+  // Desktop two-panel layout
   return (
     <div className="h-full animate-fade-in overflow-hidden">
-      <ThreePanelLayout
-        leftPanel={<Navbar />}
-        middlePanel={
+      <div className={cn("flex h-full w-full overflow-hidden")}>
+        {/* Main Content Panel - Left Side */}
+        <div className="flex-1 overflow-hidden min-w-0 max-w-[calc(100%-20rem)] border-r bg-white/95 backdrop-blur-sm">
           <div className="panel-container">
             <EnhancedActivityFeed 
               onSelectActivity={handleSelectActivity}
             />
           </div>
-        }
-        rightPanel={
+        </div>
+        
+        {/* Contact Detail Panel - Right Side */}
+        <div className="w-80 flex-shrink-0 bg-white/95 backdrop-blur-sm overflow-hidden">
           <EnhancedContactDetail 
             contact={contact}
             interactions={interactions}
             onEdit={() => setIsEditDialogOpen(true)}
             onDelete={() => setIsDeleteDialogOpen(true)}
           />
-        }
-      />
+        </div>
+      </div>
       
       {/* Dialogs */}
       <EditContactDialog
