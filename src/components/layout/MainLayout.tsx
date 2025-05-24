@@ -10,6 +10,7 @@ import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { useSyncManager } from "@/utils/syncManager";
 import { ThreePanelLayout } from "./ThreePanelLayout";
 import { Navbar } from "@/components/navigation/Navbar";
+import { cn } from "@/lib/utils";
 
 interface MainLayoutProps {
   children: ReactNode;
