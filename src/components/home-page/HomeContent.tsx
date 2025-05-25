@@ -1,9 +1,11 @@
+
 import React from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { WelcomeBanner } from './WelcomeBanner';
 import { useContacts } from '@/hooks/use-contacts';
 import { DashboardStats } from './DashboardStats';
 import NetworkRecommendations from '../home/NetworkRecommendations';
+import WeeklyAIInsights from '../ai/WeeklyAIInsights';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { ArrowRight, Plus } from 'lucide-react';
@@ -117,6 +119,9 @@ const HomeContent: React.FC = () => {
         
         {/* Side column - 1/3 width on desktop */}
         <div className="space-y-6">
+          {/* AI Weekly Insights */}
+          <WeeklyAIInsights contacts={contacts} interactions={[]} />
+          
           {/* Network Recommendations */}
           <NetworkRecommendations />
         </div>
