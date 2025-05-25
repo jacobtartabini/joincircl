@@ -1,9 +1,15 @@
-
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 import { registerSW } from 'virtual:pwa-register'
 import { OfflineIndicator } from './components/ui/offline-indicator.tsx'
+import { ClerkProvider } from '@clerk/clerk-react'
+
+const PUBLISHABLE_KEY = "pk_test_dGhhbmtmdWwtZ3JvdXBlci04MC5jbGVyay5hY2NvdW50cy5kZXYk";
+
+if (!PUBLISHABLE_KEY) {
+  throw new Error("Missing Clerk Publishable Key");
+}
 
 // Register service worker with enhanced features
 const updateSW = registerSW({
@@ -125,10 +131,10 @@ if ('widgets' in window) {
   }).catch(e => console.warn('Widget registration failed:', e));
 }
 
-// Render the application with the offline indicator
+// Render the application with Clerk provider and offline indicator
 createRoot(document.getElementById("root")!).render(
-  <>
+  <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
     <App />
     <OfflineIndicator />
-  </>
+  </ClerkProvider>
 );
