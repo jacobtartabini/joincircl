@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
-import { ClerkRequireAuth } from "@/components/guards/ClerkRequireAuth";
+import { RequireAuth } from "@/components/guards/RequireAuth";
 import MainLayout from "@/components/layout/MainLayout";
 import Home from "@/pages/home";
 import NotFound from "./pages/NotFound";
@@ -13,10 +13,13 @@ import NotFound from "./pages/NotFound";
 import RedesignedCircles from "@/pages/circles/RedesignedCircles";
 import RedesignedContactDetail from "@/pages/contact/RedesignedContactDetail";
 
-// Authentication pages - using custom pages
+// Authentication pages
 import SignIn from "@/pages/auth/SignIn";
 import SignUp from "@/pages/auth/SignUp";
-import SSOCallback from "@/pages/auth/SSOCallback";
+import ForgotPassword from "@/pages/auth/ForgotPassword";
+import ResetPassword from "@/pages/auth/ResetPassword";
+import CallbackPage from "@/pages/auth/CallbackPage";
+import GoogleCallbackPage from "@/pages/auth/GoogleCallbackPage";
 
 // Special pages
 import Settings from "@/pages/Settings";
@@ -32,40 +35,38 @@ import Contact from "@/pages/Contact";
 
 // User onboarding
 import { UserOnboarding } from "./components/UserOnboarding";
-import { ClerkAuthProvider } from "@/contexts/ClerkAuthContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const queryClient = new QueryClient();
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ClerkAuthProvider>
+      <AuthProvider>
         <TooltipProvider>
           <Toaster />
           <Sonner />
           <BrowserRouter>
             <Routes>
-              {/* Public routes - using custom auth pages */}
+              {/* Public routes */}
               <Route path="/signin" element={<SignIn />} />
               <Route path="/signup" element={<SignUp />} />
-              <Route path="/sso-callback" element={<SSOCallback />} />
-              
-              {/* Legacy auth route redirects to custom pages */}
-              <Route path="/auth/sign-in" element={<SignIn />} />
-              <Route path="/auth/sign-up" element={<SignUp />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/auth/callback" element={<CallbackPage />} />
+              <Route path="/auth/google/callback" element={<GoogleCallbackPage />} />
 
               {/* Protected routes */}
               <Route
                 element={
-                  <ClerkRequireAuth>
+                  <RequireAuth>
                     <MainLayout>
                       <Outlet />
                     </MainLayout>
-                  </ClerkRequireAuth>
+                  </RequireAuth>
                 }
               >
                 <Route path="/" element={<Home />} />
-                <Route path="/home" element={<Home />} />
                 
                 {/* Core application routes */}
                 <Route path="/circles" element={<RedesignedCircles />} />
@@ -93,7 +94,7 @@ function App() {
           </BrowserRouter>
           <UserOnboarding />
         </TooltipProvider>
-      </ClerkAuthProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

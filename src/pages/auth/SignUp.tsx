@@ -1,29 +1,26 @@
 
 import { useState } from "react";
-import { useSignUp, useAuth } from "@clerk/clerk-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 
 export default function SignUp() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [verificationCode, setVerificationCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [pendingVerification, setPendingVerification] = useState(false);
-  const { signUp, setActive } = useSignUp();
-  const { isSignedIn } = useAuth();
+  const [isSignupComplete, setIsSignupComplete] = useState(false);
+  const { signUp, signInWithGoogle, user } = useAuth();
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   // If user is already signed in, redirect to the home page
-  if (isSignedIn) {
-    return <Navigate to="/home" replace />;
+  if (user) {
+    return <Navigate to="/" replace />;
   }
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -47,119 +44,37 @@ export default function SignUp() {
       return;
     }
 
-    if (!signUp) {
-      toast({
-        title: "Sign up unavailable",
-        description: "Please try again later",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsLoading(true);
     try {
-      const [firstName, ...lastNameParts] = fullName.trim().split(' ');
-      const lastName = lastNameParts.join(' ') || '';
-
-      await signUp.create({
-        firstName,
-        lastName,
-        emailAddress: email,
-        password,
-      });
-
-      // Send email verification
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-      setPendingVerification(true);
-      
-      toast({
-        title: "Verification email sent",
-        description: "Please check your email for a verification code",
-        variant: "default",
-      });
-    } catch (error: any) {
+      await signUp(email, password, fullName);
+      setIsSignupComplete(true);
+      // Navigate is handled by auth state change or verification flow
+    } catch (error) {
       console.error("Error signing up:", error);
-      toast({
-        title: "Sign up failed",
-        description: error?.errors?.[0]?.message || "Failed to create account",
-        variant: "destructive",
-      });
+      setIsSignupComplete(false);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleVerification = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!verificationCode) {
-      toast({
-        title: "Missing verification code",
-        description: "Please enter the verification code from your email",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!signUp) return;
-
+  const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
-      const result = await signUp.attemptEmailAddressVerification({
-        code: verificationCode,
-      });
-
-      if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
-        navigate("/home");
-      } else {
-        console.log("Verification incomplete:", result);
-        toast({
-          title: "Verification incomplete",
-          description: "Please try again or request a new code",
-          variant: "destructive",
-        });
-      }
-    } catch (error: any) {
-      console.error("Error verifying email:", error);
-      toast({
-        title: "Verification failed",
-        description: error?.errors?.[0]?.message || "Invalid verification code",
-        variant: "destructive",
-      });
+      await signInWithGoogle();
+    } catch (error) {
+      console.error("Error signing in with Google:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleGoogleSignUp = async () => {
-    if (!signUp) return;
-    
-    setIsLoading(true);
-    try {
-      await signUp.authenticateWithRedirect({
-        strategy: "oauth_google",
-        redirectUrl: "/sso-callback",
-        redirectUrlComplete: "/home",
-      });
-    } catch (error: any) {
-      console.error("Error signing up with Google:", error);
-      toast({
-        title: "Google sign up failed",
-        description: error?.errors?.[0]?.message || "Failed to sign up with Google",
-        variant: "destructive",
-      });
-      setIsLoading(false);
-    }
-  };
-
-  if (pendingVerification) {
+  if (isSignupComplete) {
     return (
       <div className="flex min-h-screen items-center justify-center px-4 py-12 bg-background">
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1 text-center">
             <div className="flex justify-center mb-4">
-              <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white">
+              <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center text-white">
                 <svg 
                   xmlns="http://www.w3.org/2000/svg" 
                   width="24" 
@@ -171,42 +86,30 @@ export default function SignUp() {
                   strokeLinecap="round" 
                   strokeLinejoin="round"
                 >
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                  <polyline points="22,6 12,13 2,6"></polyline>
+                  <polyline points="20 6 9 17 4 12"></polyline>
                 </svg>
               </div>
             </div>
-            <CardTitle className="text-2xl font-bold">Verify your email</CardTitle>
+            <CardTitle className="text-2xl font-bold">Sign Up Successful</CardTitle>
             <CardDescription>
-              We've sent a verification code to <strong>{email}</strong>
+              Check your email to verify your account
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleVerification} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="code">Verification Code</Label>
-                <Input
-                  id="code"
-                  placeholder="Enter verification code"
-                  value={verificationCode}
-                  onChange={(e) => setVerificationCode(e.target.value)}
-                  disabled={isLoading}
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Verifying..." : "Verify Email"}
-              </Button>
-            </form>
-            <div className="mt-4 text-center">
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => setPendingVerification(false)}
-              >
-                ← Back to sign up
-              </Button>
-            </div>
+          <CardContent className="text-center">
+            <p className="mb-4">
+              We've sent a verification email to <strong>{email}</strong>.
+              Please check your inbox and click the verification link.
+            </p>
+            <p className="text-sm text-muted-foreground mb-4">
+              If you don't see the email, check your spam folder or try again.
+            </p>
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => window.location.href = '/auth/sign-in'}
+            >
+              Go to Sign In
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -218,13 +121,7 @@ export default function SignUp() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
-            <div className="w-12 h-12">
-              <img 
-                src="/lovable-uploads/12af9685-d6d3-4f9d-87cf-0aa29d9c78f8.png" 
-                alt="Circl" 
-                className="w-full h-full object-contain"
-              />
-            </div>
+            <div className="w-12 h-12 rounded-full bg-circl-blue flex items-center justify-center text-white font-serif text-2xl">C</div>
           </div>
           <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
           <CardDescription>
@@ -300,7 +197,7 @@ export default function SignUp() {
             type="button"
             variant="outline"
             className="w-full"
-            onClick={handleGoogleSignUp}
+            onClick={handleGoogleSignIn}
             disabled={isLoading}
           >
             <svg viewBox="0 0 24 24" className="h-5 w-5 mr-2" aria-hidden="true">
@@ -327,7 +224,7 @@ export default function SignUp() {
         <CardFooter className="flex justify-center">
           <p className="text-sm text-muted-foreground">
             Already have an account?{" "}
-            <Link to="/signin" className="text-blue-600 hover:text-blue-800 font-medium">
+            <Link to="/auth/sign-in" className="text-blue-600 hover:text-blue-800 font-medium">
               Sign in
             </Link>
           </p>

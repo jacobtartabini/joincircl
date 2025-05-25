@@ -1,6 +1,5 @@
-
 import { useEffect, useState } from "react";
-import { useSignIn, useAuth } from "@clerk/clerk-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,14 +11,36 @@ export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn, setActive } = useSignIn();
-  const { isSignedIn } = useAuth();
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const { signIn, signInWithGoogle, user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  // Check if user is already authenticated on mount
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      // User state from context is sufficient
+      setIsCheckingAuth(false);
+    };
+    
+    checkAuthStatus();
+  }, []);
+
   // If user is already signed in, redirect to the home page
-  if (isSignedIn) {
-    return <Navigate to="/home" replace />;
+  if (user) {
+    return <Navigate to="/" replace />;
+  }
+
+  // Show loading while checking authentication status
+  if (isCheckingAuth) {
+    return (
+      <div className="flex min-h-screen items-center justify-center p-4 bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Checking authentication status...</p>
+        </div>
+      </div>
+    );
   }
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -33,64 +54,25 @@ export default function SignIn() {
       return;
     }
 
-    if (!signIn) {
-      toast({
-        title: "Authentication unavailable",
-        description: "Please try again later",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsLoading(true);
     try {
-      const result = await signIn.create({
-        identifier: email,
-        password,
-      });
-
-      if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
-        navigate("/home");
-      } else {
-        // Handle additional verification steps if needed
-        console.log("Additional verification required:", result);
-        toast({
-          title: "Verification required",
-          description: "Please check your email for verification instructions",
-          variant: "default",
-        });
-      }
-    } catch (error: any) {
+      await signIn(email, password);
+      navigate("/");
+    } catch (error) {
       console.error("Error signing in:", error);
-      toast({
-        title: "Sign in failed",
-        description: error?.errors?.[0]?.message || "Invalid email or password",
-        variant: "destructive",
-      });
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleGoogleSignIn = async () => {
-    if (!signIn) return;
-    
     setIsLoading(true);
     try {
-      await signIn.authenticateWithRedirect({
-        strategy: "oauth_google",
-        redirectUrl: "/sso-callback",
-        redirectUrlComplete: "/home",
-      });
-    } catch (error: any) {
+      await signInWithGoogle();
+      // Note: The redirect to callback page is handled by Supabase OAuth flow
+    } catch (error) {
       console.error("Error signing in with Google:", error);
-      toast({
-        title: "Google sign in failed",
-        description: error?.errors?.[0]?.message || "Failed to sign in with Google",
-        variant: "destructive",
-      });
-      setIsLoading(false);
+      setIsLoading(false); // Only set loading to false if there's an error
     }
   };
 
@@ -129,7 +111,7 @@ export default function SignIn() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Password</Label>
-                <Link to="/forgot-password" className="text-sm text-blue-600 hover:text-blue-800">
+                <Link to="/auth/forgot-password" className="text-sm text-blue-600 hover:text-blue-800">
                   Forgot password?
                 </Link>
               </div>
@@ -190,7 +172,7 @@ export default function SignIn() {
         <CardFooter className="flex justify-center">
           <p className="text-sm text-muted-foreground">
             Don't have an account?{" "}
-            <Link to="/signup" className="text-blue-600 hover:text-blue-800 font-medium">
+            <Link to="/auth/sign-up" className="text-blue-600 hover:text-blue-800 font-medium">
               Sign up
             </Link>
           </p>
