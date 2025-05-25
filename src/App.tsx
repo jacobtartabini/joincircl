@@ -13,9 +13,10 @@ import NotFound from "./pages/NotFound";
 import RedesignedCircles from "@/pages/circles/RedesignedCircles";
 import RedesignedContactDetail from "@/pages/contact/RedesignedContactDetail";
 
-// Authentication pages - now using Clerk
-import ClerkSignIn from "@/pages/auth/ClerkSignIn";
-import ClerkSignUp from "@/pages/auth/ClerkSignUp";
+// Authentication pages - using custom pages
+import SignIn from "@/pages/auth/SignIn";
+import SignUp from "@/pages/auth/SignUp";
+import SSOCallback from "@/pages/auth/SSOCallback";
 
 // Special pages
 import Settings from "@/pages/Settings";
@@ -44,13 +45,14 @@ function App() {
           <Sonner />
           <BrowserRouter>
             <Routes>
-              {/* Public routes */}
-              <Route path="/auth/sign-in" element={<ClerkSignIn />} />
-              <Route path="/auth/sign-up" element={<ClerkSignUp />} />
+              {/* Public routes - using custom auth pages */}
+              <Route path="/signin" element={<SignIn />} />
+              <Route path="/signup" element={<SignUp />} />
+              <Route path="/sso-callback" element={<SSOCallback />} />
               
-              {/* Legacy auth route redirects */}
-              <Route path="/signin" element={<ClerkSignIn />} />
-              <Route path="/signup" element={<ClerkSignUp />} />
+              {/* Legacy auth route redirects to custom pages */}
+              <Route path="/auth/sign-in" element={<SignIn />} />
+              <Route path="/auth/sign-up" element={<SignUp />} />
 
               {/* Protected routes */}
               <Route
@@ -63,6 +65,7 @@ function App() {
                 }
               >
                 <Route path="/" element={<Home />} />
+                <Route path="/home" element={<Home />} />
                 
                 {/* Core application routes */}
                 <Route path="/circles" element={<RedesignedCircles />} />

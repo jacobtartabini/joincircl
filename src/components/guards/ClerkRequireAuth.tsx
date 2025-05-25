@@ -24,9 +24,9 @@ export function ClerkRequireAuth({ children, requiredPermission }: RequireAuthPr
     );
   }
 
-  // Redirect to sign in if not authenticated
+  // Redirect to custom sign in page if not authenticated
   if (!isSignedIn) {
-    return <Navigate to="/auth/sign-in" replace state={{ from: location.pathname }} />;
+    return <Navigate to="/signin" replace state={{ from: location.pathname }} />;
   }
 
   // TODO: Implement permission checking if needed
