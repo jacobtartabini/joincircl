@@ -110,41 +110,30 @@ class EmailService {
     });
   }
 
-  // Get email sending history for a user
+  // Get email sending history for a user (calls edge function)
   async getEmailHistory(userId: string, limit: number = 50) {
     try {
-      const { data, error } = await supabase
-        .from('email_logs')
-        .select('*')
-        .eq('user_id', userId)
-        .order('sent_at', { ascending: false })
-        .limit(limit);
+      const { data, error } = await supabase.functions.invoke('get-email-history', {
+        body: { userId, limit }
+      });
 
       if (error) throw error;
-      return data || [];
+      return data?.history || [];
     } catch (error) {
       console.error('Error fetching email history:', error);
       return [];
     }
   }
 
-  // Check if we can send an email (rate limiting)
+  // Check if we can send an email (calls edge function for rate limiting)
   async canSendEmail(userId: string, emailType: string, cooldownHours: number = 24): Promise<boolean> {
     try {
-      const cutoffTime = new Date();
-      cutoffTime.setHours(cutoffTime.getHours() - cooldownHours);
-
-      const { data, error } = await supabase
-        .from('email_logs')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('email_type', emailType)
-        .eq('status', 'sent')
-        .gte('sent_at', cutoffTime.toISOString())
-        .limit(1);
+      const { data, error } = await supabase.functions.invoke('check-email-cooldown', {
+        body: { userId, emailType, cooldownHours }
+      });
 
       if (error) throw error;
-      return !data || data.length === 0;
+      return data?.canSend || false;
     } catch (error) {
       console.error('Error checking email cooldown:', error);
       return false;

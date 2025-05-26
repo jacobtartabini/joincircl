@@ -198,6 +198,42 @@ export type Database = {
           },
         ]
       }
+      email_logs: {
+        Row: {
+          created_at: string
+          email_type: string
+          error_message: string | null
+          id: string
+          recipient: string
+          resend_id: string | null
+          sent_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_type: string
+          error_message?: string | null
+          id?: string
+          recipient: string
+          resend_id?: string | null
+          sent_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_type?: string
+          error_message?: string | null
+          id?: string
+          recipient?: string
+          resend_id?: string | null
+          sent_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       interactions: {
         Row: {
           contact_id: string
