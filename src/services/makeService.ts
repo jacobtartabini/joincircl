@@ -85,32 +85,24 @@ class MakeService {
 
   async getUserAutomationPreferences(userId: string): Promise<AutomationPreferences | null> {
     try {
-      // Use raw SQL query to avoid TypeScript type issues with new table
-      const { data, error } = await supabase.rpc('exec_sql', {
-        sql: `SELECT * FROM user_automation_preferences WHERE user_id = $1`,
-        params: [userId]
-      }).single();
+      // Direct query to the automation preferences table
+      const { data, error } = await supabase
+        .from('user_automation_preferences')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
-        // If RPC doesn't exist, fall back to direct query
-        const { data: directData, error: directError } = await supabase
-          .from('user_automation_preferences' as any)
-          .select('*')
-          .eq('user_id', userId)
-          .single();
-        
-        if (directError && directError.code !== 'PGRST116') throw directError;
-        
-        if (directData) {
-          return {
-            userId: directData.user_id,
-            reconnectReminderDays: directData.reconnect_reminder_days,
-            weeklyDigestEnabled: directData.weekly_digest_enabled,
-            preferredCommunicationChannel: directData.preferred_communication_channel,
-            digestDay: directData.digest_day,
-            automationsEnabled: directData.automations_enabled
-          };
-        }
+      if (error) {
+        console.error('Error fetching automation preferences:', error);
+        // Return default preferences if none exist
+        return {
+          userId,
+          reconnectReminderDays: 30,
+          weeklyDigestEnabled: true,
+          preferredCommunicationChannel: 'email',
+          digestDay: 'sunday',
+          automationsEnabled: true
+        };
       }
 
       if (data) {
@@ -159,10 +151,15 @@ class MakeService {
       };
 
       const { error } = await supabase
-        .from('user_automation_preferences' as any)
+        .from('user_automation_preferences')
         .upsert(dbPreferences);
 
-      return !error;
+      if (error) {
+        console.error('Error updating automation preferences:', error);
+        return false;
+      }
+
+      return true;
     } catch (error) {
       console.error('Error updating automation preferences:', error);
       return false;
@@ -319,7 +316,7 @@ class MakeService {
   async getAutomationSuggestions(userId: string): Promise<any[]> {
     try {
       const { data, error } = await supabase
-        .from('automation_suggestions' as any)
+        .from('automation_suggestions')
         .select('*')
         .eq('user_id', userId)
         .eq('is_read', false)
@@ -336,7 +333,7 @@ class MakeService {
   async markSuggestionAsRead(suggestionId: string): Promise<boolean> {
     try {
       const { error } = await supabase
-        .from('automation_suggestions' as any)
+        .from('automation_suggestions')
         .update({ is_read: true })
         .eq('id', suggestionId);
 
