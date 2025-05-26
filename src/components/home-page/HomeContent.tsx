@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { WelcomeBanner } from './WelcomeBanner';
@@ -6,6 +5,7 @@ import { useContacts } from '@/hooks/use-contacts';
 import { DashboardStats } from './DashboardStats';
 import NetworkRecommendations from '../home/NetworkRecommendations';
 import WeeklyAIInsights from '../ai/WeeklyAIInsights';
+import AIRelationshipDashboard from '../ai/AIRelationshipDashboard';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { ArrowRight, Plus } from 'lucide-react';
@@ -89,6 +89,9 @@ const HomeContent: React.FC = () => {
         followUpStats={contactStatsData.followUpStats}
         isLoading={isLoading}
       />
+      
+      {/* AI Relationship Assistant - Featured prominently */}
+      <AIRelationshipDashboard contacts={contacts} />
       
       {/* Main content area with responsive layout */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
