@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface MakeWebhookData {
@@ -106,12 +105,17 @@ class MakeService {
       }
 
       if (data) {
+        // Ensure proper type casting with validation
+        const preferredChannel = data.preferred_communication_channel;
+        const digestDay = data.digest_day;
+        
         return {
           userId: data.user_id,
           reconnectReminderDays: data.reconnect_reminder_days,
           weeklyDigestEnabled: data.weekly_digest_enabled,
-          preferredCommunicationChannel: data.preferred_communication_channel,
-          digestDay: data.digest_day,
+          preferredCommunicationChannel: (preferredChannel === 'email' || preferredChannel === 'sms' || preferredChannel === 'in-app') 
+            ? preferredChannel : 'email',
+          digestDay: (digestDay === 'sunday' || digestDay === 'monday') ? digestDay : 'sunday',
           automationsEnabled: data.automations_enabled
         };
       }
