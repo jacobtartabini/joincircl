@@ -9,6 +9,47 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      automation_suggestions: {
+        Row: {
+          contact_id: string | null
+          created_at: string
+          id: string
+          is_read: boolean
+          suggestion: string
+          type: string
+          urgency: string
+          user_id: string
+        }
+        Insert: {
+          contact_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          suggestion: string
+          type: string
+          urgency?: string
+          user_id: string
+        }
+        Update: {
+          contact_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          suggestion?: string
+          type?: string
+          urgency?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_suggestions_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_media: {
         Row: {
           contact_id: string
@@ -259,6 +300,47 @@ export type Database = {
           },
         ]
       }
+      message_automations: {
+        Row: {
+          channel: string
+          contact_id: string | null
+          created_at: string
+          id: string
+          message: string
+          sent_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          channel: string
+          contact_id?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          sent_at?: string | null
+          status: string
+          user_id: string
+        }
+        Update: {
+          channel?: string
+          contact_id?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          sent_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_automations_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -286,6 +368,75 @@ export type Database = {
           has_seen_tutorial?: boolean | null
           id?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      sync_logs: {
+        Row: {
+          contact_count: number
+          created_at: string
+          direction: string
+          error_message: string | null
+          id: string
+          platform: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          contact_count?: number
+          created_at?: string
+          direction: string
+          error_message?: string | null
+          id?: string
+          platform: string
+          status: string
+          user_id: string
+        }
+        Update: {
+          contact_count?: number
+          created_at?: string
+          direction?: string
+          error_message?: string | null
+          id?: string
+          platform?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_automation_preferences: {
+        Row: {
+          automations_enabled: boolean
+          created_at: string
+          digest_day: string
+          id: string
+          preferred_communication_channel: string
+          reconnect_reminder_days: number
+          updated_at: string
+          user_id: string
+          weekly_digest_enabled: boolean
+        }
+        Insert: {
+          automations_enabled?: boolean
+          created_at?: string
+          digest_day?: string
+          id?: string
+          preferred_communication_channel?: string
+          reconnect_reminder_days?: number
+          updated_at?: string
+          user_id: string
+          weekly_digest_enabled?: boolean
+        }
+        Update: {
+          automations_enabled?: boolean
+          created_at?: string
+          digest_day?: string
+          id?: string
+          preferred_communication_channel?: string
+          reconnect_reminder_days?: number
+          updated_at?: string
+          user_id?: string
+          weekly_digest_enabled?: boolean
         }
         Relationships: []
       }
@@ -391,6 +542,33 @@ export type Database = {
           updated_at?: string
           user_id?: string
           username?: string
+        }
+        Relationships: []
+      }
+      weekly_digests: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          interaction_count: number
+          stats: Json | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          interaction_count?: number
+          stats?: Json | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          interaction_count?: number
+          stats?: Json | null
+          user_id?: string
         }
         Relationships: []
       }

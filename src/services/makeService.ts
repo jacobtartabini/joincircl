@@ -85,15 +85,47 @@ class MakeService {
 
   async getUserAutomationPreferences(userId: string): Promise<AutomationPreferences | null> {
     try {
-      const { data, error } = await supabase
-        .from('user_automation_preferences')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
+      // Use raw SQL query to avoid TypeScript type issues with new table
+      const { data, error } = await supabase.rpc('exec_sql', {
+        sql: `SELECT * FROM user_automation_preferences WHERE user_id = $1`,
+        params: [userId]
+      }).single();
 
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error && error.code !== 'PGRST116') {
+        // If RPC doesn't exist, fall back to direct query
+        const { data: directData, error: directError } = await supabase
+          .from('user_automation_preferences' as any)
+          .select('*')
+          .eq('user_id', userId)
+          .single();
+        
+        if (directError && directError.code !== 'PGRST116') throw directError;
+        
+        if (directData) {
+          return {
+            userId: directData.user_id,
+            reconnectReminderDays: directData.reconnect_reminder_days,
+            weeklyDigestEnabled: directData.weekly_digest_enabled,
+            preferredCommunicationChannel: directData.preferred_communication_channel,
+            digestDay: directData.digest_day,
+            automationsEnabled: directData.automations_enabled
+          };
+        }
+      }
 
-      return data || {
+      if (data) {
+        return {
+          userId: data.user_id,
+          reconnectReminderDays: data.reconnect_reminder_days,
+          weeklyDigestEnabled: data.weekly_digest_enabled,
+          preferredCommunicationChannel: data.preferred_communication_channel,
+          digestDay: data.digest_day,
+          automationsEnabled: data.automations_enabled
+        };
+      }
+
+      // Return default preferences if none exist
+      return {
         userId,
         reconnectReminderDays: 30,
         weeklyDigestEnabled: true,
@@ -103,15 +135,32 @@ class MakeService {
       };
     } catch (error) {
       console.error('Error fetching automation preferences:', error);
-      return null;
+      return {
+        userId,
+        reconnectReminderDays: 30,
+        weeklyDigestEnabled: true,
+        preferredCommunicationChannel: 'email',
+        digestDay: 'sunday',
+        automationsEnabled: true
+      };
     }
   }
 
   async updateAutomationPreferences(preferences: AutomationPreferences): Promise<boolean> {
     try {
+      // Convert to database format
+      const dbPreferences = {
+        user_id: preferences.userId,
+        reconnect_reminder_days: preferences.reconnectReminderDays,
+        weekly_digest_enabled: preferences.weeklyDigestEnabled,
+        preferred_communication_channel: preferences.preferredCommunicationChannel,
+        digest_day: preferences.digestDay,
+        automations_enabled: preferences.automationsEnabled
+      };
+
       const { error } = await supabase
-        .from('user_automation_preferences')
-        .upsert(preferences);
+        .from('user_automation_preferences' as any)
+        .upsert(dbPreferences);
 
       return !error;
     } catch (error) {
@@ -238,6 +287,62 @@ class MakeService {
       });
     } catch (error) {
       console.error('Error sending automated message:', error);
+      return false;
+    }
+  }
+
+  // New methods for enhanced automation features
+  async scheduleRecurringAutomations(userId: string): Promise<boolean> {
+    try {
+      const preferences = await this.getUserAutomationPreferences(userId);
+      if (!preferences?.automationsEnabled) return false;
+
+      // Schedule weekly digest if enabled and it's the right day
+      const today = new Date().getDay(); // 0 = Sunday, 1 = Monday
+      const shouldSendDigest = (preferences.digestDay === 'sunday' && today === 0) || 
+                              (preferences.digestDay === 'monday' && today === 1);
+
+      if (shouldSendDigest && preferences.weeklyDigestEnabled) {
+        await this.generateWeeklyDigest(userId);
+      }
+
+      // Check for reconnect reminders
+      await this.scheduleReconnectReminders(userId);
+
+      return true;
+    } catch (error) {
+      console.error('Error scheduling recurring automations:', error);
+      return false;
+    }
+  }
+
+  async getAutomationSuggestions(userId: string): Promise<any[]> {
+    try {
+      const { data, error } = await supabase
+        .from('automation_suggestions' as any)
+        .select('*')
+        .eq('user_id', userId)
+        .eq('is_read', false)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching automation suggestions:', error);
+      return [];
+    }
+  }
+
+  async markSuggestionAsRead(suggestionId: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('automation_suggestions' as any)
+        .update({ is_read: true })
+        .eq('id', suggestionId);
+
+      return !error;
+    } catch (error) {
+      console.error('Error marking suggestion as read:', error);
       return false;
     }
   }

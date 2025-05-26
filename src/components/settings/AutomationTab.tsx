@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   Zap, 
   Mail, 
@@ -17,7 +18,11 @@ import {
   Settings,
   Clock,
   Smartphone,
-  Globe
+  Globe,
+  Brain,
+  CheckCircle,
+  AlertCircle,
+  Info
 } from "lucide-react";
 import { makeService, AutomationPreferences } from "@/services/makeService";
 import { toast } from "sonner";
@@ -35,10 +40,12 @@ export default function AutomationTab() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
 
   useEffect(() => {
     if (user?.id) {
       loadPreferences();
+      loadSuggestions();
     }
   }, [user?.id]);
 
@@ -54,6 +61,15 @@ export default function AutomationTab() {
       toast.error('Failed to load automation preferences');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadSuggestions = async () => {
+    try {
+      const automationSuggestions = await makeService.getAutomationSuggestions(user!.id);
+      setSuggestions(automationSuggestions);
+    } catch (error) {
+      console.error('Error loading suggestions:', error);
     }
   };
 
@@ -95,12 +111,35 @@ export default function AutomationTab() {
 
       if (success) {
         toast.success(`${type} automation triggered successfully`);
+        if (type === 'reconnect') {
+          loadSuggestions(); // Refresh suggestions after reconnect automation
+        }
       } else {
         toast.error(`Failed to trigger ${type} automation`);
       }
     } catch (error) {
       console.error(`Error testing ${type} automation:`, error);
       toast.error(`Failed to test ${type} automation`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const scheduleRecurringAutomations = async () => {
+    if (!user?.id) return;
+
+    setIsLoading(true);
+    try {
+      const success = await makeService.scheduleRecurringAutomations(user.id);
+      if (success) {
+        toast.success('Recurring automations scheduled successfully');
+        loadSuggestions();
+      } else {
+        toast.error('Failed to schedule recurring automations');
+      }
+    } catch (error) {
+      console.error('Error scheduling recurring automations:', error);
+      toast.error('Failed to schedule recurring automations');
     } finally {
       setIsLoading(false);
     }
@@ -113,18 +152,26 @@ export default function AutomationTab() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold mb-2">Automation Settings</h2>
+        <h2 className="text-xl font-semibold mb-2">Make.com Automation Settings</h2>
         <p className="text-muted-foreground">
-          Configure Make.com automations to enhance your relationship management
+          Configure powerful Make.com automations to enhance your relationship management
         </p>
       </div>
+
+      {/* Integration Status Alert */}
+      <Alert>
+        <CheckCircle className="h-4 w-4" />
+        <AlertDescription>
+          Make.com integration is active and connected. Your automations will run securely through Make's platform.
+        </AlertDescription>
+      </Alert>
 
       {/* Main Automation Toggle */}
       <Card>
         <CardHeader className="flex flex-row items-center gap-2">
           <Zap className="h-5 w-5 text-primary" />
           <div>
-            <CardTitle>Automation Status</CardTitle>
+            <CardTitle>Automation Master Control</CardTitle>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -144,21 +191,64 @@ export default function AutomationTab() {
             />
           </div>
           
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Badge variant={preferences.automationsEnabled ? "default" : "secondary"}>
               {preferences.automationsEnabled ? "Active" : "Inactive"}
             </Badge>
             <Badge variant="outline">Make.com Integration</Badge>
+            <Badge variant="outline">OpenRouter AI</Badge>
           </div>
+
+          <Button
+            onClick={scheduleRecurringAutomations}
+            disabled={isLoading || !preferences.automationsEnabled}
+            className="w-full"
+          >
+            <Brain className="h-4 w-4 mr-2" />
+            Run All Automations Now
+          </Button>
         </CardContent>
       </Card>
+
+      {/* AI Suggestions */}
+      {suggestions.length > 0 && (
+        <Card>
+          <CardHeader className="flex flex-row items-center gap-2">
+            <Brain className="h-5 w-5 text-primary" />
+            <div>
+              <CardTitle>AI Automation Suggestions</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {suggestions.slice(0, 3).map((suggestion) => (
+              <div key={suggestion.id} className="p-3 border rounded-lg">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <Badge variant="outline" className="mb-2">
+                      {suggestion.urgency} priority
+                    </Badge>
+                    <p className="text-sm">{suggestion.suggestion}</p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => makeService.markSuggestionAsRead(suggestion.id)}
+                  >
+                    <CheckCircle className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Reconnect Reminders */}
       <Card>
         <CardHeader className="flex flex-row items-center gap-2">
           <Users className="h-5 w-5 text-primary" />
           <div>
-            <CardTitle>Reconnect Reminders</CardTitle>
+            <CardTitle>Smart Reconnect Reminders</CardTitle>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -177,7 +267,7 @@ export default function AutomationTab() {
               max="365"
             />
             <p className="text-xs text-muted-foreground">
-              Get reminders for contacts you haven't spoken to in this many days
+              Get AI-powered reminders for contacts you haven't spoken to in this many days
             </p>
           </div>
 
@@ -196,13 +286,13 @@ export default function AutomationTab() {
                 <SelectItem value="email">
                   <div className="flex items-center gap-2">
                     <Mail className="h-4 w-4" />
-                    Email
+                    Email (via Gmail/Outlook)
                   </div>
                 </SelectItem>
                 <SelectItem value="sms">
                   <div className="flex items-center gap-2">
                     <Smartphone className="h-4 w-4" />
-                    SMS
+                    SMS (via Twilio)
                   </div>
                 </SelectItem>
                 <SelectItem value="in-app">
@@ -214,6 +304,13 @@ export default function AutomationTab() {
               </SelectContent>
             </Select>
           </div>
+
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              Uses OpenRouter AI to generate personalized reconnection messages based on your relationship history
+            </AlertDescription>
+          </Alert>
 
           <Button
             variant="outline"
@@ -231,7 +328,7 @@ export default function AutomationTab() {
         <CardHeader className="flex flex-row items-center gap-2">
           <Calendar className="h-5 w-5 text-primary" />
           <div>
-            <CardTitle>Weekly Digest</CardTitle>
+            <CardTitle>AI-Powered Weekly Digest</CardTitle>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -239,7 +336,7 @@ export default function AutomationTab() {
             <div>
               <Label htmlFor="weekly-digest">Enable Weekly Digest</Label>
               <p className="text-sm text-muted-foreground">
-                Receive a personalized weekly summary of your network activity
+                Receive AI-generated insights about your network activity and suggestions
               </p>
             </div>
             <Switch
@@ -263,11 +360,18 @@ export default function AutomationTab() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="sunday">Sunday</SelectItem>
-                <SelectItem value="monday">Monday</SelectItem>
+                <SelectItem value="sunday">Sunday Morning</SelectItem>
+                <SelectItem value="monday">Monday Morning</SelectItem>
               </SelectContent>
             </Select>
           </div>
+
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              Weekly digest includes relationship analytics, celebration reminders, and personalized action items
+            </AlertDescription>
+          </Alert>
 
           <Button
             variant="outline"
@@ -275,7 +379,7 @@ export default function AutomationTab() {
             disabled={isLoading || !preferences.weeklyDigestEnabled}
           >
             <Calendar className="h-4 w-4 mr-2" />
-            Test Weekly Digest
+            Generate Test Digest
           </Button>
         </CardContent>
       </Card>
@@ -285,7 +389,7 @@ export default function AutomationTab() {
         <CardHeader className="flex flex-row items-center gap-2">
           <Globe className="h-5 w-5 text-primary" />
           <div>
-            <CardTitle>Contact Sync</CardTitle>
+            <CardTitle>Contact Synchronization</CardTitle>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -293,7 +397,14 @@ export default function AutomationTab() {
             Sync your Circl contacts with external platforms via Make.com automations
           </p>
 
-          <div className="flex gap-2">
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              Supports Google Contacts, Outlook, CRM platforms, and calendar event creation for scheduled reconnects
+            </AlertDescription>
+          </Alert>
+
+          <div className="flex gap-2 flex-wrap">
             <Button
               variant="outline"
               onClick={() => testAutomation('sync')}
@@ -302,6 +413,40 @@ export default function AutomationTab() {
               <Globe className="h-4 w-4 mr-2" />
               Test Google Sync
             </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Future Automation Features */}
+      <Card>
+        <CardHeader className="flex flex-row items-center gap-2">
+          <Settings className="h-5 w-5 text-primary" />
+          <div>
+            <CardTitle>Advanced Automation Features</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="p-3 border rounded-lg">
+              <h4 className="font-medium mb-1">Birthday Reminders</h4>
+              <p className="text-xs text-muted-foreground">Automatic celebration alerts</p>
+              <Badge variant="outline" className="mt-2">Coming Soon</Badge>
+            </div>
+            <div className="p-3 border rounded-lg">
+              <h4 className="font-medium mb-1">Meeting Scheduling</h4>
+              <p className="text-xs text-muted-foreground">Calendar integration for reconnects</p>
+              <Badge variant="outline" className="mt-2">Coming Soon</Badge>
+            </div>
+            <div className="p-3 border rounded-lg">
+              <h4 className="font-medium mb-1">CRM Integration</h4>
+              <p className="text-xs text-muted-foreground">Salesforce, HubSpot sync</p>
+              <Badge variant="outline" className="mt-2">Coming Soon</Badge>
+            </div>
+            <div className="p-3 border rounded-lg">
+              <h4 className="font-medium mb-1">Social Media Sync</h4>
+              <p className="text-xs text-muted-foreground">LinkedIn, Twitter updates</p>
+              <Badge variant="outline" className="mt-2">Coming Soon</Badge>
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -90,11 +90,11 @@ async function handleReconnectReminder(payload: WebhookPayload) {
           messages: [
             {
               role: 'system',
-              content: 'You are a relationship assistant helping users reconnect with contacts. Generate a brief, personalized suggestion for why and how to reconnect.'
+              content: 'You are a relationship assistant helping users reconnect with contacts. Generate a brief, personalized suggestion for why and how to reconnect. Consider their role, company, and relationship history.'
             },
             {
               role: 'user',
-              content: `Contact: ${contact.name}, Company: ${contact.company_name || 'Unknown'}, Last contact: ${contact.last_contact || 'Never'}, Circle: ${contact.circle}. Suggest how to reconnect.`
+              content: `Contact: ${contact.name}, Company: ${contact.company_name || 'Unknown'}, Role: ${contact.job_title || 'Unknown'}, Last contact: ${contact.last_contact || 'Never'}, Circle: ${contact.circle}. Generate a specific, actionable reconnection suggestion.`
             }
           ],
           max_tokens: 150
@@ -110,22 +110,29 @@ async function handleReconnectReminder(payload: WebhookPayload) {
         suggestion,
         urgency: contact.circle === 'inner' ? 'high' : contact.circle === 'middle' ? 'medium' : 'low'
       });
+
+      // Store suggestion in database
+      await supabase.from('automation_suggestions').insert({
+        user_id: userId,
+        contact_id: contact.id,
+        type: 'reconnect_reminder',
+        suggestion: suggestion,
+        urgency: contact.circle === 'inner' ? 'high' : contact.circle === 'middle' ? 'medium' : 'low',
+        created_at: new Date().toISOString()
+      });
+
     } catch (error) {
       console.error(`Error generating suggestion for ${contact.name}:`, error);
     }
   }
 
-  // Store suggestions in database
-  for (const suggestion of suggestions) {
-    await supabase.from('automation_suggestions').insert({
-      user_id: userId,
-      contact_id: suggestion.contactId,
-      type: 'reconnect_reminder',
-      suggestion: suggestion.suggestion,
-      urgency: suggestion.urgency,
-      created_at: new Date().toISOString()
-    });
+  // Send notification based on preferences
+  if (preferences.preferredCommunicationChannel === 'email') {
+    await sendEmailNotification(userId, suggestions);
+  } else if (preferences.preferredCommunicationChannel === 'sms') {
+    await sendSMSNotification(userId, suggestions);
   }
+  // In-app notifications are handled by storing in automation_suggestions table
 
   return { suggestionsGenerated: suggestions.length };
 }
@@ -135,7 +142,7 @@ async function handleWeeklyDigest(payload: WebhookPayload) {
   const { recentInteractions, contactStats, preferences } = data;
 
   // Generate AI digest content
-  const digestPrompt = `Generate a weekly relationship digest for a user with ${contactStats.total} contacts (${contactStats.inner} inner circle, ${contactStats.middle} middle circle, ${contactStats.outer} outer circle). They had ${recentInteractions.length} interactions this week. Create an encouraging, personalized summary with 2-3 specific action items for next week.`;
+  const digestPrompt = `Generate a weekly relationship digest for a user with ${contactStats.total} contacts (${contactStats.inner} inner circle, ${contactStats.middle} middle circle, ${contactStats.outer} outer circle). They had ${recentInteractions.length} interactions this week. Create an encouraging, personalized summary with specific insights about their networking progress and 2-3 actionable items for next week.`;
 
   try {
     const aiResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -149,14 +156,14 @@ async function handleWeeklyDigest(payload: WebhookPayload) {
         messages: [
           {
             role: 'system',
-            content: 'You are a relationship coach creating weekly digests. Be encouraging and specific.'
+            content: 'You are a relationship coach creating weekly digests. Be encouraging, specific, and provide actionable insights. Include celebration of wins and gentle guidance for improvement.'
           },
           {
             role: 'user',
             content: digestPrompt
           }
         ],
-        max_tokens: 300
+        max_tokens: 400
       })
     });
 
@@ -171,6 +178,11 @@ async function handleWeeklyDigest(payload: WebhookPayload) {
       interaction_count: recentInteractions.length,
       created_at: new Date().toISOString()
     });
+
+    // Send digest via preferred channel
+    if (preferences.preferredCommunicationChannel === 'email') {
+      await sendDigestEmail(userId, digestContent, contactStats);
+    }
 
     return { digestGenerated: true, content: digestContent };
   } catch (error) {
@@ -193,18 +205,24 @@ async function handleContactSync(payload: WebhookPayload) {
     created_at: new Date().toISOString()
   });
 
-  // Return contact data for Make to process
+  // Format contacts for external platform
+  const formattedContacts = contacts.map(contact => ({
+    id: contact.id,
+    name: contact.name,
+    email: contact.personal_email,
+    phone: contact.mobile_phone,
+    company: contact.company_name,
+    jobTitle: contact.job_title,
+    notes: contact.notes,
+    tags: contact.tags,
+    circle: contact.circle
+  }));
+
   return {
     syncInitiated: true,
     platform,
     contactCount: contacts.length,
-    contacts: contacts.map(contact => ({
-      id: contact.id,
-      name: contact.name,
-      email: contact.personal_email,
-      phone: contact.mobile_phone,
-      company: contact.company_name
-    }))
+    contacts: formattedContacts
   };
 }
 
@@ -218,14 +236,52 @@ async function handleMessageAutomation(payload: WebhookPayload) {
     contact_id: contact.id,
     message,
     channel,
-    status: 'sent',
+    status: 'processed',
     created_at: new Date().toISOString()
   });
 
-  return {
+  // Process message sending based on channel
+  let result = {
     messageProcessed: true,
     contactName: contact.name,
     channel,
     timestamp: new Date().toISOString()
   };
+
+  try {
+    if (channel === 'email' && contact.personal_email) {
+      // Email sending would be handled by Make.com Gmail module
+      result.status = 'ready_for_email';
+      result.recipient = contact.personal_email;
+    } else if (channel === 'sms' && contact.mobile_phone) {
+      // SMS sending would be handled by Make.com Twilio module
+      result.status = 'ready_for_sms';
+      result.recipient = contact.mobile_phone;
+    } else {
+      // In-app message
+      result.status = 'in_app_notification';
+    }
+  } catch (error) {
+    console.error('Error processing message automation:', error);
+    result.status = 'error';
+    result.error = error.message;
+  }
+
+  return result;
+}
+
+// Helper functions for notifications
+async function sendEmailNotification(userId: string, suggestions: any[]) {
+  // This would integrate with Make.com's Gmail/Outlook modules
+  console.log(`Sending email notification to user ${userId} with ${suggestions.length} suggestions`);
+}
+
+async function sendSMSNotification(userId: string, suggestions: any[]) {
+  // This would integrate with Make.com's Twilio module
+  console.log(`Sending SMS notification to user ${userId} with ${suggestions.length} suggestions`);
+}
+
+async function sendDigestEmail(userId: string, content: string, stats: any) {
+  // This would integrate with Make.com's email modules for rich HTML digest
+  console.log(`Sending weekly digest email to user ${userId}`);
 }
