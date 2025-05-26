@@ -2,8 +2,6 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -12,55 +10,56 @@ import {
   Brain, 
   MessageSquare, 
   Settings, 
-  Send, 
   Sparkles,
   Users,
   Calendar,
-  TrendingUp
+  TrendingUp,
+  Zap,
+  Target
 } from "lucide-react";
 import { useContacts } from "@/hooks/use-contacts";
-import AIRelationshipDashboard from "@/components/ai/AIRelationshipDashboard";
-import { UserPreferences } from "@/services/aiRelationshipAssistant";
+import SmartRecommendationEngine from "@/components/ai/SmartRecommendationEngine";
+import EnhancedAIChat from "@/components/ai/EnhancedAIChat";
+import { UserPersonality } from "@/services/advancedAiAssistant";
 
 export default function AIAssistant() {
   const { contacts } = useContacts();
-  const [chatMessage, setChatMessage] = useState("");
-  const [chatHistory, setChatHistory] = useState<Array<{role: 'user' | 'assistant', message: string}>>([]);
-  const [userPreferences, setUserPreferences] = useState<UserPreferences>({
+  const [userPersonality, setUserPersonality] = useState<UserPersonality>({
     communicationStyle: 'mixed',
+    preferredPlatforms: ['text', 'email'],
+    messageLength: 'medium',
     frequency: 'weekly',
     focusAreas: ['personal', 'professional'],
-    messageLength: 'medium'
+    proactivityLevel: 'medium',
+    relationshipGoals: ['stay connected', 'grow network'],
+    voiceTone: 'warm and genuine'
   });
 
-  const handleSendMessage = () => {
-    if (!chatMessage.trim()) return;
-    
-    // Add user message to chat
-    setChatHistory(prev => [...prev, { role: 'user', message: chatMessage }]);
-    
-    // Simulate AI response (you can integrate with your AI service here)
-    const responses = [
-      "I'd be happy to help you strengthen your relationships! Let me analyze your network and provide some personalized suggestions.",
-      "Based on your recent activity, I notice you haven't connected with Sarah in a while. She's in your inner circle - might be worth reaching out!",
-      "Looking at your network, I see some great opportunities for professional growth. Would you like me to suggest some strategic connections to nurture?",
-      "I can help you craft a message for any of your contacts. Just let me know who you'd like to reach out to and the context!"
-    ];
-    
-    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-    
-    setTimeout(() => {
-      setChatHistory(prev => [...prev, { role: 'assistant', message: randomResponse }]);
-    }, 1000);
-    
-    setChatMessage("");
-  };
-
   const quickActions = [
-    { icon: Users, label: "Analyze My Network", description: "Get insights on relationship patterns" },
-    { icon: MessageSquare, label: "Suggest Reconnections", description: "Find people to reach out to" },
-    { icon: Calendar, label: "Upcoming Birthdays", description: "Never miss important dates" },
-    { icon: TrendingUp, label: "Relationship Goals", description: "Set and track connection goals" }
+    { 
+      icon: Target, 
+      label: "Priority Recommendations", 
+      description: "See who needs your attention most",
+      color: "text-red-500"
+    },
+    { 
+      icon: MessageSquare, 
+      label: "Smart Message Drafts", 
+      description: "AI-crafted messages for every relationship",
+      color: "text-blue-500"
+    },
+    { 
+      icon: Calendar, 
+      label: "Celebration Alerts", 
+      description: "Never miss birthdays and milestones",
+      color: "text-green-500"
+    },
+    { 
+      icon: TrendingUp, 
+      label: "Growth Opportunities", 
+      description: "Expand your network strategically",
+      color: "text-purple-500"
+    }
   ];
 
   return (
@@ -74,15 +73,29 @@ export default function AIAssistant() {
         <p className="text-muted-foreground">
           Your intelligent companion for building and maintaining meaningful connections
         </p>
+        <div className="flex justify-center gap-2 flex-wrap">
+          <Badge variant="outline" className="bg-purple-50">
+            Context-Aware
+          </Badge>
+          <Badge variant="outline" className="bg-blue-50">
+            Personalized
+          </Badge>
+          <Badge variant="outline" className="bg-green-50">
+            Proactive
+          </Badge>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main AI Dashboard */}
+        {/* Main AI Engine */}
         <div className="lg:col-span-2">
-          <AIRelationshipDashboard contacts={contacts} />
+          <SmartRecommendationEngine 
+            contacts={contacts} 
+            userPersonality={userPersonality}
+          />
         </div>
 
-        {/* Chat Interface and Settings */}
+        {/* Chat and Settings */}
         <div className="space-y-6">
           {/* Quick Actions */}
           <Card>
@@ -98,14 +111,8 @@ export default function AIAssistant() {
                   key={index}
                   variant="outline"
                   className="w-full justify-start h-auto p-3"
-                  onClick={() => {
-                    setChatHistory(prev => [...prev, 
-                      { role: 'user', message: action.label },
-                      { role: 'assistant', message: `I'll help you with ${action.description.toLowerCase()}. Let me analyze your data...` }
-                    ]);
-                  }}
                 >
-                  <action.icon className="h-4 w-4 mr-2 flex-shrink-0" />
+                  <action.icon className={`h-4 w-4 mr-2 flex-shrink-0 ${action.color}`} />
                   <div className="text-left">
                     <div className="font-medium">{action.label}</div>
                     <div className="text-xs text-muted-foreground">{action.description}</div>
@@ -115,103 +122,51 @@ export default function AIAssistant() {
             </CardContent>
           </Card>
 
-          {/* Chat Interface */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <MessageSquare className="h-5 w-5" />
-                Chat with Assistant
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {/* Chat History */}
-                <div className="h-64 border rounded-lg p-3 overflow-y-auto space-y-3">
-                  {chatHistory.length === 0 ? (
-                    <div className="text-center text-muted-foreground py-8">
-                      <Brain className="h-8 w-8 mx-auto mb-2" />
-                      <p>Start a conversation! Ask me about your relationships, get suggestions, or request help with outreach.</p>
-                    </div>
-                  ) : (
-                    chatHistory.map((msg, index) => (
-                      <div
-                        key={index}
-                        className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div
-                          className={`max-w-[80%] p-2 rounded-lg text-sm ${
-                            msg.role === 'user'
-                              ? 'bg-primary text-primary-foreground'
-                              : 'bg-muted'
-                          }`}
-                        >
-                          {msg.message}
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-
-                {/* Message Input */}
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Ask me anything about your relationships..."
-                    value={chatMessage}
-                    onChange={(e) => setChatMessage(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                  />
-                  <Button onClick={handleSendMessage} size="sm">
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Preferences */}
+          {/* AI Personality Settings */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Settings className="h-5 w-5" />
-                Preferences
+                AI Personality
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label>Communication Style</Label>
                 <Select
-                  value={userPreferences.communicationStyle}
-                  onValueChange={(value: 'casual' | 'professional' | 'mixed') =>
-                    setUserPreferences(prev => ({ ...prev, communicationStyle: value }))
+                  value={userPersonality.communicationStyle}
+                  onValueChange={(value: UserPersonality['communicationStyle']) =>
+                    setUserPersonality(prev => ({ ...prev, communicationStyle: value }))
                   }
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="casual">Casual</SelectItem>
+                    <SelectItem value="casual">Casual & Relaxed</SelectItem>
                     <SelectItem value="professional">Professional</SelectItem>
-                    <SelectItem value="mixed">Mixed</SelectItem>
+                    <SelectItem value="warm">Warm & Personal</SelectItem>
+                    <SelectItem value="direct">Direct & Clear</SelectItem>
+                    <SelectItem value="mixed">Adaptive</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <Label>Suggestion Frequency</Label>
+                <Label>Proactivity Level</Label>
                 <Select
-                  value={userPreferences.frequency}
-                  onValueChange={(value: 'daily' | 'weekly' | 'biweekly' | 'monthly') =>
-                    setUserPreferences(prev => ({ ...prev, frequency: value }))
+                  value={userPersonality.proactivityLevel}
+                  onValueChange={(value: UserPersonality['proactivityLevel']) =>
+                    setUserPersonality(prev => ({ ...prev, proactivityLevel: value }))
                   }
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="daily">Daily</SelectItem>
-                    <SelectItem value="weekly">Weekly</SelectItem>
-                    <SelectItem value="biweekly">Bi-weekly</SelectItem>
-                    <SelectItem value="monthly">Monthly</SelectItem>
+                    <SelectItem value="low">Low - Only when asked</SelectItem>
+                    <SelectItem value="medium">Medium - Weekly insights</SelectItem>
+                    <SelectItem value="high">High - Daily suggestions</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -219,24 +174,33 @@ export default function AIAssistant() {
               <div className="space-y-2">
                 <Label>Message Length</Label>
                 <Select
-                  value={userPreferences.messageLength}
-                  onValueChange={(value: 'short' | 'medium' | 'long') =>
-                    setUserPreferences(prev => ({ ...prev, messageLength: value }))
+                  value={userPersonality.messageLength}
+                  onValueChange={(value: UserPersonality['messageLength']) =>
+                    setUserPersonality(prev => ({ ...prev, messageLength: value }))
                   }
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="short">Short</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="long">Long</SelectItem>
+                    <SelectItem value="short">Short & Concise</SelectItem>
+                    <SelectItem value="medium">Medium Length</SelectItem>
+                    <SelectItem value="long">Detailed & Thoughtful</SelectItem>
+                    <SelectItem value="adaptive">Adaptive to Context</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </CardContent>
           </Card>
         </div>
+      </div>
+
+      {/* Enhanced Chat Interface */}
+      <div className="mt-8">
+        <EnhancedAIChat 
+          contacts={contacts} 
+          userPersonality={userPersonality}
+        />
       </div>
     </div>
   );
