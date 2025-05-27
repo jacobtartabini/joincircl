@@ -47,43 +47,47 @@ export default function SimplifiedAIChat({ contacts }: SimplifiedAIChatProps) {
     setIsLoading(true);
 
     try {
-      // Create context about the user's network
-      const networkContext = `The user has ${contacts.length} contacts in their network.`;
+      // Create focused network context
+      const networkSummary = `Network: ${contacts.length} contacts (${contacts.filter(c => c.circle === 'inner').length} inner, ${contacts.filter(c => c.circle === 'middle').length} middle, ${contacts.filter(c => c.circle === 'outer').length} outer)`;
       
-      // Get a sample of contacts for context (limit to avoid token overuse)
-      const sampleContacts = contacts.slice(0, 3);
-      const contactContext = sampleContacts.length > 0 
-        ? `Sample contacts: ${sampleContacts.map(c => 
-            `${c.name} (${c.circle} circle${c.company_name ? `, works at ${c.company_name}` : ''}${c.last_contact ? `, last contacted: ${new Date(c.last_contact).toLocaleDateString()}` : ''})`
+      // Sample recent contacts for context
+      const recentContacts = contacts.slice(0, 3);
+      const contactContext = recentContacts.length > 0 
+        ? `Recent contacts: ${recentContacts.map(c => 
+            `${c.name} (${c.circle}${c.last_contact ? `, last: ${new Date(c.last_contact).toLocaleDateString()}` : ''})`
           ).join(', ')}`
-        : 'No contacts in network yet.';
+        : 'No contacts yet';
 
-      // Create a comprehensive system prompt for relationship assistance
-      const systemPrompt = `You are a helpful relationship assistant for Circl, a relationship management app. 
-      
-      Help users with:
-      - Relationship management and networking advice
-      - Contact organization strategies
-      - Communication tips and best practices
-      - Building and maintaining professional and personal relationships
-      - Follow-up strategies and timing
-      - Networking event preparation
-      - Reconnecting with old contacts
-      
-      User's context: ${networkContext} ${contactContext}
-      
-      Provide practical, actionable advice. Be warm, encouraging, and specific. If asked about contacts they don't have, suggest ways to build their network. Keep responses concise but helpful.`;
+      // Circl-branded system prompt for concise, actionable responses
+      const systemPrompt = `You're Circl's relationship advisor - sharp, direct, and actionable. Help users build stronger networks.
 
-      console.log('Calling OpenRouter AI with prompt:', userMessageContent);
+      Voice guidelines:
+      - Be concise (2-3 sentences max)
+      - Skip fluff, get to the point
+      - Use "you" and "your" - be personal
+      - Give specific, actionable advice
+      - Sound like a smart friend, not a robot
+      - When suggesting actions, be concrete
 
-      // Call the OpenRouter edge function
+      Focus areas:
+      - Relationship maintenance strategies
+      - Follow-up timing and approaches
+      - Network growth tactics
+      - Communication best practices
+      - Specific outreach suggestions
+
+      ${networkSummary}
+      ${contactContext}`;
+
+      console.log('Calling OpenRouter AI for relationship advice');
+
       const { data, error } = await supabase.functions.invoke('openrouter-ai', {
         body: {
           prompt: userMessageContent,
           systemPrompt: systemPrompt,
           model: 'mistralai/mistral-7b-instruct',
-          maxTokens: 500,
-          temperature: 0.7
+          maxTokens: 200,
+          temperature: 0.8
         }
       });
 
@@ -94,7 +98,7 @@ export default function SimplifiedAIChat({ contacts }: SimplifiedAIChatProps) {
 
       console.log('OpenRouter AI response:', data);
       
-      const aiResponse = data?.response || "I'm here to help with your relationship management. Could you be more specific about what you'd like assistance with?";
+      const aiResponse = data?.response || "Got it. What specific relationship challenge can I help you tackle?";
       
       addMessage({
         role: 'assistant',
@@ -105,9 +109,9 @@ export default function SimplifiedAIChat({ contacts }: SimplifiedAIChatProps) {
       console.error('Error getting AI response:', error);
       addMessage({
         role: 'assistant',
-        content: "I apologize, but I'm having trouble processing your request right now. Please try asking about specific contacts, relationship advice, or networking strategies."
+        content: "Something's not working. Try asking about specific contacts or relationship strategies."
       });
-      toast.error("Failed to get AI response");
+      toast.error("AI temporarily unavailable");
     } finally {
       setIsLoading(false);
     }
@@ -116,17 +120,17 @@ export default function SimplifiedAIChat({ contacts }: SimplifiedAIChatProps) {
   const handleCopyMessage = async (content: string) => {
     try {
       await navigator.clipboard.writeText(content);
-      toast.success("Message copied!");
+      toast.success("Copied!");
     } catch (error) {
-      toast.error("Failed to copy message");
+      toast.error("Copy failed");
     }
   };
 
   const quickSuggestions = [
     "Who should I reach out to this week?",
-    "Help me prioritize my contacts",
-    "What's the best way to reconnect with someone?",
-    "How can I build my professional network?"
+    "How do I reconnect with old contacts?",
+    "Best follow-up timing?",
+    "Strengthen my inner circle"
   ];
 
   return (
@@ -136,7 +140,7 @@ export default function SimplifiedAIChat({ contacts }: SimplifiedAIChatProps) {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Brain className="h-5 w-5 text-purple-500" />
-              Relationship Assistant
+              Your Network Advisor
             </CardTitle>
             <Button
               variant="outline"
@@ -148,7 +152,7 @@ export default function SimplifiedAIChat({ contacts }: SimplifiedAIChatProps) {
             </Button>
           </div>
           <p className="text-sm text-muted-foreground">
-            Ask me about managing your {contacts.length} contacts and building relationships
+            Quick advice for your {contacts.length} contacts
           </p>
         </CardHeader>
         
@@ -163,7 +167,7 @@ export default function SimplifiedAIChat({ contacts }: SimplifiedAIChatProps) {
                     className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
                     <div
-                      className={`max-w-[80%] ${
+                      className={`max-w-[85%] ${
                         message.role === 'user'
                           ? 'bg-primary text-primary-foreground'
                           : 'bg-muted'
@@ -183,7 +187,7 @@ export default function SimplifiedAIChat({ contacts }: SimplifiedAIChatProps) {
                       )}
                       
                       <div className="text-xs opacity-70 mt-1">
-                        {message.timestamp.toLocaleTimeString()}
+                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </div>
                     </div>
                   </div>
@@ -208,7 +212,7 @@ export default function SimplifiedAIChat({ contacts }: SimplifiedAIChatProps) {
           {/* Quick Suggestions */}
           {messages.length <= 1 && (
             <div className="mb-4 flex-shrink-0">
-              <div className="text-sm font-medium mb-2">Try asking:</div>
+              <div className="text-sm font-medium mb-2">Quick questions:</div>
               <div className="flex flex-wrap gap-2">
                 {quickSuggestions.map((suggestion, index) => (
                   <Button
@@ -228,7 +232,7 @@ export default function SimplifiedAIChat({ contacts }: SimplifiedAIChatProps) {
           {/* Input */}
           <div className="flex gap-2 flex-shrink-0">
             <Input
-              placeholder="Ask about your contacts and relationships..."
+              placeholder="Ask about your network..."
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
