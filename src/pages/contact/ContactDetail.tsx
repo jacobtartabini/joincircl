@@ -36,37 +36,41 @@ export default function ContactDetail() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Header with navigation and actions */}
-      <ContactDetailHeader 
-        onEditClick={() => setIsEditDialogOpen(true)}
-        onDeleteClick={() => setIsDeleteDialogOpen(true)}
-      />
-      
-      {/* Main content */}
-      <ContactDetailContent 
-        contact={contact}
-        interactions={interactions}
-        keystones={keystones}
-        contactMedia={contactMedia}
-        onKeystoneAdded={handleKeystoneAdded}
-        onInteractionAdded={handleInteractionAdded}
-      />
-      
-      {/* Dialogs */}
-      <EditContactDialog
-        contact={contact}
-        isOpen={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
-        onContactUpdate={handleContactUpdate}
-      />
-      
-      <DeleteContactDialog
-        contact={contact}
-        isOpen={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
-        onDelete={handleDelete}
-      />
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="max-w-7xl mx-auto p-6 space-y-8 animate-fade-in">
+        {/* Header with navigation and actions */}
+        <ContactDetailHeader 
+          onEditClick={() => setIsEditDialogOpen(true)}
+          onDeleteClick={() => setIsDeleteDialogOpen(true)}
+        />
+        
+        {/* Main content in a card */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+          <ContactDetailContent 
+            contact={contact}
+            interactions={interactions}
+            keystones={keystones}
+            contactMedia={contactMedia}
+            onKeystoneAdded={handleKeystoneAdded}
+            onInteractionAdded={handleInteractionAdded}
+          />
+        </div>
+        
+        {/* Dialogs */}
+        <EditContactDialog
+          contact={contact}
+          isOpen={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          onContactUpdate={handleContactUpdate}
+        />
+        
+        <DeleteContactDialog
+          contact={contact}
+          isOpen={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+          onDelete={handleDelete}
+        />
+      </div>
     </div>
   );
 }

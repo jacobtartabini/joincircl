@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Link, Navigate } from "react-router-dom";
+import { CheckCircle } from "lucide-react";
 
 export default function SignUp() {
   const [fullName, setFullName] = useState("");
@@ -70,48 +70,39 @@ export default function SignUp() {
 
   if (isSignupComplete) {
     return (
-      <div className="min-h-screen bg-gray-50/30 flex items-center justify-center px-6 py-12">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-md">
-          <Card className="border-0 shadow-sm bg-white/80 backdrop-blur-sm">
+          <Card className="border-0 shadow-xl bg-white backdrop-blur-sm">
             <CardHeader className="space-y-6 text-center pb-8">
               <div className="flex justify-center">
-                <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="28" 
-                    height="28" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                    className="text-green-600"
-                  >
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
+                <div className="w-20 h-20 rounded-2xl bg-green-100 flex items-center justify-center shadow-lg">
+                  <CheckCircle className="w-10 h-10 text-green-600" />
                 </div>
               </div>
-              <div className="space-y-2">
-                <CardTitle className="text-2xl font-semibold text-gray-900">Account Created</CardTitle>
-                <CardDescription className="text-gray-600">
+              <div className="space-y-3">
+                <CardTitle className="text-3xl font-bold text-gray-900">Account Created</CardTitle>
+                <CardDescription className="text-gray-600 text-base">
                   Check your email to verify your account
                 </CardDescription>
               </div>
             </CardHeader>
-            <CardContent className="text-center space-y-6">
+            <CardContent className="text-center space-y-6 px-8">
               <div className="space-y-4">
-                <p className="text-gray-700">
-                  We've sent a verification email to <strong>{email}</strong>.
-                  Please check your inbox and click the verification link.
-                </p>
+                <div className="p-6 bg-green-50 border border-green-200 rounded-xl">
+                  <p className="text-gray-700 font-medium">
+                    We've sent a verification email to <strong>{email}</strong>.
+                  </p>
+                  <p className="text-sm text-gray-600 mt-2">
+                    Please check your inbox and click the verification link to activate your account.
+                  </p>
+                </div>
                 <p className="text-sm text-gray-500">
                   If you don't see the email, check your spam folder or try again.
                 </p>
               </div>
               <Button 
                 variant="outline" 
-                className="w-full border-gray-200 hover:bg-gray-50"
+                className="w-full h-12 border-gray-200 hover:bg-gray-50 font-semibold"
                 onClick={() => window.location.href = '/auth/sign-in'}
               >
                 Go to Sign In
@@ -124,26 +115,26 @@ export default function SignUp() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50/30 flex items-center justify-center px-6 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
-        <Card className="border-0 shadow-sm bg-white/80 backdrop-blur-sm">
+        <Card className="border-0 shadow-xl bg-white backdrop-blur-sm">
           <CardHeader className="space-y-6 text-center pb-8">
             <div className="flex justify-center">
-              <div className="w-16 h-16 rounded-full bg-gray-900 flex items-center justify-center text-white font-serif text-2xl">
-                C
+              <div className="w-20 h-20 bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl flex items-center justify-center shadow-lg">
+                <span className="text-white font-serif text-2xl font-bold">C</span>
               </div>
             </div>
-            <div className="space-y-2">
-              <CardTitle className="text-2xl font-semibold text-gray-900">Create your account</CardTitle>
-              <CardDescription className="text-gray-600">
+            <div className="space-y-3">
+              <CardTitle className="text-3xl font-bold text-gray-900">Create your account</CardTitle>
+              <CardDescription className="text-gray-600 text-base">
                 Join Circl to manage your relationships
               </CardDescription>
             </div>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 px-8">
             <form onSubmit={handleSignUp} className="space-y-5">
-              <div className="space-y-2">
-                <Label htmlFor="name" className="text-sm font-medium text-gray-700">Full Name</Label>
+              <div className="space-y-3">
+                <Label htmlFor="name" className="text-sm font-semibold text-gray-700">Full Name</Label>
                 <Input
                   id="name"
                   placeholder="John Doe"
@@ -151,11 +142,11 @@ export default function SignUp() {
                   onChange={(e) => setFullName(e.target.value)}
                   disabled={isLoading}
                   required
-                  className="border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+                  className="h-12 border-gray-200 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 transition-all duration-200"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
+              <div className="space-y-3">
+                <Label htmlFor="email" className="text-sm font-semibold text-gray-700">Email Address</Label>
                 <Input
                   id="email"
                   type="email"
@@ -164,11 +155,11 @@ export default function SignUp() {
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
                   required
-                  className="border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+                  className="h-12 border-gray-200 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 transition-all duration-200"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
+              <div className="space-y-3">
+                <Label htmlFor="password" className="text-sm font-semibold text-gray-700">Password</Label>
                 <Input
                   id="password"
                   type="password"
@@ -177,11 +168,11 @@ export default function SignUp() {
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
                   required
-                  className="border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+                  className="h-12 border-gray-200 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 transition-all duration-200"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">Confirm Password</Label>
+              <div className="space-y-3">
+                <Label htmlFor="confirmPassword" className="text-sm font-semibold text-gray-700">Confirm Password</Label>
                 <Input
                   id="confirmPassword"
                   type="password"
@@ -190,12 +181,12 @@ export default function SignUp() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   disabled={isLoading}
                   required
-                  className="border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+                  className="h-12 border-gray-200 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 transition-all duration-200"
                 />
               </div>
               <Button 
                 type="submit" 
-                className="w-full bg-gray-900 hover:bg-gray-800 text-white py-3" 
+                className="w-full h-12 bg-gray-900 hover:bg-gray-800 text-white font-semibold transition-all duration-200 shadow-lg hover:shadow-xl" 
                 disabled={isLoading}
               >
                 {isLoading ? "Creating account..." : "Sign Up"}
@@ -207,7 +198,7 @@ export default function SignUp() {
                 <div className="w-full border-t border-gray-200"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-3 bg-white text-gray-500">
+                <span className="px-4 bg-white text-gray-500 font-medium">
                   or continue with
                 </span>
               </div>
@@ -216,7 +207,7 @@ export default function SignUp() {
             <Button
               type="button"
               variant="outline"
-              className="w-full border-gray-200 hover:bg-gray-50 py-3"
+              className="w-full h-12 border-gray-200 hover:bg-gray-50 font-semibold transition-all duration-200"
               onClick={handleGoogleSignIn}
               disabled={isLoading}
             >
@@ -241,10 +232,10 @@ export default function SignUp() {
               Sign up with Google
             </Button>
           </CardContent>
-          <CardFooter className="flex justify-center pt-4">
+          <CardFooter className="flex justify-center pt-4 pb-8">
             <p className="text-sm text-gray-600">
               Already have an account?{" "}
-              <Link to="/auth/sign-in" className="text-gray-900 hover:underline font-medium">
+              <Link to="/auth/sign-in" className="text-gray-900 hover:underline font-semibold">
                 Sign in
               </Link>
             </p>

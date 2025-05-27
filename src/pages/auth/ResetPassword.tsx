@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from "@/components/ui/label";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Lock, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function ResetPassword() {
@@ -22,7 +22,6 @@ export default function ResetPassword() {
   const [hasAccessToken, setHasAccessToken] = useState(false);
 
   useEffect(() => {
-    // Check if there's an access token in the URL (from password reset email)
     const hasToken = window.location.hash.includes("#access_token=");
     setHasAccessToken(hasToken);
     
@@ -41,7 +40,6 @@ export default function ResetPassword() {
     checkGoogleUser();
   }, [user]);
 
-  // If user is already signed in and it's not a password reset flow, redirect to home
   if (user && !hasAccessToken) {
     return <Navigate to="/" replace />;
   }
@@ -72,7 +70,6 @@ export default function ResetPassword() {
         description: "You can now log in with your new password.",
       });
       
-      // Navigate to sign in page
       navigate("/auth/sign-in");
     } catch (error: any) {
       console.error("Error resetting password:", error);
@@ -83,28 +80,28 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50/30 flex items-center justify-center px-6 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
-        <Card className="border-0 shadow-sm bg-white/80 backdrop-blur-sm">
+        <Card className="border-0 shadow-xl bg-white backdrop-blur-sm">
           <CardHeader className="space-y-6 text-center pb-8">
             <div className="flex justify-center">
-              <div className="w-16 h-16 rounded-full bg-gray-900 flex items-center justify-center text-white font-serif text-2xl">
-                C
+              <div className="w-20 h-20 bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl flex items-center justify-center shadow-lg">
+                <Lock className="w-10 h-10 text-white" />
               </div>
             </div>
-            <div className="space-y-2">
-              <CardTitle className="text-2xl font-semibold text-gray-900">Reset Password</CardTitle>
-              <CardDescription className="text-gray-600">
+            <div className="space-y-3">
+              <CardTitle className="text-3xl font-bold text-gray-900">Reset Password</CardTitle>
+              <CardDescription className="text-gray-600 text-base">
                 Enter your new password below
               </CardDescription>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-8">
             {isGoogleUser ? (
-              <div className="text-center p-6 bg-blue-50 border border-blue-200 rounded-lg flex flex-col items-center">
-                <AlertCircle className="text-blue-600 mb-3" size={28} />
+              <div className="text-center p-6 bg-blue-50 border border-blue-200 rounded-xl flex flex-col items-center">
+                <AlertCircle className="text-blue-600 mb-4" size={32} />
                 <div className="space-y-3">
-                  <p className="font-medium text-blue-900">
+                  <p className="font-semibold text-blue-900 text-lg">
                     You signed in with Google
                   </p>
                   <p className="text-sm text-blue-700">
@@ -113,7 +110,7 @@ export default function ResetPassword() {
                 </div>
                 <Button 
                   variant="outline" 
-                  className="mt-4 border-blue-200 text-blue-700 hover:bg-blue-50"
+                  className="mt-6 border-blue-200 text-blue-700 hover:bg-blue-50 font-semibold"
                   onClick={() => navigate('/auth/sign-in')}
                 >
                   Go to Sign In
@@ -122,13 +119,13 @@ export default function ResetPassword() {
             ) : (
               <form onSubmit={handleResetPassword} className="space-y-5">
                 {error && (
-                  <div className="p-4 bg-red-50 border border-red-200 text-red-800 rounded-lg flex items-start">
+                  <div className="p-4 bg-red-50 border border-red-200 text-red-800 rounded-xl flex items-start">
                     <AlertCircle className="text-red-600 mr-3 flex-shrink-0 mt-0.5" size={18} />
-                    <span className="text-sm">{error}</span>
+                    <span className="text-sm font-medium">{error}</span>
                   </div>
                 )}
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-sm font-medium text-gray-700">New Password</Label>
+                <div className="space-y-3">
+                  <Label htmlFor="password" className="text-sm font-semibold text-gray-700">New Password</Label>
                   <Input
                     id="password"
                     type="password"
@@ -136,11 +133,11 @@ export default function ResetPassword() {
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={isSubmitting}
                     required
-                    className="border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+                    className="h-12 border-gray-200 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 transition-all duration-200"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">Confirm Password</Label>
+                <div className="space-y-3">
+                  <Label htmlFor="confirmPassword" className="text-sm font-semibold text-gray-700">Confirm Password</Label>
                   <Input
                     id="confirmPassword"
                     type="password"
@@ -148,12 +145,12 @@ export default function ResetPassword() {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     disabled={isSubmitting}
                     required
-                    className="border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+                    className="h-12 border-gray-200 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 transition-all duration-200"
                   />
                 </div>
                 <Button 
                   type="submit" 
-                  className="w-full bg-gray-900 hover:bg-gray-800 text-white py-3" 
+                  className="w-full h-12 bg-gray-900 hover:bg-gray-800 text-white font-semibold transition-all duration-200 shadow-lg hover:shadow-xl" 
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? "Resetting..." : "Reset Password"}
@@ -161,10 +158,10 @@ export default function ResetPassword() {
               </form>
             )}
           </CardContent>
-          <CardFooter className="flex justify-center pt-4">
+          <CardFooter className="flex justify-center pt-4 pb-8">
             <p className="text-sm text-gray-600">
               Remember your password?{" "}
-              <Link to="/auth/sign-in" className="text-gray-900 hover:underline font-medium">
+              <Link to="/auth/sign-in" className="text-gray-900 hover:underline font-semibold">
                 Sign in
               </Link>
             </p>

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -39,77 +40,74 @@ export default function ContactForm({
   } = useContactForm(contact, onSuccess, onCancel);
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
-      {/* Visual drag handle */}
-      <div className="flex justify-center pt-2">
-        <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
-      </div>
+    <div className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
+        <Tabs defaultValue="basic" className="w-full">
+          <TabsList className="grid grid-cols-4 mb-6 bg-gray-100 rounded-xl p-1">
+            <TabsTrigger value="basic" className="rounded-lg font-medium">Basic</TabsTrigger>
+            <TabsTrigger value="professional" className="rounded-lg font-medium">Professional</TabsTrigger>
+            <TabsTrigger value="education" className="rounded-lg font-medium">Education</TabsTrigger>
+            <TabsTrigger value="other" className="rounded-lg font-medium">Other</TabsTrigger>
+          </TabsList>
 
-      {/* Add Contact Title */}
-      <h2 className="text-lg font-semibold text-center">
-        {contact?.id ? "Edit Contact" : "Add Contact"}
-      </h2>
+          <TabsContent value="basic" className="space-y-6">
+            <ContactFormBasicTab 
+              formData={formData}
+              handleChange={handleChange}
+              handleCircleChange={handleCircleChange}
+              birthday={birthday}
+              handleBirthdayDayChange={handleBirthdayDayChange}
+            />
+          </TabsContent>
 
-      <Tabs defaultValue="basic" className="w-full">
-        <TabsList className="grid grid-cols-4 mb-4">
-          <TabsTrigger value="basic">Basic</TabsTrigger>
-          <TabsTrigger value="professional">Professional</TabsTrigger>
-          <TabsTrigger value="education">Education</TabsTrigger>
-          <TabsTrigger value="other">Other</TabsTrigger>
-        </TabsList>
+          <TabsContent value="professional" className="space-y-6">
+            <ContactFormProfessionalTab 
+              formData={formData}
+              handleChange={handleChange}
+            />
+          </TabsContent>
 
-        <TabsContent value="basic">
-          <ContactFormBasicTab 
-            formData={formData}
-            handleChange={handleChange}
-            handleCircleChange={handleCircleChange}
-            birthday={birthday}
-            handleBirthdayDayChange={handleBirthdayDayChange}
-          />
-        </TabsContent>
+          <TabsContent value="education" className="space-y-6">
+            <ContactFormEducationTab 
+              formData={formData}
+              handleChange={handleChange}
+              handleNumberChange={handleNumberChange}
+            />
+          </TabsContent>
 
-        <TabsContent value="professional">
-          <ContactFormProfessionalTab 
-            formData={formData}
-            handleChange={handleChange}
-          />
-        </TabsContent>
+          <TabsContent value="other" className="space-y-6">
+            <ContactFormOtherTab 
+              formData={formData}
+              handleChange={handleChange}
+              tags={formData.tags || []}
+              onAddTag={handleAddTag}
+              onRemoveTag={handleRemoveTag}
+              imageFiles={imageFiles}
+              onImageUpload={handleImageUpload}
+              onImageRemove={handleRemoveImage}
+              documentFiles={documentFiles}
+              onDocumentUpload={handleDocumentUpload}
+              onDocumentRemove={handleRemoveDocument}
+            />
+          </TabsContent>
+        </Tabs>
+      </form>
 
-        <TabsContent value="education">
-          <ContactFormEducationTab 
-            formData={formData}
-            handleChange={handleChange}
-            handleNumberChange={handleNumberChange}
-          />
-        </TabsContent>
-
-        <TabsContent value="other">
-          <ContactFormOtherTab 
-            formData={formData}
-            handleChange={handleChange}
-            tags={formData.tags || []}
-            onAddTag={handleAddTag}
-            onRemoveTag={handleRemoveTag}
-            imageFiles={imageFiles}
-            onImageUpload={handleImageUpload}
-            onImageRemove={handleRemoveImage}
-            documentFiles={documentFiles}
-            onDocumentUpload={handleDocumentUpload}
-            onDocumentRemove={handleRemoveDocument}
-          />
-        </TabsContent>
-      </Tabs>
-
-      <div className="flex justify-end gap-2 pt-4 sticky bottom-0 bg-background pb-2">
+      <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
         <Button
           type="button"
           variant="outline"
           onClick={onCancel}
           disabled={isSubmitting}
+          className="px-6 font-semibold"
         >
           Cancel
         </Button>
-        <Button type="submit" disabled={isSubmitting}>
+        <Button 
+          onClick={handleSubmit}
+          disabled={isSubmitting}
+          className="bg-gray-900 hover:bg-gray-800 text-white px-6 font-semibold"
+        >
           {isSubmitting
             ? "Saving..."
             : contact?.id
@@ -117,6 +115,6 @@ export default function ContactForm({
             : "Create Contact"}
         </Button>
       </div>
-    </form>
+    </div>
   );
 }

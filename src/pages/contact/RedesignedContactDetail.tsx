@@ -40,13 +40,15 @@ export default function RedesignedContactDetail() {
 
   if (isMobile) {
     return (
-      <div className="h-full animate-fade-in overflow-hidden">
-        <EnhancedContactDetail 
-          contact={contact}
-          interactions={interactions}
-          onEdit={() => setIsEditDialogOpen(true)}
-          onDelete={() => setIsDeleteDialogOpen(true)}
-        />
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="bg-white rounded-t-2xl mt-4 shadow-xl border border-gray-200 overflow-hidden animate-fade-in">
+          <EnhancedContactDetail 
+            contact={contact}
+            interactions={interactions}
+            onEdit={() => setIsEditDialogOpen(true)}
+            onDelete={() => setIsDeleteDialogOpen(true)}
+          />
+        </div>
         
         {/* Dialogs */}
         <EditContactDialog
@@ -68,28 +70,30 @@ export default function RedesignedContactDetail() {
 
   // Desktop two-panel layout
   return (
-    <div className="h-full animate-fade-in overflow-hidden">
-      <div className={cn("flex h-full w-full overflow-hidden")}>
-        {/* Contact Timeline Panel - Middle */}
-        <div className="flex-1 overflow-hidden min-w-0 max-w-[calc(100%-20rem)] border-r bg-white/95 backdrop-blur-sm">
-          <div className="panel-container">
-            <ContactTimeline 
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="max-w-7xl mx-auto p-6">
+        <div className={cn("flex h-[calc(100vh-3rem)] w-full overflow-hidden bg-white rounded-2xl shadow-xl border border-gray-200 animate-fade-in")}>
+          {/* Contact Timeline Panel - Left/Center */}
+          <div className="flex-1 overflow-hidden min-w-0 max-w-[calc(100%-24rem)] border-r border-gray-200">
+            <div className="h-full overflow-y-auto">
+              <ContactTimeline 
+                contact={contact}
+                interactions={interactions}
+                keystones={keystones}
+                contactMedia={contactMedia}
+              />
+            </div>
+          </div>
+          
+          {/* Contact Detail Panel - Right Side */}
+          <div className="w-96 flex-shrink-0 overflow-hidden">
+            <EnhancedContactDetail 
               contact={contact}
               interactions={interactions}
-              keystones={keystones}
-              contactMedia={contactMedia}
+              onEdit={() => setIsEditDialogOpen(true)}
+              onDelete={() => setIsDeleteDialogOpen(true)}
             />
           </div>
-        </div>
-        
-        {/* Contact Detail Panel - Right Side */}
-        <div className="w-80 flex-shrink-0 bg-white/95 backdrop-blur-sm overflow-hidden">
-          <EnhancedContactDetail 
-            contact={contact}
-            interactions={interactions}
-            onEdit={() => setIsEditDialogOpen(true)}
-            onDelete={() => setIsDeleteDialogOpen(true)}
-          />
         </div>
       </div>
       

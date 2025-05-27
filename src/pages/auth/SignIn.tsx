@@ -17,25 +17,21 @@ export default function SignIn() {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Check if user is already authenticated on mount
   useEffect(() => {
     const checkAuthStatus = async () => {
-      // User state from context is sufficient
       setIsCheckingAuth(false);
     };
     
     checkAuthStatus();
   }, []);
 
-  // If user is already signed in, redirect to the home page
   if (user) {
     return <Navigate to="/" replace />;
   }
 
-  // Show loading while checking authentication status
   if (isCheckingAuth) {
     return (
-      <div className="min-h-screen bg-gray-50/30 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900 mx-auto mb-4"></div>
           <p className="text-gray-600">Checking authentication status...</p>
@@ -70,38 +66,37 @@ export default function SignIn() {
     setIsLoading(true);
     try {
       await signInWithGoogle();
-      // Note: The redirect to callback page is handled by Supabase OAuth flow
     } catch (error) {
       console.error("Error signing in with Google:", error);
-      setIsLoading(false); // Only set loading to false if there's an error
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50/30 flex items-center justify-center px-6 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
-        <Card className="border-0 shadow-sm bg-white/80 backdrop-blur-sm">
+        <Card className="border-0 shadow-xl bg-white backdrop-blur-sm">
           <CardHeader className="space-y-6 text-center pb-8">
             <div className="flex justify-center">
-              <div className="w-16 h-16">
+              <div className="w-20 h-20 bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl flex items-center justify-center shadow-lg">
                 <img 
                   src="/lovable-uploads/12af9685-d6d3-4f9d-87cf-0aa29d9c78f8.png" 
                   alt="Circl" 
-                  className="w-full h-full object-contain"
+                  className="w-12 h-12 object-contain"
                 />
               </div>
             </div>
-            <div className="space-y-2">
-              <CardTitle className="text-2xl font-semibold text-gray-900">Welcome back</CardTitle>
-              <CardDescription className="text-gray-600">
-                Sign in to your Circl account
+            <div className="space-y-3">
+              <CardTitle className="text-3xl font-bold text-gray-900">Welcome back</CardTitle>
+              <CardDescription className="text-gray-600 text-base">
+                Sign in to your Circl account to continue
               </CardDescription>
             </div>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 px-8">
             <form onSubmit={handleSignIn} className="space-y-5">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
+              <div className="space-y-3">
+                <Label htmlFor="email" className="text-sm font-semibold text-gray-700">Email Address</Label>
                 <Input
                   id="email"
                   type="email"
@@ -110,13 +105,13 @@ export default function SignIn() {
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
                   required
-                  className="border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+                  className="h-12 border-gray-200 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 transition-all duration-200"
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
-                  <Link to="/auth/forgot-password" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                  <Label htmlFor="password" className="text-sm font-semibold text-gray-700">Password</Label>
+                  <Link to="/auth/forgot-password" className="text-sm text-gray-600 hover:text-gray-900 transition-colors font-medium">
                     Forgot password?
                   </Link>
                 </div>
@@ -128,12 +123,12 @@ export default function SignIn() {
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
                   required
-                  className="border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+                  className="h-12 border-gray-200 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 transition-all duration-200"
                 />
               </div>
               <Button 
                 type="submit" 
-                className="w-full bg-gray-900 hover:bg-gray-800 text-white py-3" 
+                className="w-full h-12 bg-gray-900 hover:bg-gray-800 text-white font-semibold transition-all duration-200 shadow-lg hover:shadow-xl" 
                 disabled={isLoading}
               >
                 {isLoading ? "Signing in..." : "Sign In"}
@@ -145,7 +140,7 @@ export default function SignIn() {
                 <div className="w-full border-t border-gray-200"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-3 bg-white text-gray-500">
+                <span className="px-4 bg-white text-gray-500 font-medium">
                   or continue with
                 </span>
               </div>
@@ -154,7 +149,7 @@ export default function SignIn() {
             <Button
               type="button"
               variant="outline"
-              className="w-full border-gray-200 hover:bg-gray-50 py-3"
+              className="w-full h-12 border-gray-200 hover:bg-gray-50 font-semibold transition-all duration-200"
               onClick={handleGoogleSignIn}
               disabled={isLoading}
             >
@@ -179,10 +174,10 @@ export default function SignIn() {
               Sign in with Google
             </Button>
           </CardContent>
-          <CardFooter className="flex justify-center pt-4">
+          <CardFooter className="flex justify-center pt-4 pb-8">
             <p className="text-sm text-gray-600">
               Don't have an account?{" "}
-              <Link to="/auth/sign-up" className="text-gray-900 hover:underline font-medium">
+              <Link to="/auth/sign-up" className="text-gray-900 hover:underline font-semibold">
                 Sign up
               </Link>
             </p>
