@@ -8,6 +8,7 @@ import IntegrationsTab from "@/components/settings/IntegrationsTab";
 import ProfileTab from "@/components/settings/ProfileTab";
 import ResourcesTab from "@/components/settings/ResourcesTab";
 import SubscriptionTab from "@/components/settings/SubscriptionTab";
+import SecurityTab from "@/components/settings/SecurityTab";
 
 export default function Settings() {
   const location = useLocation();
@@ -18,7 +19,7 @@ export default function Settings() {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const tab = params.get("tab");
-    if (tab && ["profile", "account", "integrations", "subscription", "resources"].includes(tab)) {
+    if (tab && ["profile", "account", "security", "integrations", "subscription", "resources"].includes(tab)) {
       setActiveTab(tab);
     } else {
       setActiveTab("profile");
@@ -47,6 +48,7 @@ export default function Settings() {
           <TabsList className="mb-8">
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="account">Account</TabsTrigger>
+            <TabsTrigger value="security">Security</TabsTrigger>
             <TabsTrigger value="integrations">Integrations</TabsTrigger>
             <TabsTrigger value="subscription">Subscription</TabsTrigger>
             <TabsTrigger value="resources">Resources</TabsTrigger>
@@ -58,6 +60,10 @@ export default function Settings() {
           
           <TabsContent value="account" className="space-y-6">
             <AccountTab />
+          </TabsContent>
+          
+          <TabsContent value="security" className="space-y-6">
+            <SecurityTab />
           </TabsContent>
           
           <TabsContent value="integrations" className="space-y-6">

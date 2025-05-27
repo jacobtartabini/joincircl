@@ -51,16 +51,20 @@ const MainLayout = ({ children }: MainLayoutProps) => {
             {!isMobile ? (
               shouldUseFullWidth ? (
                 // Full-width layout for specific pages like contact detail
-                <div className="h-full w-full overflow-hidden">
-                  {children}
+                <div className="h-full w-full overflow-hidden bg-white">
+                  <div className="max-w-7xl mx-auto h-full">
+                    {children}
+                  </div>
                 </div>
               ) : (
                 // Standard three-panel layout for other pages including notifications
                 <ThreePanelLayout
                   leftPanel={<Navbar />}
                   middlePanel={
-                    <div className="responsive-container h-full overflow-hidden">
-                      {children}
+                    <div className="h-full overflow-hidden bg-white rounded-lg shadow-sm border">
+                      <div className="responsive-container h-full overflow-hidden p-6">
+                        {children}
+                      </div>
                     </div>
                   }
                   rightPanel={null}
@@ -68,7 +72,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
               )
             ) : (
               // On mobile, render children directly with responsive container
-              <div className="responsive-container h-full overflow-hidden p-4">
+              <div className="responsive-container h-full overflow-hidden p-4 bg-white">
                 {children}
               </div>
             )}
