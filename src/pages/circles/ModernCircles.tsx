@@ -51,7 +51,7 @@ const ModernCircles = () => {
 
   const filteredContacts = contacts.filter(contact => {
     const matchesSearch = contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         contact.email?.toLowerCase().includes(searchQuery.toLowerCase());
+                         contact.personal_email?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCircle = !selectedCircle || contact.circle === selectedCircle;
     return matchesSearch && matchesCircle;
   });
@@ -192,11 +192,11 @@ const ModernCircles = () => {
                         </div>
                         <div className="flex-1 min-w-0">
                           <h3 className="font-medium text-gray-900 truncate">{contact.name}</h3>
-                          {contact.email && (
-                            <p className="text-sm text-gray-500 truncate">{contact.email}</p>
+                          {contact.personal_email && (
+                            <p className="text-sm text-gray-500 truncate">{contact.personal_email}</p>
                           )}
-                          {contact.company && (
-                            <p className="text-sm text-gray-500 truncate">{contact.company}</p>
+                          {contact.company_name && (
+                            <p className="text-sm text-gray-500 truncate">{contact.company_name}</p>
                           )}
                           <div className="flex items-center gap-2 mt-2">
                             {circleInfo && (
