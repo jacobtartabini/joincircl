@@ -83,84 +83,94 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-12 bg-background">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1 text-center">
-          <div className="flex justify-center mb-4">
-            <div className="w-12 h-12 rounded-full bg-circl-blue flex items-center justify-center text-white font-sans text-2xl">C</div>
-          </div>
-          <CardTitle className="text-2xl font-bold">Reset Password</CardTitle>
-          <CardDescription>
-            Enter your new password below
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isGoogleUser ? (
-            <div className="text-center p-4 bg-blue-50 rounded-md flex flex-col items-center">
-              <AlertCircle className="text-blue-500 mb-2" size={24} />
-              <p className="text-blue-800">
-                You signed in with Google and don't have a password to reset.
-              </p>
-              <p className="text-sm text-blue-600 mt-2">
-                Please continue to sign in with Google.
-              </p>
-              <Button 
-                variant="outline" 
-                className="mt-4"
-                onClick={() => navigate('/auth/sign-in')}
-              >
-                Go to Sign In
-              </Button>
+    <div className="min-h-screen bg-gray-50/30 flex items-center justify-center px-6 py-12">
+      <div className="w-full max-w-md">
+        <Card className="border-0 shadow-sm bg-white/80 backdrop-blur-sm">
+          <CardHeader className="space-y-6 text-center pb-8">
+            <div className="flex justify-center">
+              <div className="w-16 h-16 rounded-full bg-gray-900 flex items-center justify-center text-white font-serif text-2xl">
+                C
+              </div>
             </div>
-          ) : (
-            <form onSubmit={handleResetPassword} className="space-y-4">
-              {error && (
-                <div className="bg-red-50 text-red-800 p-3 rounded-md text-sm flex items-start">
-                  <AlertCircle className="text-red-500 mr-2 flex-shrink-0 mt-0.5" size={16} />
-                  <span>{error}</span>
+            <div className="space-y-2">
+              <CardTitle className="text-2xl font-semibold text-gray-900">Reset Password</CardTitle>
+              <CardDescription className="text-gray-600">
+                Enter your new password below
+              </CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {isGoogleUser ? (
+              <div className="text-center p-6 bg-blue-50 border border-blue-200 rounded-lg flex flex-col items-center">
+                <AlertCircle className="text-blue-600 mb-3" size={28} />
+                <div className="space-y-3">
+                  <p className="font-medium text-blue-900">
+                    You signed in with Google
+                  </p>
+                  <p className="text-sm text-blue-700">
+                    Google accounts don't have passwords to reset. Please continue to sign in with Google.
+                  </p>
                 </div>
-              )}
-              <div className="space-y-2">
-                <Label htmlFor="password">New Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={isSubmitting}
-                  required
-                />
+                <Button 
+                  variant="outline" 
+                  className="mt-4 border-blue-200 text-blue-700 hover:bg-blue-50"
+                  onClick={() => navigate('/auth/sign-in')}
+                >
+                  Go to Sign In
+                </Button>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
+            ) : (
+              <form onSubmit={handleResetPassword} className="space-y-5">
+                {error && (
+                  <div className="p-4 bg-red-50 border border-red-200 text-red-800 rounded-lg flex items-start">
+                    <AlertCircle className="text-red-600 mr-3 flex-shrink-0 mt-0.5" size={18} />
+                    <span className="text-sm">{error}</span>
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-sm font-medium text-gray-700">New Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={isSubmitting}
+                    required
+                    className="border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">Confirm Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    disabled={isSubmitting}
+                    required
+                    className="border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+                  />
+                </div>
+                <Button 
+                  type="submit" 
+                  className="w-full bg-gray-900 hover:bg-gray-800 text-white py-3" 
                   disabled={isSubmitting}
-                  required
-                />
-              </div>
-              <Button 
-                type="submit" 
-                className="w-full" 
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? "Resetting..." : "Reset Password"}
-              </Button>
-            </form>
-          )}
-        </CardContent>
-        <CardFooter className="flex justify-center">
-          <p className="text-sm text-muted-foreground">
-            Remember your password?{" "}
-            <Link to="/auth/sign-in" className="text-blue-600 hover:text-blue-800 font-medium">
-              Sign in
-            </Link>
-          </p>
-        </CardFooter>
-      </Card>
+                >
+                  {isSubmitting ? "Resetting..." : "Reset Password"}
+                </Button>
+              </form>
+            )}
+          </CardContent>
+          <CardFooter className="flex justify-center pt-4">
+            <p className="text-sm text-gray-600">
+              Remember your password?{" "}
+              <Link to="/auth/sign-in" className="text-gray-900 hover:underline font-medium">
+                Sign in
+              </Link>
+            </p>
+          </CardFooter>
+        </Card>
+      </div>
     </div>
   );
 }

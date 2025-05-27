@@ -9,7 +9,8 @@ import {
   TrendingUp,
   MessageSquare,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  Zap
 } from "lucide-react";
 import { useContacts } from "@/hooks/use-contacts";
 import SimplifiedAIChat from "@/components/ai/SimplifiedAIChat";
@@ -67,37 +68,49 @@ export default function AIAssistant() {
 
   return (
     <div className="min-h-screen bg-gray-50/30">
-      <div className="max-w-6xl mx-auto p-6 space-y-8">
+      <div className="max-w-7xl mx-auto p-6 space-y-8">
         {/* Header */}
-        <div className="text-center space-y-4">
-          <div className="flex items-center justify-center gap-3">
-            <div className="p-3 bg-blue-50 rounded-xl">
-              <Brain className="h-6 w-6 text-blue-600" />
+        <div className="text-center space-y-6">
+          <div className="flex items-center justify-center gap-4">
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center">
+              <Brain className="h-8 w-8 text-white" />
             </div>
-            <h1 className="text-2xl font-semibold text-gray-900">AI Assistant</h1>
+            <div className="text-left">
+              <h1 className="text-2xl font-semibold text-gray-900">AI Assistant</h1>
+              <p className="text-gray-600">Your intelligent relationship management companion</p>
+            </div>
           </div>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Get personalized insights and actionable advice to strengthen your network
-          </p>
           <div className="flex justify-center gap-2 flex-wrap">
-            <Badge variant="outline" className="text-xs font-medium">Smart Insights</Badge>
-            <Badge variant="outline" className="text-xs font-medium">Relationship Analytics</Badge>
-            <Badge variant="outline" className="text-xs font-medium">Connection Recommendations</Badge>
+            <Badge variant="outline" className="bg-white border-gray-200">
+              <Zap className="h-3 w-3 mr-1" />
+              Smart Insights
+            </Badge>
+            <Badge variant="outline" className="bg-white border-gray-200">
+              <Target className="h-3 w-3 mr-1" />
+              Relationship Analytics
+            </Badge>
+            <Badge variant="outline" className="bg-white border-gray-200">
+              <Users className="h-3 w-3 mr-1" />
+              Connection Recommendations
+            </Badge>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Stats & Quick Actions */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Sidebar */}
           <div className="space-y-6">
             {/* Network Overview */}
-            <Card className="border border-gray-200">
+            <Card className="border-0 shadow-sm bg-white/80 backdrop-blur-sm">
               <CardContent className="p-6">
-                <h3 className="font-semibold text-gray-900 mb-4">Network Overview</h3>
+                <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Network Overview
+                </h3>
                 <div className="grid grid-cols-2 gap-4">
                   {stats.map((stat, index) => (
-                    <div key={index} className="text-center">
-                      <stat.icon className={`h-5 w-5 mx-auto mb-2 ${stat.color}`} />
-                      <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
+                    <div key={index} className="text-center p-3 bg-gray-50 rounded-lg">
+                      <stat.icon className={`h-4 w-4 mx-auto mb-2 ${stat.color}`} />
+                      <div className="text-xl font-bold text-gray-900">{stat.value}</div>
                       <div className="text-xs text-gray-500">{stat.label}</div>
                     </div>
                   ))}
@@ -106,16 +119,16 @@ export default function AIAssistant() {
             </Card>
 
             {/* Smart Suggestions */}
-            <Card className="border border-gray-200">
+            <Card className="border-0 shadow-sm bg-white/80 backdrop-blur-sm">
               <CardContent className="p-6">
                 <div className="flex items-center gap-2 mb-4">
-                  <Sparkles className="h-5 w-5 text-blue-600" />
+                  <Sparkles className="h-4 w-4 text-purple-600" />
                   <h3 className="font-semibold text-gray-900">Smart Suggestions</h3>
                 </div>
                 <div className="space-y-3">
                   {suggestions.map((suggestion, index) => (
-                    <div key={index} className="p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-start justify-between gap-2">
+                    <div key={index} className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                      <div className="flex items-start justify-between gap-2 mb-3">
                         <div className="flex-1 min-w-0">
                           <h4 className="font-medium text-gray-900 text-sm">{suggestion.title}</h4>
                           <p className="text-xs text-gray-600 mt-1">{suggestion.description}</p>
@@ -125,7 +138,7 @@ export default function AIAssistant() {
                           suggestion.priority === 'medium' ? 'bg-amber-400' : 'bg-gray-300'
                         }`} />
                       </div>
-                      <Button size="sm" variant="outline" className="w-full mt-3 text-xs">
+                      <Button size="sm" variant="outline" className="w-full text-xs border-gray-200 hover:bg-gray-100">
                         {suggestion.action}
                         <ArrowRight className="h-3 w-3 ml-1" />
                       </Button>
@@ -137,12 +150,17 @@ export default function AIAssistant() {
           </div>
 
           {/* Main Chat Interface */}
-          <div className="lg:col-span-2">
-            <Card className="border border-gray-200 h-[600px] flex flex-col">
+          <div className="lg:col-span-3">
+            <Card className="border-0 shadow-sm bg-white/80 backdrop-blur-sm h-[700px] flex flex-col">
               <CardContent className="p-6 flex-1 flex flex-col">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="font-semibold text-gray-900">Chat with AI</h3>
-                  <Button size="sm" variant="outline">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                      <MessageSquare className="h-4 w-4 text-white" />
+                    </div>
+                    <h3 className="font-semibold text-gray-900">AI Chat</h3>
+                  </div>
+                  <Button size="sm" variant="outline" className="border-gray-200 hover:bg-gray-50">
                     Clear History
                   </Button>
                 </div>

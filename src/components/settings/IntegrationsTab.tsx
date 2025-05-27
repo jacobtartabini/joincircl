@@ -4,221 +4,167 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Mail, 
-  Calendar, 
-  MessageSquare, 
-  Twitter, 
-  Linkedin, 
-  Github,
-  Slack,
-  Chrome,
-  CheckCircle,
-  Plus,
-  Settings,
-  ExternalLink
-} from "lucide-react";
+import { Mail, Calendar, Linkedin, Twitter, Github, Slack, Plus } from "lucide-react";
 
 const IntegrationsTab = () => {
   const [integrations, setIntegrations] = useState({
-    gmail: { connected: true, enabled: true },
-    outlook: { connected: false, enabled: false },
-    calendar: { connected: true, enabled: true },
-    twitter: { connected: false, enabled: false },
-    linkedin: { connected: true, enabled: true },
-    slack: { connected: false, enabled: false }
+    google: true,
+    outlook: false,
+    linkedin: true,
+    twitter: false,
+    github: false,
+    slack: false
   });
+
+  const handleToggle = (integration: string, enabled: boolean) => {
+    setIntegrations(prev => ({ ...prev, [integration]: enabled }));
+  };
 
   const availableIntegrations = [
     {
-      id: 'gmail',
-      name: 'Gmail',
-      description: 'Sync contacts and track email interactions',
+      id: 'google',
+      name: 'Google Workspace',
+      description: 'Sync contacts and calendar events',
       icon: Mail,
-      category: 'Email',
       color: 'text-red-600',
-      bgColor: 'bg-red-50'
+      bgColor: 'bg-red-100',
+      enabled: integrations.google
     },
     {
       id: 'outlook',
-      name: 'Outlook',
-      description: 'Connect your Microsoft email account',
-      icon: Mail,
-      category: 'Email', 
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50'
-    },
-    {
-      id: 'calendar',
-      name: 'Google Calendar',
-      description: 'Track meetings and schedule follow-ups',
+      name: 'Microsoft Outlook',
+      description: 'Import contacts and meetings',
       icon: Calendar,
-      category: 'Calendar',
-      color: 'text-green-600',
-      bgColor: 'bg-green-50'
-    },
-    {
-      id: 'twitter',
-      name: 'Twitter',
-      description: 'Monitor social interactions and mentions',
-      icon: Twitter,
-      category: 'Social',
-      color: 'text-blue-400',
-      bgColor: 'bg-blue-50'
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-100',
+      enabled: integrations.outlook
     },
     {
       id: 'linkedin',
       name: 'LinkedIn',
       description: 'Import professional connections',
       icon: Linkedin,
-      category: 'Social',
       color: 'text-blue-700',
-      bgColor: 'bg-blue-50'
+      bgColor: 'bg-blue-100',
+      enabled: integrations.linkedin
+    },
+    {
+      id: 'twitter',
+      name: 'Twitter',
+      description: 'Track social interactions',
+      icon: Twitter,
+      color: 'text-sky-600',
+      bgColor: 'bg-sky-100',
+      enabled: integrations.twitter
+    },
+    {
+      id: 'github',
+      name: 'GitHub',
+      description: 'Connect with developer contacts',
+      icon: Github,
+      color: 'text-gray-800',
+      bgColor: 'bg-gray-100',
+      enabled: integrations.github
     },
     {
       id: 'slack',
       name: 'Slack',
-      description: 'Track team communications',
+      description: 'Import team members and conversations',
       icon: Slack,
-      category: 'Communication',
       color: 'text-purple-600',
-      bgColor: 'bg-purple-50'
+      bgColor: 'bg-purple-100',
+      enabled: integrations.slack
     }
   ];
 
-  const categories = ['All', 'Email', 'Calendar', 'Social', 'Communication'];
-  const [selectedCategory, setSelectedCategory] = useState('All');
-
-  const filteredIntegrations = availableIntegrations.filter(integration => 
-    selectedCategory === 'All' || integration.category === selectedCategory
-  );
-
-  const toggleIntegration = (id: string) => {
-    setIntegrations(prev => ({
-      ...prev,
-      [id]: {
-        ...prev[id],
-        enabled: !prev[id].enabled
-      }
-    }));
-  };
-
   return (
-    <div className="space-y-6">
-      {/* Overview */}
-      <Card className="border border-gray-200">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-lg font-semibold text-gray-900">Connected Services</CardTitle>
+    <div className="space-y-8">
+      {/* Connected Integrations */}
+      <Card className="border-0 shadow-sm bg-white/80 backdrop-blur-sm">
+        <CardHeader className="pb-6">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg font-semibold text-gray-900">Connected Services</CardTitle>
+            <Button variant="outline" size="sm" className="border-gray-200 hover:bg-gray-50">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Integration
+            </Button>
+          </div>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
-              <div className="text-2xl font-bold text-green-700">
-                {Object.values(integrations).filter(i => i.connected).length}
+        <CardContent className="space-y-4">
+          {availableIntegrations.map((integration) => (
+            <div key={integration.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="flex items-center gap-4">
+                <div className={`w-10 h-10 ${integration.bgColor} rounded-lg flex items-center justify-center`}>
+                  <integration.icon className={`h-5 w-5 ${integration.color}`} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-medium text-gray-900">{integration.name}</h4>
+                    {integration.enabled && (
+                      <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
+                        Connected
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-600">{integration.description}</p>
+                </div>
               </div>
-              <div className="text-sm text-green-600">Connected</div>
+              <Switch
+                checked={integration.enabled}
+                onCheckedChange={(checked) => handleToggle(integration.id, checked)}
+              />
             </div>
-            <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <div className="text-2xl font-bold text-blue-700">
-                {Object.values(integrations).filter(i => i.enabled).length}
+          ))}
+        </CardContent>
+      </Card>
+
+      {/* API Access */}
+      <Card className="border-0 shadow-sm bg-white/80 backdrop-blur-sm">
+        <CardHeader className="pb-6">
+          <CardTitle className="text-lg font-semibold text-gray-900">API Access</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <h4 className="font-medium text-blue-900 mb-2">Developer Access</h4>
+            <p className="text-sm text-blue-700 mb-4">
+              Generate API keys to integrate Circl with your own applications and workflows.
+            </p>
+            <Button variant="outline" className="border-blue-200 text-blue-700 hover:bg-blue-50">
+              Generate API Key
+            </Button>
+          </div>
+          
+          <div className="space-y-3">
+            <h4 className="font-medium text-gray-900">Existing API Keys</h4>
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h5 className="font-medium text-gray-900">Development Key</h5>
+                  <p className="text-sm text-gray-600">Created on March 15, 2024</p>
+                  <p className="text-xs text-gray-500 mt-1">Last used: 2 days ago</p>
+                </div>
+                <Button variant="outline" size="sm" className="text-red-600 border-red-200 hover:bg-red-50">
+                  Revoke
+                </Button>
               </div>
-              <div className="text-sm text-blue-600">Active</div>
-            </div>
-            <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <div className="text-2xl font-bold text-gray-700">
-                {availableIntegrations.length}
-              </div>
-              <div className="text-sm text-gray-600">Available</div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Category Filter */}
-      <div className="flex gap-2 flex-wrap">
-        {categories.map((category) => (
-          <Button
-            key={category}
-            variant={selectedCategory === category ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedCategory(category)}
-            className="rounded-full"
-          >
-            {category}
-          </Button>
-        ))}
-      </div>
-
-      {/* Integrations Grid */}
-      <div className="grid gap-4">
-        {filteredIntegrations.map((integration) => {
-          const status = integrations[integration.id];
-          
-          return (
-            <Card key={integration.id} className="border border-gray-200">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className={`p-3 rounded-lg ${integration.bgColor}`}>
-                      <integration.icon className={`h-6 w-6 ${integration.color}`} />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-gray-900">{integration.name}</h3>
-                        <Badge variant="secondary" className="text-xs">
-                          {integration.category}
-                        </Badge>
-                        {status?.connected && (
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-600 mt-1">{integration.description}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-3">
-                    {status?.connected ? (
-                      <>
-                        <Switch
-                          checked={status.enabled}
-                          onCheckedChange={() => toggleIntegration(integration.id)}
-                        />
-                        <Button variant="outline" size="sm">
-                          <Settings className="h-4 w-4 mr-2" />
-                          Settings
-                        </Button>
-                      </>
-                    ) : (
-                      <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Connect
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-
-      {/* API Access */}
-      <Card className="border border-gray-200">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-lg font-semibold text-gray-900">Developer Tools</CardTitle>
+      {/* Webhooks */}
+      <Card className="border-0 shadow-sm bg-white/80 backdrop-blur-sm">
+        <CardHeader className="pb-6">
+          <CardTitle className="text-lg font-semibold text-gray-900">Webhooks</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
-            <div className="flex items-center gap-3">
-              <Chrome className="h-5 w-5 text-gray-600" />
-              <div>
-                <h4 className="font-medium text-gray-900">API Access</h4>
-                <p className="text-sm text-gray-600">Generate API keys for custom integrations</p>
-              </div>
-            </div>
-            <Button variant="outline" size="sm">
-              <ExternalLink className="h-4 w-4 mr-2" />
-              Manage Keys
+        <CardContent className="space-y-6">
+          <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+            <h4 className="font-medium text-gray-900 mb-2">Event Notifications</h4>
+            <p className="text-sm text-gray-600 mb-4">
+              Configure webhook endpoints to receive real-time notifications about contact updates and interactions.
+            </p>
+            <Button variant="outline" className="border-gray-200 hover:bg-gray-50">
+              Add Webhook
             </Button>
           </div>
         </CardContent>

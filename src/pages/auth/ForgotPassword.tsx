@@ -39,58 +39,70 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-12 bg-background">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1 text-center">
-          <div className="flex justify-center mb-4">
-            <div className="w-12 h-12 rounded-full bg-circl-blue flex items-center justify-center text-white font-sans text-2xl">C</div>
-          </div>
-          <CardTitle className="text-2xl font-bold">Forgot Password</CardTitle>
-          <CardDescription>
-            {isEmailSent
-              ? "Check your email for a reset link"
-              : "Enter your email and we'll send you a reset link"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isEmailSent ? (
-            <div className="text-center space-y-4">
-              <div className="bg-green-50 text-green-700 p-4 rounded-md">
-                Password reset email sent! Please check your inbox.
+    <div className="min-h-screen bg-gray-50/30 flex items-center justify-center px-6 py-12">
+      <div className="w-full max-w-md">
+        <Card className="border-0 shadow-sm bg-white/80 backdrop-blur-sm">
+          <CardHeader className="space-y-6 text-center pb-8">
+            <div className="flex justify-center">
+              <div className="w-16 h-16 rounded-full bg-gray-900 flex items-center justify-center text-white font-serif text-2xl">
+                C
               </div>
-              <p className="text-sm text-gray-600">
-                If you don't see it, check your spam folder or try again.
-              </p>
             </div>
-          ) : (
-            <form onSubmit={handleResetPassword} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={isSubmitting}
-                  required
-                />
+            <div className="space-y-2">
+              <CardTitle className="text-2xl font-semibold text-gray-900">Reset Password</CardTitle>
+              <CardDescription className="text-gray-600">
+                {isEmailSent
+                  ? "Check your email for a reset link"
+                  : "Enter your email and we'll send you a reset link"}
+              </CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {isEmailSent ? (
+              <div className="text-center space-y-6">
+                <div className="p-4 bg-green-50 border border-green-200 text-green-800 rounded-lg">
+                  <p className="font-medium">Password reset email sent!</p>
+                  <p className="text-sm mt-1">Please check your inbox.</p>
+                </div>
+                <p className="text-sm text-gray-600">
+                  If you don't see it, check your spam folder or try again.
+                </p>
               </div>
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? "Sending..." : "Send Reset Link"}
-              </Button>
-            </form>
-          )}
-        </CardContent>
-        <CardFooter className="flex justify-center">
-          <p className="text-sm text-muted-foreground">
-            Remembered your password?{" "}
-            <Link to="/auth/sign-in" className="text-blue-600 hover:text-blue-800 font-medium">
-              Sign in
-            </Link>
-          </p>
-        </CardFooter>
-      </Card>
+            ) : (
+              <form onSubmit={handleResetPassword} className="space-y-5">
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="your@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={isSubmitting}
+                    required
+                    className="border-gray-200 focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+                  />
+                </div>
+                <Button 
+                  type="submit" 
+                  className="w-full bg-gray-900 hover:bg-gray-800 text-white py-3" 
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Sending..." : "Send Reset Link"}
+                </Button>
+              </form>
+            )}
+          </CardContent>
+          <CardFooter className="flex justify-center pt-4">
+            <p className="text-sm text-gray-600">
+              Remembered your password?{" "}
+              <Link to="/auth/sign-in" className="text-gray-900 hover:underline font-medium">
+                Sign in
+              </Link>
+            </p>
+          </CardFooter>
+        </Card>
+      </div>
     </div>
   );
 }
