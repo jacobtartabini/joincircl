@@ -1,64 +1,43 @@
 
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import { 
   Brain, 
-  MessageSquare, 
-  Settings, 
-  Sparkles,
   Users,
-  Calendar,
+  MessageSquare,
   TrendingUp,
-  Zap,
   Target
 } from "lucide-react";
 import { useContacts } from "@/hooks/use-contacts";
-import SmartRecommendationEngine from "@/components/ai/SmartRecommendationEngine";
-import EnhancedAIChat from "@/components/ai/EnhancedAIChat";
-import { UserPersonality } from "@/services/advancedAiAssistant";
+import SimplifiedAIChat from "@/components/ai/SimplifiedAIChat";
 
 export default function AIAssistant() {
   const { contacts } = useContacts();
-  const [userPersonality, setUserPersonality] = useState<UserPersonality>({
-    communicationStyle: 'mixed',
-    preferredPlatforms: ['text', 'email'],
-    messageLength: 'medium',
-    frequency: 'weekly',
-    focusAreas: ['personal', 'professional'],
-    proactivityLevel: 'medium',
-    relationshipGoals: ['stay connected', 'grow network'],
-    voiceTone: 'warm and genuine'
-  });
 
-  const quickActions = [
+  const stats = [
     { 
-      icon: Target, 
-      label: "Priority Recommendations", 
-      description: "See who needs your attention most",
-      color: "text-red-500"
-    },
-    { 
-      icon: MessageSquare, 
-      label: "Smart Message Drafts", 
-      description: "AI-crafted messages for every relationship",
+      icon: Users, 
+      label: "Total Contacts", 
+      value: contacts.length,
       color: "text-blue-500"
     },
     { 
-      icon: Calendar, 
-      label: "Celebration Alerts", 
-      description: "Never miss birthdays and milestones",
+      icon: Target, 
+      label: "Inner Circle", 
+      value: contacts.filter(c => c.circle === 'inner').length,
       color: "text-green-500"
     },
     { 
       icon: TrendingUp, 
-      label: "Growth Opportunities", 
-      description: "Expand your network strategically",
-      color: "text-purple-500"
+      label: "Middle Circle", 
+      value: contacts.filter(c => c.circle === 'middle').length,
+      color: "text-yellow-500"
+    },
+    { 
+      icon: MessageSquare, 
+      label: "Outer Circle", 
+      value: contacts.filter(c => c.circle === 'outer').length,
+      color: "text-gray-500"
     }
   ];
 
@@ -71,137 +50,57 @@ export default function AIAssistant() {
           AI Relationship Assistant
         </h1>
         <p className="text-muted-foreground">
-          Your intelligent companion for building and maintaining meaningful connections
+          Get personalized insights and advice for managing your network
         </p>
         <div className="flex justify-center gap-2 flex-wrap">
-          <Badge variant="outline" className="bg-purple-50">
-            Context-Aware
-          </Badge>
-          <Badge variant="outline" className="bg-blue-50">
-            Personalized
-          </Badge>
-          <Badge variant="outline" className="bg-green-50">
-            Proactive
-          </Badge>
+          <Badge variant="outline">Personalized Advice</Badge>
+          <Badge variant="outline">Contact Insights</Badge>
+          <Badge variant="outline">Relationship Management</Badge>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main AI Engine */}
-        <div className="lg:col-span-2">
-          <SmartRecommendationEngine 
-            contacts={contacts} 
-            userPersonality={userPersonality}
-          />
-        </div>
-
-        {/* Chat and Settings */}
-        <div className="space-y-6">
-          {/* Quick Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Sparkles className="h-5 w-5" />
-                Quick Actions
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {quickActions.map((action, index) => (
-                <Button
-                  key={index}
-                  variant="outline"
-                  className="w-full justify-start h-auto p-3"
-                >
-                  <action.icon className={`h-4 w-4 mr-2 flex-shrink-0 ${action.color}`} />
-                  <div className="text-left">
-                    <div className="font-medium">{action.label}</div>
-                    <div className="text-xs text-muted-foreground">{action.description}</div>
-                  </div>
-                </Button>
-              ))}
+      {/* Stats Overview */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        {stats.map((stat, index) => (
+          <Card key={index}>
+            <CardContent className="p-4 text-center">
+              <stat.icon className={`h-6 w-6 mx-auto mb-2 ${stat.color}`} />
+              <div className="text-2xl font-bold">{stat.value}</div>
+              <div className="text-sm text-muted-foreground">{stat.label}</div>
             </CardContent>
           </Card>
-
-          {/* AI Personality Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Settings className="h-5 w-5" />
-                AI Personality
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Communication Style</Label>
-                <Select
-                  value={userPersonality.communicationStyle}
-                  onValueChange={(value: UserPersonality['communicationStyle']) =>
-                    setUserPersonality(prev => ({ ...prev, communicationStyle: value }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="casual">Casual & Relaxed</SelectItem>
-                    <SelectItem value="professional">Professional</SelectItem>
-                    <SelectItem value="warm">Warm & Personal</SelectItem>
-                    <SelectItem value="direct">Direct & Clear</SelectItem>
-                    <SelectItem value="mixed">Adaptive</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Proactivity Level</Label>
-                <Select
-                  value={userPersonality.proactivityLevel}
-                  onValueChange={(value: UserPersonality['proactivityLevel']) =>
-                    setUserPersonality(prev => ({ ...prev, proactivityLevel: value }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Low - Only when asked</SelectItem>
-                    <SelectItem value="medium">Medium - Weekly insights</SelectItem>
-                    <SelectItem value="high">High - Daily suggestions</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Message Length</Label>
-                <Select
-                  value={userPersonality.messageLength}
-                  onValueChange={(value: UserPersonality['messageLength']) =>
-                    setUserPersonality(prev => ({ ...prev, messageLength: value }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="short">Short & Concise</SelectItem>
-                    <SelectItem value="medium">Medium Length</SelectItem>
-                    <SelectItem value="long">Detailed & Thoughtful</SelectItem>
-                    <SelectItem value="adaptive">Adaptive to Context</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        ))}
       </div>
 
-      {/* Enhanced Chat Interface */}
-      <div className="mt-8">
-        <EnhancedAIChat 
-          contacts={contacts} 
-          userPersonality={userPersonality}
-        />
-      </div>
+      {/* Main Chat Interface */}
+      <SimplifiedAIChat contacts={contacts} />
+
+      {/* Help Text */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">How to get the best results</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid md:grid-cols-2 gap-4 text-sm">
+            <div>
+              <h4 className="font-medium mb-2">Ask about specific contacts:</h4>
+              <ul className="space-y-1 text-muted-foreground">
+                <li>• "When should I reach out to John?"</li>
+                <li>• "Help me reconnect with my college friends"</li>
+                <li>• "Who in my network works at Google?"</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-medium mb-2">Get relationship advice:</h4>
+              <ul className="space-y-1 text-muted-foreground">
+                <li>• "How can I strengthen my professional network?"</li>
+                <li>• "What's the best way to follow up after meeting someone?"</li>
+                <li>• "Help me prioritize my outreach this week"</li>
+              </ul>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

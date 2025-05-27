@@ -1,82 +1,61 @@
 
-import React from 'react';
 import { useNotifications } from '@/hooks/use-notifications';
-import { Card } from '@/components/ui/card';
-import { formatDistanceToNow } from 'date-fns';
-import { Bell, Calendar, Circle, User, MessageCircle } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import NotificationItem from './NotificationItem';
+import { Button } from '@/components/ui/button';
+import { Trash2, CheckCheck } from 'lucide-react';
 
-const NotificationsList = () => {
-  const { notifications, toggleNotificationRead } = useNotifications();
-  
-  // Get icon based on notification type
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case 'contact':
-        return <User className="h-5 w-5" />;
-      case 'keystone':
-        return <Calendar className="h-5 w-5" />;
-      case 'message':
-        return <MessageCircle className="h-5 w-5" />;
-      default:
-        return <Bell className="h-5 w-5" />;
-    }
-  };
-  
+export default function NotificationsList() {
+  const { 
+    notifications, 
+    clearNotification, 
+    toggleNotificationRead,
+    markAllAsRead,
+    clearAllNotifications 
+  } = useNotifications();
+
+  if (notifications.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-muted-foreground">No notifications yet</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-3">
-      {notifications.map((notification) => (
-        <Card 
-          key={notification.id}
-          className={cn(
-            "p-4 cursor-pointer hover:bg-muted/50 transition-colors",
-            !notification.read && "border-l-4 border-l-primary"
-          )}
-          onClick={() => toggleNotificationRead(notification.id)}
+    <div className="space-y-4">
+      {/* Action buttons */}
+      <div className="flex gap-2 mb-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={markAllAsRead}
+          className="flex items-center gap-2"
         >
-          <div className="flex items-start gap-3">
-            <div className={cn(
-              "p-2 rounded-full",
-              !notification.read ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
-            )}>
-              {getNotificationIcon(notification.type)}
-            </div>
-            
-            <div className="flex-1">
-              <div className="flex items-center justify-between">
-                <p className={cn(
-                  "font-medium",
-                  !notification.read && "text-primary"
-                )}>
-                  {notification.title}
-                </p>
-                <span className="text-xs text-muted-foreground">
-                  {formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}
-                </span>
-              </div>
-              
-              <p className="text-sm text-muted-foreground mt-1">
-                {notification.message}
-              </p>
-              
-              <div className="flex items-center justify-between mt-2">
-                <span className="text-xs flex items-center gap-1">
-                  {notification.read ? (
-                    <span className="text-muted-foreground">Read</span>
-                  ) : (
-                    <span className="text-primary flex items-center">
-                      <Circle className="h-2 w-2 fill-current mr-1" />
-                      Unread
-                    </span>
-                  )}
-                </span>
-              </div>
-            </div>
-          </div>
-        </Card>
-      ))}
+          <CheckCheck className="h-4 w-4" />
+          Mark all as read
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={clearAllNotifications}
+          className="flex items-center gap-2 text-red-500 hover:text-red-600"
+        >
+          <Trash2 className="h-4 w-4" />
+          Clear all
+        </Button>
+      </div>
+
+      {/* Notifications list */}
+      <div className="space-y-3">
+        {notifications.map((notification) => (
+          <NotificationItem
+            key={notification.id}
+            notification={notification}
+            onDismiss={clearNotification}
+            onToggleRead={toggleNotificationRead}
+          />
+        ))}
+      </div>
     </div>
   );
-};
-
-export default NotificationsList;
+}
