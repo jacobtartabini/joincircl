@@ -13,9 +13,9 @@ import {
   Copy
 } from "lucide-react";
 import { Contact } from "@/types/contact";
-import { aiService } from "@/services/aiService";
 import { toast } from "sonner";
 import { useChatHistory } from "@/hooks/use-chat-history";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SimplifiedAIChatProps {
   contacts: Contact[];
@@ -48,50 +48,65 @@ export default function SimplifiedAIChat({ contacts }: SimplifiedAIChatProps) {
     setIsLoading(true);
 
     try {
-      // Create a context-aware prompt
-      const context = `User has ${contacts.length} contacts. Recent question: "${userMessageContent}"`;
+      // Create context about the user's network
+      const networkContext = `The user has ${contacts.length} contacts in their network.`;
       
-      // Get a sample of contacts for context
-      const sampleContacts = contacts.slice(0, 5);
-      const contactContext = sampleContacts.map(c => 
-        `${c.name} (${c.circle} circle, ${c.company_name || 'No company'}, last contact: ${c.last_contact ? new Date(c.last_contact).toLocaleDateString() : 'never'})`
-      ).join(', ');
+      // Get a sample of contacts for context (limit to avoid token overuse)
+      const sampleContacts = contacts.slice(0, 3);
+      const contactContext = sampleContacts.length > 0 
+        ? `Sample contacts: ${sampleContacts.map(c => 
+            `${c.name} (${c.circle} circle${c.company_name ? `, works at ${c.company_name}` : ''}${c.last_contact ? `, last contacted: ${new Date(c.last_contact).toLocaleDateString()}` : ''})`
+          ).join(', ')}`
+        : 'No contacts in network yet.';
 
-      const enhancedPrompt = `As a relationship assistant, help the user with: "${userMessageContent}"
+      // Create a comprehensive system prompt for relationship assistance
+      const systemPrompt = `You are a helpful relationship assistant for Circl, a relationship management app. 
       
-      Context: The user has ${contacts.length} contacts in their network. Sample contacts: ${contactContext}
+      Help users with:
+      - Relationship management and networking advice
+      - Contact organization strategies
+      - Communication tips and best practices
+      - Building and maintaining professional and personal relationships
+      - Follow-up strategies and timing
+      - Networking event preparation
+      - Reconnecting with old contacts
       
-      Provide helpful, specific advice about relationship management, networking, or contact organization. Keep responses concise and actionable.`;
+      User's context: ${networkContext} ${contactContext}
+      
+      Provide practical, actionable advice. Be warm, encouraging, and specific. If asked about contacts they don't have, suggest ways to build their network. Keep responses concise but helpful.`;
 
-      // Call the AI service
-      const response = await fetch('/api/ai/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      // Enhanced prompt with context
+      const enhancedPrompt = `User question: "${userMessageContent}"
+      
+      Context: ${networkContext} ${contactContext}
+      
+      Please provide helpful relationship management advice based on this question.`;
+
+      console.log('Calling OpenRouter AI with prompt:', enhancedPrompt);
+
+      // Call the OpenRouter edge function
+      const { data, error } = await supabase.functions.invoke('openrouter-ai', {
+        body: {
           prompt: enhancedPrompt,
-          context: {
-            contactCount: contacts.length,
-            sampleContacts: sampleContacts.map(c => ({
-              name: c.name,
-              circle: c.circle,
-              company: c.company_name,
-              lastContact: c.last_contact
-            }))
-          }
-        })
+          systemPrompt: systemPrompt,
+          model: 'mistralai/mistral-7b-instruct',
+          maxTokens: 500,
+          temperature: 0.7
+        }
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to get AI response');
+      if (error) {
+        console.error('OpenRouter AI error:', error);
+        throw new Error(`AI service error: ${error.message}`);
       }
 
-      const data = await response.json();
+      console.log('OpenRouter AI response:', data);
+      
+      const aiResponse = data?.response || "I'm here to help with your relationship management. Could you be more specific about what you'd like assistance with?";
       
       addMessage({
         role: 'assistant',
-        content: data.response || "I'm here to help with your relationship management. Could you be more specific about what you'd like assistance with?"
+        content: aiResponse
       });
 
     } catch (error) {
@@ -119,7 +134,7 @@ export default function SimplifiedAIChat({ contacts }: SimplifiedAIChatProps) {
     "Who should I reach out to this week?",
     "Help me prioritize my contacts",
     "What's the best way to reconnect with someone?",
-    "Analyze my networking patterns"
+    "How can I build my professional network?"
   ];
 
   return (
