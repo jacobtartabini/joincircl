@@ -1,179 +1,272 @@
 
-import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { Progress } from "@/components/ui/progress";
+import { 
+  Crown, 
+  Check, 
+  CreditCard, 
+  Download, 
+  Calendar,
+  Users,
+  Zap,
+  Shield
+} from "lucide-react";
 
 const SubscriptionTab = () => {
-  const { toast } = useToast();
-  const isMobile = useIsMobile();
-  const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);
-  
-  const handleUpgradeClick = () => {
-    setIsUpgradeOpen(true);
+  const currentPlan = {
+    name: "Pro",
+    price: 29,
+    billing: "monthly",
+    renewalDate: "2024-02-15",
+    features: [
+      "Unlimited contacts",
+      "Advanced AI insights", 
+      "Priority support",
+      "Custom integrations"
+    ]
   };
 
-  const handleCloseUpgrade = () => {
-    setIsUpgradeOpen(false);
-    toast({
-      title: "Subscription Dialog Closed",
-      description: "You can upgrade anytime from settings.",
-    });
+  const usage = {
+    contacts: { current: 847, limit: "unlimited" },
+    aiRequests: { current: 156, limit: 500 },
+    storage: { current: 2.3, limit: 10 }
   };
 
-  const upgradeContent = (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <h3 className="text-lg font-medium">Premium Plan Details</h3>
-        <p className="text-sm text-muted-foreground">
-          Upgrade to our Premium plan to unlock all features
-        </p>
-      </div>
-      
-      <div className="bg-muted p-4 rounded-lg space-y-2">
-        <div className="font-medium">Premium Plan - $9.99/month</div>
-        <ul className="space-y-1 text-sm">
-          <li className="flex items-center">✓ Unlimited contacts</li>
-          <li className="flex items-center">✓ Advanced automation tools</li>
-          <li className="flex items-center">✓ Detailed analytics and insights</li>
-          <li className="flex items-center">✓ Priority customer support</li>
-          <li className="flex items-center">✓ Custom tags and fields</li>
-        </ul>
-      </div>
-      
-      <div className="flex justify-end gap-2 pt-4">
-        <Button variant="outline" onClick={handleCloseUpgrade}>Cancel</Button>
-        <Button>Confirm Upgrade</Button>
-      </div>
-    </div>
-  );
+  const plans = [
+    {
+      name: "Starter",
+      price: 0,
+      period: "forever",
+      description: "Perfect for individuals getting started",
+      features: [
+        "Up to 100 contacts",
+        "Basic organization",
+        "Email support",
+        "Mobile app access"
+      ],
+      current: false
+    },
+    {
+      name: "Pro",
+      price: 29,
+      period: "month",
+      description: "Advanced features for growing networks",
+      features: [
+        "Unlimited contacts",
+        "AI-powered insights",
+        "Advanced integrations",
+        "Priority support",
+        "Custom fields",
+        "Bulk operations"
+      ],
+      current: true,
+      popular: true
+    },
+    {
+      name: "Team",
+      price: 89,
+      period: "month",
+      description: "Collaboration tools for teams",
+      features: [
+        "Everything in Pro",
+        "Team collaboration",
+        "Shared contacts",
+        "Admin controls",
+        "SSO integration",
+        "Advanced analytics"
+      ],
+      current: false
+    }
+  ];
 
-  // Render on mobile using Sheet (slide-in panel)
-  if (isMobile) {
-    return (
-      <>
-        <Card>
-          <CardHeader>
-            <CardTitle>Subscription Management</CardTitle>
-            <CardDescription>
-              Manage your subscription plan
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="bg-muted p-4 rounded-lg">
-              <div className="flex justify-between items-center">
-                <div>
-                  <div className="font-medium">Current Plan</div>
-                  <div className="flex items-center mt-1">
-                    <Badge variant="outline" className="mr-2">Free</Badge>
-                    <span className="text-sm text-muted-foreground">
-                      Basic features
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="border rounded-lg overflow-hidden">
-              <div className="p-4 bg-muted">
-                <h3 className="font-medium">Available Plans</h3>
-              </div>
-              <div className="p-4 border-t">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <div className="font-medium">Premium</div>
-                    <div className="text-sm text-muted-foreground">
-                      $9.99/month
-                    </div>
-                    <div className="mt-2 text-sm">
-                      Unlimited contacts, automations, advanced insights
-                    </div>
-                  </div>
-                  <Button onClick={handleUpgradeClick}>Upgrade</Button>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Sheet open={isUpgradeOpen} onOpenChange={setIsUpgradeOpen}>
-          <SheetContent side="bottom" className="h-[80vh] overflow-auto">
-            <SheetHeader className="mb-4">
-              <SheetTitle>Upgrade Subscription</SheetTitle>
-              <SheetDescription>
-                Upgrade your plan for more features
-              </SheetDescription>
-            </SheetHeader>
-            {upgradeContent}
-          </SheetContent>
-        </Sheet>
-      </>
-    );
-  }
-
-  // Render on desktop using Dialog
   return (
-    <>
-      <Card>
-        <CardHeader>
-          <CardTitle>Subscription Management</CardTitle>
-          <CardDescription>
-            Manage your subscription plan
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="bg-muted p-4 rounded-lg">
-            <div className="flex justify-between items-center">
-              <div>
-                <div className="font-medium">Current Plan</div>
-                <div className="flex items-center mt-1">
-                  <Badge variant="outline" className="mr-2">Free</Badge>
-                  <span className="text-sm text-muted-foreground">
-                    Basic features
-                  </span>
-                </div>
+    <div className="space-y-6">
+      {/* Current Plan */}
+      <Card className="border border-gray-200">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-50 rounded-lg">
+                <Crown className="h-5 w-5 text-blue-600" />
               </div>
+              <div>
+                <CardTitle className="text-lg font-semibold text-gray-900">Current Plan</CardTitle>
+                <p className="text-sm text-gray-600">You're on the {currentPlan.name} plan</p>
+              </div>
+            </div>
+            <Badge className="bg-blue-50 text-blue-700 border-blue-200">
+              {currentPlan.name}
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <div>
+              <div className="text-2xl font-bold text-blue-900">
+                ${currentPlan.price}
+                <span className="text-sm font-normal text-blue-700">/{currentPlan.billing}</span>
+              </div>
+              <p className="text-sm text-blue-700">Next billing: {currentPlan.renewalDate}</p>
+            </div>
+            <div className="text-right">
+              <Button variant="outline" size="sm" className="border-blue-200 text-blue-700">
+                <CreditCard className="h-4 w-4 mr-2" />
+                Manage Billing
+              </Button>
             </div>
           </div>
-          
-          <div className="border rounded-lg overflow-hidden">
-            <div className="p-4 bg-muted">
-              <h3 className="font-medium">Available Plans</h3>
-            </div>
-            <div className="p-4 border-t">
-              <div className="flex justify-between items-center">
-                <div>
-                  <div className="font-medium">Premium</div>
-                  <div className="text-sm text-muted-foreground">
-                    $9.99/month
-                  </div>
-                  <div className="mt-2 text-sm">
-                    Unlimited contacts, automations, advanced insights
-                  </div>
+
+          <div className="grid gap-4">
+            <h4 className="font-medium text-gray-900">Plan Features</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {currentPlan.features.map((feature, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-green-500" />
+                  <span className="text-sm text-gray-700">{feature}</span>
                 </div>
-                <Button onClick={handleUpgradeClick}>Upgrade</Button>
-              </div>
+              ))}
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <Dialog open={isUpgradeOpen} onOpenChange={setIsUpgradeOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Upgrade Subscription</DialogTitle>
-            <DialogDescription>
-              Upgrade your plan for more features
-            </DialogDescription>
-          </DialogHeader>
-          {upgradeContent}
-        </DialogContent>
-      </Dialog>
-    </>
+      {/* Usage Stats */}
+      <Card className="border border-gray-200">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg font-semibold text-gray-900">Usage This Month</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-gray-500" />
+                <span className="text-gray-700">Contacts</span>
+              </div>
+              <span className="font-medium">{usage.contacts.current} / {usage.contacts.limit}</span>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-2">
+                <Zap className="h-4 w-4 text-gray-500" />
+                <span className="text-gray-700">AI Requests</span>
+              </div>
+              <span className="font-medium">{usage.aiRequests.current} / {usage.aiRequests.limit}</span>
+            </div>
+            <Progress value={(usage.aiRequests.current / usage.aiRequests.limit) * 100} className="h-2" />
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-2">
+                <Shield className="h-4 w-4 text-gray-500" />
+                <span className="text-gray-700">Storage</span>
+              </div>
+              <span className="font-medium">{usage.storage.current}GB / {usage.storage.limit}GB</span>
+            </div>
+            <Progress value={(usage.storage.current / usage.storage.limit) * 100} className="h-2" />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Available Plans */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-gray-900">Available Plans</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {plans.map((plan, index) => (
+            <Card 
+              key={index} 
+              className={`border relative ${
+                plan.current 
+                  ? 'border-blue-500 ring-2 ring-blue-100' 
+                  : 'border-gray-200'
+              }`}
+            >
+              {plan.popular && (
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                  <Badge className="bg-blue-600 text-white">Most Popular</Badge>
+                </div>
+              )}
+              
+              <CardHeader className="text-center pb-4">
+                <CardTitle className="text-lg font-semibold">{plan.name}</CardTitle>
+                <div className="text-3xl font-bold text-gray-900">
+                  ${plan.price}
+                  <span className="text-sm font-normal text-gray-500">/{plan.period}</span>
+                </div>
+                <p className="text-sm text-gray-600">{plan.description}</p>
+              </CardHeader>
+              
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  {plan.features.map((feature, featureIndex) => (
+                    <div key={featureIndex} className="flex items-center gap-2">
+                      <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                      <span className="text-sm text-gray-700">{feature}</span>
+                    </div>
+                  ))}
+                </div>
+                
+                <Button 
+                  className={`w-full ${
+                    plan.current 
+                      ? 'bg-gray-100 text-gray-700 cursor-not-allowed' 
+                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  }`}
+                  disabled={plan.current}
+                >
+                  {plan.current ? 'Current Plan' : 'Upgrade'}
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+
+      {/* Billing History */}
+      <Card className="border border-gray-200">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg font-semibold text-gray-900">Billing History</CardTitle>
+            <Button variant="outline" size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              Download All
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {[
+              { date: "Jan 15, 2024", amount: "$29.00", status: "Paid", invoice: "INV-001" },
+              { date: "Dec 15, 2023", amount: "$29.00", status: "Paid", invoice: "INV-002" },
+              { date: "Nov 15, 2023", amount: "$29.00", status: "Paid", invoice: "INV-003" }
+            ].map((bill, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Calendar className="h-4 w-4 text-gray-500" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{bill.date}</p>
+                    <p className="text-xs text-gray-500">Invoice {bill.invoice}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-medium">{bill.amount}</span>
+                  <Badge variant="secondary" className="bg-green-50 text-green-700">
+                    {bill.status}
+                  </Badge>
+                  <Button variant="outline" size="sm">
+                    <Download className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

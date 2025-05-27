@@ -1,287 +1,220 @@
 
-import { useState, useMemo } from "react";
-import { useCirclesState } from "./hooks/useCirclesState";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { useState } from "react";
+import { Search, Filter, Plus, Users, Eye, Heart, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
-  Search, 
-  Plus, 
-  Filter, 
-  Users, 
-  Building2, 
-  MapPin,
-  MoreHorizontal,
-  Mail,
-  Phone
-} from "lucide-react";
-import { Contact } from "@/types/contact";
-import { useNavigate } from "react-router-dom";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import ContactForm from "@/components/contact/ContactForm";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useContacts } from "@/hooks/use-contacts";
+import { cn } from "@/lib/utils";
 
 const ModernCircles = () => {
-  const navigate = useNavigate();
-  const isMobile = useIsMobile();
-  const {
-    contacts,
-    isLoading,
-    searchQuery,
-    setSearchQuery,
-    isAddDialogOpen,
-    setIsAddDialogOpen,
-    fetchContacts
-  } = useCirclesState();
+  const { contacts } = useContacts();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCircle, setSelectedCircle] = useState<string | null>(null);
 
-  const [selectedFilter, setSelectedFilter] = useState<string>('all');
-
-  const filteredContacts = useMemo(() => {
-    if (!contacts) return [];
-    
-    let filtered = contacts;
-    
-    // Filter by circle
-    if (selectedFilter !== 'all') {
-      filtered = filtered.filter(contact => contact.circle === selectedFilter);
-    }
-    
-    // Filter by search query
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(contact => 
-        contact.name?.toLowerCase().includes(query) ||
-        contact.company_name?.toLowerCase().includes(query) ||
-        contact.job_title?.toLowerCase().includes(query) ||
-        contact.personal_email?.toLowerCase().includes(query)
-      );
-    }
-    
-    return filtered;
-  }, [contacts, selectedFilter, searchQuery]);
-
-  const getCircleColor = (circle: string) => {
-    switch (circle) {
-      case 'inner': return 'bg-green-100 text-green-800 border-green-200';
-      case 'middle': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'outer': return 'bg-blue-100 text-blue-800 border-blue-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
+  const circleStats = {
+    inner: contacts.filter(c => c.circle === 'inner').length,
+    middle: contacts.filter(c => c.circle === 'middle').length,
+    outer: contacts.filter(c => c.circle === 'outer').length,
   };
 
-  const handleContactClick = (contact: Contact) => {
-    navigate(`/contacts/${contact.id}`);
-  };
+  const circleConfig = [
+    {
+      id: 'inner',
+      name: 'Inner Circle',
+      description: 'Your closest relationships',
+      color: 'bg-red-50 border-red-200 text-red-700',
+      iconColor: 'text-red-500',
+      icon: Heart,
+      count: circleStats.inner
+    },
+    {
+      id: 'middle',
+      name: 'Middle Circle',
+      description: 'Regular connections',
+      color: 'bg-amber-50 border-amber-200 text-amber-700',
+      iconColor: 'text-amber-500',
+      icon: MessageCircle,
+      count: circleStats.middle
+    },
+    {
+      id: 'outer',
+      name: 'Outer Circle',
+      description: 'Professional network',
+      color: 'bg-blue-50 border-blue-200 text-blue-700',
+      iconColor: 'text-blue-500',
+      icon: Eye,
+      count: circleStats.outer
+    }
+  ];
 
-  const contactFormContent = (
-    <ContactForm 
-      onSuccess={() => {
-        setIsAddDialogOpen(false);
-        fetchContacts();
-      }} 
-      onCancel={() => setIsAddDialogOpen(false)}
-    />
-  );
+  const filteredContacts = contacts.filter(contact => {
+    const matchesSearch = contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         contact.email?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCircle = !selectedCircle || contact.circle === selectedCircle;
+    return matchesSearch && matchesCircle;
+  });
 
   return (
     <div className="min-h-screen bg-gray-50/30">
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
+      <div className="max-w-7xl mx-auto p-6 space-y-8">
         {/* Header */}
-        <div className="flex flex-col space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-light text-gray-900">Your Network</h1>
-              <p className="text-gray-600 text-lg font-light mt-1">
-                {filteredContacts.length} {filteredContacts.length === 1 ? 'contact' : 'contacts'}
-              </p>
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-900">Circles</h1>
+            <p className="text-gray-600 mt-1">Organize your network by relationship strength</p>
+          </div>
+
+          {/* Search and Filter */}
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search contacts..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              />
             </div>
-            <Button 
-              onClick={() => setIsAddDialogOpen(true)}
-              className="rounded-full px-6 py-2 bg-black text-white hover:bg-gray-800"
-            >
+            <Button variant="outline" className="shrink-0">
+              <Filter className="h-4 w-4 mr-2" />
+              Filter
+            </Button>
+            <Button className="bg-blue-600 hover:bg-blue-700 shrink-0">
               <Plus className="h-4 w-4 mr-2" />
               Add Contact
             </Button>
           </div>
 
-          {/* Search and Filters */}
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input 
-                placeholder="Search contacts..." 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 border-gray-200 rounded-full"
-              />
-            </div>
-            
-            <div className="flex gap-2">
-              {['all', 'inner', 'middle', 'outer'].map((filter) => (
-                <Button
-                  key={filter}
-                  variant={selectedFilter === filter ? "default" : "outline"}
-                  onClick={() => setSelectedFilter(filter)}
-                  className={`rounded-full px-4 py-2 ${
-                    selectedFilter === filter 
-                      ? 'bg-black text-white' 
-                      : 'border-gray-200 hover:bg-gray-50'
-                  }`}
-                >
-                  {filter === 'all' ? 'All' : filter.charAt(0).toUpperCase() + filter.slice(1)}
-                </Button>
-              ))}
-            </div>
+          {/* Circle Filter Badges */}
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant={selectedCircle === null ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSelectedCircle(null)}
+              className={cn(
+                "rounded-full",
+                selectedCircle === null ? "bg-gray-900 text-white" : "text-gray-600"
+              )}
+            >
+              All Circles
+            </Button>
+            {circleConfig.map((circle) => (
+              <Button
+                key={circle.id}
+                variant={selectedCircle === circle.id ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCircle(circle.id)}
+                className={cn(
+                  "rounded-full",
+                  selectedCircle === circle.id ? "bg-gray-900 text-white" : "text-gray-600"
+                )}
+              >
+                {circle.name}
+                <Badge variant="secondary" className="ml-2 text-xs">
+                  {circle.count}
+                </Badge>
+              </Button>
+            ))}
           </div>
         </div>
 
-        {/* Contacts Grid */}
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <Card key={i} className="border-0 shadow-sm bg-white">
-                <CardContent className="p-6">
-                  <div className="animate-pulse space-y-4">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
-                      <div className="space-y-2 flex-1">
-                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                      </div>
+        {/* Circle Overview Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {circleConfig.map((circle) => (
+            <Card 
+              key={circle.id}
+              className={cn(
+                "cursor-pointer transition-all duration-200 hover:shadow-md border",
+                circle.color,
+                selectedCircle === circle.id ? "ring-2 ring-offset-2 ring-gray-900" : ""
+              )}
+              onClick={() => setSelectedCircle(selectedCircle === circle.id ? null : circle.id)}
+            >
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-3 mb-2">
+                      <circle.icon className={cn("h-5 w-5", circle.iconColor)} />
+                      <h3 className="font-semibold">{circle.name}</h3>
                     </div>
+                    <p className="text-sm opacity-80 mb-3">{circle.description}</p>
+                    <div className="text-2xl font-bold">{circle.count}</div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : filteredContacts.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredContacts.map((contact) => (
-              <Card 
-                key={contact.id} 
-                className="border-0 shadow-sm bg-white hover:shadow-md transition-all cursor-pointer group"
-                onClick={() => handleContactClick(contact)}
-              >
-                <CardContent className="p-6">
-                  <div className="space-y-4">
-                    {/* Contact Header */}
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center space-x-3">
-                        <Avatar className="h-12 w-12">
-                          <AvatarImage src={contact.avatar_url} />
-                          <AvatarFallback className="bg-gray-100 text-gray-600 font-medium">
-                            {contact.name?.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium text-gray-900 truncate">
-                            {contact.name}
-                          </h3>
-                          <Badge 
-                            variant="outline" 
-                            className={`text-xs ${getCircleColor(contact.circle)}`}
-                          >
-                            {contact.circle}
-                          </Badge>
-                        </div>
-                      </div>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        className="opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </div>
+                  <Users className={cn("h-8 w-8 opacity-20", circle.iconColor)} />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
-                    {/* Contact Details */}
-                    <div className="space-y-2 text-sm text-gray-600">
-                      {contact.job_title && (
-                        <div className="flex items-center space-x-2">
-                          <Building2 className="h-4 w-4 text-gray-400" />
-                          <span className="truncate">
-                            {contact.job_title}
-                            {contact.company_name && ` at ${contact.company_name}`}
+        {/* Contacts Grid */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900">
+              {selectedCircle 
+                ? `${circleConfig.find(c => c.id === selectedCircle)?.name} (${filteredContacts.length})`
+                : `All Contacts (${filteredContacts.length})`
+              }
+            </h2>
+          </div>
+
+          {filteredContacts.length === 0 ? (
+            <Card className="border-dashed border-2 border-gray-200">
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <Users className="h-12 w-12 text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No contacts found</h3>
+                <p className="text-gray-500 text-center mb-6">
+                  {searchQuery 
+                    ? "Try adjusting your search terms or filters"
+                    : "Start building your network by adding your first contact"
+                  }
+                </p>
+                <Button className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Contact
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredContacts.map((contact) => {
+                const circleInfo = circleConfig.find(c => c.id === contact.circle);
+                return (
+                  <Card key={contact.id} className="hover:shadow-md transition-all duration-200 border border-gray-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-sm font-medium text-gray-600">
+                            {contact.name.charAt(0).toUpperCase()}
                           </span>
                         </div>
-                      )}
-                      
-                      {contact.location && (
-                        <div className="flex items-center space-x-2">
-                          <MapPin className="h-4 w-4 text-gray-400" />
-                          <span className="truncate">{contact.location}</span>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium text-gray-900 truncate">{contact.name}</h3>
+                          {contact.email && (
+                            <p className="text-sm text-gray-500 truncate">{contact.email}</p>
+                          )}
+                          {contact.company && (
+                            <p className="text-sm text-gray-500 truncate">{contact.company}</p>
+                          )}
+                          <div className="flex items-center gap-2 mt-2">
+                            {circleInfo && (
+                              <Badge variant="secondary" className={cn("text-xs", circleInfo.color)}>
+                                {circleInfo.name}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
-                      )}
-                      
-                      {contact.personal_email && (
-                        <div className="flex items-center space-x-2">
-                          <Mail className="h-4 w-4 text-gray-400" />
-                          <span className="truncate">{contact.personal_email}</span>
-                        </div>
-                      )}
-                      
-                      {contact.mobile_phone && (
-                        <div className="flex items-center space-x-2">
-                          <Phone className="h-4 w-4 text-gray-400" />
-                          <span>{contact.mobile_phone}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Last Contact */}
-                    {contact.last_contact && (
-                      <div className="pt-2 border-t border-gray-100">
-                        <p className="text-xs text-gray-500">
-                          Last contact: {new Date(contact.last_contact).toLocaleDateString()}
-                        </p>
                       </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <Card className="border-0 shadow-sm bg-white">
-            <CardContent className="p-12 text-center">
-              <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No contacts found</h3>
-              <p className="text-gray-600 mb-6">
-                {searchQuery ? 'Try adjusting your search terms' : 'Start building your network by adding your first contact'}
-              </p>
-              <Button 
-                onClick={() => setIsAddDialogOpen(true)}
-                className="rounded-full px-6 py-2 bg-black text-white hover:bg-gray-800"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Contact
-              </Button>
-            </CardContent>
-          </Card>
-        )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
-
-      {/* Add Contact Dialog */}
-      {isMobile ? (
-        <Sheet open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <SheetContent side="bottom" className="h-[90vh] overflow-auto pt-6">
-            <div className="mx-auto -mt-1 mb-4 h-1.5 w-[60px] rounded-full bg-muted" />
-            <SheetHeader className="mb-4">
-              <SheetTitle>Add Contact</SheetTitle>
-            </SheetHeader>
-            {contactFormContent}
-          </SheetContent>
-        </Sheet>
-      ) : (
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogContent className="sm:max-w-xl">
-            {contactFormContent}
-          </DialogContent>
-        </Dialog>
-      )}
     </div>
   );
 };

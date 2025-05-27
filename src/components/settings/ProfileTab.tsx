@@ -1,226 +1,169 @@
 
-import { useState, ChangeEvent, useEffect } from "react";
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import { Upload } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
-import { offlineStorage } from "@/services/offlineStorage";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Camera, Upload } from "lucide-react";
 
 const ProfileTab = () => {
-  const { toast } = useToast();
-  const { user, profile, updateProfile } = useAuth();
-  const [name, setName] = useState(profile?.full_name || "");
-  const [bio, setBio] = useState(profile?.bio || "");
-  const [phoneNumber, setPhoneNumber] = useState(profile?.phone_number || "");
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(profile?.avatar_url || null);
-  const [localAvatarUrl, setLocalAvatarUrl] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const [profile, setProfile] = useState({
+    firstName: "John",
+    lastName: "Doe", 
+    email: "john.doe@example.com",
+    phone: "+1 (555) 123-4567",
+    company: "Acme Inc",
+    title: "Product Manager",
+    bio: "Passionate about building meaningful connections and helping others grow their professional networks.",
+    location: "San Francisco, CA"
+  });
 
-  // Check for locally cached avatar image when offline
-  useEffect(() => {
-    const loadCachedProfileImage = async () => {
-      if (!user) return;
-      
-      // If we have an avatar URL but are offline, try to load from cache
-      if (profile?.avatar_url && !navigator.onLine) {
-        try {
-          const cachedImage = await offlineStorage.profileImage.get(user.id);
-          if (cachedImage) {
-            const imageUrl = URL.createObjectURL(cachedImage);
-            setLocalAvatarUrl(imageUrl);
-          }
-        } catch (error) {
-          console.error("Error loading cached profile image:", error);
-        }
-      } else {
-        setLocalAvatarUrl(null);
-      }
-    };
-    
-    loadCachedProfileImage();
-  }, [user, profile?.avatar_url]);
-
-  const handleSaveProfile = async () => {
-    if (!user) return;
-
-    setSaving(true);
-    try {
-      await updateProfile({
-        full_name: name,
-        bio: bio,
-        phone_number: phoneNumber
-      });
-
-      toast({
-        title: "Profile Updated",
-        description: "Your profile has been updated successfully.",
-      });
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      toast({
-        title: "Update Failed",
-        description: "There was a problem updating your profile.",
-        variant: "destructive"
-      });
-    } finally {
-      setSaving(false);
-    }
+  const handleSave = () => {
+    // Save profile logic
+    console.log("Saving profile:", profile);
   };
-
-  const handleAvatarUpload = async (event: ChangeEvent<HTMLInputElement>) => {
-    if (!event.target.files || event.target.files.length === 0 || !user) {
-      return;
-    }
-
-    const file = event.target.files[0];
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${crypto.randomUUID()}.${fileExt}`;
-    const filePath = `${user.id}/${fileName}`;
-
-    setUploading(true);
-
-    try {
-      // Delete old avatar if exists
-      if (profile?.avatar_url) {
-        try {
-          const urlParts = profile.avatar_url.split('/');
-          const oldFilePath = urlParts.slice(urlParts.indexOf('avatars') + 1).join('/');
-          
-          if (oldFilePath) {
-            await supabase.storage.from('avatars').remove([oldFilePath]);
-          }
-        } catch (removeError) {
-          console.error("Error removing old avatar:", removeError);
-          // Continue even if there's an error removing the old avatar
-        }
-      }
-
-      // Upload the file
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file, {
-          upsert: true,
-          contentType: file.type
-        });
-
-      if (uploadError) {
-        throw uploadError;
-      }
-
-      // Get the public URL
-      const { data } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
-
-      if (data?.publicUrl) {
-        // Also cache the image for offline use
-        await offlineStorage.profileImage.save(user.id, file);
-        
-        // Update user profile with new avatar URL
-        await updateProfile({ avatar_url: data.publicUrl });
-        setAvatarUrl(data.publicUrl);
-
-        toast({
-          title: "Avatar Updated",
-          description: "Your profile picture has been updated successfully.",
-        });
-      }
-    } catch (error) {
-      console.error("Error uploading avatar:", error);
-      toast({
-        title: "Upload Failed",
-        description: "There was a problem uploading your avatar. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  // Choose avatar URL source based on online status and availability
-  const displayAvatarUrl = localAvatarUrl || avatarUrl || '';
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Profile Information</CardTitle>
-        <CardDescription>
-          Update your personal information
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex flex-col items-start gap-2 mb-4">
-          <Avatar className="w-20 h-20">
-            <AvatarImage src={displayAvatarUrl} />
-            <AvatarFallback className="text-lg">
-              {name ? name.charAt(0).toUpperCase() : "?"}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <Input 
-              id="avatar-upload" 
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleAvatarUpload} 
-            />
-            <label htmlFor="avatar-upload">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="cursor-pointer flex items-center gap-1 mt-2" 
-                disabled={uploading || !navigator.onLine}
-                asChild
-              >
-                <span>
-                  <Upload size={16} className="mr-1" />
-                  {uploading ? "Uploading..." : !navigator.onLine ? "Need to be online" : "Upload Photo"}
-                </span>
+    <div className="space-y-6">
+      {/* Profile Photo */}
+      <Card className="border border-gray-200">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg font-semibold text-gray-900">Profile Photo</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-6">
+            <div className="relative">
+              <Avatar className="h-20 w-20">
+                <AvatarImage src="" alt="Profile" />
+                <AvatarFallback className="text-lg font-semibold bg-blue-50 text-blue-700">
+                  {profile.firstName.charAt(0)}{profile.lastName.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              <button className="absolute -bottom-1 -right-1 p-1.5 bg-white border border-gray-200 rounded-full shadow-sm hover:bg-gray-50 transition-colors">
+                <Camera className="h-3 w-3 text-gray-600" />
+              </button>
+            </div>
+            <div className="space-y-2">
+              <Button variant="outline" size="sm" className="gap-2">
+                <Upload className="h-4 w-4" />
+                Upload Photo
               </Button>
-            </label>
+              <p className="text-xs text-gray-500">JPG, PNG or GIF. Max 5MB.</p>
+            </div>
           </div>
-        </div>
-        <div className="space-y-4">
-          <div className="grid gap-2">
-            <Label htmlFor="name">Full Name</Label>
+        </CardContent>
+      </Card>
+
+      {/* Basic Information */}
+      <Card className="border border-gray-200">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg font-semibold text-gray-900">Basic Information</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">First Name</Label>
+              <Input
+                id="firstName"
+                value={profile.firstName}
+                onChange={(e) => setProfile({...profile, firstName: e.target.value})}
+                className="border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">Last Name</Label>
+              <Input
+                id="lastName"
+                value={profile.lastName}
+                onChange={(e) => setProfile({...profile, lastName: e.target.value})}
+                className="border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
             <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              id="email"
+              type="email"
+              value={profile.email}
+              onChange={(e) => setProfile({...profile, email: e.target.value})}
+              className="border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             />
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="phoneNumber">Phone Number</Label>
+
+          <div className="space-y-2">
+            <Label htmlFor="phone" className="text-sm font-medium text-gray-700">Phone</Label>
             <Input
-              id="phoneNumber"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              placeholder="Your phone number"
+              id="phone"
+              value={profile.phone}
+              onChange={(e) => setProfile({...profile, phone: e.target.value})}
+              className="border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             />
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="bio">Bio</Label>
+
+          <div className="space-y-2">
+            <Label htmlFor="location" className="text-sm font-medium text-gray-700">Location</Label>
+            <Input
+              id="location"
+              value={profile.location}
+              onChange={(e) => setProfile({...profile, location: e.target.value})}
+              className="border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Professional Information */}
+      <Card className="border border-gray-200">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg font-semibold text-gray-900">Professional Information</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="company" className="text-sm font-medium text-gray-700">Company</Label>
+            <Input
+              id="company"
+              value={profile.company}
+              onChange={(e) => setProfile({...profile, company: e.target.value})}
+              className="border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="title" className="text-sm font-medium text-gray-700">Job Title</Label>
+            <Input
+              id="title"
+              value={profile.title}
+              onChange={(e) => setProfile({...profile, title: e.target.value})}
+              className="border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="bio" className="text-sm font-medium text-gray-700">Bio</Label>
             <Textarea
               id="bio"
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              placeholder="Tell us a bit about yourself"
+              value={profile.bio}
+              onChange={(e) => setProfile({...profile, bio: e.target.value})}
               rows={4}
+              className="border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              placeholder="Tell us about yourself..."
             />
+            <p className="text-xs text-gray-500">Brief description for your profile</p>
           </div>
-          <Button onClick={handleSaveProfile} disabled={saving}>
-            {saving ? "Saving..." : "Save Changes"}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      {/* Save Button */}
+      <div className="flex justify-end">
+        <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 px-8">
+          Save Changes
+        </Button>
+      </div>
+    </div>
   );
 };
 
