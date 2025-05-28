@@ -71,7 +71,7 @@ function KeystoneForm({ keystone, contacts = [], contact, onSuccess, onCancel }:
       title: formData.title,
       date: new Date(formData.date).toISOString(),
       category: formData.category || undefined,
-      contact_id: formData.contact_id || undefined,
+      contact_id: formData.contact_id === "none" ? undefined : formData.contact_id || undefined,
       is_recurring: formData.is_recurring,
       recurrence_frequency: formData.is_recurring ? formData.recurrence_frequency : undefined,
       notes: formData.notes || undefined
@@ -141,7 +141,7 @@ function KeystoneForm({ keystone, contacts = [], contact, onSuccess, onCancel }:
               <SelectValue placeholder="Select a contact (optional)" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">No contact</SelectItem>
+              <SelectItem value="none">No contact</SelectItem>
               {availableContacts.map((contact) => (
                 <SelectItem key={contact.id} value={contact.id}>
                   {contact.name}
