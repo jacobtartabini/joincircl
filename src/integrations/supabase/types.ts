@@ -380,29 +380,50 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          bio: string | null
+          company_name: string | null
           created_at: string | null
           email: string
+          first_name: string | null
           full_name: string | null
           has_seen_tutorial: boolean | null
           id: string
+          job_title: string | null
+          last_name: string | null
+          location: string | null
+          phone_number: string | null
           updated_at: string | null
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
+          company_name?: string | null
           created_at?: string | null
           email: string
+          first_name?: string | null
           full_name?: string | null
           has_seen_tutorial?: boolean | null
           id: string
+          job_title?: string | null
+          last_name?: string | null
+          location?: string | null
+          phone_number?: string | null
           updated_at?: string | null
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
+          company_name?: string | null
           created_at?: string | null
           email?: string
+          first_name?: string | null
           full_name?: string | null
           has_seen_tutorial?: boolean | null
           id?: string
+          job_title?: string | null
+          last_name?: string | null
+          location?: string | null
+          phone_number?: string | null
           updated_at?: string | null
         }
         Relationships: []
@@ -542,6 +563,117 @@ export type Database = {
         }
         Relationships: []
       }
+      user_integrations: {
+        Row: {
+          access_token: string | null
+          connected_at: string
+          id: string
+          is_active: boolean | null
+          last_synced: string | null
+          metadata: Json | null
+          provider: string
+          provider_id: string | null
+          refresh_token: string | null
+          user_id: string
+        }
+        Insert: {
+          access_token?: string | null
+          connected_at?: string
+          id?: string
+          is_active?: boolean | null
+          last_synced?: string | null
+          metadata?: Json | null
+          provider: string
+          provider_id?: string | null
+          refresh_token?: string | null
+          user_id: string
+        }
+        Update: {
+          access_token?: string | null
+          connected_at?: string
+          id?: string
+          is_active?: boolean | null
+          last_synced?: string | null
+          metadata?: Json | null
+          provider?: string
+          provider_id?: string | null
+          refresh_token?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          created_at: string
+          email_notifications: boolean | null
+          id: string
+          language: string | null
+          marketing_emails: boolean | null
+          push_notifications: boolean | null
+          theme: string | null
+          timezone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_notifications?: boolean | null
+          id?: string
+          language?: string | null
+          marketing_emails?: boolean | null
+          push_notifications?: boolean | null
+          theme?: string | null
+          timezone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_notifications?: boolean | null
+          id?: string
+          language?: string | null
+          marketing_emails?: boolean | null
+          push_notifications?: boolean | null
+          theme?: string | null
+          timezone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_sessions: {
+        Row: {
+          created_at: string
+          device_info: string | null
+          id: string
+          ip_address: string | null
+          last_active: string
+          location: string | null
+          session_token: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_info?: string | null
+          id?: string
+          ip_address?: string | null
+          last_active?: string
+          location?: string | null
+          session_token: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_info?: string | null
+          id?: string
+          ip_address?: string | null
+          last_active?: string
+          location?: string | null
+          session_token?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_social_integrations: {
         Row: {
           access_token: string
@@ -578,6 +710,48 @@ export type Database = {
           updated_at?: string
           user_id?: string
           username?: string
+        }
+        Relationships: []
+      }
+      user_subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean | null
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          plan_type: string
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan_type: string
+          status: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan_type?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
