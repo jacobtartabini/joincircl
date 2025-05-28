@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Calendar, MoreVertical, Edit, Trash } from "lucide-react";
 import { format, isAfter, isBefore, startOfToday } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
-import { KeystoneForm } from "@/components/keystone/KeystoneForm";
+import KeystoneForm from "@/components/keystone/KeystoneForm";
 import { KeystoneDetailModal } from "@/components/keystone/KeystoneDetailModal";
 import { 
   DropdownMenu, 

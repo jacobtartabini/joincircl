@@ -14,12 +14,13 @@ import { format } from "date-fns";
 
 interface KeystoneFormProps {
   keystone?: Keystone | null;
-  contacts: Contact[];
+  contacts?: Contact[];
+  contact?: Contact;
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-function KeystoneForm({ keystone, contacts, onSuccess, onCancel }: KeystoneFormProps) {
+function KeystoneForm({ keystone, contacts = [], contact, onSuccess, onCancel }: KeystoneFormProps) {
   const [formData, setFormData] = useState({
     title: "",
     date: "",
@@ -30,6 +31,10 @@ function KeystoneForm({ keystone, contacts, onSuccess, onCancel }: KeystoneFormP
     notes: ""
   });
 
+  // Use the single contact if provided, otherwise use the contacts array
+  const availableContacts = contact ? [contact] : contacts;
+  const defaultContactId = contact ? contact.id : "";
+
   // Populate form when editing
   useEffect(() => {
     if (keystone) {
@@ -37,13 +42,16 @@ function KeystoneForm({ keystone, contacts, onSuccess, onCancel }: KeystoneFormP
         title: keystone.title || "",
         date: keystone.date ? format(new Date(keystone.date), 'yyyy-MM-dd') : "",
         category: keystone.category || "",
-        contact_id: keystone.contact_id || "",
+        contact_id: keystone.contact_id || defaultContactId,
         is_recurring: keystone.is_recurring || false,
         recurrence_frequency: keystone.recurrence_frequency || "",
         notes: keystone.notes || ""
       });
+    } else if (contact) {
+      // Pre-select the contact if creating a new keystone for a specific contact
+      setFormData(prev => ({ ...prev, contact_id: contact.id }));
     }
-  }, [keystone]);
+  }, [keystone, contact, defaultContactId]);
 
   const createMutation = useMutation({
     mutationFn: keystoneService.createKeystone,
@@ -125,22 +133,24 @@ function KeystoneForm({ keystone, contacts, onSuccess, onCancel }: KeystoneFormP
         </Select>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="contact">Associated Contact</Label>
-        <Select value={formData.contact_id} onValueChange={(value) => handleChange("contact_id", value)}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select a contact (optional)" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="">No contact</SelectItem>
-            {contacts.map((contact) => (
-              <SelectItem key={contact.id} value={contact.id}>
-                {contact.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      {availableContacts.length > 0 && (
+        <div className="space-y-2">
+          <Label htmlFor="contact">Associated Contact</Label>
+          <Select value={formData.contact_id} onValueChange={(value) => handleChange("contact_id", value)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select a contact (optional)" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">No contact</SelectItem>
+              {availableContacts.map((contact) => (
+                <SelectItem key={contact.id} value={contact.id}>
+                  {contact.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       <div className="space-y-2">
         <div className="flex items-center space-x-2">
