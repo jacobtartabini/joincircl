@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { keystoneService } from "@/services/keystoneService";
@@ -34,8 +33,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useIsMobile } from "@/hooks/use-mobile";
+import MobileKeystones from "./MobileKeystones";
 
 export default function ModernKeystones() {
+  const isMobile = useIsMobile();
+  
+  // If mobile, use the mobile-optimized version
+  if (isMobile) {
+    return <MobileKeystones />;
+  }
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedKeystone, setSelectedKeystone] = useState<Keystone | null>(null);

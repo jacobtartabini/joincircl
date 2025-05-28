@@ -1,16 +1,12 @@
 
 import { Home, Circle, Calendar, Settings } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { motion } from "framer-motion";
-import { useNotifications } from "@/hooks/use-notifications";
 import { cn } from "@/lib/utils";
 
 const MobileNav = () => {
   const location = useLocation();
   const currentPath = location.pathname;
-  const isMobile = useIsMobile();
-  const { unreadCount } = useNotifications();
 
   const navItems = [
     { icon: Home, label: "Home", path: "/" },
@@ -21,12 +17,12 @@ const MobileNav = () => {
 
   return (
     <motion.nav 
-      className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-40"
-      initial={{ y: 0 }}
+      className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-40 pb-safe"
+      initial={{ y: 100 }}
       animate={{ y: 0 }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
     >
-      <div className="flex items-center justify-around h-20 pb-safe pb-6">
+      <div className="flex items-center justify-around h-16 px-2">
         {navItems.map((item) => {
           const isActive = 
             item.path === "/" 
@@ -37,25 +33,30 @@ const MobileNav = () => {
             <Link
               to={item.path}
               key={item.path}
-              className={cn(
-                "flex flex-col items-center justify-center w-full h-full pt-2 transition-colors",
-                isActive ? "text-blue-600" : "text-gray-400"
-              )}
+              className="flex flex-col items-center justify-center flex-1 min-h-12 relative"
             >
-              <div className="relative">
-                <item.icon size={22} strokeWidth={isActive ? 2.5 : 2} />
-                {item.path === "/" && unreadCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center bg-red-500 rounded-full text-white text-xs min-w-3.5 h-3.5 font-medium">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
+              <motion.div
+                className={cn(
+                  "flex flex-col items-center justify-center p-2 rounded-xl transition-colors min-h-12 min-w-12",
+                  isActive ? "bg-blue-50" : "hover:bg-gray-50"
                 )}
-              </div>
-              <span className={cn(
-                "text-xs mt-1 font-medium",
-                isActive ? "text-blue-600" : "text-gray-500"
-              )}>
-                {item.label}
-              </span>
+                whileTap={{ scale: 0.95 }}
+                transition={{ duration: 0.1 }}
+              >
+                <item.icon 
+                  size={24} 
+                  className={cn(
+                    "transition-colors",
+                    isActive ? "text-blue-600" : "text-gray-500"
+                  )}
+                />
+                <span className={cn(
+                  "text-xs mt-1 font-medium transition-colors",
+                  isActive ? "text-blue-600" : "text-gray-500"
+                )}>
+                  {item.label}
+                </span>
+              </motion.div>
             </Link>
           );
         })}
