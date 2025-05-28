@@ -12,20 +12,9 @@ import { useNavigate } from "react-router-dom";
 
 const AccountTab = () => {
   const { preferences, loading, updatePreferences } = useUserPreferences();
-  const [saving, setSaving] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-
-  const handleSave = async () => {
-    setSaving(true);
-    // Preferences are auto-saved when changed, but we can show feedback
-    toast({
-      title: "Success",
-      description: "Account settings saved successfully",
-    });
-    setSaving(false);
-  };
 
   const handleSignOut = async () => {
     setSigningOut(true);
@@ -93,11 +82,18 @@ const AccountTab = () => {
     }
 
     try {
-      // TODO: Implement account deletion
-      toast({
-        title: "Account Deletion",
-        description: "Account deletion functionality will be implemented soon. Please contact support.",
+      const { error } = await supabase.functions.invoke('delete-account', {
+        method: 'POST'
       });
+
+      if (error) throw error;
+
+      toast({
+        title: "Account Deleted",
+        description: "Your account has been permanently deleted",
+      });
+      
+      navigate('/auth');
     } catch (error) {
       console.error('Error deleting account:', error);
       toast({
@@ -136,9 +132,13 @@ const AccountTab = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="en">English</SelectItem>
-                  <SelectItem value="es">Spanish</SelectItem>
-                  <SelectItem value="fr">French</SelectItem>
-                  <SelectItem value="de">German</SelectItem>
+                  <SelectItem value="es">Español</SelectItem>
+                  <SelectItem value="fr">Français</SelectItem>
+                  <SelectItem value="de">Deutsch</SelectItem>
+                  <SelectItem value="it">Italiano</SelectItem>
+                  <SelectItem value="pt">Português</SelectItem>
+                  <SelectItem value="zh">中文</SelectItem>
+                  <SelectItem value="ja">日本語</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -153,10 +153,18 @@ const AccountTab = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="America/New_York">Eastern Time</SelectItem>
-                  <SelectItem value="America/Chicago">Central Time</SelectItem>
-                  <SelectItem value="America/Denver">Mountain Time</SelectItem>
-                  <SelectItem value="America/Los_Angeles">Pacific Time</SelectItem>
+                  <SelectItem value="America/New_York">Eastern Time (UTC-5)</SelectItem>
+                  <SelectItem value="America/Chicago">Central Time (UTC-6)</SelectItem>
+                  <SelectItem value="America/Denver">Mountain Time (UTC-7)</SelectItem>
+                  <SelectItem value="America/Los_Angeles">Pacific Time (UTC-8)</SelectItem>
+                  <SelectItem value="America/Anchorage">Alaska Time (UTC-9)</SelectItem>
+                  <SelectItem value="Pacific/Honolulu">Hawaii Time (UTC-10)</SelectItem>
+                  <SelectItem value="Europe/London">GMT (UTC+0)</SelectItem>
+                  <SelectItem value="Europe/Paris">CET (UTC+1)</SelectItem>
+                  <SelectItem value="Europe/Athens">EET (UTC+2)</SelectItem>
+                  <SelectItem value="Asia/Tokyo">JST (UTC+9)</SelectItem>
+                  <SelectItem value="Asia/Shanghai">CST (UTC+8)</SelectItem>
+                  <SelectItem value="Australia/Sydney">AEDT (UTC+11)</SelectItem>
                   <SelectItem value="UTC">UTC</SelectItem>
                 </SelectContent>
               </Select>
@@ -278,24 +286,6 @@ const AccountTab = () => {
           </div>
         </CardContent>
       </Card>
-
-      {/* Save Button */}
-      <div className="flex justify-end">
-        <Button 
-          onClick={handleSave} 
-          disabled={saving}
-          className="bg-blue-600 hover:bg-blue-700 px-8"
-        >
-          {saving ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              Saving...
-            </>
-          ) : (
-            'Save Changes'
-          )}
-        </Button>
-      </div>
     </div>
   );
 };

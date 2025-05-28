@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,8 +10,10 @@ import { Camera, Upload, Loader2 } from "lucide-react";
 import { useUserProfile } from "@/hooks/useUserProfile";
 
 const ProfileTab = () => {
-  const { profile, loading, updateProfile } = useUserProfile();
+  const { profile, loading, updateProfile, uploadAvatar } = useUserProfile();
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
@@ -23,7 +25,7 @@ const ProfileTab = () => {
   });
 
   // Update form data when profile loads
-  useState(() => {
+  useEffect(() => {
     if (profile) {
       setFormData({
         first_name: profile.first_name || "",
@@ -35,17 +37,40 @@ const ProfileTab = () => {
         bio: profile.bio || "",
       });
     }
-  });
+  }, [profile]);
 
   const handleSave = async () => {
     setSaving(true);
-    await updateProfile(formData);
+    const success = await updateProfile(formData);
     setSaving(false);
   };
 
   const handlePhotoUpload = () => {
-    // TODO: Implement photo upload functionality
-    console.log("Photo upload functionality to be implemented");
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      return;
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      return;
+    }
+
+    setUploading(true);
+    try {
+      await uploadAvatar(file);
+    } catch (error) {
+      // Error handled in hook
+    } finally {
+      setUploading(false);
+    }
   };
 
   if (loading) {
@@ -58,6 +83,14 @@ const ProfileTab = () => {
 
   return (
     <div className="space-y-6">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileChange}
+        className="hidden"
+      />
+
       {/* Profile Photo */}
       <Card className="border border-gray-200">
         <CardHeader className="pb-4">
@@ -75,15 +108,30 @@ const ProfileTab = () => {
               </Avatar>
               <button 
                 onClick={handlePhotoUpload}
-                className="absolute -bottom-1 -right-1 p-1.5 bg-white border border-gray-200 rounded-full shadow-sm hover:bg-gray-50 transition-colors"
+                disabled={uploading}
+                className="absolute -bottom-1 -right-1 p-1.5 bg-white border border-gray-200 rounded-full shadow-sm hover:bg-gray-50 transition-colors disabled:opacity-50"
               >
-                <Camera className="h-3 w-3 text-gray-600" />
+                {uploading ? (
+                  <Loader2 className="h-3 w-3 animate-spin text-gray-600" />
+                ) : (
+                  <Camera className="h-3 w-3 text-gray-600" />
+                )}
               </button>
             </div>
             <div className="space-y-2">
-              <Button variant="outline" size="sm" className="gap-2" onClick={handlePhotoUpload}>
-                <Upload className="h-4 w-4" />
-                Upload Photo
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="gap-2" 
+                onClick={handlePhotoUpload}
+                disabled={uploading}
+              >
+                {uploading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Upload className="h-4 w-4" />
+                )}
+                {uploading ? 'Uploading...' : 'Upload Photo'}
               </Button>
               <p className="text-xs text-gray-500">JPG, PNG or GIF. Max 5MB.</p>
             </div>

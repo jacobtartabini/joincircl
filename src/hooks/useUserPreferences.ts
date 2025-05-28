@@ -36,9 +36,19 @@ export const useUserPreferences = () => {
       
       if (!data) {
         // Create default preferences if none exist
+        const defaultPrefs = {
+          user_id: user.id,
+          language: 'en',
+          timezone: 'America/New_York',
+          theme: 'system',
+          email_notifications: true,
+          push_notifications: false,
+          marketing_emails: false
+        };
+        
         const { data: newPrefs, error: insertError } = await supabase
           .from('user_preferences')
-          .insert({ user_id: user.id })
+          .insert(defaultPrefs)
           .select()
           .single();
         
@@ -66,16 +76,27 @@ export const useUserPreferences = () => {
 
       const { error } = await supabase
         .from('user_preferences')
-        .update(updates)
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
         .eq('user_id', user.id);
 
       if (error) throw error;
 
       setPreferences(prev => prev ? { ...prev, ...updates } : null);
+      
+      // Apply theme immediately if changed
+      if (updates.theme) {
+        applyTheme(updates.theme);
+      }
+      
       toast({
         title: "Success",
         description: "Preferences updated successfully",
       });
+      
+      return true;
     } catch (error) {
       console.error('Error updating preferences:', error);
       toast({
@@ -83,12 +104,32 @@ export const useUserPreferences = () => {
         description: "Failed to update preferences",
         variant: "destructive",
       });
+      return false;
+    }
+  };
+
+  const applyTheme = (theme: string) => {
+    const root = window.document.documentElement;
+    root.classList.remove('light', 'dark');
+    
+    if (theme === 'system') {
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      root.classList.add(systemTheme);
+    } else {
+      root.classList.add(theme);
     }
   };
 
   useEffect(() => {
     fetchPreferences();
   }, []);
+
+  // Apply theme on initial load
+  useEffect(() => {
+    if (preferences?.theme) {
+      applyTheme(preferences.theme);
+    }
+  }, [preferences?.theme]);
 
   return { preferences, loading, updatePreferences, refetch: fetchPreferences };
 };
