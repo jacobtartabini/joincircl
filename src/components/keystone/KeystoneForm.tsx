@@ -19,7 +19,7 @@ interface KeystoneFormProps {
   onCancel: () => void;
 }
 
-export function KeystoneForm({ keystone, contacts, onSuccess, onCancel }: KeystoneFormProps) {
+function KeystoneForm({ keystone, contacts, onSuccess, onCancel }: KeystoneFormProps) {
   const [formData, setFormData] = useState({
     title: "",
     date: "",
@@ -195,3 +195,5 @@ export function KeystoneForm({ keystone, contacts, onSuccess, onCancel }: Keysto
     </form>
   );
 }
+
+export default KeystoneForm;
