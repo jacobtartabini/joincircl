@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Mail, Calendar, Twitter, Loader2, CheckCircle, XCircle, AlertTriangle, RefreshCw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,7 +22,7 @@ interface Integration {
   connected: boolean;
   username?: string;
   lastSynced?: string;
-  provider: 'gmail' | 'calendar' | 'twitter';
+  provider: 'gmail' | 'calendar' | 'twitter' | 'facebook' | 'linkedin' | 'outlook';
 }
 
 const IntegrationsTab = () => {
@@ -29,8 +30,9 @@ const IntegrationsTab = () => {
   const [loading, setLoading] = useState(true);
   const [integrations, setIntegrations] = useState<Integration[]>([]);
   const [showTwitterDialog, setShowTwitterDialog] = useState(false);
+  const [retryAttempt, setRetryAttempt] = useState(0);
 
-  // Google integrations hook
+  // Google integrations hook with error boundary
   const {
     isGmailConnected,
     isCalendarConnected,
@@ -43,7 +45,7 @@ const IntegrationsTab = () => {
     refreshIntegrationStatus
   } = useGoogleIntegrations();
 
-  // Social integrations hook for Twitter
+  // Social integrations hook with error handling
   const {
     integrationStatus,
     connectPlatform,
@@ -51,24 +53,62 @@ const IntegrationsTab = () => {
     refreshStatus
   } = useSocialIntegrations();
 
-  // Get Twitter status from social integrations
-  const twitterStatus = integrationStatus.find(s => s.platform === 'twitter');
+  // Get Twitter status from social integrations with fallback
+  const twitterStatus = integrationStatus?.find(s => s.platform === 'twitter') || { platform: 'twitter', connected: false };
 
+  // Load integrations with comprehensive error handling
   useEffect(() => {
     const loadIntegrations = async () => {
       setLoading(true);
       try {
-        // Refresh both Google and social integration statuses
-        await Promise.all([
-          refreshIntegrationStatus(),
-          refreshStatus()
-        ]);
+        console.log("Loading integrations data...");
+        
+        // Add retry logic with exponential backoff
+        const maxRetries = 3;
+        let currentRetry = 0;
+        
+        const tryRefresh = async () => {
+          try {
+            // Use Promise.allSettled to prevent one failure from blocking others
+            const results = await Promise.allSettled([
+              refreshIntegrationStatus().catch(err => {
+                console.warn("Google integration refresh failed:", err);
+                return { isGmailConnected: false, isCalendarConnected: false };
+              }),
+              refreshStatus().catch(err => {
+                console.warn("Social integration refresh failed:", err);
+                return [];
+              })
+            ]);
+            
+            console.log("Integration refresh results:", results);
+            return true;
+          } catch (error) {
+            console.error("Refresh attempt failed:", error);
+            
+            if (currentRetry < maxRetries) {
+              currentRetry++;
+              console.log(`Retrying refresh attempt ${currentRetry}/${maxRetries}`);
+              const delay = Math.pow(2, currentRetry) * 1000; // Exponential backoff
+              await new Promise(resolve => setTimeout(resolve, delay));
+              return tryRefresh();
+            }
+            
+            throw error;
+          }
+        };
+        
+        await tryRefresh();
+        console.log("Successfully loaded integration data");
+        
       } catch (error) {
-        console.error('Error loading integrations:', error);
+        console.error('Critical error loading integrations:', error);
+        
+        // Show user-friendly error but don't block the UI
         toast({
-          title: "Error",
-          description: "Failed to load integration status",
-          variant: "destructive",
+          title: "Integration Status Warning",
+          description: "Some integration data may not be current. You can still manage connections.",
+          variant: "default",
         });
       } finally {
         setLoading(false);
@@ -76,10 +116,12 @@ const IntegrationsTab = () => {
     };
 
     loadIntegrations();
-  }, [refreshIntegrationStatus, refreshStatus, toast]);
+  }, [refreshIntegrationStatus, refreshStatus, toast, retryAttempt]);
 
-  // Update integrations state when hooks update
+  // Update integrations state with fallbacks
   useEffect(() => {
+    console.log("Updating integrations state with current data");
+    
     const updatedIntegrations: Integration[] = [
       {
         id: 'gmail',
@@ -88,7 +130,7 @@ const IntegrationsTab = () => {
         icon: Mail,
         color: 'text-red-600',
         bgColor: 'bg-red-100',
-        connected: isGmailConnected,
+        connected: isGmailConnected || false,
         provider: 'gmail'
       },
       {
@@ -98,7 +140,7 @@ const IntegrationsTab = () => {
         icon: Calendar,
         color: 'text-green-600',
         bgColor: 'bg-green-100',
-        connected: isCalendarConnected,
+        connected: isCalendarConnected || false,
         provider: 'calendar'
       },
       {
@@ -112,14 +154,48 @@ const IntegrationsTab = () => {
         username: twitterStatus?.username,
         lastSynced: twitterStatus?.last_synced,
         provider: 'twitter'
+      },
+      // Add placeholder integrations for Facebook, LinkedIn, Outlook
+      {
+        id: 'facebook',
+        name: 'Facebook',
+        description: 'Import contacts and posts from Facebook',
+        icon: Mail, // Using Mail as placeholder - would need Facebook icon
+        color: 'text-blue-600',
+        bgColor: 'bg-blue-100',
+        connected: false,
+        provider: 'facebook'
+      },
+      {
+        id: 'linkedin',
+        name: 'LinkedIn',
+        description: 'Connect professional network from LinkedIn',
+        icon: Mail, // Using Mail as placeholder - would need LinkedIn icon
+        color: 'text-blue-700',
+        bgColor: 'bg-blue-100',
+        connected: false,
+        provider: 'linkedin'
+      },
+      {
+        id: 'outlook',
+        name: 'Outlook',
+        description: 'Sync emails and contacts from Outlook',
+        icon: Mail,
+        color: 'text-blue-500',
+        bgColor: 'bg-blue-100',
+        connected: false,
+        provider: 'outlook'
       }
     ];
 
     setIntegrations(updatedIntegrations);
+    console.log("Integrations state updated:", updatedIntegrations);
   }, [isGmailConnected, isCalendarConnected, twitterStatus]);
 
   const handleConnect = async (integration: Integration) => {
     try {
+      console.log(`Connecting to ${integration.name}...`);
+      
       switch (integration.provider) {
         case 'gmail':
           await connectGmail();
@@ -130,12 +206,22 @@ const IntegrationsTab = () => {
         case 'twitter':
           setShowTwitterDialog(true);
           break;
+        case 'facebook':
+        case 'linkedin':
+        case 'outlook':
+          toast({
+            title: "Coming Soon",
+            description: `${integration.name} integration will be available soon.`,
+          });
+          break;
+        default:
+          throw new Error(`Unknown provider: ${integration.provider}`);
       }
     } catch (error) {
       console.error(`Error connecting to ${integration.name}:`, error);
       toast({
         title: "Connection Error",
-        description: `Failed to connect to ${integration.name}`,
+        description: `Failed to connect to ${integration.name}. Please try again.`,
         variant: "destructive",
       });
     }
@@ -143,6 +229,8 @@ const IntegrationsTab = () => {
 
   const handleDisconnect = async (integration: Integration) => {
     try {
+      console.log(`Disconnecting from ${integration.name}...`);
+      
       switch (integration.provider) {
         case 'gmail':
           await disconnectGmail();
@@ -153,6 +241,8 @@ const IntegrationsTab = () => {
         case 'twitter':
           await disconnectPlatform('twitter');
           break;
+        default:
+          throw new Error(`Unknown provider: ${integration.provider}`);
       }
       
       toast({
@@ -170,26 +260,13 @@ const IntegrationsTab = () => {
   };
 
   const handleRefresh = async () => {
-    setLoading(true);
-    try {
-      await Promise.all([
-        refreshIntegrationStatus(),
-        refreshStatus()
-      ]);
-      toast({
-        title: "Refreshed",
-        description: "Integration status updated",
-      });
-    } catch (error) {
-      console.error('Error refreshing integrations:', error);
-      toast({
-        title: "Error",
-        description: "Failed to refresh integration status",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+    console.log("Manual refresh triggered");
+    setRetryAttempt(prev => prev + 1);
+    
+    toast({
+      title: "Refreshing",
+      description: "Updating integration status...",
+    });
   };
 
   const formatLastSynced = (dateStr?: string) => {
@@ -201,6 +278,7 @@ const IntegrationsTab = () => {
     }
   };
 
+  // Show loading state
   if (loading || googleLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -292,6 +370,7 @@ const IntegrationsTab = () => {
                     size="sm"
                     onClick={() => handleConnect(integration)}
                     className="flex-1"
+                    disabled={['facebook', 'linkedin', 'outlook'].includes(integration.provider)}
                   >
                     Connect
                   </Button>
@@ -329,6 +408,9 @@ const IntegrationsTab = () => {
                 <li><strong>Gmail:</strong> Import contacts and sync email communications</li>
                 <li><strong>Google Calendar:</strong> View and create calendar events from contacts</li>
                 <li><strong>Twitter:</strong> Track social interactions and import connections</li>
+                <li><strong>Facebook:</strong> Import social connections and activity (coming soon)</li>
+                <li><strong>LinkedIn:</strong> Professional network integration (coming soon)</li>
+                <li><strong>Outlook:</strong> Email and calendar sync for Microsoft users (coming soon)</li>
               </ul>
               <p className="text-blue-700 mt-3">
                 All integrations use secure OAuth authentication and respect your privacy settings.

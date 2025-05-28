@@ -16,30 +16,30 @@ export function useSocialIntegrationStatus() {
   ]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
-  const MAX_RETRIES = 3;
 
   const fetchIntegrationStatus = async () => {
     try {
       setIsLoading(true);
       setLoadError(null);
       
-      // Check if user is logged in
+      console.log("Fetching integration status from database...");
+      
+      // Check if user is logged in first
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       if (sessionError) {
-        console.error("Session error:", sessionError);
-        setLoadError("Authentication error: " + sessionError.message);
+        console.warn("Session error:", sessionError);
+        // Don't treat this as a critical error - user might not be logged in
         setIsLoading(false);
         return;
       }
       
       if (!sessionData?.session) {
-        console.log("No session found, user not logged in");
+        console.log("No active session found");
         setIsLoading(false);
         return;
       }
 
-      // Define initial status for all platforms - we set this early to prevent UI flickering
+      // Initialize status with defaults
       let status: SocialIntegrationStatus[] = [
         { platform: "twitter", connected: false },
         { platform: "facebook", connected: false },
@@ -49,22 +49,35 @@ export function useSocialIntegrationStatus() {
         { platform: "calendar", connected: false }
       ];
       
-      // Fetch social integrations with better error handling
       try {
-        console.log("Fetching social integrations from database...");
+        console.log("Attempting to fetch social integrations...");
         
-        // Fetch social integrations
-        const { data: socialIntegrations, error: socialError } = await supabase
+        // Use timeout to prevent hanging requests
+        const fetchWithTimeout = (promise: Promise<any>, timeout: number) => {
+          return Promise.race([
+            promise,
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Request timeout')), timeout)
+            )
+          ]);
+        };
+
+        // Fetch social integrations with timeout
+        const socialQuery = supabase
           .from('user_social_integrations')
           .select('platform, username, last_synced, created_at');
+          
+        const { data: socialIntegrations, error: socialError } = await fetchWithTimeout(
+          socialQuery,
+          10000 // 10 second timeout
+        ) as any;
         
         if (socialError) {
-          console.error("Error fetching social integrations:", socialError);
-          // Continue with the other fetches instead of throwing
-        } else if (socialIntegrations) {
-          console.log("Social integrations data received:", socialIntegrations);
+          console.warn("Social integrations query failed:", socialError);
+          // Continue with other queries instead of failing completely
+        } else if (socialIntegrations && Array.isArray(socialIntegrations)) {
+          console.log("Successfully fetched social integrations:", socialIntegrations);
           
-          // Update with social platform integrations
           socialIntegrations.forEach((integration) => {
             const platformIndex = status.findIndex(s => s.platform === integration.platform);
             if (platformIndex >= 0) {
@@ -74,56 +87,49 @@ export function useSocialIntegrationStatus() {
                 username: integration.username,
                 last_synced: integration.last_synced || integration.created_at
               };
-            } else {
-              // If the platform is not in our initial list, add it
-              status.push({
-                platform: integration.platform as SocialPlatform,
-                connected: true,
-                username: integration.username,
-                last_synced: integration.last_synced || integration.created_at
-              });
             }
           });
         }
         
-        // Fetch email integrations (Gmail) - handle independently
-        const { data: emailIntegrations, error: emailError } = await supabase
+        // Fetch email integrations with timeout
+        const emailQuery = supabase
           .from('user_email_tokens')
           .select('provider, updated_at')
           .eq('provider', 'gmail');
           
+        const { data: emailIntegrations, error: emailError } = await fetchWithTimeout(
+          emailQuery,
+          10000
+        ) as any;
+          
         if (emailError) {
-          console.error("Error fetching email integrations:", emailError);
+          console.warn("Email integrations query failed:", emailError);
         } else if (emailIntegrations && emailIntegrations.length > 0) {
-          // Find or add Gmail to status
           const gmailIndex = status.findIndex(s => s.platform === 'gmail');
           if (gmailIndex >= 0) {
             status[gmailIndex] = {
               platform: 'gmail' as SocialPlatform,
               connected: true,
-              username: 'Gmail User', // Using a default value since email column doesn't exist
+              username: 'Gmail User',
               last_synced: emailIntegrations[0].updated_at || new Date().toISOString()
             };
-          } else {
-            status.push({
-              platform: 'gmail' as SocialPlatform,
-              connected: true,
-              username: 'Gmail User', // Using a default value since email column doesn't exist
-              last_synced: emailIntegrations[0].updated_at || new Date().toISOString()
-            });
           }
         }
         
-        // Fetch calendar integrations (Google Calendar) - handle independently
-        const { data: calendarIntegrations, error: calendarError } = await supabase
+        // Fetch calendar integrations with timeout
+        const calendarQuery = supabase
           .from('user_calendar_tokens')
           .select('provider, updated_at')
           .eq('provider', 'google');
           
+        const { data: calendarIntegrations, error: calendarError } = await fetchWithTimeout(
+          calendarQuery,
+          10000
+        ) as any;
+          
         if (calendarError) {
-          console.error("Error fetching calendar integrations:", calendarError);
+          console.warn("Calendar integrations query failed:", calendarError);
         } else if (calendarIntegrations && calendarIntegrations.length > 0) {
-          // Find or add Calendar to status
           const calendarIndex = status.findIndex(s => s.platform === 'calendar');
           if (calendarIndex >= 0) {
             status[calendarIndex] = {
@@ -132,62 +138,55 @@ export function useSocialIntegrationStatus() {
               username: 'Google Calendar',
               last_synced: calendarIntegrations[0].updated_at || new Date().toISOString()
             };
-          } else {
-            status.push({
-              platform: 'calendar' as SocialPlatform,
-              connected: true,
-              username: 'Google Calendar',
-              last_synced: calendarIntegrations[0].updated_at || new Date().toISOString()
-            });
           }
         }
         
-        // Update the state with actual data
+        // Update state with collected data
         setIntegrationStatus([...status]);
+        console.log("Integration status updated successfully:", status);
         
-      } catch (dbError) {
-        console.error("Database error:", dbError);
-        setLoadError("Failed to load integration status. Please try again later.");
+      } catch (dbError: any) {
+        console.warn("Database query failed, using fallback:", dbError);
         
-        // Still set the default statuses so the UI can render something
+        // Set fallback status and show non-blocking warning
         setIntegrationStatus(status);
+        setLoadError("Could not load all integration data");
         
-        // Don't show toast for every error - only show if there's genuinely an issue
-        // and not just an empty result set
-        if (!(dbError instanceof Error && dbError.message.includes("No rows returned"))) {
+        // Only show toast for unexpected errors, not network issues
+        if (!dbError.message?.includes('fetch') && !dbError.message?.includes('timeout')) {
           toast({
-            title: "Data Loading Error",
-            description: "Could not load your social integrations.",
-            variant: "destructive",
+            title: "Data Loading Warning",
+            description: "Some integration data may not be current",
+            variant: "default",
           });
         }
       }
-    } catch (error) {
-      console.error("Error in fetchIntegrationStatus:", error);
-      setLoadError("Failed to check integration status.");
+    } catch (error: any) {
+      console.warn("Error in fetchIntegrationStatus:", error);
+      setLoadError("Failed to check integration status");
       
-      // Retry logic for transient errors
-      if (retryCount < MAX_RETRIES) {
-        console.log(`Retrying fetch attempt ${retryCount + 1} of ${MAX_RETRIES}...`);
-        setRetryCount(prev => prev + 1);
-        // Retry with exponential backoff
-        setTimeout(() => {
-          fetchIntegrationStatus();
-        }, Math.pow(2, retryCount) * 1000);
-      }
+      // Set minimal fallback state so UI can still render
+      setIntegrationStatus([
+        { platform: "twitter", connected: false },
+        { platform: "facebook", connected: false },
+        { platform: "linkedin", connected: false },
+        { platform: "instagram", connected: false },
+        { platform: "gmail", connected: false },
+        { platform: "calendar", connected: false }
+      ]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Load integration statuses on mount and when retry count changes
+  // Load integration statuses on mount
   useEffect(() => {
     fetchIntegrationStatus();
   }, []);
 
   // Allow manual refresh
   const refreshStatus = async () => {
-    setRetryCount(0); // Reset retry count on manual refresh
+    console.log("Manual refresh requested");
     return fetchIntegrationStatus();
   };
 
