@@ -163,14 +163,14 @@ export default function MobileOptimizedCircles() {
                   <Mail className="h-4 w-4" />
                 </Button>
               )}
-              {contact.phone_number && (
+              {contact.mobile_phone && (
                 <Button
                   variant="ghost"
                   size="sm"
                   className="h-8 w-8 p-0"
                   onClick={(e) => {
                     e.stopPropagation();
-                    window.open(`tel:${contact.phone_number}`);
+                    window.open(`tel:${contact.mobile_phone}`);
                   }}
                 >
                   <Phone className="h-4 w-4" />

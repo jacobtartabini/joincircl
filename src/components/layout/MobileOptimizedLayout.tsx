@@ -2,7 +2,7 @@
 import { ReactNode, useState, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useLocation } from "react-router-dom";
-import { MobileNav } from "./MobileNav";
+import MobileNav from "./MobileNav";
 import { MobileHeader } from "./MobileHeader";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
