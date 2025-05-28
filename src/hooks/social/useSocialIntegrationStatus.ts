@@ -52,25 +52,10 @@ export function useSocialIntegrationStatus() {
       try {
         console.log("Attempting to fetch social integrations...");
         
-        // Use timeout to prevent hanging requests
-        const fetchWithTimeout = (promise: Promise<any>, timeout: number) => {
-          return Promise.race([
-            promise,
-            new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Request timeout')), timeout)
-            )
-          ]);
-        };
-
-        // Fetch social integrations with timeout
-        const socialQuery = supabase
+        // Fetch social integrations
+        const { data: socialIntegrations, error: socialError } = await supabase
           .from('user_social_integrations')
           .select('platform, username, last_synced, created_at');
-          
-        const { data: socialIntegrations, error: socialError } = await fetchWithTimeout(
-          socialQuery,
-          10000 // 10 second timeout
-        ) as any;
         
         if (socialError) {
           console.warn("Social integrations query failed:", socialError);
@@ -91,16 +76,11 @@ export function useSocialIntegrationStatus() {
           });
         }
         
-        // Fetch email integrations with timeout
-        const emailQuery = supabase
+        // Fetch email integrations
+        const { data: emailIntegrations, error: emailError } = await supabase
           .from('user_email_tokens')
           .select('provider, updated_at')
           .eq('provider', 'gmail');
-          
-        const { data: emailIntegrations, error: emailError } = await fetchWithTimeout(
-          emailQuery,
-          10000
-        ) as any;
           
         if (emailError) {
           console.warn("Email integrations query failed:", emailError);
@@ -116,16 +96,11 @@ export function useSocialIntegrationStatus() {
           }
         }
         
-        // Fetch calendar integrations with timeout
-        const calendarQuery = supabase
+        // Fetch calendar integrations
+        const { data: calendarIntegrations, error: calendarError } = await supabase
           .from('user_calendar_tokens')
           .select('provider, updated_at')
           .eq('provider', 'google');
-          
-        const { data: calendarIntegrations, error: calendarError } = await fetchWithTimeout(
-          calendarQuery,
-          10000
-        ) as any;
           
         if (calendarError) {
           console.warn("Calendar integrations query failed:", calendarError);
