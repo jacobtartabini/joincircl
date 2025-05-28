@@ -1,6 +1,6 @@
 
-import { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useMemo, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCirclesState } from "./hooks/useCirclesState";
 import { CirclesList } from "@/components/circles/CirclesList";
 import { CirclesFilter } from "@/components/circles/CirclesFilter";
@@ -15,6 +15,9 @@ import { useIsMobile } from "@/hooks/use-mobile";
 export default function RedesignedCircles() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const [searchParams] = useSearchParams();
+  const tagFilter = searchParams.get('tag');
+  
   const {
     contacts,
     isLoading,
@@ -39,6 +42,13 @@ export default function RedesignedCircles() {
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<string>("name");
   const [filterBy, setFilterBy] = useState<string | null>(null);
+  
+  // Set initial filter from URL params
+  useEffect(() => {
+    if (tagFilter) {
+      setFilterBy(tagFilter);
+    }
+  }, [tagFilter]);
   
   // Find the selected contact from the contacts array
   const selectedContact = useMemo(() => {
@@ -80,20 +90,33 @@ export default function RedesignedCircles() {
     if (!contacts) return [];
 
     let result = contacts.filter(contact => {
-      if (!searchQuery) return true;
+      // Search query filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const matchesSearch = (
+          contact.name?.toLowerCase().includes(query) ||
+          contact.personal_email?.toLowerCase().includes(query) ||
+          contact.company_name?.toLowerCase().includes(query) ||
+          contact.job_title?.toLowerCase().includes(query)
+        );
+        if (!matchesSearch) return false;
+      }
       
-      const query = searchQuery.toLowerCase();
-      return (
-        contact.name?.toLowerCase().includes(query) ||
-        contact.personal_email?.toLowerCase().includes(query) ||
-        contact.company_name?.toLowerCase().includes(query) ||
-        contact.job_title?.toLowerCase().includes(query)
-      );
+      // Tag filter (either from filterBy state or URL param)
+      const activeTagFilter = tagFilter || filterBy;
+      if (activeTagFilter) {
+        if (!contact.tags || !contact.tags.includes(activeTagFilter)) {
+          return false;
+        }
+      }
+      
+      // Circle filter
+      if (filterBy && !tagFilter && contact.circle !== filterBy) {
+        return false;
+      }
+      
+      return true;
     });
-    
-    if (filterBy) {
-      result = result.filter(contact => contact.circle === filterBy);
-    }
     
     return [...result].sort((a, b) => {
       if (sortBy === "name") {
@@ -105,7 +128,7 @@ export default function RedesignedCircles() {
       }
       return 0;
     });
-  }, [contacts, searchQuery, filterBy, sortBy]);
+  }, [contacts, searchQuery, filterBy, tagFilter, sortBy]);
 
   // Mock interactions for selected contact
   const selectedContactInteractions = useMemo(() => {
@@ -151,6 +174,7 @@ export default function RedesignedCircles() {
             onAddContact={() => setIsAddDialogOpen(true)}
             onSort={setSortBy}
             onFilter={setFilterBy}
+            activeTagFilter={tagFilter}
           />
         </div>
         <div className="panel-content">
@@ -205,6 +229,7 @@ export default function RedesignedCircles() {
             onAddContact={() => setIsAddDialogOpen(true)}
             onSort={setSortBy}
             onFilter={setFilterBy}
+            activeTagFilter={tagFilter}
           />
         </div>
         <div className="panel-content">

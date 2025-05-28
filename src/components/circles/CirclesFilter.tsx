@@ -1,23 +1,22 @@
 
+import { Search, Plus, SlidersHorizontal } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Filter, SortAsc, Plus } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 
 interface CirclesFilterProps {
   searchQuery: string;
-  onSearchChange: (value: string) => void;
+  onSearchChange: (query: string) => void;
   onAddContact: () => void;
   onSort: (sortBy: string) => void;
-  onFilter: (filterBy: string) => void;
+  onFilter: (filter: string | null) => void;
+  activeTagFilter?: string | null;
 }
 
 export function CirclesFilter({
@@ -25,61 +24,70 @@ export function CirclesFilter({
   onSearchChange,
   onAddContact,
   onSort,
-  onFilter
+  onFilter,
+  activeTagFilter
 }: CirclesFilterProps) {
   return (
-    <div className="flex flex-col space-y-4 mb-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Circles</h1>
-        <Button onClick={onAddContact}>
-          <Plus className="mr-2 h-4 w-4" />
-          New Person
-        </Button>
+    <div className="flex items-center gap-3 p-4 border-b bg-white">
+      {/* Search */}
+      <div className="relative flex-1">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+        <Input
+          placeholder="Search contacts..."
+          value={searchQuery}
+          onChange={(e) => onSearchChange(e.target.value)}
+          className="pl-10"
+        />
       </div>
-      
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search contacts..."
-            className="pl-8"
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-          />
-        </div>
-        
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon">
-              <Filter className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>Filter by</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => onFilter("inner")}>
-                Inner circle
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onFilter("middle")}>
-                Middle circle
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onFilter("outer")}>
-                Outer circle
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuLabel>Sort by</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => onSort("name")}>
-              <SortAsc className="mr-2 h-4 w-4" /> Name
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onSort("recent")}>
-              <SortAsc className="mr-2 h-4 w-4" /> Most recent
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+
+      {/* Active Tag Filter Badge */}
+      {activeTagFilter && (
+        <Badge variant="secondary" className="px-3 py-1">
+          Tag: {activeTagFilter}
+          <button
+            onClick={() => onFilter(null)}
+            className="ml-2 text-muted-foreground hover:text-foreground"
+          >
+            ×
+          </button>
+        </Badge>
+      )}
+
+      {/* Sort & Filter */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="sm">
+            <SlidersHorizontal className="h-4 w-4 mr-2" />
+            Sort & Filter
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuItem onClick={() => onSort("name")}>
+            Sort by Name
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onSort("recent")}>
+            Sort by Recent Contact
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onFilter("inner")}>
+            Inner Circle Only
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onFilter("middle")}>
+            Middle Circle Only
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onFilter("outer")}>
+            Outer Circle Only
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onFilter(null)}>
+            Clear Filters
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {/* Add Contact */}
+      <Button onClick={onAddContact} size="sm">
+        <Plus className="h-4 w-4 mr-2" />
+        Add Contact
+      </Button>
     </div>
   );
 }

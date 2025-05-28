@@ -1,5 +1,5 @@
 
-import { Phone, Mail, MapPin, Briefcase, Link as LinkIcon, Calendar, MessageSquare, Edit, Trash, Eye, Gift } from "lucide-react";
+import { Phone, Mail, MapPin, Briefcase, Link as LinkIcon, Calendar, MessageSquare, Edit, Trash, Eye, Gift, GraduationCap, Facebook, Instagram, Linkedin } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -127,22 +127,11 @@ export function EnhancedContactDetail({ contact, interactions = [], onEdit, onDe
                 <span className="text-sm truncate">{contact.website}</span>
               </div>
             )}
-
-            {contact.twitter && (
-              <div className="flex items-center gap-3">
-                <div className="bg-blue-100 p-1.5 rounded-full flex-shrink-0">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500">
-                    <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path>
-                  </svg>
-                </div>
-                <span className="text-sm">@{contact.twitter}</span>
-              </div>
-            )}
           </div>
         </div>
         
         {/* Professional Info */}
-        {(contact.job_title || contact.company_name || contact.industry) && (
+        {(contact.job_title || contact.company_name || contact.industry || contact.department || contact.work_address) && (
           <div className="space-y-3">
             <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">Professional</h3>
             
@@ -156,13 +145,95 @@ export function EnhancedContactDetail({ contact, interactions = [], onEdit, onDe
               
               {contact.industry && (
                 <div className="text-sm text-muted-foreground pl-5">
-                  {contact.industry}
+                  Industry: {contact.industry}
                 </div>
               )}
 
               {contact.department && (
                 <div className="text-sm text-muted-foreground pl-5">
                   Department: {contact.department}
+                </div>
+              )}
+
+              {contact.work_address && (
+                <div className="text-sm text-muted-foreground pl-5">
+                  Office: {contact.work_address}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Education */}
+        {(contact.university || contact.major || contact.minor || contact.graduation_year) && (
+          <div className="space-y-3">
+            <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">Education</h3>
+            
+            <div className="space-y-2">
+              {contact.university && (
+                <div className="flex items-start gap-2">
+                  <GraduationCap className="h-3 w-3 text-muted-foreground mt-0.5 flex-shrink-0" />
+                  <div className="text-sm">
+                    <div>{contact.university}</div>
+                    {contact.major && (
+                      <div className="text-muted-foreground">
+                        Major: {contact.major}
+                        {contact.minor && ` • Minor: ${contact.minor}`}
+                      </div>
+                    )}
+                    {contact.graduation_year && (
+                      <div className="text-muted-foreground">
+                        Graduated: {contact.graduation_year}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Social Media */}
+        {(contact.linkedin || contact.twitter || contact.facebook || contact.instagram) && (
+          <div className="space-y-3">
+            <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">Social Media</h3>
+            
+            <div className="space-y-2">
+              {contact.linkedin && (
+                <div className="flex items-center gap-3">
+                  <div className="bg-blue-100 p-1.5 rounded-full flex-shrink-0">
+                    <Linkedin className="h-3 w-3 text-blue-600" />
+                  </div>
+                  <span className="text-sm truncate">{contact.linkedin}</span>
+                </div>
+              )}
+
+              {contact.twitter && (
+                <div className="flex items-center gap-3">
+                  <div className="bg-blue-100 p-1.5 rounded-full flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500">
+                      <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path>
+                    </svg>
+                  </div>
+                  <span className="text-sm">@{contact.twitter}</span>
+                </div>
+              )}
+
+              {contact.facebook && (
+                <div className="flex items-center gap-3">
+                  <div className="bg-blue-100 p-1.5 rounded-full flex-shrink-0">
+                    <Facebook className="h-3 w-3 text-blue-600" />
+                  </div>
+                  <span className="text-sm truncate">{contact.facebook}</span>
+                </div>
+              )}
+
+              {contact.instagram && (
+                <div className="flex items-center gap-3">
+                  <div className="bg-pink-100 p-1.5 rounded-full flex-shrink-0">
+                    <Instagram className="h-3 w-3 text-pink-600" />
+                  </div>
+                  <span className="text-sm">@{contact.instagram}</span>
                 </div>
               )}
             </div>
