@@ -28,40 +28,45 @@ export function CirclesFilter({
   activeTagFilter
 }: CirclesFilterProps) {
   return (
-    <div className="flex items-center gap-3 p-4 border-b bg-white">
-      {/* Search */}
-      <div className="relative flex-1">
+    <div className="flex items-center gap-2 p-4 border-b bg-white">
+      {/* Search - Expanded to take more space */}
+      <div className="relative flex-1 max-w-none">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
         <Input
           placeholder="Search contacts..."
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-10"
+          className="pl-10 h-10"
         />
       </div>
 
       {/* Active Tag Filter Badge */}
       {activeTagFilter && (
-        <Badge variant="secondary" className="px-3 py-1">
+        <Badge variant="secondary" className="px-3 py-1 shrink-0">
           Tag: {activeTagFilter}
           <button
             onClick={() => onFilter(null)}
             className="ml-2 text-muted-foreground hover:text-foreground"
+            aria-label="Remove tag filter"
           >
             ×
           </button>
         </Badge>
       )}
 
-      {/* Sort & Filter */}
+      {/* Sort & Filter - Icon only */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm">
-            <SlidersHorizontal className="h-4 w-4 mr-2" />
-            Sort & Filter
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="h-10 w-10 p-0 shrink-0"
+            aria-label="Sort and filter options"
+          >
+            <SlidersHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenuContent align="end" className="w-48 bg-white">
           <DropdownMenuItem onClick={() => onSort("name")}>
             Sort by Name
           </DropdownMenuItem>
@@ -83,10 +88,14 @@ export function CirclesFilter({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Add Contact */}
-      <Button onClick={onAddContact} size="sm">
-        <Plus className="h-4 w-4 mr-2" />
-        Add Contact
+      {/* Add Contact - Icon only */}
+      <Button 
+        onClick={onAddContact} 
+        size="sm" 
+        className="h-10 w-10 p-0 shrink-0"
+        aria-label="Add new contact"
+      >
+        <Plus className="h-4 w-4" />
       </Button>
     </div>
   );
