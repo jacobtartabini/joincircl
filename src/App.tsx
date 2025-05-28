@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,8 +17,8 @@ import SignIn from "@/pages/auth/SignIn";
 import SignUp from "@/pages/auth/SignUp";
 import ForgotPassword from "@/pages/auth/ForgotPassword";
 import ResetPassword from "@/pages/auth/ResetPassword";
-import CallbackPage from "@/pages/auth/CallbackPage";
-import GoogleCallbackPage from "@/pages/auth/GoogleCallbackPage";
+import CallbackPage from "./pages/CallbackPage";
+import GoogleCallbackPage from "./pages/GoogleCallbackPage";
 
 // Special pages
 import Settings from "@/pages/Settings";

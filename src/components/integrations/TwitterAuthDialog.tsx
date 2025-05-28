@@ -1,137 +1,186 @@
 
-import React, { useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Twitter } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Twitter, Loader2, ExternalLink } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface TwitterAuthDialogProps {
   isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
+  onClose: () => void;
+  onSuccess: () => void;
 }
 
-export function TwitterAuthDialog({ isOpen, onOpenChange }: TwitterAuthDialogProps) {
+export const TwitterAuthDialog: React.FC<TwitterAuthDialogProps> = ({
+  isOpen,
+  onClose,
+  onSuccess
+}) => {
+  const [isConnecting, setIsConnecting] = useState(false);
   const { toast } = useToast();
-  const [isAuthenticating, setIsAuthenticating] = useState(false);
-  
-  // Twitter OAuth credentials
-  const CLIENT_ID = "RmNzRlpWUGJ2d05ITXpKdGJlMDY6MTpjaQ";
-  const REDIRECT_URI = "https://app.joincircl.com/auth/callback";
-  const SCOPES = ["tweet.read", "users.read", "follows.read", "offline.access"];
-  
-  // Function to generate a random string for PKCE code_verifier
-  const generateCodeVerifier = (): string => {
-    const array = new Uint8Array(32);
-    window.crypto.getRandomValues(array);
-    return Array.from(array, (byte) => 
-      ('0' + (byte & 0xFF).toString(16)).slice(-2)
-    ).join('');
-  };
-  
-  // Function to create code_challenge from code_verifier using SHA-256
-  const generateCodeChallenge = async (codeVerifier: string): Promise<string> => {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(codeVerifier);
-    const digest = await window.crypto.subtle.digest('SHA-256', data);
-    
-    // Convert digest to base64url encoding
-    return btoa(String.fromCharCode(...new Uint8Array(digest)))
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=+$/, '');
-  };
-  
-  const handleTwitterLogin = async () => {
+
+  const handleTwitterConnect = async () => {
     try {
-      setIsAuthenticating(true);
-      
-      // Generate a random state value for CSRF protection
-      const state = Math.random().toString(36).substring(2);
-      localStorage.setItem("twitter_auth_state", state);
-      
-      // Generate code_verifier and code_challenge for PKCE
+      setIsConnecting(true);
+
+      // Generate PKCE challenge for security
       const codeVerifier = generateCodeVerifier();
-      localStorage.setItem("twitter_code_verifier", codeVerifier);
-      
       const codeChallenge = await generateCodeChallenge(codeVerifier);
-      
-      // Build the authorization URL
-      const authUrl = new URL("https://twitter.com/i/oauth2/authorize");
-      authUrl.searchParams.append("response_type", "code");
-      authUrl.searchParams.append("client_id", CLIENT_ID);
-      authUrl.searchParams.append("redirect_uri", REDIRECT_URI);
-      authUrl.searchParams.append("scope", SCOPES.join(" "));
-      authUrl.searchParams.append("state", state);
-      authUrl.searchParams.append("code_challenge", codeChallenge);
-      authUrl.searchParams.append("code_challenge_method", "S256");
-      
-      // Open the OAuth URL in the current window
-      window.location.href = authUrl.toString();
+      const state = generateRandomString();
+
+      // Store PKCE verifier and state for later verification
+      localStorage.setItem('twitter_code_verifier', codeVerifier);
+      localStorage.setItem('twitter_auth_state', state);
+
+      // Twitter OAuth 2.0 configuration
+      const clientId = 'RmNzRlpWUGJ2d05ITXpKdGJlMDY6MTpjaQ'; // Your Twitter Client ID
+      const redirectUri = encodeURIComponent('https://app.joincircl.com/auth/callback');
+      const scope = encodeURIComponent('tweet.read users.read offline.access');
+
+      // Build Twitter OAuth URL
+      const twitterAuthUrl = `https://twitter.com/i/oauth2/authorize?` +
+        `response_type=code&` +
+        `client_id=${clientId}&` +
+        `redirect_uri=${redirectUri}&` +
+        `scope=${scope}&` +
+        `state=${state}&` +
+        `code_challenge=${codeChallenge}&` +
+        `code_challenge_method=S256`;
+
+      // Open Twitter authorization in a new window
+      const authWindow = window.open(
+        twitterAuthUrl,
+        'twitter-auth',
+        'width=500,height=600,scrollbars=yes,resizable=yes'
+      );
+
+      // Listen for the callback
+      const checkClosed = setInterval(() => {
+        if (authWindow?.closed) {
+          clearInterval(checkClosed);
+          setIsConnecting(false);
+          
+          // Check if authentication was successful
+          const wasSuccessful = localStorage.getItem('twitter_auth_success');
+          if (wasSuccessful === 'true') {
+            localStorage.removeItem('twitter_auth_success');
+            onSuccess();
+          } else {
+            toast({
+              title: "Authentication Cancelled",
+              description: "Twitter authentication was not completed.",
+              variant: "destructive",
+            });
+          }
+        }
+      }, 1000);
+
+      // Cleanup after 5 minutes
+      setTimeout(() => {
+        clearInterval(checkClosed);
+        if (authWindow && !authWindow.closed) {
+          authWindow.close();
+        }
+        setIsConnecting(false);
+      }, 300000);
+
     } catch (error) {
-      console.error("Error initiating Twitter auth:", error);
-      setIsAuthenticating(false);
+      console.error('Error initiating Twitter OAuth:', error);
+      setIsConnecting(false);
       toast({
-        title: "Authentication Error",
-        description: "Failed to initiate Twitter authentication.",
+        title: "Connection Error",
+        description: "Failed to initiate Twitter authentication",
         variant: "destructive",
       });
     }
   };
-  
+
+  // Generate PKCE code verifier
+  const generateCodeVerifier = (): string => {
+    const array = new Uint8Array(32);
+    crypto.getRandomValues(array);
+    return btoa(String.fromCharCode.apply(null, Array.from(array)))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=/g, '');
+  };
+
+  // Generate PKCE code challenge
+  const generateCodeChallenge = async (verifier: string): Promise<string> => {
+    const data = new TextEncoder().encode(verifier);
+    const digest = await crypto.subtle.digest('SHA-256', data);
+    return btoa(String.fromCharCode.apply(null, Array.from(new Uint8Array(digest))))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=/g, '');
+  };
+
+  // Generate random state parameter
+  const generateRandomString = (): string => {
+    const array = new Uint8Array(16);
+    crypto.getRandomValues(array);
+    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Twitter className="h-5 w-5 text-sky-500" />
-            Connect to Twitter
-          </DialogTitle>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 bg-sky-100 rounded-lg flex items-center justify-center">
+              <Twitter className="h-5 w-5 text-sky-600" />
+            </div>
+            <DialogTitle>Connect Twitter Account</DialogTitle>
+          </div>
           <DialogDescription>
-            Link your Twitter account to import contacts and view tweets.
+            Connect your Twitter account to enable social features and import your connections.
           </DialogDescription>
         </DialogHeader>
-        
-        <div className="py-4">
-          <div className="space-y-4">
-            <div className="bg-sky-50 p-4 rounded-md text-sm text-sky-800">
-              <p className="font-medium mb-1">What you're authorizing:</p>
-              <ul className="list-disc pl-5 space-y-1">
-                <li>Read your tweets and timeline</li>
-                <li>See who you follow and your followers</li>
-                <li>Read your public profile information</li>
-                <li>Will not post or tweet on your behalf</li>
-              </ul>
-            </div>
-            
-            <p className="text-sm text-muted-foreground">
-              Your Twitter credentials are securely stored and can be revoked at any time.
+
+        <div className="space-y-4 py-4">
+          <div className="bg-blue-50 p-4 rounded-lg">
+            <h4 className="font-medium text-blue-900 mb-2">What you'll get:</h4>
+            <ul className="text-sm text-blue-800 space-y-1">
+              <li>• Import your Twitter connections as contacts</li>
+              <li>• Track social interactions with your network</li>
+              <li>• View recent activity from your connections</li>
+              <li>• Enhanced contact profiles with social data</li>
+            </ul>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <Button
+              onClick={handleTwitterConnect}
+              disabled={isConnecting}
+              className="w-full"
+            >
+              {isConnecting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Connecting...
+                </>
+              ) : (
+                <>
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Authorize with Twitter
+                </>
+              )}
+            </Button>
+
+            <Button variant="outline" onClick={onClose} disabled={isConnecting}>
+              Cancel
+            </Button>
+          </div>
+
+          <div className="text-xs text-muted-foreground">
+            <p>
+              By connecting your Twitter account, you agree to Twitter's terms of service.
+              We only access public information and connections you've made available.
             </p>
           </div>
         </div>
-        
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button 
-            className="bg-sky-500 hover:bg-sky-600"
-            onClick={handleTwitterLogin}
-            disabled={isAuthenticating}
-          >
-            {isAuthenticating ? (
-              <>
-                <span className="animate-spin mr-2">●</span>
-                Connecting...
-              </>
-            ) : (
-              <>
-                <Twitter className="h-4 w-4 mr-2" />
-                Connect Twitter
-              </>
-            )}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
-}
+};

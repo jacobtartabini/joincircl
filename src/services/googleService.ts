@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -83,8 +82,8 @@ export const generateGoogleAuthUrl = (provider: GoogleProvider): string => {
   const state = Math.random().toString(36).substring(2);
   localStorage.setItem(`google_${provider}_state`, state);
   
-  // Set the fixed production redirect URI
-  const redirectUri = `https://app.joincircl.com/auth/callback/google`;
+  // Use the fixed production redirect URI
+  const redirectUri = 'https://app.joincircl.com/auth/callback/google';
   
   const params = new URLSearchParams({
     client_id: GOOGLE_CLIENT_ID,
