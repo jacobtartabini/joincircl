@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Mail, Calendar, Twitter, Loader2, CheckCircle, XCircle, AlertTriangle, RefreshCw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,12 +9,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useGoogleIntegrations } from "@/hooks/useGoogleIntegrations";
 import { useSocialIntegrations } from "@/hooks/useSocialIntegrations";
 import { TwitterAuthDialog } from "@/components/integrations/TwitterAuthDialog";
+import { LucideIcon } from "lucide-react";
 
 interface Integration {
   id: string;
   name: string;
   description: string;
-  icon: React.ComponentType<{ size?: number; className?: string }>;
+  icon: LucideIcon;
   color: string;
   bgColor: string;
   connected: boolean;
