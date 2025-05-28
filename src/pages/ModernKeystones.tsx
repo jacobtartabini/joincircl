@@ -38,12 +38,6 @@ import MobileKeystones from "./MobileKeystones";
 
 export default function ModernKeystones() {
   const isMobile = useIsMobile();
-  
-  // If mobile, use the mobile-optimized version
-  if (isMobile) {
-    return <MobileKeystones />;
-  }
-
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedKeystone, setSelectedKeystone] = useState<Keystone | null>(null);
@@ -112,6 +106,11 @@ export default function ModernKeystones() {
       past: past.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     };
   }, [keystones, today]);
+
+  // If mobile, use the mobile-optimized version
+  if (isMobile) {
+    return <MobileKeystones />;
+  }
 
   const handleKeystoneClick = (keystone: Keystone) => {
     setSelectedKeystone(keystone);
