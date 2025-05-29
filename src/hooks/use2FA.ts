@@ -9,6 +9,12 @@ export interface TwoFactorSetup {
   backupCodes: string[];
 }
 
+interface UserMetadata {
+  two_fa_enabled?: boolean;
+  two_fa_secret?: string;
+  backup_codes?: string[];
+}
+
 export const use2FA = () => {
   const [loading, setLoading] = useState(false);
   const [setupData, setSetupData] = useState<TwoFactorSetup | null>(null);
@@ -136,7 +142,9 @@ export const use2FA = () => {
         return false;
       }
 
-      return data?.metadata?.two_fa_enabled || false;
+      // Safely parse metadata and check for 2FA status
+      const metadata = data?.metadata as UserMetadata | null;
+      return metadata?.two_fa_enabled || false;
     } catch (error) {
       console.error('Error checking 2FA status:', error);
       return false;
