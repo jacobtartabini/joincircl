@@ -609,6 +609,7 @@ export type Database = {
           id: string
           language: string | null
           marketing_emails: boolean | null
+          metadata: Json | null
           push_notifications: boolean | null
           theme: string | null
           timezone: string | null
@@ -621,6 +622,7 @@ export type Database = {
           id?: string
           language?: string | null
           marketing_emails?: boolean | null
+          metadata?: Json | null
           push_notifications?: boolean | null
           theme?: string | null
           timezone?: string | null
@@ -633,6 +635,7 @@ export type Database = {
           id?: string
           language?: string | null
           marketing_emails?: boolean | null
+          metadata?: Json | null
           push_notifications?: boolean | null
           theme?: string | null
           timezone?: string | null

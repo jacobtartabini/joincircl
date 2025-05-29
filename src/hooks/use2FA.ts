@@ -125,11 +125,16 @@ export const use2FA = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return false;
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('user_preferences')
         .select('metadata')
         .eq('user_id', user.id)
         .single();
+
+      if (error) {
+        console.error('Error checking 2FA status:', error);
+        return false;
+      }
 
       return data?.metadata?.two_fa_enabled || false;
     } catch (error) {
