@@ -17,7 +17,6 @@ export const use2FA = () => {
   const enable2FA = async () => {
     setLoading(true);
     try {
-      // Call edge function to generate 2FA setup
       const { data, error } = await supabase.functions.invoke('setup-2fa', {
         method: 'POST'
       });
@@ -39,12 +38,12 @@ export const use2FA = () => {
     }
   };
 
-  const verify2FA = async (token: string) => {
+  const verify2FA = async (token: string, isBackupCode = false) => {
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('verify-2fa', {
         method: 'POST',
-        body: { token }
+        body: { token, isBackupCode }
       });
 
       if (error) throw error;
@@ -59,10 +58,34 @@ export const use2FA = () => {
       console.error('Error verifying 2FA:', error);
       toast({
         title: "Error",
-        description: "Invalid verification code",
+        description: isBackupCode ? "Invalid backup code" : "Invalid verification code",
         variant: "destructive",
       });
       return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verifyLogin2FA = async (email: string, password: string, totpCode: string, isBackupCode = false) => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-login-2fa', {
+        method: 'POST',
+        body: { email, password, totpCode, isBackupCode }
+      });
+
+      if (error) throw error;
+      
+      return data;
+    } catch (error) {
+      console.error('Error verifying login 2FA:', error);
+      toast({
+        title: "Error",
+        description: error.message || "2FA verification failed",
+        variant: "destructive",
+      });
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -97,11 +120,31 @@ export const use2FA = () => {
     }
   };
 
+  const check2FAStatus = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      const { data } = await supabase
+        .from('user_preferences')
+        .select('metadata')
+        .eq('user_id', user.id)
+        .single();
+
+      return data?.metadata?.two_fa_enabled || false;
+    } catch (error) {
+      console.error('Error checking 2FA status:', error);
+      return false;
+    }
+  };
+
   return {
     loading,
     setupData,
     enable2FA,
     verify2FA,
-    disable2FA
+    verifyLogin2FA,
+    disable2FA,
+    check2FAStatus
   };
 };

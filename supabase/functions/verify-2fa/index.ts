@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { token } = await req.json()
+    const { token, isBackupCode = false } = await req.json()
 
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -27,7 +27,7 @@ serve(async (req) => {
       throw new Error('User not authenticated')
     }
 
-    // Get stored secret
+    // Get stored secret and backup codes
     const { data: preferences } = await supabaseClient
       .from('user_preferences')
       .select('metadata')
@@ -38,13 +38,42 @@ serve(async (req) => {
       throw new Error('2FA not setup')
     }
 
-    // In a real implementation, verify the TOTP token
-    // For demo purposes, accept any 6-digit code
-    if (!/^\d{6}$/.test(token)) {
-      throw new Error('Invalid token format')
+    let isValid = false
+
+    if (isBackupCode) {
+      // Check if token is a valid backup code
+      const backupCodes = preferences.metadata.backup_codes || []
+      isValid = backupCodes.includes(token.toUpperCase())
+      
+      if (isValid) {
+        // Remove the used backup code
+        const updatedBackupCodes = backupCodes.filter((code: string) => code !== token.toUpperCase())
+        await supabaseClient
+          .from('user_preferences')
+          .update({
+            metadata: {
+              ...preferences.metadata,
+              backup_codes: updatedBackupCodes
+            }
+          })
+          .eq('user_id', user.id)
+        
+        console.log(`Backup code used for user: ${user.id}`)
+      }
+    } else {
+      // Validate TOTP token
+      if (!/^\d{6}$/.test(token)) {
+        throw new Error('Invalid token format')
+      }
+
+      isValid = validateTOTP(preferences.metadata.two_fa_secret, token)
     }
 
-    // Enable 2FA
+    if (!isValid) {
+      throw new Error('Invalid verification code')
+    }
+
+    // Enable 2FA if verification successful
     const { error } = await supabaseClient
       .from('user_preferences')
       .update({
@@ -57,6 +86,8 @@ serve(async (req) => {
 
     if (error) throw error
 
+    console.log(`2FA enabled for user: ${user.id}`)
+
     return new Response(
       JSON.stringify({ success: true }),
       {
@@ -65,6 +96,7 @@ serve(async (req) => {
       },
     )
   } catch (error) {
+    console.error('2FA verification error:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       {
@@ -74,3 +106,75 @@ serve(async (req) => {
     )
   }
 })
+
+function validateTOTP(secret: string, token: string): boolean {
+  const window = 1 // Allow 1 time step before/after for clock drift
+  const timeStep = 30 // TOTP time step in seconds
+  const currentTime = Math.floor(Date.now() / 1000 / timeStep)
+  
+  // Check current time and adjacent windows
+  for (let i = -window; i <= window; i++) {
+    const timeCounter = currentTime + i
+    const expectedToken = generateTOTP(secret, timeCounter)
+    if (expectedToken === token) {
+      return true
+    }
+  }
+  
+  return false
+}
+
+function generateTOTP(secret: string, timeCounter: number): string {
+  // Convert secret from base32 to bytes
+  const secretBytes = base32ToBytes(secret)
+  
+  // Convert time counter to 8-byte array (big-endian)
+  const timeBytes = new ArrayBuffer(8)
+  const timeView = new DataView(timeBytes)
+  timeView.setUint32(4, timeCounter, false) // big-endian
+  
+  // Generate HMAC-SHA1
+  const hmac = hmacSha1(secretBytes, new Uint8Array(timeBytes))
+  
+  // Dynamic truncation
+  const offset = hmac[hmac.length - 1] & 0x0f
+  const code = ((hmac[offset] & 0x7f) << 24) |
+               ((hmac[offset + 1] & 0xff) << 16) |
+               ((hmac[offset + 2] & 0xff) << 8) |
+               (hmac[offset + 3] & 0xff)
+  
+  // Return 6-digit code
+  return (code % 1000000).toString().padStart(6, '0')
+}
+
+function base32ToBytes(base32: string): Uint8Array {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'
+  const cleanBase32 = base32.toUpperCase().replace(/[^A-Z2-7]/g, '')
+  
+  let bits = ''
+  for (const char of cleanBase32) {
+    const index = chars.indexOf(char)
+    if (index === -1) continue
+    bits += index.toString(2).padStart(5, '0')
+  }
+  
+  const bytes = new Uint8Array(Math.floor(bits.length / 8))
+  for (let i = 0; i < bytes.length; i++) {
+    bytes[i] = parseInt(bits.substr(i * 8, 8), 2)
+  }
+  
+  return bytes
+}
+
+async function hmacSha1(key: Uint8Array, data: Uint8Array): Promise<Uint8Array> {
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw',
+    key,
+    { name: 'HMAC', hash: 'SHA-1' },
+    false,
+    ['sign']
+  )
+  
+  const signature = await crypto.subtle.sign('HMAC', cryptoKey, data)
+  return new Uint8Array(signature)
+}
