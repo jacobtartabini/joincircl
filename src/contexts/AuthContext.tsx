@@ -29,15 +29,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [hasSeenTutorial, setHasSeenTutorial] = useState<boolean>(false);
 
-  // Initialize auth state
   useEffect(() => {
     let mounted = true;
 
     const initializeAuth = async () => {
       try {
-        // Get initial session
         const { data: { session: initialSession }, error } = await supabase.auth.getSession();
-        
+
         if (error) {
           console.error('Error getting initial session:', error);
         }
@@ -45,7 +43,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (mounted) {
           setSession(initialSession);
           setUser(initialSession?.user ?? null);
-          
+
           if (initialSession?.user) {
             await fetchAndCacheProfile(initialSession.user.id);
           }
@@ -59,17 +57,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     };
 
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    const { data: subscription } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
         console.log('Auth state changed:', event, newSession?.user?.id);
-        
+
         if (mounted) {
           setSession(newSession);
           setUser(newSession?.user ?? null);
-          
+
           if (newSession?.user && event === 'SIGNED_IN') {
-            // Fetch profile after sign in
             setTimeout(() => {
               fetchAndCacheProfile(newSession.user.id);
             }, 100);
@@ -77,7 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setProfile(null);
             setHasSeenTutorial(false);
           }
-          
+
           if (!loading) {
             setLoading(false);
           }
@@ -89,15 +85,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => {
       mounted = false;
-      subscription.unsubscribe();
+      subscription?.unsubscribe();
     };
   }, []);
 
   const fetchAndCacheProfile = async (userId: string) => {
     try {
-      // Try cache first
       let cachedProfile: Profile | null = null;
-      
+
       try {
         cachedProfile = await offlineStorage.profile.get(userId);
         if (cachedProfile) {
@@ -107,15 +102,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (cacheError) {
         console.error('Error checking cache for profile:', cacheError);
       }
-      
-      // Fetch latest from server if online
+
       if (navigator.onLine) {
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', userId)
           .single();
-        
+
         if (error) {
           console.error('Error fetching profile:', error);
           return;
@@ -124,8 +118,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (data) {
           setProfile(data);
           setHasSeenTutorial(data.has_seen_tutorial || false);
-          
-          // Cache the profile
+
           try {
             await offlineStorage.profile.save(userId, data);
           } catch (cacheError) {
@@ -140,11 +133,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       return { error };
     } catch (error) {
       console.error('Sign in error:', error);
@@ -159,10 +148,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
-          data: metadata
-        }
+          data: metadata,
+        },
       });
-      
+
       return { data, error };
     } catch (error) {
       console.error('Sign up error:', error);
@@ -173,9 +162,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     try {
       const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Sign out error:', error);
-      }
+      if (error) console.error('Sign out error:', error);
     } catch (error) {
       console.error('Sign out error:', error);
     }
@@ -183,13 +170,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithGoogle = async () => {
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
-        }
+        },
       });
-      
+
       if (error) {
         console.error('Google sign in error:', error);
         throw error;
@@ -202,20 +189,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateProfile = async (updates: Partial<Profile>) => {
     if (!user) return;
-    
+
     try {
       const { error } = await supabase
         .from('profiles')
         .update(updates)
         .eq('id', user.id);
-      
+
       if (error) {
         console.error('Error updating profile:', error);
         throw error;
       }
-      
-      // Update local state
-      setProfile(prev => prev ? { ...prev, ...updates } : null);
+
+      setProfile(prev => (prev ? { ...prev, ...updates } : null));
     } catch (error) {
       console.error('Error updating profile:', error);
       throw error;
@@ -224,11 +210,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const deleteAccount = async () => {
     if (!user) return;
-    
+
     try {
-      // Call delete account edge function
       const { error } = await supabase.functions.invoke('delete-account');
-      
+
       if (error) {
         console.error('Error deleting account:', error);
         throw error;
@@ -240,8 +225,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const hasPermission = (permission: string) => {
-    // Basic permission check - can be expanded
-    return !!user;
+    return !!user; // Expand logic here if needed
   };
 
   const contextValue: AuthContextProps = {
