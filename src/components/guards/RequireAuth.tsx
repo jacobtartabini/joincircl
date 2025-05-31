@@ -1,4 +1,3 @@
-
 import { ReactNode, useEffect, useState } from "react";
 import { Navigate, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,35 +19,35 @@ export function RequireAuth({ children, requiredPermission }: RequireAuthProps) 
       if (!loading) {
         if (!user) {
           // User is not authenticated, redirect to login
-          navigate("/auth/sign-in", { 
-            replace: true,
-            state: { from: location.pathname } // Remember where they were trying to go
-          });
-          return;
-        }
-        
-        // Verify session is still valid
-        const isValidSession = await validateSession();
-        if (!isValidSession) {
-          // Session expired, redirect to login
-          navigate("/auth/sign-in", {
+          navigate("/signin", { 
             replace: true,
             state: { from: location.pathname }
           });
           return;
         }
-        
+
+        // Verify session is still valid
+        const isValidSession = await validateSession();
+        if (!isValidSession) {
+          // Session expired, redirect to login
+          navigate("/signin", {
+            replace: true,
+            state: { from: location.pathname }
+          });
+          return;
+        }
+
         // Check permission if specified
         if (requiredPermission && !hasPermission(requiredPermission)) {
           // User doesn't have the required permission
           navigate("/", { replace: true });
           return;
         }
-        
+
         setIsChecking(false);
       }
     };
-    
+
     checkAuth();
   }, [user, loading, navigate, location.pathname, requiredPermission, hasPermission]);
 
@@ -64,5 +63,5 @@ export function RequireAuth({ children, requiredPermission }: RequireAuthProps) 
     );
   }
 
-  return user ? <>{children}</> : <Navigate to="/auth/sign-in" replace />;
+  return user ? <>{children}</> : <Navigate to="/signin" replace />;
 }
