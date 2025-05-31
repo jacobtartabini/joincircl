@@ -1,5 +1,5 @@
+
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 
 // Google API scopes
 export const GMAIL_SCOPE = 'https://www.googleapis.com/auth/gmail.readonly';
@@ -19,61 +19,6 @@ interface GoogleTokenResponse {
   scope: string;
 }
 
-interface GoogleUserInfo {
-  id: string;
-  email: string;
-  verified_email: boolean;
-  name: string;
-  given_name?: string;
-  family_name?: string;
-  picture?: string;
-}
-
-interface GoogleEmailMessage {
-  id: string;
-  threadId: string;
-  labelIds: string[];
-  snippet: string;
-  historyId: string;
-  internalDate: string;
-  payload: {
-    partId?: string;
-    mimeType: string;
-    filename?: string;
-    headers: {
-      name: string;
-      value: string;
-    }[];
-    body?: {
-      attachmentId?: string;
-      size: number;
-      data?: string;
-    };
-    parts?: any[];
-  };
-  sizeEstimate: number;
-}
-
-interface GoogleCalendarEvent {
-  id: string;
-  summary: string;
-  description?: string;
-  location?: string;
-  start: {
-    dateTime: string;
-    timeZone?: string;
-  };
-  end: {
-    dateTime: string;
-    timeZone?: string;
-  };
-  attendees?: {
-    email: string;
-    displayName?: string;
-    responseStatus?: string;
-  }[];
-}
-
 // Helper function to generate the Google OAuth URL
 export const generateGoogleAuthUrl = (provider: GoogleProvider): string => {
   const scope = provider === 'gmail' ? GMAIL_SCOPE : CALENDAR_SCOPE;
@@ -82,8 +27,8 @@ export const generateGoogleAuthUrl = (provider: GoogleProvider): string => {
   const state = Math.random().toString(36).substring(2);
   localStorage.setItem(`google_${provider}_state`, state);
   
-  // Use the fixed production redirect URI
-  const redirectUri = 'https://app.joincircl.com/auth/callback/google';
+  // Use dynamic redirect URI based on current environment
+  const redirectUri = `${window.location.origin}/auth/callback`;
   
   const params = new URLSearchParams({
     client_id: GOOGLE_CLIENT_ID,
@@ -92,7 +37,7 @@ export const generateGoogleAuthUrl = (provider: GoogleProvider): string => {
     scope,
     access_type: 'offline',
     prompt: 'consent',
-    state: `${provider}_${state}` // Include the provider in state
+    state: `${provider}_${state}`
   });
   
   return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
@@ -124,14 +69,15 @@ export const googleService = {
     }
   },
   
-  // Exchange code for token (handled in CallbackPage)
+  // Exchange code for token
   exchangeCodeForToken: async (
     code: string, 
     redirectUri: string, 
     scope: string
   ): Promise<GoogleTokenResponse | null> => {
     try {
-      // Call our edge function to exchange the code for a token
+      console.log('Exchanging Google OAuth code for token...');
+      
       const { data, error } = await supabase.functions.invoke('google-oauth', {
         body: {
           action: 'exchange',
@@ -141,24 +87,26 @@ export const googleService = {
         }
       });
       
-      if (error || !data) {
+      if (error) {
         console.error('Error exchanging code for token:', error);
-        return null;
+        throw new Error(error.message || 'Failed to exchange code for token');
       }
       
+      if (!data) {
+        throw new Error('No token data received');
+      }
+      
+      console.log('Successfully exchanged code for token');
       return data as GoogleTokenResponse;
     } catch (error) {
       console.error('Error exchanging code for token:', error);
-      return null;
+      throw error;
     }
   },
   
   // Fetch recent emails from Gmail
-  fetchRecentEmails: async (
-    limit: number = 10
-  ): Promise<{ data: any[], error: any }> => {
+  fetchRecentEmails: async (limit: number = 10): Promise<{ data: any[], error: any }> => {
     try {
-      // Call the Gmail API through our secure backend
       const { data, error } = await supabase.functions.invoke('gmail-fetch', {
         body: {
           action: 'recent',
@@ -171,7 +119,7 @@ export const googleService = {
         return { data: [], error };
       }
       
-      return { data, error: null };
+      return { data: data || [], error: null };
     } catch (error) {
       console.error('Error fetching Gmail messages:', error);
       return { data: [], error };
@@ -179,11 +127,8 @@ export const googleService = {
   },
   
   // Fetch upcoming calendar events
-  fetchUpcomingEvents: async (
-    days: number = 7
-  ): Promise<{ data: GoogleCalendarEvent[], error: any }> => {
+  fetchUpcomingEvents: async (days: number = 7): Promise<{ data: any[], error: any }> => {
     try {
-      // Call the Calendar API through our secure backend
       const { data, error } = await supabase.functions.invoke('calendar-events', {
         body: {
           action: 'upcoming',
@@ -196,7 +141,7 @@ export const googleService = {
         return { data: [], error };
       }
       
-      return { data, error: null };
+      return { data: data || [], error: null };
     } catch (error) {
       console.error('Error fetching calendar events:', error);
       return { data: [], error };
@@ -206,12 +151,15 @@ export const googleService = {
   // Check if provider is connected
   isConnected: async (provider: GoogleProvider): Promise<boolean> => {
     try {
-      // Check if we have a valid token for this provider
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return false;
+
       if (provider === 'gmail') {
         const { data } = await supabase
           .from('user_email_tokens')
           .select('*')
           .eq('provider', 'gmail')
+          .eq('user_id', session.user.id)
           .maybeSingle();
           
         return !!data;
@@ -220,6 +168,7 @@ export const googleService = {
           .from('user_calendar_tokens')
           .select('*')
           .eq('provider', 'google')
+          .eq('user_id', session.user.id)
           .maybeSingle();
           
         return !!data;
@@ -233,11 +182,15 @@ export const googleService = {
   // Disconnect a provider
   disconnect: async (provider: GoogleProvider): Promise<boolean> => {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return false;
+
       if (provider === 'gmail') {
         const { error } = await supabase
           .from('user_email_tokens')
           .delete()
-          .eq('provider', 'gmail');
+          .eq('provider', 'gmail')
+          .eq('user_id', session.user.id);
           
         if (error) {
           console.error('Error disconnecting Gmail:', error);
@@ -247,7 +200,8 @@ export const googleService = {
         const { error } = await supabase
           .from('user_calendar_tokens')
           .delete()
-          .eq('provider', 'google');
+          .eq('provider', 'google')
+          .eq('user_id', session.user.id);
           
         if (error) {
           console.error('Error disconnecting Google Calendar:', error);

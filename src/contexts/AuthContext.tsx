@@ -14,7 +14,6 @@ interface AuthContextProps {
   signUp: (email: string, password: string, metadata?: any) => Promise<{ error: any, data: any }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
-  // Add missing properties
   deleteAccount: () => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   hasPermission: (permission: string) => boolean;
@@ -31,54 +30,86 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [hasSeenTutorial, setHasSeenTutorial] = useState<boolean>(false);
 
-  // Function to cache profile image
-  const cacheProfileImage = async (imageUrl: string, userId: string) => {
-    if (!imageUrl) return;
-    
-    try {
-      // Fetch the image and store as blob
-      const response = await fetch(imageUrl);
-      if (!response.ok) {
-        console.error('Failed to fetch profile image for caching');
-        return;
-      }
-      
-      const imageBlob = await response.blob();
-      await offlineStorage.profileImage.save(userId, imageBlob);
-      console.log('Profile image cached successfully');
-    } catch (error) {
-      console.error('Error caching profile image:', error);
-    }
-  };
+  // Initialize auth state
+  useEffect(() => {
+    let mounted = true;
 
-  // Function to fetch and cache user profile
+    const initializeAuth = async () => {
+      try {
+        // Get initial session
+        const { data: { session: initialSession }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting initial session:', error);
+        }
+
+        if (mounted) {
+          setSession(initialSession);
+          setUser(initialSession?.user ?? null);
+          
+          if (initialSession?.user) {
+            await fetchAndCacheProfile(initialSession.user.id);
+          }
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, newSession) => {
+        console.log('Auth state changed:', event, newSession?.user?.id);
+        
+        if (mounted) {
+          setSession(newSession);
+          setUser(newSession?.user ?? null);
+          
+          if (newSession?.user && event === 'SIGNED_IN') {
+            // Fetch profile after sign in
+            setTimeout(() => {
+              fetchAndCacheProfile(newSession.user.id);
+            }, 100);
+          } else if (event === 'SIGNED_OUT') {
+            setProfile(null);
+            setHasSeenTutorial(false);
+          }
+          
+          if (!loading) {
+            setLoading(false);
+          }
+        }
+      }
+    );
+
+    initializeAuth();
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
   const fetchAndCacheProfile = async (userId: string) => {
     try {
-      // Try to get from offline storage first
+      // Try cache first
       let cachedProfile: Profile | null = null;
       
       try {
         cachedProfile = await offlineStorage.profile.get(userId);
-        
-        // If we have a cached profile, use it immediately while we fetch the latest
         if (cachedProfile) {
-          console.log('Found profile in offline storage:', cachedProfile);
           setProfile(cachedProfile);
           setHasSeenTutorial(cachedProfile.has_seen_tutorial || false);
-          
-          // If we have an avatar URL, check if we have the image cached
-          if (cachedProfile.avatar_url) {
-            // Cache the profile image if we're online
-            if (navigator.onLine) {
-              cacheProfileImage(cachedProfile.avatar_url, userId);
-            }
-          }
         }
       } catch (cacheError) {
         console.error('Error checking cache for profile:', cacheError);
       }
       
-      // If online, fetch the latest profile from the server
+      // Fetch latest from server if online
       if (navigator.onLine) {
         const { data, error } = await supabase
           .from('profiles')
@@ -88,30 +119,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (error) {
           console.error('Error fetching profile:', error);
-          // If we failed to fetch but have a cached version, don't throw
-          if (cachedProfile) return;
-          throw error;
+          return;
         }
-        
+
         if (data) {
-          // Store profile in state
           setProfile(data);
           setHasSeenTutorial(data.has_seen_tutorial || false);
           
-          // Cache profile for offline use
-          await offlineStorage.profile.save(data);
-          console.log('Updated profile cache with latest data');
-          
-          // Cache profile image if it exists
-          if (data.avatar_url) {
-            cacheProfileImage(data.avatar_url, userId);
+          // Cache the profile
+          try {
+            await offlineStorage.profile.save(userId, data);
+          } catch (cacheError) {
+            console.error('Error caching profile:', cacheError);
           }
-        }
-      } else {
-        // If offline and we found a cached profile earlier, we're good
-        // If not, show an error
-        if (!cachedProfile) {
-          console.error('No cached profile available while offline');
         }
       }
     } catch (error) {
@@ -119,194 +139,130 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Initial session check and auth subscription setup
-  useEffect(() => {
-    setLoading(true);
-    
-    // First, set up the auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
-        console.log('Auth state change event:', event, Boolean(currentSession));
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        
-        // Fetch profile with setTimeout to prevent auth deadlocks
-        if (currentSession?.user?.id) {
-          setTimeout(() => {
-            fetchAndCacheProfile(currentSession.user.id);
-          }, 0);
-        }
-      }
-    );
-    
-    // Then check for existing session
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      console.log('Initial session check:', Boolean(currentSession));
-      setSession(currentSession);
-      setUser(currentSession?.user ?? null);
-      
-      if (currentSession?.user?.id) {
-        fetchAndCacheProfile(currentSession.user.id);
-      }
-      
-      setLoading(false);
-    });
-    
-    // Cleanup subscription
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  // Update the profile when hasSeenTutorial changes
-  useEffect(() => {
-    if (profile && profile.has_seen_tutorial !== hasSeenTutorial) {
-      updateProfile({ has_seen_tutorial: hasSeenTutorial })
-        .catch(error => console.error('Error updating tutorial status:', error));
-    }
-  }, [hasSeenTutorial]);
-
-  // Auth methods
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error };
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      return { error };
+    } catch (error) {
+      console.error('Sign in error:', error);
+      return { error };
+    }
   };
 
   const signUp = async (email: string, password: string, metadata?: any) => {
-    const { data, error } = await supabase.auth.signUp({ 
-      email, 
-      password,
-      options: { 
-        data: metadata 
-      } 
-    });
-    return { data, error };
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: metadata
+        }
+      });
+      
+      return { data, error };
+    } catch (error) {
+      console.error('Sign up error:', error);
+      return { data: null, error };
+    }
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    setProfile(null);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Sign out error:', error);
+      }
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        }
+      });
+      
+      if (error) {
+        console.error('Google sign in error:', error);
+        throw error;
+      }
+    } catch (error) {
+      console.error('Google sign in error:', error);
+      throw error;
+    }
   };
 
   const updateProfile = async (updates: Partial<Profile>) => {
-    if (!user) throw new Error("User must be logged in");
+    if (!user) return;
     
-    // First update local state
-    if (profile) {
-      const updatedProfile = { ...profile, ...updates };
-      setProfile(updatedProfile);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', user.id);
       
-      // If has_seen_tutorial is being updated, also update the local state
-      if (updates.has_seen_tutorial !== undefined) {
-        setHasSeenTutorial(updates.has_seen_tutorial);
+      if (error) {
+        console.error('Error updating profile:', error);
+        throw error;
       }
       
-      // Cache the updated profile
-      await offlineStorage.profile.save(updatedProfile);
-      
-      // If avatar URL is updated, cache the new image
-      if (updates.avatar_url && navigator.onLine) {
-        cacheProfileImage(updates.avatar_url, user.id);
-      }
+      // Update local state
+      setProfile(prev => prev ? { ...prev, ...updates } : null);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      throw error;
     }
-    
-    // Then if online, update the database
-    if (navigator.onLine) {
-      try {
-        const { error } = await supabase
-          .from('profiles')
-          .update(updates)
-          .eq('id', user.id);
-        
-        if (error) throw error;
-      } catch (error) {
-        console.error('Error updating profile in database:', error);
-        // Queue for sync when back online
-        if (profile) {
-          await offlineStorage.sync.queue('update', 'profiles', { 
-            id: user.id, 
-            ...updates 
-          });
-        }
-      }
-    } else {
-      // If offline, queue for sync
-      if (profile) {
-        await offlineStorage.sync.queue('update', 'profiles', { 
-          id: user.id, 
-          ...updates 
-        });
-      }
-    }
-  };
-
-  // Implement the missing methods
-  const signInWithGoogle = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`
-      }
-    });
   };
 
   const deleteAccount = async () => {
-    if (!user) throw new Error("User must be logged in");
+    if (!user) return;
     
     try {
-      // Delete profile
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', user.id);
+      // Call delete account edge function
+      const { error } = await supabase.functions.invoke('delete-account');
       
-      if (profileError) throw profileError;
-      
-      // Delete user auth account
-      const { error } = await supabase.auth.admin.deleteUser(user.id);
-      if (error) throw error;
-      
-      // Clear local state
-      setProfile(null);
-      setUser(null);
-      setSession(null);
-      
-      // Remove from offline storage
-      await offlineStorage.profile.delete(user.id);
-      await offlineStorage.profileImage.delete(user.id);
+      if (error) {
+        console.error('Error deleting account:', error);
+        throw error;
+      }
     } catch (error) {
-      console.error("Error deleting account:", error);
+      console.error('Error deleting account:', error);
       throw error;
     }
   };
 
   const hasPermission = (permission: string) => {
-    // For now, implement a simple permission check
-    // This can be expanded later based on user roles or specific permissions
-    if (!user) return false;
-    
-    // Basic implementation - return true for authenticated users
-    // In real application, you would check against user's permissions in profile
-    return true;
+    // Basic permission check - can be expanded
+    return !!user;
+  };
+
+  const contextValue: AuthContextProps = {
+    user,
+    session,
+    profile,
+    loading,
+    signIn,
+    signUp,
+    signOut,
+    updateProfile,
+    deleteAccount,
+    signInWithGoogle,
+    hasPermission,
+    hasSeenTutorial,
+    setHasSeenTutorial,
   };
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      session,
-      profile,
-      loading,
-      signIn,
-      signUp,
-      signOut,
-      updateProfile,
-      // Add the missing properties
-      deleteAccount,
-      signInWithGoogle,
-      hasPermission,
-      hasSeenTutorial,
-      setHasSeenTutorial,
-    }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );
@@ -314,7 +270,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;

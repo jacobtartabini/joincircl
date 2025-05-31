@@ -1,6 +1,6 @@
 
-import AuthCallbackHandler from "@/components/auth/AuthCallbackHandler";
+import UnifiedAuthCallbackHandler from "@/components/auth/UnifiedAuthCallbackHandler";
 
 export default function CallbackPage() {
-  return <AuthCallbackHandler type="general" />;
+  return <UnifiedAuthCallbackHandler />;
 }

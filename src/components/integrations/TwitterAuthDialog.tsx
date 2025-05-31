@@ -4,7 +4,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Twitter, Loader2, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 
 interface TwitterAuthDialogProps {
   isOpen: boolean;
@@ -34,8 +33,8 @@ export const TwitterAuthDialog: React.FC<TwitterAuthDialogProps> = ({
       localStorage.setItem('twitter_auth_state', state);
 
       // Twitter OAuth 2.0 configuration
-      const clientId = 'RmNzRlpWUGJ2d05ITXpKdGJlMDY6MTpjaQ'; // Your Twitter Client ID
-      const redirectUri = encodeURIComponent('https://app.joincircl.com/auth/callback');
+      const clientId = 'RmNzRlpWUGJ2d05ITXpKdGJlMDY6MTpjaQ';
+      const redirectUri = encodeURIComponent(`${window.location.origin}/auth/callback`);
       const scope = encodeURIComponent('tweet.read users.read offline.access');
 
       // Build Twitter OAuth URL
@@ -48,42 +47,10 @@ export const TwitterAuthDialog: React.FC<TwitterAuthDialogProps> = ({
         `code_challenge=${codeChallenge}&` +
         `code_challenge_method=S256`;
 
-      // Open Twitter authorization in a new window
-      const authWindow = window.open(
-        twitterAuthUrl,
-        'twitter-auth',
-        'width=500,height=600,scrollbars=yes,resizable=yes'
-      );
+      console.log('Opening Twitter auth URL:', twitterAuthUrl);
 
-      // Listen for the callback
-      const checkClosed = setInterval(() => {
-        if (authWindow?.closed) {
-          clearInterval(checkClosed);
-          setIsConnecting(false);
-          
-          // Check if authentication was successful
-          const wasSuccessful = localStorage.getItem('twitter_auth_success');
-          if (wasSuccessful === 'true') {
-            localStorage.removeItem('twitter_auth_success');
-            onSuccess();
-          } else {
-            toast({
-              title: "Authentication Cancelled",
-              description: "Twitter authentication was not completed.",
-              variant: "destructive",
-            });
-          }
-        }
-      }, 1000);
-
-      // Cleanup after 5 minutes
-      setTimeout(() => {
-        clearInterval(checkClosed);
-        if (authWindow && !authWindow.closed) {
-          authWindow.close();
-        }
-        setIsConnecting(false);
-      }, 300000);
+      // Open Twitter authorization in the same window
+      window.location.href = twitterAuthUrl;
 
     } catch (error) {
       console.error('Error initiating Twitter OAuth:', error);
