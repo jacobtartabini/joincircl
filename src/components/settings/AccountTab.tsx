@@ -20,7 +20,7 @@ const AccountTab = () => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      navigate('/signin'); // Updated to navigate to /signin
+      navigate('/signin');
     } catch (error) {
       console.error('Error signing out:', error);
       toast({
@@ -37,6 +37,7 @@ const AccountTab = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Fetch user data for export
       const [profileData, contactsData, interactionsData] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', user.id).single(),
         supabase.from('contacts').select('*').eq('user_id', user.id),
@@ -54,7 +55,7 @@ const AccountTab = () => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `circl-data-export-${new Date().toISOString().split('T')[0]}.json`;
+      a.download = circl-data-export-${new Date().toISOString().split('T')[0]}.json;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -90,8 +91,8 @@ const AccountTab = () => {
         title: "Account Deleted",
         description: "Your account has been permanently deleted",
       });
-
-      navigate('/signin'); // Updated to navigate to /signin
+      
+      navigate('/auth');
     } catch (error) {
       console.error('Error deleting account:', error);
       toast({
@@ -112,17 +113,17 @@ const AccountTab = () => {
 
   return (
     <div className="space-y-6">
+      {/* General Settings */}
       <Card className="border border-gray-200">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg font-semibold text-gray-900">General Settings</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Language & Timezone */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Language</label>
-              <Select
-                value={preferences?.language || 'en'}
+              <Select 
+                value={preferences?.language || 'en'} 
                 onValueChange={(value) => updatePreferences({ language: value })}
               >
                 <SelectTrigger className="border-gray-200">
@@ -143,8 +144,8 @@ const AccountTab = () => {
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Timezone</label>
-              <Select
-                value={preferences?.timezone || 'America/New_York'}
+              <Select 
+                value={preferences?.timezone || 'America/New_York'} 
                 onValueChange={(value) => updatePreferences({ timezone: value })}
               >
                 <SelectTrigger className="border-gray-200">
@@ -169,7 +170,6 @@ const AccountTab = () => {
             </div>
           </div>
 
-          {/* Theme */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">Theme</label>
             <div className="flex gap-2">
@@ -194,70 +194,95 @@ const AccountTab = () => {
         </CardContent>
       </Card>
 
-      {/* Notifications */}
+      {/* Notification Preferences */}
       <Card className="border border-gray-200">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg font-semibold text-gray-900">Notifications</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {[
-            {
-              label: "Email Notifications",
-              description: "Receive important updates via email",
-              key: "email_notifications"
-            },
-            {
-              label: "Push Notifications",
-              description: "Get notified about activity in real-time",
-              key: "push_notifications"
-            },
-            {
-              label: "Marketing Emails",
-              description: "Receive tips and product updates",
-              key: "marketing_emails"
-            }
-          ].map(({ label, description, key }) => (
-            <div key={key} className="flex items-center justify-between">
-              <div>
-                <label className="text-sm font-medium text-gray-900">{label}</label>
-                <p className="text-xs text-gray-500">{description}</p>
-              </div>
-              <Switch
-                checked={preferences?.[key] || false}
-                onCheckedChange={(checked) => updatePreferences({ [key]: checked })}
-              />
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="text-sm font-medium text-gray-900">Email Notifications</label>
+              <p className="text-xs text-gray-500">Receive important updates via email</p>
             </div>
-          ))}
+            <Switch
+              checked={preferences?.email_notifications || false}
+              onCheckedChange={(checked) => updatePreferences({ email_notifications: checked })}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="text-sm font-medium text-gray-900">Push Notifications</label>
+              <p className="text-xs text-gray-500">Get notified about activity in real-time</p>
+            </div>
+            <Switch
+              checked={preferences?.push_notifications || false}
+              onCheckedChange={(checked) => updatePreferences({ push_notifications: checked })}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="text-sm font-medium text-gray-900">Marketing Emails</label>
+              <p className="text-xs text-gray-500">Receive tips and product updates</p>
+            </div>
+            <Switch
+              checked={preferences?.marketing_emails || false}
+              onCheckedChange={(checked) => updatePreferences({ marketing_emails: checked })}
+            />
+          </div>
         </CardContent>
       </Card>
 
       {/* Account Actions */}
       <Card className="border border-gray-200">
         <CardHeader className="pb-4">
-          <CardTitle className="text-lg font-semibold text-gray-900">Account</CardTitle>
+          <CardTitle className="text-lg font-semibold text-gray-900">Account Actions</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Button onClick={handleExportData} variant="outline">
-            <Globe className="mr-2 h-4 w-4" />
-            Export My Data
-          </Button>
-          <Button onClick={handleDeleteAccount} variant="destructive">
-            <AlertTriangle className="mr-2 h-4 w-4" />
-            Delete My Account
-          </Button>
-          <Button onClick={handleSignOut} disabled={signingOut}>
-            {signingOut ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Logging Out...
-              </>
-            ) : (
-              <>
-                <LogOut className="mr-2 h-4 w-4" />
-                Log Out
-              </>
-            )}
-          </Button>
+          <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <div>
+              <label className="text-sm font-medium text-blue-900">Export Your Data</label>
+              <p className="text-xs text-blue-700">Download all your account data</p>
+            </div>
+            <Button variant="outline" size="sm" className="border-blue-200 text-blue-700" onClick={handleExportData}>
+              <Globe className="h-4 w-4 mr-2" />
+              Export
+            </Button>
+          </div>
+
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div>
+              <label className="text-sm font-medium text-gray-900">Sign Out</label>
+              <p className="text-xs text-gray-500">Sign out of your account</p>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="border-gray-200 text-gray-700" 
+              onClick={handleSignOut}
+              disabled={signingOut}
+            >
+              {signingOut ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <LogOut className="h-4 w-4 mr-2" />
+              )}
+              Sign Out
+            </Button>
+          </div>
+
+          <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg border border-red-200">
+            <div>
+              <label className="text-sm font-medium text-red-900">Delete Account</label>
+              <p className="text-xs text-red-700">Permanently delete your account and data</p>
+            </div>
+            <Button variant="outline" size="sm" className="border-red-200 text-red-700" onClick={handleDeleteAccount}>
+              <AlertTriangle className="h-4 w-4 mr-2" />
+              Delete
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
