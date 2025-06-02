@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,7 +10,7 @@ interface AuthContextProps {
   profile: Profile | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, metadata?: any) => Promise<{ error: any; data: any }>;
+  signUp: (email: string, password: string, metadata?: any) => Promise<{ error: any, data: any }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
   deleteAccount: () => Promise<void>;
@@ -77,10 +76,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const initializeAuth = async () => {
       try {
-        const {
-          data: { session: initialSession },
-          error,
-        } = await supabase.auth.getSession();
+        const { data: { session: initialSession }, error } = await supabase.auth.getSession();
 
         if (error) {
           console.error('Error getting initial session:', error);
@@ -251,7 +247,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
 
-      setProfile((prev) => (prev ? { ...prev, ...updates } : null));
+      setProfile(prev => (prev ? { ...prev, ...updates } : null));
     } catch (error) {
       console.error('Error updating profile:', error);
       throw error;
@@ -275,7 +271,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const hasPermission = (permission: string) => {
-    return !!user; // Customize logic here if needed
+    return !!user; // Expand this logic as needed
   };
 
   const contextValue: AuthContextProps = {
@@ -294,7 +290,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setHasSeenTutorial,
   };
 
-  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={contextValue}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => {
