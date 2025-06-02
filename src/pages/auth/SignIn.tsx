@@ -9,7 +9,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { useToast } from "@/hooks/use-toast";
 import { Navigate, Link, useNavigate } from "react-router-dom";
 import { use2FA } from "@/hooks/use2FA";
-import { Shield, ArrowLeft } from "lucide-react";
+import { Shield, ArrowLeft, AlertCircle } from "lucide-react";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
@@ -20,6 +20,7 @@ export default function SignIn() {
   const [requires2FA, setRequires2FA] = useState(false);
   const [showBackupCodeInput, setShowBackupCodeInput] = useState(false);
   const [backupCode, setBackupCode] = useState("");
+  const [authError, setAuthError] = useState<string | null>(null);
   const { signIn, signInWithGoogle, user } = useAuth();
   const { verifyLogin2FA } = use2FA();
   const { toast } = useToast();
@@ -50,36 +51,47 @@ export default function SignIn() {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAuthError(null);
+    
     if (!email || !password) {
-      toast({
-        title: "Missing fields",
-        description: "Please fill in all fields",
-        variant: "destructive",
-      });
+      setAuthError("Please fill in all fields");
       return;
     }
 
     setIsLoading(true);
     try {
+      console.log('Starting sign in process...');
+      
       // First try to sign in with 2FA verification
       try {
         const result = await verifyLogin2FA(email, password, totpCode || '000000');
         if (result.requires2FA && !totpCode) {
           setRequires2FA(true);
+          setIsLoading(false);
           return;
         }
+        console.log('2FA login successful, redirecting...');
         navigate("/");
-      } catch (error) {
+      } catch (error: any) {
+        console.log('2FA verification failed, trying regular sign in...');
         // If 2FA verification fails, try regular sign in (for users without 2FA)
         if (!requires2FA) {
-          await signIn(email, password);
-          navigate("/");
+          const { error: signInError } = await signIn(email, password);
+          if (signInError) {
+            console.error('Regular sign in failed:', signInError);
+            setAuthError(getErrorMessage(signInError));
+          } else {
+            console.log('Regular sign in successful, redirecting...');
+            navigate("/");
+          }
         } else {
-          throw error;
+          console.error('2FA required but verification failed:', error);
+          setAuthError(getErrorMessage(error));
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error signing in:", error);
+      setAuthError(getErrorMessage(error));
     } finally {
       setIsLoading(false);
     }
@@ -87,20 +99,19 @@ export default function SignIn() {
 
   const handleBackupCodeSignIn = async () => {
     if (!backupCode) {
-      toast({
-        title: "Missing backup code",
-        description: "Please enter your backup code",
-        variant: "destructive",
-      });
+      setAuthError("Please enter your backup code");
       return;
     }
 
     setIsLoading(true);
+    setAuthError(null);
+    
     try {
       await verifyLogin2FA(email, password, backupCode, true);
       navigate("/");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error signing in with backup code:", error);
+      setAuthError(getErrorMessage(error));
     } finally {
       setIsLoading(false);
     }
@@ -108,12 +119,25 @@ export default function SignIn() {
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
+    setAuthError(null);
+    
     try {
+      console.log('Starting Google sign in...');
       await signInWithGoogle();
-    } catch (error) {
+      // The redirect will happen automatically, no need to navigate manually
+    } catch (error: any) {
       console.error("Error signing in with Google:", error);
+      setAuthError(getErrorMessage(error));
       setIsLoading(false);
     }
+  };
+
+  const getErrorMessage = (error: any): string => {
+    if (typeof error === 'string') return error;
+    if (error?.message) return error.message;
+    if (error?.error_description) return error.error_description;
+    if (error?.msg) return error.msg;
+    return 'An unexpected error occurred. Please try again.';
   };
 
   const resetForm = () => {
@@ -121,6 +145,7 @@ export default function SignIn() {
     setTotpCode("");
     setShowBackupCodeInput(false);
     setBackupCode("");
+    setAuthError(null);
   };
 
   return (
@@ -151,6 +176,13 @@ export default function SignIn() {
           </CardHeader>
           
           <CardContent className="space-y-6 px-8">
+            {authError && (
+              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0" />
+                <p className="text-sm text-red-700">{authError}</p>
+              </div>
+            )}
+
             {!requires2FA ? (
               // Regular sign-in form
               <form onSubmit={handleSignIn} className="space-y-5">
