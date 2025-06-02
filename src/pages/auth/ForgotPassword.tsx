@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -98,7 +99,7 @@ export default function ForgotPassword() {
           <CardFooter className="flex justify-center pt-4 pb-8">
             <p className="text-sm text-gray-600">
               Remembered your password?{" "}
-              <Link to="/auth/sign-in" className="text-gray-900 hover:underline font-semibold">
+              <Link to="/signin" className="text-gray-900 hover:underline font-semibold">
                 Sign in
               </Link>
             </p>

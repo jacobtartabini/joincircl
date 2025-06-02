@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -103,7 +104,7 @@ export default function SignUp() {
               <Button 
                 variant="outline" 
                 className="w-full h-12 border-gray-200 hover:bg-gray-50 font-semibold"
-                onClick={() => window.location.href = '/auth/sign-in'}
+                onClick={() => window.location.href = '/signin'}
               >
                 Go to Sign In
               </Button>
@@ -235,7 +236,7 @@ export default function SignUp() {
           <CardFooter className="flex justify-center pt-4 pb-8">
             <p className="text-sm text-gray-600">
               Already have an account?{" "}
-              <Link to="/auth/sign-in" className="text-gray-900 hover:underline font-semibold">
+              <Link to="/signin" className="text-gray-900 hover:underline font-semibold">
                 Sign in
               </Link>
             </p>

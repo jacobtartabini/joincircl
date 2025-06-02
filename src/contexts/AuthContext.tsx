@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -108,8 +109,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(newSession?.user ?? null);
 
           if (newSession?.user && event === 'SIGNED_IN') {
-            setTimeout(async () => {
-              await fetchAndCacheProfile(newSession.user.id);
+            setTimeout(() => {
+              fetchAndCacheProfile(newSession.user.id);
             }, 100);
           } else if (event === 'SIGNED_OUT') {
             setProfile(null);
@@ -165,7 +166,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email: email.trim().toLowerCase(),
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${window.location.origin}/reset`,
           data: metadata,
         },
       });

@@ -201,7 +201,7 @@ export default function SignIn() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password" className="text-sm font-semibold text-gray-700">Password</Label>
-                    <Link to="/auth/forgot-password" className="text-sm text-gray-600 hover:text-gray-900 transition-colors font-medium">
+                    <Link to="/forgot" className="text-sm text-gray-600 hover:text-gray-900 transition-colors font-medium">
                       Forgot password?
                     </Link>
                   </div>
@@ -388,7 +388,7 @@ export default function SignIn() {
             <CardFooter className="flex justify-center pt-4 pb-8">
               <p className="text-sm text-gray-600">
                 Don't have an account?{" "}
-                <Link to="/auth/sign-up" className="text-gray-900 hover:underline font-semibold">
+                <Link to="/signup" className="text-gray-900 hover:underline font-semibold">
                   Sign up
                 </Link>
               </p>
