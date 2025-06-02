@@ -10,7 +10,7 @@ interface AuthContextProps {
   profile: Profile | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, metadata?: any) => Promise<{ error: any, data: any }>;
+  signUp: (email: string, password: string, metadata?: any) => Promise<{ error: any; data: any }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
   deleteAccount: () => Promise<void>;
@@ -29,12 +29,57 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [hasSeenTutorial, setHasSeenTutorial] = useState<boolean>(false);
 
+  const fetchAndCacheProfile = async (userId: string) => {
+    try {
+      let cachedProfile: Profile | null = null;
+
+      try {
+        cachedProfile = await offlineStorage.profile.get(userId);
+        if (cachedProfile) {
+          setProfile(cachedProfile);
+          setHasSeenTutorial(cachedProfile.has_seen_tutorial || false);
+        }
+      } catch (cacheError) {
+        console.error('Error checking cache for profile:', cacheError);
+      }
+
+      if (navigator.onLine) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single();
+
+        if (error) {
+          console.error('Error fetching profile:', error);
+          return;
+        }
+
+        if (data) {
+          setProfile(data);
+          setHasSeenTutorial(data.has_seen_tutorial || false);
+
+          try {
+            await offlineStorage.profile.save(userId, data);
+          } catch (cacheError) {
+            console.error('Error caching profile:', cacheError);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error in fetchAndCacheProfile:', error);
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
 
     const initializeAuth = async () => {
       try {
-        const { data: { session: initialSession }, error } = await supabase.auth.getSession();
+        const {
+          data: { session: initialSession },
+          error,
+        } = await supabase.auth.getSession();
 
         if (error) {
           console.error('Error getting initial session:', error);
@@ -89,63 +134,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const fetchAndCacheProfile = async (userId: string) => {
-    try {
-      let cachedProfile: Profile | null = null;
-
-      try {
-        cachedProfile = await offlineStorage.profile.get(userId);
-        if (cachedProfile) {
-          setProfile(cachedProfile);
-          setHasSeenTutorial(cachedProfile.has_seen_tutorial || false);
-        }
-      } catch (cacheError) {
-        console.error('Error checking cache for profile:', cacheError);
-      }
-
-      if (navigator.onLine) {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', userId)
-          .single();
-
-        if (error) {
-          console.error('Error fetching profile:', error);
-          return;
-        }
-
-        if (data) {
-          setProfile(data);
-          setHasSeenTutorial(data.has_seen_tutorial || false);
-
-          try {
-            await offlineStorage.profile.save(userId, data);
-          } catch (cacheError) {
-            console.error('Error caching profile:', cacheError);
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error in fetchAndCacheProfile:', error);
-    }
-  };
-
   const signIn = async (email: string, password: string) => {
     try {
       setLoading(true);
       console.log('Attempting to sign in with email:', email);
-      
-      const { data, error } = await supabase.auth.signInWithPassword({ 
-        email: email.trim().toLowerCase(), 
-        password 
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password,
       });
-      
+
       if (error) {
         console.error('Sign in error:', error);
         return { error };
       }
-      
+
       console.log('Sign in successful:', data);
       return { error: null };
     } catch (error) {
@@ -160,7 +163,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       console.log('Attempting to sign up with email:', email);
-      
+
       const { data, error } = await supabase.auth.signUp({
         email: email.trim().toLowerCase(),
         password,
@@ -174,7 +177,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Sign up error:', error);
         return { data: null, error };
       }
-      
+
       console.log('Sign up successful:', data);
       return { data, error: null };
     } catch (error) {
@@ -189,7 +192,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       console.log('Attempting to sign out');
-      
+
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.error('Sign out error:', error);
@@ -207,7 +210,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       console.log('Attempting to sign in with Google');
-      
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -223,7 +226,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Google sign in error:', error);
         throw error;
       }
-      
+
       console.log('Google sign in initiated successfully');
     } catch (error) {
       console.error('Google sign in error:', error);
@@ -247,7 +250,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
 
-      setProfile(prev => (prev ? { ...prev, ...updates } : null));
+      setProfile((prev) => (prev ? { ...prev, ...updates } : null));
     } catch (error) {
       console.error('Error updating profile:', error);
       throw error;
@@ -271,7 +274,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const hasPermission = (permission: string) => {
-    return !!user; // Expand logic here if needed
+    return !!user; // Customize logic here if needed
   };
 
   const contextValue: AuthContextProps = {
@@ -290,11 +293,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setHasSeenTutorial,
   };
 
-  return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
