@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -226,7 +225,6 @@ export default function SignIn() {
                 </Button>
               </form>
             ) : (
-              // 2FA verification form
               <div className="space-y-6">
                 {requires2FA && (
                   <div className="flex items-center gap-2 text-sm text-gray-600">
