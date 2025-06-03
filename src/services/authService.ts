@@ -25,18 +25,26 @@ export const authService = {
     }
   },
 
-  signUp: async (email: string, password: string, metadata?: any) => {
+  signUp: async (email: string, password: string, fullName?: string) => {
     try {
       console.log('Attempting to sign up with email:', email);
 
-      const { data, error } = await supabase.auth.signUp({
+      const signUpData: any = {
         email: email.trim().toLowerCase(),
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/reset`,
-          data: metadata,
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
-      });
+      };
+
+      // Add user metadata if provided
+      if (fullName) {
+        signUpData.options.data = {
+          full_name: fullName,
+        };
+      }
+
+      const { data, error } = await supabase.auth.signUp(signUpData);
 
       if (error) {
         console.error('Sign up error:', error);

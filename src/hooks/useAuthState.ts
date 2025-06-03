@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -50,6 +51,8 @@ export const useAuthState = () => {
 
     const initializeAuth = async () => {
       try {
+        console.log('Initializing auth state...');
+        
         const {
           data: { session: initialSession },
           error,
@@ -57,13 +60,17 @@ export const useAuthState = () => {
 
         if (error) {
           console.error('Error getting initial session:', error);
+          return;
         }
+
+        console.log('Initial session found:', !!initialSession);
 
         if (mounted) {
           setSession(initialSession);
           setUser(initialSession?.user ?? null);
 
           if (initialSession?.user) {
+            console.log('Fetching profile for user:', initialSession.user.id);
             await fetchAndCacheProfile(initialSession.user.id);
           }
         }
@@ -76,33 +83,46 @@ export const useAuthState = () => {
       }
     };
 
+    // Set up auth state change listener
     const { data: subscription } = supabase.auth.onAuthStateChange(
-      (event, newSession) => {
+      async (event, newSession) => {
         console.log('Auth state changed:', event, newSession?.user?.id);
 
-        if (mounted) {
-          setSession(newSession);
-          setUser(newSession?.user ?? null);
+        if (!mounted) return;
 
-          if (newSession?.user && event === 'SIGNED_IN') {
-            setTimeout(() => {
+        // Update state immediately
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
+
+        // Handle different auth events
+        if (event === 'SIGNED_IN' && newSession?.user) {
+          console.log('User signed in, fetching profile...');
+          // Use setTimeout to avoid potential callback deadlocks
+          setTimeout(() => {
+            if (mounted) {
               fetchAndCacheProfile(newSession.user.id);
-            }, 100);
-          } else if (event === 'SIGNED_OUT') {
-            setProfile(null);
-            setHasSeenTutorial(false);
-          }
+            }
+          }, 100);
+        } else if (event === 'SIGNED_OUT') {
+          console.log('User signed out, clearing state...');
+          setProfile(null);
+          setHasSeenTutorial(false);
+        } else if (event === 'TOKEN_REFRESHED' && newSession?.user) {
+          console.log('Token refreshed for user:', newSession.user.id);
+        }
 
-          if (!loading) {
-            setLoading(false);
-          }
+        // Always set loading to false after handling auth state changes
+        if (mounted) {
+          setLoading(false);
         }
       }
     );
 
+    // Initialize auth after setting up listener
     initializeAuth();
 
     return () => {
+      console.log('Cleaning up auth state listener...');
       mounted = false;
       subscription?.unsubscribe();
     };
