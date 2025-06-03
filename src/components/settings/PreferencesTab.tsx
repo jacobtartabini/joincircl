@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -9,69 +8,62 @@ import NotificationPreferences from "@/components/notifications/NotificationPref
 import EmailIntegrationSection from "@/components/integrations/EmailIntegrationSection";
 import { EmailConnectionDialog } from "@/components/integrations/EmailConnectionDialog";
 import { useEmailProviders } from "@/hooks/useEmailProviders";
-
 const PreferencesTab = () => {
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const [isCalendarDialogOpen, setIsCalendarDialogOpen] = useState(false);
   const [isGmailDialogOpen, setIsGmailDialogOpen] = useState(false);
   const [isOutlookDialogOpen, setIsOutlookDialogOpen] = useState(false);
   const [isLinkedInConnected, setIsLinkedInConnected] = useState(false);
   const [isPhoneContactsSynced, setIsPhoneContactsSynced] = useState(false);
-  
+
   // Use our new hook to determine if email providers are connected
-  const { isGmailConnected, isOutlookConnected } = useEmailProviders();
-  
+  const {
+    isGmailConnected,
+    isOutlookConnected
+  } = useEmailProviders();
   const handleConnectLinkedIn = () => {
     // In a real app, this would initiate an OAuth flow with LinkedIn
     toast({
       title: "LinkedIn Connection",
-      description: "LinkedIn connection initiated. Please complete the authentication in the popup window.",
+      description: "LinkedIn connection initiated. Please complete the authentication in the popup window."
     });
-    
+
     // For demo purposes we'll simulate a successful connection after 2 seconds
     setTimeout(() => {
       setIsLinkedInConnected(true);
       toast({
         title: "Success",
-        description: "Your LinkedIn account has been successfully connected.",
+        description: "Your LinkedIn account has been successfully connected."
       });
     }, 2000);
   };
-  
   const handleSyncPhoneContacts = () => {
     // In a real app, this would request permission to access contacts
     toast({
       title: "Phone Contacts",
-      description: "Requesting permission to access your phone contacts...",
+      description: "Requesting permission to access your phone contacts..."
     });
-    
+
     // For demo purposes we'll simulate a successful sync after 2 seconds
     setTimeout(() => {
       setIsPhoneContactsSynced(true);
       toast({
         title: "Success",
-        description: "Your phone contacts have been successfully synced.",
+        description: "Your phone contacts have been successfully synced."
       });
     }, 2000);
   };
-  
   const handleConnectGmail = () => {
     setIsGmailDialogOpen(true);
   };
-  
   const handleConnectOutlook = () => {
     setIsOutlookDialogOpen(true);
   };
-
-  return (
-    <>
+  return <>
       {/* Email Integration Section */}
-      <EmailIntegrationSection
-        onConnectGmail={handleConnectGmail}
-        onConnectOutlook={handleConnectOutlook}
-        isGmailConnected={isGmailConnected}
-        isOutlookConnected={isOutlookConnected}
-      />
+      <EmailIntegrationSection onConnectGmail={handleConnectGmail} onConnectOutlook={handleConnectOutlook} isGmailConnected={isGmailConnected} isOutlookConnected={isOutlookConnected} />
       
       {/* Calendar Integration */}
       <Card>
@@ -88,7 +80,7 @@ const PreferencesTab = () => {
           <p className="text-sm">
             Connect your calendar to keep track of your connections and important events.
           </p>
-          <Button onClick={() => setIsCalendarDialogOpen(true)}>
+          <Button onClick={() => setIsCalendarDialogOpen(true)} className="rounded-full">
             Connect Calendar
           </Button>
         </CardContent>
@@ -109,18 +101,13 @@ const PreferencesTab = () => {
           <p className="text-sm">
             Connect your LinkedIn account to automatically import your professional connections and keep your network updated.
           </p>
-          <Button 
-            onClick={handleConnectLinkedIn}
-            disabled={isLinkedInConnected}
-          >
+          <Button onClick={handleConnectLinkedIn} disabled={isLinkedInConnected} className="rounded-full">
             {isLinkedInConnected ? "LinkedIn Connected" : "Connect LinkedIn"}
           </Button>
           
-          {isLinkedInConnected && (
-            <div className="mt-4 p-3 bg-green-50 text-green-700 rounded-md text-sm">
+          {isLinkedInConnected && <div className="mt-4 p-3 bg-green-50 text-green-700 rounded-md text-sm">
               Your LinkedIn account is connected. Your connections will be synced automatically.
-            </div>
-          )}
+            </div>}
         </CardContent>
       </Card>
       
@@ -139,18 +126,13 @@ const PreferencesTab = () => {
           <p className="text-sm">
             Import contacts from your phone to easily add them to your circles.
           </p>
-          <Button 
-            onClick={handleSyncPhoneContacts}
-            disabled={isPhoneContactsSynced}
-          >
+          <Button onClick={handleSyncPhoneContacts} disabled={isPhoneContactsSynced} className="rounded-full">
             {isPhoneContactsSynced ? "Contacts Synced" : "Sync Phone Contacts"}
           </Button>
           
-          {isPhoneContactsSynced && (
-            <div className="mt-4 p-3 bg-green-50 text-green-700 rounded-md text-sm">
+          {isPhoneContactsSynced && <div className="mt-4 p-3 bg-green-50 text-green-700 rounded-md text-sm">
               Your phone contacts have been synced successfully. You can find them in your contacts list.
-            </div>
-          )}
+            </div>}
         </CardContent>
       </Card>
       
@@ -171,27 +153,12 @@ const PreferencesTab = () => {
       </Card>
 
       {/* Calendar Connection Dialog */}
-      <CalendarConnectionDialog 
-        isOpen={isCalendarDialogOpen}
-        onOpenChange={setIsCalendarDialogOpen}
-      />
+      <CalendarConnectionDialog isOpen={isCalendarDialogOpen} onOpenChange={setIsCalendarDialogOpen} />
       
       {/* Email Connection Dialogs */}
-      <EmailConnectionDialog
-        isOpen={isGmailDialogOpen}
-        onOpenChange={setIsGmailDialogOpen}
-        provider="gmail"
-        onSuccess={() => {}}
-      />
+      <EmailConnectionDialog isOpen={isGmailDialogOpen} onOpenChange={setIsGmailDialogOpen} provider="gmail" onSuccess={() => {}} />
       
-      <EmailConnectionDialog
-        isOpen={isOutlookDialogOpen}
-        onOpenChange={setIsOutlookDialogOpen}
-        provider="outlook"
-        onSuccess={() => {}}
-      />
-    </>
-  );
+      <EmailConnectionDialog isOpen={isOutlookDialogOpen} onOpenChange={setIsOutlookDialogOpen} provider="outlook" onSuccess={() => {}} />
+    </>;
 };
-
 export default PreferencesTab;
