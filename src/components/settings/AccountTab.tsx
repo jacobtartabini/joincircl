@@ -8,17 +8,23 @@ import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-
 const AccountTab = () => {
-  const { preferences, loading, updatePreferences } = useUserPreferences();
+  const {
+    preferences,
+    loading,
+    updatePreferences
+  } = useUserPreferences();
   const [signingOut, setSigningOut] = useState(false);
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const navigate = useNavigate();
-
   const handleSignOut = async () => {
     setSigningOut(true);
     try {
-      const { error } = await supabase.auth.signOut();
+      const {
+        error
+      } = await supabase.auth.signOut();
       if (error) throw error;
       navigate('/signin');
     } catch (error) {
@@ -26,32 +32,31 @@ const AccountTab = () => {
       toast({
         title: "Error",
         description: "Failed to sign out",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
     setSigningOut(false);
   };
-
   const handleExportData = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: {
+          user
+        }
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       // Fetch user data for export
-      const [profileData, contactsData, interactionsData] = await Promise.all([
-        supabase.from('profiles').select('*').eq('id', user.id).single(),
-        supabase.from('contacts').select('*').eq('user_id', user.id),
-        supabase.from('interactions').select('*').eq('user_id', user.id)
-      ]);
-
+      const [profileData, contactsData, interactionsData] = await Promise.all([supabase.from('profiles').select('*').eq('id', user.id).single(), supabase.from('contacts').select('*').eq('user_id', user.id), supabase.from('interactions').select('*').eq('user_id', user.id)]);
       const exportData = {
         profile: profileData.data,
         contacts: contactsData.data,
         interactions: interactionsData.data,
         exportDate: new Date().toISOString()
       };
-
-      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+        type: 'application/json'
+      });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -60,59 +65,50 @@ const AccountTab = () => {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-
       toast({
         title: "Success",
-        description: "Data export downloaded successfully",
+        description: "Data export downloaded successfully"
       });
     } catch (error) {
       console.error('Error exporting data:', error);
       toast({
         title: "Error",
         description: "Failed to export data",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   const handleDeleteAccount = async () => {
     if (!confirm('Are you absolutely sure you want to delete your account? This action cannot be undone.')) {
       return;
     }
-
     try {
-      const { error } = await supabase.functions.invoke('delete-account', {
+      const {
+        error
+      } = await supabase.functions.invoke('delete-account', {
         method: 'POST'
       });
-
       if (error) throw error;
-
       toast({
         title: "Account Deleted",
-        description: "Your account has been permanently deleted",
+        description: "Your account has been permanently deleted"
       });
-      
       navigate('/auth');
     } catch (error) {
       console.error('Error deleting account:', error);
       toast({
         title: "Error",
         description: "Failed to delete account",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
+    return <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       {/* General Settings */}
       <Card className="border border-gray-200">
         <CardHeader className="pb-4">
@@ -122,10 +118,9 @@ const AccountTab = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Language</label>
-              <Select 
-                value={preferences?.language || 'en'} 
-                onValueChange={(value) => updatePreferences({ language: value })}
-              >
+              <Select value={preferences?.language || 'en'} onValueChange={value => updatePreferences({
+              language: value
+            })}>
                 <SelectTrigger className="border-gray-200">
                   <SelectValue />
                 </SelectTrigger>
@@ -144,10 +139,9 @@ const AccountTab = () => {
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Timezone</label>
-              <Select 
-                value={preferences?.timezone || 'America/New_York'} 
-                onValueChange={(value) => updatePreferences({ timezone: value })}
-              >
+              <Select value={preferences?.timezone || 'America/New_York'} onValueChange={value => updatePreferences({
+              timezone: value
+            })}>
                 <SelectTrigger className="border-gray-200">
                   <SelectValue />
                 </SelectTrigger>
@@ -173,22 +167,28 @@ const AccountTab = () => {
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">Theme</label>
             <div className="flex gap-2">
-              {[
-                { value: "light", icon: Sun, label: "Light" },
-                { value: "dark", icon: Moon, label: "Dark" },
-                { value: "system", icon: Monitor, label: "System" }
-              ].map(({ value, icon: Icon, label }) => (
-                <Button
-                  key={value}
-                  variant={preferences?.theme === value ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => updatePreferences({ theme: value })}
-                  className="flex items-center gap-2"
-                >
+              {[{
+              value: "light",
+              icon: Sun,
+              label: "Light"
+            }, {
+              value: "dark",
+              icon: Moon,
+              label: "Dark"
+            }, {
+              value: "system",
+              icon: Monitor,
+              label: "System"
+            }].map(({
+              value,
+              icon: Icon,
+              label
+            }) => <Button key={value} variant={preferences?.theme === value ? "default" : "outline"} size="sm" onClick={() => updatePreferences({
+              theme: value
+            })} className="flex items-center gap-2">
                   <Icon className="h-4 w-4" />
                   {label}
-                </Button>
-              ))}
+                </Button>)}
             </div>
           </div>
         </CardContent>
@@ -205,10 +205,9 @@ const AccountTab = () => {
               <label className="text-sm font-medium text-gray-900">Email Notifications</label>
               <p className="text-xs text-gray-500">Receive important updates via email</p>
             </div>
-            <Switch
-              checked={preferences?.email_notifications || false}
-              onCheckedChange={(checked) => updatePreferences({ email_notifications: checked })}
-            />
+            <Switch checked={preferences?.email_notifications || false} onCheckedChange={checked => updatePreferences({
+            email_notifications: checked
+          })} />
           </div>
 
           <div className="flex items-center justify-between">
@@ -216,10 +215,9 @@ const AccountTab = () => {
               <label className="text-sm font-medium text-gray-900">Push Notifications</label>
               <p className="text-xs text-gray-500">Get notified about activity in real-time</p>
             </div>
-            <Switch
-              checked={preferences?.push_notifications || false}
-              onCheckedChange={(checked) => updatePreferences({ push_notifications: checked })}
-            />
+            <Switch checked={preferences?.push_notifications || false} onCheckedChange={checked => updatePreferences({
+            push_notifications: checked
+          })} />
           </div>
 
           <div className="flex items-center justify-between">
@@ -227,10 +225,9 @@ const AccountTab = () => {
               <label className="text-sm font-medium text-gray-900">Marketing Emails</label>
               <p className="text-xs text-gray-500">Receive tips and product updates</p>
             </div>
-            <Switch
-              checked={preferences?.marketing_emails || false}
-              onCheckedChange={(checked) => updatePreferences({ marketing_emails: checked })}
-            />
+            <Switch checked={preferences?.marketing_emails || false} onCheckedChange={checked => updatePreferences({
+            marketing_emails: checked
+          })} />
           </div>
         </CardContent>
       </Card>
@@ -241,52 +238,40 @@ const AccountTab = () => {
           <CardTitle className="text-lg font-semibold text-gray-900">Account Actions</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-2xl">
             <div>
               <label className="text-sm font-medium text-blue-900">Export Your Data</label>
               <p className="text-xs text-blue-700">Download all your account data</p>
             </div>
-            <Button variant="outline" size="sm" className="border-blue-200 text-blue-700" onClick={handleExportData}>
+            <Button variant="outline" size="sm" onClick={handleExportData} className="border-blue-200 text-blue-700 rounded-full">
               <Globe className="h-4 w-4 mr-2" />
               Export
             </Button>
           </div>
 
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="flex items-center justify-between p-4 bg-gray-50 border border-gray-200 rounded-2xl">
             <div>
               <label className="text-sm font-medium text-gray-900">Sign Out</label>
               <p className="text-xs text-gray-500">Sign out of your account</p>
             </div>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="border-gray-200 text-gray-700" 
-              onClick={handleSignOut}
-              disabled={signingOut}
-            >
-              {signingOut ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <LogOut className="h-4 w-4 mr-2" />
-              )}
+            <Button variant="outline" size="sm" onClick={handleSignOut} disabled={signingOut} className="border-gray-200 text-gray-700 rounded-full">
+              {signingOut ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <LogOut className="h-4 w-4 mr-2" />}
               Sign Out
             </Button>
           </div>
 
-          <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg border border-red-200">
+          <div className="flex items-center justify-between p-4 bg-red-50 border border-red-200 rounded-2xl">
             <div>
               <label className="text-sm font-medium text-red-900">Delete Account</label>
               <p className="text-xs text-red-700">Permanently delete your account and data</p>
             </div>
-            <Button variant="outline" size="sm" className="border-red-200 text-red-700" onClick={handleDeleteAccount}>
+            <Button variant="outline" size="sm" onClick={handleDeleteAccount} className="border-red-200 text-red-700 rounded-full">
               <AlertTriangle className="h-4 w-4 mr-2" />
               Delete
             </Button>
           </div>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 };
-
 export default AccountTab;
