@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -35,7 +34,7 @@ export const useAuthState = () => {
           setHasSeenTutorial(data.has_seen_tutorial || false);
 
           try {
-            await offlineStorage.profile.save(userId, data);
+            await offlineStorage.profile.save(data);
           } catch (cacheError) {
             console.error('Error caching profile:', cacheError);
           }
