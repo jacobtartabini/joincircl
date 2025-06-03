@@ -1,135 +1,110 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { 
-  BookOpen, 
-  Video, 
-  MessageCircle, 
-  Mail, 
-  FileText,
-  ExternalLink,
-  HelpCircle,
-  Users,
-  Lightbulb,
-  Phone
-} from "lucide-react";
-
+import { BookOpen, Video, MessageCircle, Mail, FileText, ExternalLink, HelpCircle, Users, Lightbulb, Phone } from "lucide-react";
 const ResourcesTab = () => {
-  const resources = [
-    {
-      category: "Getting Started",
-      items: [
-        {
-          title: "Quick Start Guide",
-          description: "Learn the basics of Circl in 5 minutes",
-          icon: BookOpen,
-          link: "#",
-          type: "guide"
-        },
-        {
-          title: "Onboarding Tutorial",
-          description: "Interactive tutorial to get you started",
-          icon: Video,
-          link: "#",
-          type: "tutorial"
-        },
-        {
-          title: "Best Practices",
-          description: "Tips for effective relationship management",
-          icon: Lightbulb,
-          link: "#",
-          type: "guide"
-        }
-      ]
-    },
-    {
-      category: "Documentation",
-      items: [
-        {
-          title: "User Manual",
-          description: "Complete guide to all features",
-          icon: FileText,
-          link: "#",
-          type: "documentation"
-        },
-        {
-          title: "API Documentation",
-          description: "Integrate with our REST API",
-          icon: FileText,
-          link: "#",
-          type: "documentation"
-        },
-        {
-          title: "FAQ",
-          description: "Frequently asked questions",
-          icon: HelpCircle,
-          link: "#",
-          type: "faq"
-        }
-      ]
-    },
-    {
-      category: "Support",
-      items: [
-        {
-          title: "Help Center",
-          description: "Search our knowledge base",
-          icon: MessageCircle,
-          link: "#",
-          type: "support"
-        },
-        {
-          title: "Contact Support",
-          description: "Get help from our team",
-          icon: Mail,
-          link: "mailto:support@joincircl.com",
-          type: "contact"
-        },
-        {
-          title: "Schedule a Call",
-          description: "Book a 1-on-1 demo or support session",
-          icon: Phone,
-          link: "#",
-          type: "booking"
-        }
-      ]
-    },
-    {
-      category: "Community",
-      items: [
-        {
-          title: "User Community",
-          description: "Connect with other Circl users",
-          icon: Users,
-          link: "#",
-          type: "community"
-        },
-        {
-          title: "Feature Requests",
-          description: "Suggest new features",
-          icon: Lightbulb,
-          link: "#",
-          type: "feedback"
-        }
-      ]
-    }
-  ];
-
+  const resources = [{
+    category: "Getting Started",
+    items: [{
+      title: "Quick Start Guide",
+      description: "Learn the basics of Circl in 5 minutes",
+      icon: BookOpen,
+      link: "#",
+      type: "guide"
+    }, {
+      title: "Onboarding Tutorial",
+      description: "Interactive tutorial to get you started",
+      icon: Video,
+      link: "#",
+      type: "tutorial"
+    }, {
+      title: "Best Practices",
+      description: "Tips for effective relationship management",
+      icon: Lightbulb,
+      link: "#",
+      type: "guide"
+    }]
+  }, {
+    category: "Documentation",
+    items: [{
+      title: "User Manual",
+      description: "Complete guide to all features",
+      icon: FileText,
+      link: "#",
+      type: "documentation"
+    }, {
+      title: "API Documentation",
+      description: "Integrate with our REST API",
+      icon: FileText,
+      link: "#",
+      type: "documentation"
+    }, {
+      title: "FAQ",
+      description: "Frequently asked questions",
+      icon: HelpCircle,
+      link: "#",
+      type: "faq"
+    }]
+  }, {
+    category: "Support",
+    items: [{
+      title: "Help Center",
+      description: "Search our knowledge base",
+      icon: MessageCircle,
+      link: "#",
+      type: "support"
+    }, {
+      title: "Contact Support",
+      description: "Get help from our team",
+      icon: Mail,
+      link: "mailto:support@joincircl.com",
+      type: "contact"
+    }, {
+      title: "Schedule a Call",
+      description: "Book a 1-on-1 demo or support session",
+      icon: Phone,
+      link: "#",
+      type: "booking"
+    }]
+  }, {
+    category: "Community",
+    items: [{
+      title: "User Community",
+      description: "Connect with other Circl users",
+      icon: Users,
+      link: "#",
+      type: "community"
+    }, {
+      title: "Feature Requests",
+      description: "Suggest new features",
+      icon: Lightbulb,
+      link: "#",
+      type: "feedback"
+    }]
+  }];
   const getIconColor = (type: string) => {
     switch (type) {
-      case 'guide': return 'text-blue-600 bg-blue-100';
-      case 'tutorial': return 'text-green-600 bg-green-100';
-      case 'documentation': return 'text-purple-600 bg-purple-100';
-      case 'faq': return 'text-yellow-600 bg-yellow-100';
-      case 'support': return 'text-red-600 bg-red-100';
-      case 'contact': return 'text-gray-600 bg-gray-100';
-      case 'booking': return 'text-indigo-600 bg-indigo-100';
-      case 'community': return 'text-pink-600 bg-pink-100';
-      case 'feedback': return 'text-orange-600 bg-orange-100';
-      default: return 'text-gray-600 bg-gray-100';
+      case 'guide':
+        return 'text-blue-600 bg-blue-100';
+      case 'tutorial':
+        return 'text-green-600 bg-green-100';
+      case 'documentation':
+        return 'text-purple-600 bg-purple-100';
+      case 'faq':
+        return 'text-yellow-600 bg-yellow-100';
+      case 'support':
+        return 'text-red-600 bg-red-100';
+      case 'contact':
+        return 'text-gray-600 bg-gray-100';
+      case 'booking':
+        return 'text-indigo-600 bg-indigo-100';
+      case 'community':
+        return 'text-pink-600 bg-pink-100';
+      case 'feedback':
+        return 'text-orange-600 bg-orange-100';
+      default:
+        return 'text-gray-600 bg-gray-100';
     }
   };
-
   const handleResourceClick = (link: string) => {
     if (link.startsWith('mailto:')) {
       window.location.href = link;
@@ -140,22 +115,14 @@ const ResourcesTab = () => {
       console.log('Navigate to:', link);
     }
   };
-
-  return (
-    <div className="space-y-8">
-      {resources.map((category) => (
-        <Card key={category.category} className="border-0 shadow-sm bg-white/80 backdrop-blur-sm">
+  return <div className="space-y-8">
+      {resources.map(category => <Card key={category.category} className="border-0 shadow-sm bg-white/80 backdrop-blur-sm">
           <CardHeader className="pb-6">
             <CardTitle className="text-lg font-semibold text-gray-900">{category.category}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {category.items.map((item) => (
-                <div
-                  key={item.title}
-                  className="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-all cursor-pointer group"
-                  onClick={() => handleResourceClick(item.link)}
-                >
+              {category.items.map(item => <div key={item.title} className="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-all cursor-pointer group" onClick={() => handleResourceClick(item.link)}>
                   <div className="flex items-start gap-3">
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${getIconColor(item.type)}`}>
                       <item.icon className="h-5 w-5" />
@@ -170,12 +137,10 @@ const ResourcesTab = () => {
                       <p className="text-sm text-gray-600 mt-1">{item.description}</p>
                     </div>
                   </div>
-                </div>
-              ))}
+                </div>)}
             </div>
           </CardContent>
-        </Card>
-      ))}
+        </Card>)}
 
       {/* Contact Support CTA */}
       <Card className="border-0 shadow-sm bg-gradient-to-r from-blue-50 to-indigo-50">
@@ -190,18 +155,11 @@ const ResourcesTab = () => {
               Don't hesitate to reach out with any questions.
             </p>
             <div className="flex gap-3 justify-center">
-              <Button 
-                onClick={() => handleResourceClick('mailto:support@joincircl.com')}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
+              <Button onClick={() => handleResourceClick('mailto:support@joincircl.com')} className="bg-blue-600 hover:bg-blue-700 rounded-full px-[79px]">
                 <Mail className="h-4 w-4 mr-2" />
                 Email Support
               </Button>
-              <Button 
-                variant="outline"
-                onClick={() => handleResourceClick('#')}
-                className="border-blue-200 text-blue-700 hover:bg-blue-50"
-              >
+              <Button variant="outline" onClick={() => handleResourceClick('#')} className="border-blue-200 text-blue-700 hover:bg-blue-50 rounded-full px-[79px] text-center">
                 <Video className="h-4 w-4 mr-2" />
                 Schedule Demo
               </Button>
@@ -209,8 +167,6 @@ const ResourcesTab = () => {
           </div>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 };
-
 export default ResourcesTab;
