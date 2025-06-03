@@ -1,5 +1,5 @@
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,17 +41,6 @@ export default function GlobalAIAssistant({
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { messages, addMessage, clearHistory } = useChatHistory();
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    if (!isMinimized) {
-      scrollToBottom();
-    }
-  }, [messages, isMinimized]);
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;
@@ -194,14 +183,11 @@ export default function GlobalAIAssistant({
 
   return (
     <div className={cn(
-      "fixed bottom-6 right-6 z-50 transition-all duration-300",
-      isMinimized ? "w-80 h-16" : "w-96"
+      "fixed bottom-4 right-4 z-50 transition-all duration-300",
+      isMinimized ? "w-80 h-16" : "w-96 h-[600px]"
     )}>
-      <Card className={cn(
-        "border-0 shadow-2xl bg-white/95 backdrop-blur-sm transition-all duration-300",
-        isMinimized ? "h-16" : "h-[600px]"
-      )}>
-        <CardHeader className="pb-3 border-b border-gray-100 flex-shrink-0">
+      <Card className="h-full border-0 shadow-xl bg-white/95 backdrop-blur-sm">
+        <CardHeader className="pb-3 border-b border-gray-100">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-base">
               <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
@@ -243,11 +229,10 @@ export default function GlobalAIAssistant({
         </CardHeader>
         
         {!isMinimized && (
-          <CardContent className="flex-1 flex flex-col p-0 min-h-0 overflow-hidden">
-            {/* Messages Area with Proper Scrolling */}
-            <div className="flex-1 min-h-0 px-4 pt-4">
-              <ScrollArea className="h-full">
-                <div className="space-y-4 pb-4">
+          <CardContent className="flex-1 flex flex-col p-4 min-h-0">
+            <div className="flex-1 min-h-0 mb-4">
+              <ScrollArea className="h-full pr-2">
+                <div className="space-y-4">
                   {messages.length === 0 && (
                     <div className="text-center py-8">
                       <MessageCircle className="h-12 w-12 text-gray-300 mx-auto mb-3" />
@@ -312,16 +297,13 @@ export default function GlobalAIAssistant({
                       </div>
                     </div>
                   )}
-                  
-                  <div ref={messagesEndRef} />
                 </div>
               </ScrollArea>
             </div>
 
-            {/* Quick Suggestions - Only show when few messages */}
             {messages.length <= 1 && (
-              <div className="px-4 pb-3 flex-shrink-0 border-t border-gray-100">
-                <div className="text-xs font-medium text-gray-700 mb-2 mt-3">Quick questions:</div>
+              <div className="mb-4">
+                <div className="text-xs font-medium text-gray-700 mb-2">Quick questions:</div>
                 <div className="flex flex-wrap gap-1">
                   {quickSuggestions.map((suggestion, index) => (
                     <Button
@@ -338,30 +320,27 @@ export default function GlobalAIAssistant({
               </div>
             )}
 
-            {/* Input Area - Always Visible at Bottom */}
-            <div className="flex-shrink-0 p-4 border-t border-gray-100 bg-white">
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Ask about your network..."
-                  value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
-                  disabled={isLoading}
-                  className="flex-1 text-sm border-gray-200 focus:border-blue-300"
-                />
-                <Button 
-                  onClick={handleSendMessage} 
-                  disabled={isLoading || !inputMessage.trim()}
-                  size="sm"
-                  className="bg-blue-500 hover:bg-blue-600 flex-shrink-0"
-                >
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Send className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
+            <div className="flex gap-2">
+              <Input
+                placeholder="Ask about your network..."
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+                disabled={isLoading}
+                className="flex-1 text-sm border-gray-200 focus:border-blue-300"
+              />
+              <Button 
+                onClick={handleSendMessage} 
+                disabled={isLoading || !inputMessage.trim()}
+                size="sm"
+                className="bg-blue-500 hover:bg-blue-600"
+              >
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+              </Button>
             </div>
           </CardContent>
         )}
