@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext } from 'react';
 import { AuthContextProps } from '@/types/auth';
 import { useAuthState } from '@/hooks/useAuthState';
@@ -27,6 +26,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return result;
     } catch (error) {
       console.error('AuthContext: signIn error:', error);
+      return { error };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signInWithMagicLink = async (email: string) => {
+    console.log('AuthContext: signInWithMagicLink called');
+    setLoading(true);
+    try {
+      const result = await authService.signInWithMagicLink(email);
+      console.log('AuthContext: signInWithMagicLink result:', result);
+      return result;
+    } catch (error) {
+      console.error('AuthContext: signInWithMagicLink error:', error);
       return { error };
     } finally {
       setLoading(false);
@@ -112,6 +126,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     profile,
     loading,
     signIn,
+    signInWithMagicLink,
     signUp,
     signOut,
     updateProfile,

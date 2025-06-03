@@ -13,7 +13,7 @@ export const useAuthState = () => {
   const [loading, setLoading] = useState(true);
   const [hasSeenTutorial, setHasSeenTutorial] = useState<boolean>(false);
 
-  const fetchAndCacheProfile = async (userId: string, _context?: unknown): Promise<void> => {
+  const fetchAndCacheProfile = async (userId: string): Promise<void> => {
     try {
       let cachedProfile: Profile | null = null;
 
@@ -119,7 +119,7 @@ export const useAuthState = () => {
           
           setTimeout(() => {
             if (mounted) {
-              fetchAndCacheProfile(newSession.user.id, event);
+              fetchAndCacheProfile(newSession.user.id);
             }
           }, 100);
         } else if (event === 'SIGNED_OUT') {

@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Profile } from '@/types/auth';
 
@@ -31,6 +30,35 @@ export const authService = {
       return { error: null };
     } catch (error) {
       console.error('Sign in error:', error);
+      return { error };
+    }
+  },
+
+  signInWithMagicLink: async (email: string) => {
+    try {
+      console.log('Attempting to send magic link to email:', email);
+
+      // Get the current origin for redirect URL
+      const redirectTo = typeof window !== 'undefined' 
+        ? `${window.location.origin}/auth/callback`
+        : undefined;
+
+      const { data, error } = await supabase.auth.signInWithOtp({
+        email: email.trim().toLowerCase(),
+        options: {
+          emailRedirectTo: redirectTo,
+        },
+      });
+
+      if (error) {
+        console.error('Magic link error:', error);
+        return { error };
+      }
+
+      console.log('Magic link sent successfully:', data);
+      return { error: null };
+    } catch (error) {
+      console.error('Magic link error:', error);
       return { error };
     }
   },

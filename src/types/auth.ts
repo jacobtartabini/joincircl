@@ -1,22 +1,14 @@
 
-import { Session, User } from '@supabase/supabase-js';
-
-export interface AuthState {
-  session: Session | null;
-  user: User | null;
-  loading: boolean;
-}
+import { User, Session } from '@supabase/supabase-js';
 
 export interface Profile {
   id: string;
-  email: string;
-  full_name?: string;
-  avatar_url?: string;
-  bio?: string;
-  phone_number?: string;
-  has_seen_tutorial?: boolean;
-  created_at?: string;
-  updated_at?: string;
+  email: string | null;
+  full_name: string | null;
+  avatar_url: string | null;
+  created_at: string;
+  updated_at: string;
+  has_seen_tutorial: boolean | null;
 }
 
 export interface AuthContextProps {
@@ -25,7 +17,8 @@ export interface AuthContextProps {
   profile: Profile | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, metadata?: any) => Promise<{ error: any, data: any }>;
+  signInWithMagicLink: (email: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName?: string) => Promise<{ data: any; error: any }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
   deleteAccount: () => Promise<void>;
