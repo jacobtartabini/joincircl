@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,8 +17,8 @@ import SignIn from "@/pages/auth/SignIn";
 import SignUp from "@/pages/auth/SignUp";
 import ForgotPassword from "@/pages/auth/ForgotPassword";
 import ResetPassword from "@/pages/auth/ResetPassword";
-import CallbackPage from "./pages/CallbackPage";
-import GoogleCallbackPage from "./pages/GoogleCallbackPage";
+import UnifiedAuthCallbackHandler from "@/components/auth/UnifiedAuthCallbackHandler";
+import { AuthErrorBoundary } from "@/components/auth/AuthErrorBoundary";
 
 // Special pages
 import Settings from "@/pages/Settings";
@@ -48,51 +47,53 @@ function App() {
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <Routes>
-              {/* Public routes with clean URLs */}
-              <Route path="/signin" element={<SignIn />} />
-              <Route path="/signup" element={<SignUp />} />
-              <Route path="/forgot" element={<ForgotPassword />} />
-              <Route path="/reset" element={<ResetPassword />} />
-              <Route path="/auth/callback" element={<CallbackPage />} />
-              <Route path="/auth/google/callback" element={<GoogleCallbackPage />} />
+            <AuthErrorBoundary>
+              <Routes>
+                {/* Public routes with clean URLs */}
+                <Route path="/signin" element={<SignIn />} />
+                <Route path="/signup" element={<SignUp />} />
+                <Route path="/forgot" element={<ForgotPassword />} />
+                <Route path="/reset" element={<ResetPassword />} />
+                <Route path="/auth/callback" element={<UnifiedAuthCallbackHandler />} />
+                <Route path="/auth/google/callback" element={<UnifiedAuthCallbackHandler />} />
 
-              {/* Protected routes */}
-              <Route
-                element={
-                  <RequireAuth>
-                    <MainLayout>
-                      <Outlet />
-                    </MainLayout>
-                  </RequireAuth>
-                }
-              >
-                <Route path="/" element={<Home />} />
+                {/* Protected routes */}
+                <Route
+                  element={
+                    <RequireAuth>
+                      <MainLayout>
+                        <Outlet />
+                      </MainLayout>
+                    </RequireAuth>
+                  }
+                >
+                  <Route path="/" element={<Home />} />
+                  
+                  {/* Core application routes */}
+                  <Route path="/circles" element={<RedesignedCircles />} />
+                  <Route path="/contacts/:id" element={<RedesignedContactDetail />} />
+                  <Route path="/keystones" element={<Keystones />} />
+                  <Route path="/notifications" element={<Notifications />} />
+                  <Route path="/ai-assistant" element={<AIAssistant />} />
+                  
+                  {/* Settings and management */}
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="/duplicates" element={<Duplicates />} />
+                  
+                  {/* Support and information */}
+                  <Route path="/help" element={<Help />} />
+                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/bugs" element={<Bugs />} />
+                  <Route path="/legal" element={<Legal />} />
+                  <Route path="/security" element={<SecurityGuide />} />
+                  
+                  {/* PWA functionality */}
+                  <Route path="/share-target" element={<ShareTarget />} />
+                </Route>
                 
-                {/* Core application routes */}
-                <Route path="/circles" element={<RedesignedCircles />} />
-                <Route path="/contacts/:id" element={<RedesignedContactDetail />} />
-                <Route path="/keystones" element={<Keystones />} />
-                <Route path="/notifications" element={<Notifications />} />
-                <Route path="/ai-assistant" element={<AIAssistant />} />
-                
-                {/* Settings and management */}
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/duplicates" element={<Duplicates />} />
-                
-                {/* Support and information */}
-                <Route path="/help" element={<Help />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/bugs" element={<Bugs />} />
-                <Route path="/legal" element={<Legal />} />
-                <Route path="/security" element={<SecurityGuide />} />
-                
-                {/* PWA functionality */}
-                <Route path="/share-target" element={<ShareTarget />} />
-              </Route>
-              
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </AuthErrorBoundary>
           </BrowserRouter>
           <UserOnboarding />
         </TooltipProvider>
