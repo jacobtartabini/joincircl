@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -182,7 +181,7 @@ export default function GlobalAIAssistant({
       "fixed bottom-4 right-4 z-50 transition-all duration-300",
       isMinimized ? "w-80 h-16" : "w-96 h-[600px]"
     )}>
-      <Card className="h-full border-0 shadow-xl bg-white/95 backdrop-blur-sm">
+      <Card className="h-full border-0 shadow-xl bg-white/95 backdrop-blur-sm flex flex-col">
         <CardHeader className="pb-3 border-b border-gray-100 flex-shrink-0">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-base">
@@ -227,9 +226,9 @@ export default function GlobalAIAssistant({
         {!isMinimized && (
           <CardContent className="flex-1 flex flex-col p-0 min-h-0">
             {/* Scrollable Messages Area */}
-            <div className="flex-1 min-h-0 p-4">
+            <div className="flex-1 min-h-0 overflow-hidden">
               <ScrollArea className="h-full">
-                <div className="space-y-4 pr-2">
+                <div className="p-4 space-y-4">
                   {messages.length === 0 && (
                     <div className="text-center py-8">
                       <MessageCircle className="h-12 w-12 text-gray-300 mx-auto mb-3" />
@@ -300,8 +299,8 @@ export default function GlobalAIAssistant({
 
             {/* Quick Suggestions */}
             {messages.length <= 1 && (
-              <div className="px-4 pb-2">
-                <div className="text-xs font-medium text-gray-700 mb-2">Quick questions:</div>
+              <div className="flex-shrink-0 px-4 pb-2 border-t border-gray-100">
+                <div className="text-xs font-medium text-gray-700 mb-2 mt-2">Quick questions:</div>
                 <div className="flex flex-wrap gap-1">
                   {quickSuggestions.map((suggestion, index) => (
                     <Button
@@ -319,7 +318,7 @@ export default function GlobalAIAssistant({
             )}
 
             {/* Fixed Input Area */}
-            <div className="flex-shrink-0 p-4 border-t border-gray-100 bg-white">
+            <div className="flex-shrink-0 p-4 border-t border-gray-100 bg-white rounded-b-lg">
               <div className="flex gap-2">
                 <Input
                   placeholder="Ask about your network..."
