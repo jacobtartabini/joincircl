@@ -1,3 +1,4 @@
+
 import { ReactNode, useEffect, useState } from "react";
 import { Navigate, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -19,6 +20,7 @@ export function RequireAuth({ children, requiredPermission }: RequireAuthProps) 
       if (!loading) {
         if (!user) {
           // User is not authenticated, redirect to login
+          console.log('No user found, redirecting to signin');
           navigate("/signin", { 
             replace: true,
             state: { from: location.pathname }
@@ -30,6 +32,7 @@ export function RequireAuth({ children, requiredPermission }: RequireAuthProps) 
         const isValidSession = await validateSession();
         if (!isValidSession) {
           // Session expired, redirect to login
+          console.log('Invalid session, redirecting to signin');
           navigate("/signin", {
             replace: true,
             state: { from: location.pathname }
@@ -40,10 +43,12 @@ export function RequireAuth({ children, requiredPermission }: RequireAuthProps) 
         // Check permission if specified
         if (requiredPermission && !hasPermission(requiredPermission)) {
           // User doesn't have the required permission
+          console.log('Insufficient permissions, redirecting to home');
           navigate("/", { replace: true });
           return;
         }
 
+        console.log('Auth check passed, user authenticated');
         setIsChecking(false);
       }
     };

@@ -39,6 +39,8 @@ export default function UnifiedAuthCallbackHandler() {
           }
 
           try {
+            console.log('Processing Supabase auth callback...');
+            
             // Set a timeout for the auth exchange
             const authPromise = supabase.auth.exchangeCodeForSession(window.location.href);
             const timeoutPromise = new Promise((_, reject) => 
@@ -51,13 +53,20 @@ export default function UnifiedAuthCallbackHandler() {
             ]) as any;
 
             if (authError) {
+              console.error('Auth exchange error:', authError);
               throw authError;
             }
 
             if (data?.session) {
-              console.log('Supabase auth successful');
-              navigate("/", { replace: true });
+              console.log('Supabase auth successful, user:', data.session.user.email);
+              
+              // Wait a moment for auth state to propagate
+              setTimeout(() => {
+                console.log('Redirecting to homepage after successful auth');
+                navigate("/", { replace: true });
+              }, 100);
             } else {
+              console.warn('No session established after auth exchange');
               throw new Error("No session established");
             }
           } catch (authError) {
@@ -68,7 +77,8 @@ export default function UnifiedAuthCallbackHandler() {
             } catch (cleanupError) {
               console.warn('Cleanup error:', cleanupError);
             }
-            navigate("/", { replace: true });
+            // Redirect to signin page only if auth actually failed
+            navigate("/signin", { replace: true });
           }
         } else if (isGoogleIntegration) {
           // Handle Google service integration
@@ -82,8 +92,8 @@ export default function UnifiedAuthCallbackHandler() {
         }
         
       } catch (err) {
-        console.warn("Callback handler error, redirecting to home:", err);
-        navigate("/", { replace: true });
+        console.warn("Callback handler error, redirecting to signin:", err);
+        navigate("/signin", { replace: true });
       }
     };
 
