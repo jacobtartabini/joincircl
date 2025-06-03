@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,21 +5,17 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { CreditCard, Calendar, Users, Zap, Check, Loader2 } from "lucide-react";
 import { useUserSubscription } from "@/hooks/useUserSubscription";
-
 const SubscriptionTab = () => {
-  const { subscription, loading } = useUserSubscription();
-
+  const {
+    subscription,
+    loading
+  } = useUserSubscription();
   const plans = {
     free: {
       name: "Free",
       price: "$0",
       period: "forever",
-      features: [
-        "Up to 50 contacts",
-        "Basic interaction tracking",
-        "Email notifications",
-        "Mobile app access"
-      ],
+      features: ["Up to 50 contacts", "Basic interaction tracking", "Email notifications", "Mobile app access"],
       limits: {
         contacts: 50,
         interactions: 100
@@ -30,14 +25,7 @@ const SubscriptionTab = () => {
       name: "Pro",
       price: "$19",
       period: "per month",
-      features: [
-        "Unlimited contacts",
-        "Advanced analytics",
-        "Integration with CRM tools",
-        "Priority support",
-        "Custom tags and fields",
-        "Bulk import/export"
-      ],
+      features: ["Unlimited contacts", "Advanced analytics", "Integration with CRM tools", "Priority support", "Custom tags and fields", "Bulk import/export"],
       limits: {
         contacts: "unlimited",
         interactions: "unlimited"
@@ -47,33 +35,20 @@ const SubscriptionTab = () => {
       name: "Business",
       price: "$49",
       period: "per month",
-      features: [
-        "Everything in Pro",
-        "Team collaboration",
-        "Advanced automation",
-        "Custom integrations",
-        "Dedicated account manager",
-        "SSO & security features"
-      ],
+      features: ["Everything in Pro", "Team collaboration", "Advanced automation", "Custom integrations", "Dedicated account manager", "SSO & security features"],
       limits: {
         contacts: "unlimited",
         interactions: "unlimited"
       }
     }
   };
-
   const currentPlan = plans[subscription?.plan_type as keyof typeof plans] || plans.free;
-
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
+    return <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="space-y-8">
+  return <div className="space-y-8">
       {/* Current Plan */}
       <Card className="border-0 shadow-sm bg-white/80 backdrop-blur-sm">
         <CardHeader className="pb-6">
@@ -111,11 +86,9 @@ const SubscriptionTab = () => {
               <p className="text-lg font-semibold text-green-600">
                 {subscription?.status === 'active' ? 'Active' : 'Inactive'}
               </p>
-              {subscription?.current_period_end && (
-                <p className="text-sm text-gray-500">
+              {subscription?.current_period_end && <p className="text-sm text-gray-500">
                   Renews {new Date(subscription.current_period_end).toLocaleDateString()}
-                </p>
-              )}
+                </p>}
             </div>
 
             <div className="p-4 bg-gray-50 rounded-lg">
@@ -125,16 +98,12 @@ const SubscriptionTab = () => {
               </div>
               <p className="text-lg font-semibold text-gray-900">Contact Limit</p>
               <p className="text-sm text-gray-500">
-                {typeof currentPlan.limits.contacts === 'string' 
-                  ? currentPlan.limits.contacts 
-                  : `${currentPlan.limits.contacts} contacts`
-                }
+                {typeof currentPlan.limits.contacts === 'string' ? currentPlan.limits.contacts : `${currentPlan.limits.contacts} contacts`}
               </p>
             </div>
           </div>
 
-          {subscription?.plan_type === 'free' && (
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          {subscription?.plan_type === 'free' && <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <Zap className="h-4 w-4 text-blue-600" />
                 <span className="text-sm font-medium text-blue-900">Upgrade Available</span>
@@ -145,8 +114,7 @@ const SubscriptionTab = () => {
               <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
                 Upgrade Now
               </Button>
-            </div>
-          )}
+            </div>}
         </CardContent>
       </Card>
 
@@ -158,15 +126,7 @@ const SubscriptionTab = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {Object.entries(plans).map(([key, plan]) => (
-              <div 
-                key={key}
-                className={`p-6 rounded-lg border-2 transition-all ${
-                  subscription?.plan_type === key 
-                    ? 'border-blue-500 bg-blue-50' 
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
+            {Object.entries(plans).map(([key, plan]) => <div key={key} className={`p-6 rounded-lg border-2 transition-all ${subscription?.plan_type === key ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}>
                 <div className="text-center mb-4">
                   <h3 className="text-lg font-semibold text-gray-900">{plan.name}</h3>
                   <div className="mt-2">
@@ -176,30 +136,22 @@ const SubscriptionTab = () => {
                 </div>
 
                 <ul className="space-y-2 mb-6">
-                  {plan.features.map((feature, index) => (
-                    <li key={index} className="flex items-start gap-2">
+                  {plan.features.map((feature, index) => <li key={index} className="flex items-start gap-2">
                       <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
                       <span className="text-sm text-gray-600">{feature}</span>
-                    </li>
-                  ))}
+                    </li>)}
                 </ul>
 
-                <Button 
-                  className="w-full"
-                  variant={subscription?.plan_type === key ? "secondary" : "default"}
-                  disabled={subscription?.plan_type === key}
-                >
+                <Button variant={subscription?.plan_type === key ? "secondary" : "default"} disabled={subscription?.plan_type === key} className="w-full rounded-full">
                   {subscription?.plan_type === key ? 'Current Plan' : `Upgrade to ${plan.name}`}
                 </Button>
-              </div>
-            ))}
+              </div>)}
           </div>
         </CardContent>
       </Card>
 
       {/* Billing Information */}
-      {subscription?.plan_type !== 'free' && (
-        <Card className="border-0 shadow-sm bg-white/80 backdrop-blur-sm">
+      {subscription?.plan_type !== 'free' && <Card className="border-0 shadow-sm bg-white/80 backdrop-blur-sm">
           <CardHeader className="pb-6">
             <CardTitle className="text-lg font-semibold text-gray-900">Billing Information</CardTitle>
           </CardHeader>
@@ -209,7 +161,7 @@ const SubscriptionTab = () => {
                 <p className="font-medium text-gray-900">Payment Method</p>
                 <p className="text-sm text-gray-500">•••• •••• •••• 4242</p>
               </div>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="rounded-full">
                 Update
               </Button>
             </div>
@@ -219,23 +171,18 @@ const SubscriptionTab = () => {
                 <p className="font-medium text-gray-900">Billing Address</p>
                 <p className="text-sm text-gray-500">Update your billing information</p>
               </div>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="rounded-full">
                 Edit
               </Button>
             </div>
 
-            {subscription?.cancel_at_period_end && (
-              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            {subscription?.cancel_at_period_end && <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <p className="text-sm text-yellow-800">
                   Your subscription will be canceled at the end of the current billing period.
                 </p>
-              </div>
-            )}
+              </div>}
           </CardContent>
-        </Card>
-      )}
-    </div>
-  );
+        </Card>}
+    </div>;
 };
-
 export default SubscriptionTab;
