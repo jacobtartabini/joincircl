@@ -40,9 +40,9 @@ export default function ContactForm({
         <Tabs defaultValue="basic" className="w-full">
           <TabsList className="grid grid-cols-4 mb-6 bg-gray-100 p-1 rounded-full">
             <TabsTrigger value="basic" className="font-medium rounded-full">Basic</TabsTrigger>
-            <TabsTrigger value="professional" className="rounded-lg font-medium">Professional</TabsTrigger>
-            <TabsTrigger value="education" className="rounded-lg font-medium">Education</TabsTrigger>
-            <TabsTrigger value="other" className="rounded-lg font-medium">Other</TabsTrigger>
+            <TabsTrigger value="professional" className="font-medium rounded-full">Professional</TabsTrigger>
+            <TabsTrigger value="education" className="font-medium rounded-full">Education</TabsTrigger>
+            <TabsTrigger value="other" className="font-medium rounded-full">Other</TabsTrigger>
           </TabsList>
 
           <TabsContent value="basic" className="space-y-6">
