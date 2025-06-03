@@ -18,3 +18,19 @@ export interface Profile {
   created_at?: string;
   updated_at?: string;
 }
+
+export interface AuthContextProps {
+  user: User | null;
+  session: Session | null;
+  profile: Profile | null;
+  loading: boolean;
+  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, metadata?: any) => Promise<{ error: any, data: any }>;
+  signOut: () => Promise<void>;
+  updateProfile: (updates: Partial<Profile>) => Promise<void>;
+  deleteAccount: () => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
+  hasPermission: (permission: string) => boolean;
+  hasSeenTutorial: boolean;
+  setHasSeenTutorial: (value: boolean) => void;
+}
