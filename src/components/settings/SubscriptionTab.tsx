@@ -5,10 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { CreditCard, Calendar, Users, Zap, Check, Loader2 } from "lucide-react";
 import { useUserSubscription } from "@/hooks/useUserSubscription";
-
 const SubscriptionTab = () => {
-  const { subscription, loading } = useUserSubscription();
-
+  const {
+    subscription,
+    loading
+  } = useUserSubscription();
   const plans = {
     free: {
       name: "Free",
@@ -41,19 +42,13 @@ const SubscriptionTab = () => {
       }
     }
   };
-
   const currentPlan = plans[subscription?.plan_type as keyof typeof plans] || plans.free;
-
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
+    return <div className="flex items-center justify-center h-96">
         <Loader2 className="h-10 w-10 animate-spin" />
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="space-y-10">
+  return <div className="space-y-10">
       {/* Current Plan */}
       <Card className="border border-gray-200 shadow-sm bg-white">
         <CardHeader className="pb-8">
@@ -67,7 +62,7 @@ const SubscriptionTab = () => {
                 <p className="text-gray-600 mt-1">Manage your subscription and billing</p>
               </div>
             </div>
-            <Badge variant="secondary" className="bg-blue-100 text-blue-800 px-4 py-2 text-sm font-medium">
+            <Badge variant="secondary" className="bg-blue-100 text-blue-800 px-4 py-2 text-sm font-medium rounded-full">
               {currentPlan.name}
             </Badge>
           </div>
@@ -91,11 +86,9 @@ const SubscriptionTab = () => {
               <p className="text-xl font-bold text-green-600">
                 {subscription?.status === 'active' ? 'Active' : 'Inactive'}
               </p>
-              {subscription?.current_period_end && (
-                <p className="text-gray-500 mt-1">
+              {subscription?.current_period_end && <p className="text-gray-500 mt-1">
                   Renews {new Date(subscription.current_period_end).toLocaleDateString()}
-                </p>
-              )}
+                </p>}
             </div>
 
             <div className="p-6 bg-gray-50 rounded-xl border border-gray-200">
@@ -105,15 +98,12 @@ const SubscriptionTab = () => {
               </div>
               <p className="text-xl font-bold text-gray-900">Contact Limit</p>
               <p className="text-gray-500 mt-1">
-                {typeof currentPlan.limits.contacts === 'string' 
-                  ? currentPlan.limits.contacts 
-                  : `${currentPlan.limits.contacts} contacts`}
+                {typeof currentPlan.limits.contacts === 'string' ? currentPlan.limits.contacts : `${currentPlan.limits.contacts} contacts`}
               </p>
             </div>
           </div>
 
-          {subscription?.plan_type === 'free' && (
-            <div className="p-6 bg-blue-50 border border-blue-200 rounded-xl">
+          {subscription?.plan_type === 'free' && <div className="p-6 bg-blue-50 border border-blue-200 rounded-xl">
               <div className="flex items-center gap-3 mb-3">
                 <Zap className="h-5 w-5 text-blue-600" />
                 <span className="text-base font-semibold text-blue-900">Upgrade Available</span>
@@ -124,8 +114,7 @@ const SubscriptionTab = () => {
               <Button className="bg-blue-600 hover:bg-blue-700 rounded-full px-6">
                 Upgrade Now
               </Button>
-            </div>
-          )}
+            </div>}
         </CardContent>
       </Card>
 
@@ -137,15 +126,7 @@ const SubscriptionTab = () => {
         </CardHeader>
         <CardContent className="px-8 pb-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {Object.entries(plans).map(([key, plan]) => (
-              <div 
-                key={key} 
-                className={`p-8 rounded-xl border-2 transition-all ${
-                  subscription?.plan_type === key 
-                    ? 'border-blue-500 bg-blue-50' 
-                    : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
-                }`}
-              >
+            {Object.entries(plans).map(([key, plan]) => <div key={key} className={`p-8 rounded-xl border-2 transition-all ${subscription?.plan_type === key ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300 hover:shadow-md'}`}>
                 <div className="text-center mb-6">
                   <h3 className="text-xl font-bold text-gray-900">{plan.name}</h3>
                   <div className="mt-4">
@@ -155,31 +136,22 @@ const SubscriptionTab = () => {
                 </div>
 
                 <ul className="space-y-3 mb-8">
-                  {plan.features.map((feature, index) => (
-                    <li key={index} className="flex items-start gap-3">
+                  {plan.features.map((feature, index) => <li key={index} className="flex items-start gap-3">
                       <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
                       <span className="text-gray-600 leading-relaxed">{feature}</span>
-                    </li>
-                  ))}
+                    </li>)}
                 </ul>
 
-                <Button 
-                  variant={subscription?.plan_type === key ? "secondary" : "default"} 
-                  disabled={subscription?.plan_type === key} 
-                  className="w-full rounded-full py-3 text-base font-medium"
-                  size="lg"
-                >
+                <Button variant={subscription?.plan_type === key ? "secondary" : "default"} disabled={subscription?.plan_type === key} className="w-full rounded-full py-3 text-base font-medium" size="lg">
                   {subscription?.plan_type === key ? 'Current Plan' : `Upgrade to ${plan.name}`}
                 </Button>
-              </div>
-            ))}
+              </div>)}
           </div>
         </CardContent>
       </Card>
 
       {/* Billing Information */}
-      {subscription?.plan_type !== 'free' && (
-        <Card className="border border-gray-200 shadow-sm bg-white">
+      {subscription?.plan_type !== 'free' && <Card className="border border-gray-200 shadow-sm bg-white">
           <CardHeader className="pb-8">
             <CardTitle className="text-xl font-semibold text-gray-900">Billing Information</CardTitle>
           </CardHeader>
@@ -204,18 +176,13 @@ const SubscriptionTab = () => {
               </Button>
             </div>
 
-            {subscription?.cancel_at_period_end && (
-              <div className="p-6 bg-yellow-50 border border-yellow-200 rounded-xl">
+            {subscription?.cancel_at_period_end && <div className="p-6 bg-yellow-50 border border-yellow-200 rounded-xl">
                 <p className="text-yellow-800 leading-relaxed">
                   Your subscription will be canceled at the end of the current billing period.
                 </p>
-              </div>
-            )}
+              </div>}
           </CardContent>
-        </Card>
-      )}
-    </div>
-  );
+        </Card>}
+    </div>;
 };
-
 export default SubscriptionTab;
