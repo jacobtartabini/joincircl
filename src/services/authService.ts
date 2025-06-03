@@ -18,6 +18,16 @@ export const authService = {
       }
 
       console.log('Sign in successful:', data);
+      
+      // Ensure session is properly stored on web
+      if (typeof window !== 'undefined' && data.session) {
+        try {
+          localStorage.setItem('supabase.auth.token', JSON.stringify(data.session));
+        } catch (storageError) {
+          console.warn('Failed to store session in localStorage:', storageError);
+        }
+      }
+      
       return { error: null };
     } catch (error) {
       console.error('Sign in error:', error);
@@ -29,11 +39,16 @@ export const authService = {
     try {
       console.log('Attempting to sign up with email:', email);
 
+      // Get the current origin for redirect URL
+      const redirectTo = typeof window !== 'undefined' 
+        ? `${window.location.origin}/auth/callback`
+        : undefined;
+
       const signUpData: any = {
         email: email.trim().toLowerCase(),
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: redirectTo,
         },
       };
 
@@ -64,6 +79,16 @@ export const authService = {
       console.log('Attempting to sign out');
 
       const { error } = await supabase.auth.signOut();
+      
+      // Clear any stored session data on web
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.removeItem('supabase.auth.token');
+        } catch (storageError) {
+          console.warn('Failed to clear session from localStorage:', storageError);
+        }
+      }
+      
       if (error) {
         console.error('Sign out error:', error);
       } else {
@@ -78,10 +103,15 @@ export const authService = {
     try {
       console.log('Attempting to sign in with Google');
 
+      // Get the current origin for redirect URL
+      const redirectTo = typeof window !== 'undefined' 
+        ? `${window.location.origin}/auth/callback`
+        : undefined;
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',

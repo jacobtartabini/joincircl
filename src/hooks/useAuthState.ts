@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -55,6 +56,19 @@ export const useAuthState = () => {
       try {
         console.log('Initializing auth state...');
         
+        // Check for stored session on web
+        if (typeof window !== 'undefined') {
+          try {
+            const storedSession = localStorage.getItem('supabase.auth.token');
+            if (storedSession) {
+              const parsedSession = JSON.parse(storedSession);
+              console.log('Found stored session:', !!parsedSession);
+            }
+          } catch (error) {
+            console.warn('Error checking stored session:', error);
+          }
+        }
+        
         const {
           data: { session: initialSession },
           error,
@@ -96,17 +110,45 @@ export const useAuthState = () => {
 
         if (event === 'SIGNED_IN' && newSession?.user) {
           console.log('User signed in, fetching profile...');
+          
+          // Store session on web
+          if (typeof window !== 'undefined' && newSession) {
+            try {
+              localStorage.setItem('supabase.auth.token', JSON.stringify(newSession));
+            } catch (error) {
+              console.warn('Failed to store session:', error);
+            }
+          }
+          
           setTimeout(() => {
             if (mounted) {
-              fetchAndCacheProfile(newSession.user.id, event); // ✅ 2 arguments allowed now
+              fetchAndCacheProfile(newSession.user.id, event);
             }
           }, 100);
         } else if (event === 'SIGNED_OUT') {
           console.log('User signed out, clearing state...');
           setProfile(null);
           setHasSeenTutorial(false);
+          
+          // Clear stored session on web
+          if (typeof window !== 'undefined') {
+            try {
+              localStorage.removeItem('supabase.auth.token');
+            } catch (error) {
+              console.warn('Failed to clear stored session:', error);
+            }
+          }
         } else if (event === 'TOKEN_REFRESHED' && newSession?.user) {
           console.log('Token refreshed for user:', newSession.user.id);
+          
+          // Update stored session on web
+          if (typeof window !== 'undefined' && newSession) {
+            try {
+              localStorage.setItem('supabase.auth.token', JSON.stringify(newSession));
+            } catch (error) {
+              console.warn('Failed to update stored session:', error);
+            }
+          }
         }
 
         if (mounted) {
