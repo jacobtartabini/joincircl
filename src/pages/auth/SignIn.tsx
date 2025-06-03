@@ -10,7 +10,6 @@ import { Navigate, Link, useNavigate } from "react-router-dom";
 import { use2FA } from "@/hooks/use2FA";
 import { Shield, ArrowLeft, AlertCircle, Link2 } from "lucide-react";
 import MagicLinkSignIn from "@/components/auth/MagicLinkSignIn";
-
 export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -34,7 +33,6 @@ export default function SignIn() {
     toast
   } = useToast();
   const navigate = useNavigate();
-
   useEffect(() => {
     const checkAuthStatus = async () => {
       setIsCheckingAuth(false);
@@ -46,7 +44,6 @@ export default function SignIn() {
   if (user) {
     return <Navigate to="/" replace />;
   }
-
   if (isCheckingAuth) {
     return <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
         <div className="text-center">
@@ -55,18 +52,14 @@ export default function SignIn() {
         </div>
       </div>;
   }
-
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError(null);
-    
     if (!email || !password) {
       setAuthError("Please fill in all fields");
       return;
     }
-
     setIsLoading(true);
-    
     try {
       console.log('Starting sign in process for:', email);
 
@@ -75,23 +68,22 @@ export default function SignIn() {
         console.log('Attempting 2FA verification...');
         const result = await verifyLogin2FA(email, password, totpCode);
         console.log('2FA verification successful');
-        
         toast({
           title: "Welcome back!",
-          description: "You have been signed in successfully.",
+          description: "You have been signed in successfully."
         });
-        
         navigate("/");
         return;
       }
 
       // Otherwise, try regular sign-in first
       console.log('Attempting regular sign in...');
-      const { error: signInError } = await signIn(email, password);
-      
+      const {
+        error: signInError
+      } = await signIn(email, password);
       if (signInError) {
         console.error('Sign in error:', signInError);
-        
+
         // Check if this is a 2FA required error
         if (signInError.message && signInError.message.includes('2FA')) {
           console.log('2FA required for this account');
@@ -100,12 +92,11 @@ export default function SignIn() {
           setIsLoading(false);
           return;
         }
-        
+
         // Try 2FA verification as fallback for accounts that might have 2FA
         try {
           console.log('Trying 2FA verification as fallback...');
           const result = await verifyLogin2FA(email, password, '000000');
-          
           if (result.requires2FA) {
             console.log('Account requires 2FA');
             setRequires2FA(true);
@@ -120,16 +111,13 @@ export default function SignIn() {
           setIsLoading(false);
           return;
         }
-        
         setAuthError(getErrorMessage(signInError));
       } else {
         console.log('Regular sign in successful');
-        
         toast({
           title: "Welcome back!",
-          description: "You have been signed in successfully.",
+          description: "You have been signed in successfully."
         });
-        
         navigate("/");
       }
     } catch (error: any) {
@@ -139,7 +127,6 @@ export default function SignIn() {
       setIsLoading(false);
     }
   };
-
   const handleBackupCodeSignIn = async () => {
     if (!backupCode) {
       setAuthError("Please enter your backup code");
@@ -149,12 +136,10 @@ export default function SignIn() {
     setAuthError(null);
     try {
       await verifyLogin2FA(email, password, backupCode, true);
-      
       toast({
         title: "Welcome back!",
-        description: "You have been signed in successfully.",
+        description: "You have been signed in successfully."
       });
-      
       navigate("/");
     } catch (error: any) {
       console.error("Error signing in with backup code:", error);
@@ -163,7 +148,6 @@ export default function SignIn() {
       setIsLoading(false);
     }
   };
-
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     setAuthError(null);
@@ -177,7 +161,6 @@ export default function SignIn() {
       setIsLoading(false);
     }
   };
-
   const getErrorMessage = (error: any): string => {
     if (typeof error === 'string') return error;
     if (error?.message) return error.message;
@@ -185,7 +168,6 @@ export default function SignIn() {
     if (error?.msg) return error.msg;
     return 'An unexpected error occurred. Please try again.';
   };
-
   const resetForm = () => {
     setRequires2FA(false);
     setTotpCode("");
@@ -193,14 +175,13 @@ export default function SignIn() {
     setBackupCode("");
     setAuthError(null);
   };
-
   return <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
         <Card className="border-0 shadow-xl bg-white backdrop-blur-sm">
           <CardHeader className="space-y-6 text-center pb-8">
             <div className="flex justify-center">
               <div className="w-20 h-20 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center shadow-lg rounded-2xl">
-                <img alt="Circl" className="w-12 h-12 object-contain" src="/lovable-uploads/b012fafe-a5c2-4486-a208-97fce8761c8e.png" />
+                <img alt="Circl" className="w-12 h-12 object-contain" src="/lovable-uploads/f2a3e9f1-5d82-4979-af1a-02fc9a8856f8.png" />
               </div>
             </div>
             <div className="space-y-3">
@@ -219,8 +200,7 @@ export default function SignIn() {
                 <p className="text-sm text-red-700">{authError}</p>
               </div>}
 
-            {!requires2FA && !showMagicLink && (
-              <>
+            {!requires2FA && !showMagicLink && <>
                 {/* Regular sign-in form */}
                 <form onSubmit={handleSignIn} className="space-y-5">
                   <div className="space-y-3">
@@ -253,12 +233,7 @@ export default function SignIn() {
                 </div>
 
                 <div className="space-y-3">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => setShowMagicLink(true)}
-                    className="w-full h-12 border-gray-200 hover:bg-gray-50 font-semibold transition-all duration-200 rounded-full"
-                  >
+                  <Button type="button" variant="outline" onClick={() => setShowMagicLink(true)} className="w-full h-12 border-gray-200 hover:bg-gray-50 font-semibold transition-all duration-200 rounded-full">
                     <Link2 className="h-5 w-5 mr-3" />
                     Sign in with Magic Link
                   </Button>
@@ -273,25 +248,17 @@ export default function SignIn() {
                     Sign in with Google
                   </Button>
                 </div>
-              </>
-            )}
+              </>}
 
-            {!requires2FA && showMagicLink && (
-              <div className="space-y-4">
-                <Button 
-                  variant="ghost" 
-                  onClick={() => setShowMagicLink(false)} 
-                  className="flex items-center gap-2 text-gray-600 hover:text-gray-900 p-0 h-auto"
-                >
+            {!requires2FA && showMagicLink && <div className="space-y-4">
+                <Button variant="ghost" onClick={() => setShowMagicLink(false)} className="flex items-center gap-2 text-gray-600 hover:text-gray-900 p-0 h-auto">
                   <ArrowLeft className="h-4 w-4" />
                   Back to regular sign in
                 </Button>
                 <MagicLinkSignIn onSuccess={() => navigate("/")} />
-              </div>
-            )}
+              </div>}
 
-            {requires2FA && (
-              <div className="space-y-6">
+            {requires2FA && <div className="space-y-6">
                 {requires2FA && <div className="flex items-center gap-2 text-sm text-gray-600">
                     <Button variant="ghost" size="sm" onClick={resetForm} className="p-0 h-auto text-gray-600 hover:text-gray-900">
                       <ArrowLeft className="h-4 w-4 mr-1" />
@@ -301,9 +268,9 @@ export default function SignIn() {
                     <span>Signing in as {email}</span>
                   </div>}
 
-                {!showBackupCodeInput ? (
-                  // TOTP code input
-                  <div className="space-y-6">
+                {!showBackupCodeInput ?
+            // TOTP code input
+            <div className="space-y-6">
                     <div className="text-center space-y-4">
                       <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
                         <Shield className="h-8 w-8 text-green-600" />
@@ -337,10 +304,9 @@ export default function SignIn() {
                         Use backup code instead
                       </Button>
                     </div>
-                  </div>
-                ) : (
-                  // Backup code input
-                  <div className="space-y-6">
+                  </div> :
+            // Backup code input
+            <div className="space-y-6">
                     <div className="text-center space-y-4">
                       <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
                         <Shield className="h-8 w-8 text-blue-600" />
@@ -366,22 +332,18 @@ export default function SignIn() {
                         Use authenticator app instead
                       </Button>
                     </div>
-                  </div>
-                )}
-              </div>
-            )}
+                  </div>}
+              </div>}
           </CardContent>
 
-          {!requires2FA && (
-            <CardFooter className="flex justify-center pt-4 pb-8">
+          {!requires2FA && <CardFooter className="flex justify-center pt-4 pb-8">
               <p className="text-sm text-gray-600">
                 Don't have an account?{" "}
                 <Link to="/signup" className="text-gray-900 hover:underline font-semibold">
                   Sign up
                 </Link>
               </p>
-            </CardFooter>
-          )}
+            </CardFooter>}
         </Card>
       </div>
     </div>;
