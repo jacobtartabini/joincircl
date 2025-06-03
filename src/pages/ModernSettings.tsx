@@ -1,39 +1,31 @@
-
-import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { SecureHeaders } from "@/components/security/SecureHeaders";
-import AccountTab from "@/components/settings/AccountTab";
-import IntegrationsTab from "@/components/settings/IntegrationsTab";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { Settings, User, Shield, CreditCard, Bell, Zap, HelpCircle, Palette } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+
+// Import tab components
 import ProfileTab from "@/components/settings/ProfileTab";
-import ResourcesTab from "@/components/settings/ResourcesTab";
-import SubscriptionTab from "@/components/settings/SubscriptionTab";
 import SecurityTab from "@/components/settings/SecurityTab";
-import { 
-  User, 
-  Shield, 
-  Puzzle, 
-  CreditCard, 
-  BookOpen, 
-  Settings as SettingsIcon 
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+import SubscriptionTab from "@/components/settings/SubscriptionTab";
+import ResourcesTab from "@/components/settings/ResourcesTab";
+import PreferencesTab from "@/components/settings/PreferencesTab";
+import IntegrationsTab from "@/components/settings/IntegrationsTab";
+import AccountTab from "@/components/settings/AccountTab";
 
 const ModernSettings = () => {
-  const location = useLocation();
+  const isMobile = useIsMobile();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("profile");
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'profile');
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const tab = params.get("tab");
-    if (tab && ["profile", "account", "security", "integrations", "subscription", "resources"].includes(tab)) {
+    const tab = searchParams.get('tab');
+    if (tab) {
       setActiveTab(tab);
-    } else {
-      setActiveTab("profile");
     }
-  }, [location]);
+  }, [searchParams]);
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
@@ -41,127 +33,113 @@ const ModernSettings = () => {
   };
 
   const tabs = [
-    { id: "profile", label: "Profile", icon: User, description: "Personal information and preferences" },
-    { id: "account", label: "Account", icon: SettingsIcon, description: "Account details and preferences" },
-    { id: "security", label: "Security", icon: Shield, description: "Security settings and privacy" },
-    { id: "integrations", label: "Integrations", icon: Puzzle, description: "Connected services and apps" },
-    { id: "subscription", label: "Subscription", icon: CreditCard, description: "Billing and subscription" },
-    { id: "resources", label: "Resources", icon: BookOpen, description: "Help and support" },
+    { id: 'profile', label: 'Profile', icon: User, component: ProfileTab },
+    { id: 'security', label: 'Security', icon: Shield, component: SecurityTab },
+    { id: 'subscription', label: 'Subscription', icon: CreditCard, component: SubscriptionTab },
+    { id: 'integrations', label: 'Integrations', icon: Zap, component: IntegrationsTab },
+    { id: 'preferences', label: 'Preferences', icon: Palette, component: PreferencesTab },
+    { id: 'resources', label: 'Resources', icon: HelpCircle, component: ResourcesTab },
+    { id: 'account', label: 'Account', icon: Settings, component: AccountTab },
   ];
 
-  return (
-    <>
-      <SecureHeaders />
-      
-      <div className="min-h-screen bg-gray-50/30">
-        <div className="max-w-7xl mx-auto p-6 space-y-8">
-          {/* Header */}
-          <div className="space-y-2">
-            <h1 className="text-2xl font-semibold text-gray-900">Settings</h1>
-            <p className="text-gray-600">Manage your account and application preferences</p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Sidebar Navigation */}
-            <div className="lg:col-span-1">
-              <Card className="border border-gray-200">
-                <CardContent className="p-4">
-                  <nav className="space-y-1">
-                    {tabs.map((tab) => (
-                      <button
-                        key={tab.id}
-                        onClick={() => handleTabChange(tab.id)}
-                        className={cn(
-                          "w-full flex items-start gap-3 px-3 py-3 rounded-lg text-left transition-all duration-200",
-                          activeTab === tab.id
-                            ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                            : 'text-gray-700 hover:bg-gray-50'
-                        )}
-                      >
-                        <tab.icon className="h-5 w-5 mt-0.5 flex-shrink-0" />
-                        <div>
-                          <div className="font-medium">{tab.label}</div>
-                          <div className="text-xs text-gray-500 mt-0.5">{tab.description}</div>
-                        </div>
-                      </button>
-                    ))}
-                  </nav>
-                </CardContent>
-              </Card>
+  if (isMobile) {
+    return (
+      <div className="flex flex-col h-full bg-gray-50 p-4">
+        <div className="mb-6">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Settings className="h-5 w-5 text-blue-600" />
             </div>
-
-            {/* Main Content */}
-            <div className="lg:col-span-3">
-              <Card className="border border-gray-200">
-                <CardContent className="p-8">
-                  <Tabs value={activeTab} onValueChange={handleTabChange}>
-                    <TabsContent value="profile" className="mt-0">
-                      <div className="space-y-6">
-                        <div>
-                          <h2 className="text-xl font-semibold text-gray-900">Profile Settings</h2>
-                          <p className="text-gray-600 mt-1">Manage your personal information and preferences</p>
-                        </div>
-                        <ProfileTab />
-                      </div>
-                    </TabsContent>
-                    
-                    <TabsContent value="account" className="mt-0">
-                      <div className="space-y-6">
-                        <div>
-                          <h2 className="text-xl font-semibold text-gray-900">Account Settings</h2>
-                          <p className="text-gray-600 mt-1">Configure your account details and preferences</p>
-                        </div>
-                        <AccountTab />
-                      </div>
-                    </TabsContent>
-                    
-                    <TabsContent value="security" className="mt-0">
-                      <div className="space-y-6">
-                        <div>
-                          <h2 className="text-xl font-semibold text-gray-900">Security & Privacy</h2>
-                          <p className="text-gray-600 mt-1">Manage your security settings and privacy controls</p>
-                        </div>
-                        <SecurityTab />
-                      </div>
-                    </TabsContent>
-                    
-                    <TabsContent value="integrations" className="mt-0">
-                      <div className="space-y-6">
-                        <div>
-                          <h2 className="text-xl font-semibold text-gray-900">Integrations</h2>
-                          <p className="text-gray-600 mt-1">Connect external services and platforms</p>
-                        </div>
-                        <IntegrationsTab />
-                      </div>
-                    </TabsContent>
-                    
-                    <TabsContent value="subscription" className="mt-0">
-                      <div className="space-y-6">
-                        <div>
-                          <h2 className="text-xl font-semibold text-gray-900">Subscription</h2>
-                          <p className="text-gray-600 mt-1">Manage your billing and subscription details</p>
-                        </div>
-                        <SubscriptionTab />
-                      </div>
-                    </TabsContent>
-                    
-                    <TabsContent value="resources" className="mt-0">
-                      <div className="space-y-6">
-                        <div>
-                          <h2 className="text-xl font-semibold text-gray-900">Resources</h2>
-                          <p className="text-gray-600 mt-1">Access help, documentation, and support</p>
-                        </div>
-                        <ResourcesTab />
-                      </div>
-                    </TabsContent>
-                  </Tabs>
-                </CardContent>
-              </Card>
+            <div>
+              <h1 className="text-2xl font-semibold text-gray-900">Settings</h1>
+              <p className="text-gray-600">Manage your account and preferences</p>
             </div>
           </div>
         </div>
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="flex flex-col h-full">
+          <TabsList className="flex bg-transparent p-0 space-x-0 border-b border-gray-200">
+            {tabs.map((tab) => (
+              <TabsTrigger
+                key={tab.id}
+                value={tab.id}
+                className="w-full justify-start gap-3 px-4 py-3 text-left rounded-none data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 hover:bg-gray-50 transition-colors"
+              >
+                <tab.icon className="h-4 w-4" />
+                <span className="font-medium">{tab.label}</span>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          <div className="flex-1 overflow-y-auto">
+            {tabs.map((tab) => (
+              <TabsContent key={tab.id} value={tab.id} className="mt-6 p-0">
+                <tab.component />
+              </TabsContent>
+            ))}
+          </div>
+        </Tabs>
       </div>
-    </>
+    );
+  }
+
+  return (
+    <div className="h-full bg-gray-50">
+      <div className="max-w-7xl mx-auto h-full">
+        <div className="flex flex-col h-full">
+          {/* Header */}
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Settings className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-semibold text-gray-900">Settings</h1>
+                <p className="text-gray-600">Manage your account and preferences</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Settings Content */}
+          <div className="flex-1 overflow-hidden">
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="flex h-full gap-8">
+              {/* Sidebar Navigation */}
+              <div className="w-64 flex-shrink-0">
+                <Card className="h-full border-0 shadow-sm bg-white">
+                  <CardContent className="p-0">
+                    <TabsList className="flex flex-col h-auto w-full bg-transparent p-2 space-y-1">
+                      {tabs.map((tab) => (
+                        <TabsTrigger
+                          key={tab.id}
+                          value={tab.id}
+                          className="w-full justify-start gap-3 px-4 py-3 text-left rounded-lg data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 hover:bg-gray-50 transition-colors"
+                        >
+                          <tab.icon className="h-4 w-4" />
+                          <span className="font-medium">{tab.label}</span>
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Main Content Area */}
+              <div className="flex-1 min-w-0 overflow-hidden">
+                <Card className="h-full border-0 shadow-sm bg-white">
+                  <CardContent className="p-8 h-full overflow-y-auto">
+                    {tabs.map((tab) => (
+                      <TabsContent key={tab.id} value={tab.id} className="mt-0 h-full">
+                        <div className="max-w-4xl">
+                          <tab.component />
+                        </div>
+                      </TabsContent>
+                    ))}
+                  </CardContent>
+                </Card>
+              </div>
+            </Tabs>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

@@ -5,11 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { CreditCard, Calendar, Users, Zap, Check, Loader2 } from "lucide-react";
 import { useUserSubscription } from "@/hooks/useUserSubscription";
+
 const SubscriptionTab = () => {
-  const {
-    subscription,
-    loading
-  } = useUserSubscription();
+  const { subscription, loading } = useUserSubscription();
+
   const plans = {
     free: {
       name: "Free",
@@ -42,147 +41,181 @@ const SubscriptionTab = () => {
       }
     }
   };
+
   const currentPlan = plans[subscription?.plan_type as keyof typeof plans] || plans.free;
+
   if (loading) {
-    return <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>;
+    return (
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="h-10 w-10 animate-spin" />
+      </div>
+    );
   }
-  return <div className="space-y-8">
+
+  return (
+    <div className="space-y-10">
       {/* Current Plan */}
-      <Card className="border-0 shadow-sm bg-white/80 backdrop-blur-sm">
-        <CardHeader className="pb-6">
+      <Card className="border border-gray-200 shadow-sm bg-white">
+        <CardHeader className="pb-8">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center px-[10px]">
-                <CreditCard className="h-5 w-5 text-blue-600" />
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                <CreditCard className="h-6 w-6 text-blue-600" />
               </div>
               <div>
-                <CardTitle className="text-lg font-semibold text-gray-900">Current Plan</CardTitle>
-                <p className="text-sm text-gray-600">Manage your subscription and billing</p>
+                <CardTitle className="text-xl font-semibold text-gray-900">Current Plan</CardTitle>
+                <p className="text-gray-600 mt-1">Manage your subscription and billing</p>
               </div>
             </div>
-            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+            <Badge variant="secondary" className="bg-blue-100 text-blue-800 px-4 py-2 text-sm font-medium">
               {currentPlan.name}
             </Badge>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <CreditCard className="h-4 w-4 text-gray-600" />
-                <span className="text-sm font-medium text-gray-700">Plan</span>
+        <CardContent className="px-8 pb-8 space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="p-6 bg-gray-50 rounded-xl border border-gray-200">
+              <div className="flex items-center gap-3 mb-3">
+                <CreditCard className="h-5 w-5 text-gray-600" />
+                <span className="text-sm font-semibold text-gray-700">Plan</span>
               </div>
-              <p className="text-lg font-semibold text-gray-900">{currentPlan.name}</p>
-              <p className="text-sm text-gray-500">{currentPlan.price} {currentPlan.period}</p>
+              <p className="text-xl font-bold text-gray-900">{currentPlan.name}</p>
+              <p className="text-gray-500 mt-1">{currentPlan.price} {currentPlan.period}</p>
             </div>
 
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <Calendar className="h-4 w-4 text-gray-600" />
-                <span className="text-sm font-medium text-gray-700">Status</span>
+            <div className="p-6 bg-gray-50 rounded-xl border border-gray-200">
+              <div className="flex items-center gap-3 mb-3">
+                <Calendar className="h-5 w-5 text-gray-600" />
+                <span className="text-sm font-semibold text-gray-700">Status</span>
               </div>
-              <p className="text-lg font-semibold text-green-600">
+              <p className="text-xl font-bold text-green-600">
                 {subscription?.status === 'active' ? 'Active' : 'Inactive'}
               </p>
-              {subscription?.current_period_end && <p className="text-sm text-gray-500">
+              {subscription?.current_period_end && (
+                <p className="text-gray-500 mt-1">
                   Renews {new Date(subscription.current_period_end).toLocaleDateString()}
-                </p>}
+                </p>
+              )}
             </div>
 
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <Users className="h-4 w-4 text-gray-600" />
-                <span className="text-sm font-medium text-gray-700">Usage</span>
+            <div className="p-6 bg-gray-50 rounded-xl border border-gray-200">
+              <div className="flex items-center gap-3 mb-3">
+                <Users className="h-5 w-5 text-gray-600" />
+                <span className="text-sm font-semibold text-gray-700">Usage</span>
               </div>
-              <p className="text-lg font-semibold text-gray-900">Contact Limit</p>
-              <p className="text-sm text-gray-500">
-                {typeof currentPlan.limits.contacts === 'string' ? currentPlan.limits.contacts : `${currentPlan.limits.contacts} contacts`}
+              <p className="text-xl font-bold text-gray-900">Contact Limit</p>
+              <p className="text-gray-500 mt-1">
+                {typeof currentPlan.limits.contacts === 'string' 
+                  ? currentPlan.limits.contacts 
+                  : `${currentPlan.limits.contacts} contacts`}
               </p>
             </div>
           </div>
 
-          {subscription?.plan_type === 'free' && <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <Zap className="h-4 w-4 text-blue-600" />
-                <span className="text-sm font-medium text-blue-900">Upgrade Available</span>
+          {subscription?.plan_type === 'free' && (
+            <div className="p-6 bg-blue-50 border border-blue-200 rounded-xl">
+              <div className="flex items-center gap-3 mb-3">
+                <Zap className="h-5 w-5 text-blue-600" />
+                <span className="text-base font-semibold text-blue-900">Upgrade Available</span>
               </div>
-              <p className="text-sm text-blue-700 mb-3">
+              <p className="text-blue-700 mb-4 leading-relaxed">
                 Unlock unlimited contacts and advanced features with Pro or Business plans.
               </p>
-              <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+              <Button className="bg-blue-600 hover:bg-blue-700 rounded-full px-6">
                 Upgrade Now
               </Button>
-            </div>}
+            </div>
+          )}
         </CardContent>
       </Card>
 
       {/* Available Plans */}
-      <Card className="border-0 shadow-sm bg-white/80 backdrop-blur-sm">
-        <CardHeader className="pb-6">
-          <CardTitle className="text-lg font-semibold text-gray-900">Available Plans</CardTitle>
-          <p className="text-sm text-gray-600">Choose the plan that best fits your needs</p>
+      <Card className="border border-gray-200 shadow-sm bg-white">
+        <CardHeader className="pb-8">
+          <CardTitle className="text-xl font-semibold text-gray-900">Available Plans</CardTitle>
+          <p className="text-gray-600 mt-1">Choose the plan that best fits your needs</p>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {Object.entries(plans).map(([key, plan]) => <div key={key} className={`p-6 rounded-lg border-2 transition-all ${subscription?.plan_type === key ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}>
-                <div className="text-center mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">{plan.name}</h3>
-                  <div className="mt-2">
-                    <span className="text-3xl font-bold text-gray-900">{plan.price}</span>
-                    <span className="text-gray-500 ml-1">/{plan.period.split(' ')[1] || ''}</span>
+        <CardContent className="px-8 pb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {Object.entries(plans).map(([key, plan]) => (
+              <div 
+                key={key} 
+                className={`p-8 rounded-xl border-2 transition-all ${
+                  subscription?.plan_type === key 
+                    ? 'border-blue-500 bg-blue-50' 
+                    : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
+                }`}
+              >
+                <div className="text-center mb-6">
+                  <h3 className="text-xl font-bold text-gray-900">{plan.name}</h3>
+                  <div className="mt-4">
+                    <span className="text-4xl font-bold text-gray-900">{plan.price}</span>
+                    <span className="text-gray-500 ml-2">/{plan.period.split(' ')[1] || ''}</span>
                   </div>
                 </div>
 
-                <ul className="space-y-2 mb-6">
-                  {plan.features.map((feature, index) => <li key={index} className="flex items-start gap-2">
-                      <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span className="text-sm text-gray-600">{feature}</span>
-                    </li>)}
+                <ul className="space-y-3 mb-8">
+                  {plan.features.map((feature, index) => (
+                    <li key={index} className="flex items-start gap-3">
+                      <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span className="text-gray-600 leading-relaxed">{feature}</span>
+                    </li>
+                  ))}
                 </ul>
 
-                <Button variant={subscription?.plan_type === key ? "secondary" : "default"} disabled={subscription?.plan_type === key} className="w-full rounded-full">
+                <Button 
+                  variant={subscription?.plan_type === key ? "secondary" : "default"} 
+                  disabled={subscription?.plan_type === key} 
+                  className="w-full rounded-full py-3 text-base font-medium"
+                  size="lg"
+                >
                   {subscription?.plan_type === key ? 'Current Plan' : `Upgrade to ${plan.name}`}
                 </Button>
-              </div>)}
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
 
       {/* Billing Information */}
-      {subscription?.plan_type !== 'free' && <Card className="border-0 shadow-sm bg-white/80 backdrop-blur-sm">
-          <CardHeader className="pb-6">
-            <CardTitle className="text-lg font-semibold text-gray-900">Billing Information</CardTitle>
+      {subscription?.plan_type !== 'free' && (
+        <Card className="border border-gray-200 shadow-sm bg-white">
+          <CardHeader className="pb-8">
+            <CardTitle className="text-xl font-semibold text-gray-900">Billing Information</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+          <CardContent className="px-8 pb-8 space-y-6">
+            <div className="flex items-center justify-between p-6 bg-gray-50 rounded-xl border border-gray-200">
               <div>
-                <p className="font-medium text-gray-900">Payment Method</p>
-                <p className="text-sm text-gray-500">•••• •••• •••• 4242</p>
+                <p className="font-semibold text-gray-900">Payment Method</p>
+                <p className="text-gray-500 mt-1">•••• •••• •••• 4242</p>
               </div>
-              <Button variant="outline" size="sm" className="rounded-full">
+              <Button variant="outline" className="rounded-full px-6">
                 Update
               </Button>
             </div>
 
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+            <div className="flex items-center justify-between p-6 bg-gray-50 rounded-xl border border-gray-200">
               <div>
-                <p className="font-medium text-gray-900">Billing Address</p>
-                <p className="text-sm text-gray-500">Update your billing information</p>
+                <p className="font-semibold text-gray-900">Billing Address</p>
+                <p className="text-gray-500 mt-1">Update your billing information</p>
               </div>
-              <Button variant="outline" size="sm" className="rounded-full">
+              <Button variant="outline" className="rounded-full px-6">
                 Edit
               </Button>
             </div>
 
-            {subscription?.cancel_at_period_end && <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p className="text-sm text-yellow-800">
+            {subscription?.cancel_at_period_end && (
+              <div className="p-6 bg-yellow-50 border border-yellow-200 rounded-xl">
+                <p className="text-yellow-800 leading-relaxed">
                   Your subscription will be canceled at the end of the current billing period.
                 </p>
-              </div>}
+              </div>
+            )}
           </CardContent>
-        </Card>}
-    </div>;
+        </Card>
+      )}
+    </div>
+  );
 };
+
 export default SubscriptionTab;
