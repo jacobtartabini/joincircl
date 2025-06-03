@@ -145,7 +145,7 @@ export default function SignIn() {
           <CardHeader className="space-y-6 text-center pb-8">
             <div className="flex justify-center">
               <div className="w-20 h-20 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center shadow-lg rounded-2xl">
-                <img alt="Circl" className="w-12 h-12 object-contain" src="/lovable-uploads/e662566f-900b-4ae6-b567-488635fc8cfd.png" />
+                <img alt="Circl" className="w-12 h-12 object-contain" src="/lovable-uploads/b012fafe-a5c2-4486-a208-97fce8761c8e.png" />
               </div>
             </div>
             <div className="space-y-3">
