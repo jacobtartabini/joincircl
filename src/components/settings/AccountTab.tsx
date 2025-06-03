@@ -185,7 +185,7 @@ const AccountTab = () => {
               label
             }) => <Button key={value} variant={preferences?.theme === value ? "default" : "outline"} size="sm" onClick={() => updatePreferences({
               theme: value
-            })} className="flex items-center gap-2">
+            })} className="flex items-center gap-2 rounded-full">
                   <Icon className="h-4 w-4" />
                   {label}
                 </Button>)}
