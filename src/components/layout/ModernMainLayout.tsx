@@ -19,7 +19,7 @@ const ModernMainLayout = ({ children }: ModernMainLayoutProps) => {
   }, [isOnline]);
 
   return (
-    <div className="min-h-screen-safe bg-gray-50/30">
+    <div className="h-screen bg-gray-50/30 overflow-hidden">
       <SecureHeaders />
       <MobileOptimizedLayout>
         {children}

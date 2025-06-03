@@ -44,12 +44,25 @@
     @apply border-border;
   }
   
+  html {
+    height: 100%;
+    overflow: hidden;
+  }
+  
   body {
     @apply bg-background text-foreground font-sans;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    overflow-x: hidden;
+    height: 100%;
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+  }
+  
+  #root {
+    height: 100%;
+    overflow: hidden;
   }
   
   h1, h2, h3, h4, h5, h6 {
@@ -101,10 +114,6 @@
     
     .form-label {
       @apply text-sm mb-2 font-medium;
-    }
-    
-    body {
-      overflow-x: hidden;
     }
     
     * {
@@ -286,15 +295,19 @@
     scroll-behavior: smooth;
   }
   
-  /* Ensure proper scrolling containers */
+  /* Proper scrolling containers */
   .scrollable-container {
-    @apply overflow-hidden;
-    height: 100vh;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
   }
   
   .scrollable-content {
-    @apply h-full overflow-y-auto;
+    height: 100%;
+    overflow-y: auto;
     scroll-behavior: smooth;
+    /* Prevent over-scrolling */
+    overscroll-behavior: contain;
   }
 }
 
@@ -370,6 +383,7 @@
   .smooth-scroll {
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
+    overscroll-behavior: contain;
   }
   
   /* Enhanced responsive grid utilities */
@@ -388,16 +402,16 @@
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr));
   }
   
-  /* Scrolling fixes */
-  .enable-scroll {
-    overflow-y: auto !important;
-    height: auto !important;
-    max-height: 100vh;
+  /* Fixed scrolling behavior */
+  .content-container {
+    height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
   
-  .full-height-scroll {
-    height: 100vh;
-    overflow-y: auto;
+  .page-container {
+    min-height: 100%;
+    height: fit-content;
   }
 }
 
@@ -458,25 +472,4 @@ input:focus, textarea:focus, select:focus {
 /* Card and panel improvements */
 .card, .panel {
   @apply bg-white border border-gray-100 shadow-sm transition-all duration-200;
-}
-
-/* Ensure all pages can scroll properly */
-html, body, #root {
-  height: 100%;
-  overflow-x: hidden;
-}
-
-#root > div {
-  min-height: 100vh;
-}
-
-/* Fix specific layout containers */
-.layout-container {
-  height: 100vh;
-  overflow: hidden;
-}
-
-.layout-content {
-  height: calc(100vh - 80px);
-  overflow-y: auto;
 }
