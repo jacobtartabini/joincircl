@@ -19,7 +19,7 @@ export function CirclesFilter({
   onFilter,
   activeTagFilter
 }: CirclesFilterProps) {
-  return <div className="flex items-center gap-2 p-4 border-b bg-white">
+  return <div className="flex items-center gap-2 p-4 border-b bg-white rounded-2xl">
       {/* Search - Expanded to take more space */}
       <div className="relative flex-1 max-w-none">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
