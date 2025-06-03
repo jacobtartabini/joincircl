@@ -58,8 +58,8 @@ const ModernHomeContent: React.FC = () => {
       <div className="max-w-7xl mx-auto p-6 space-y-8">
         {/* Header Section */}
         <div className="flex flex-col space-y-2">
-          <h1 className="text-3xl font-light text-gray-900">Welcome back</h1>
-          <p className="text-gray-600 text-lg font-light">Let's strengthen your connections today</p>
+          <h1 className="text-3xl text-gray-900 font-extrabold">Welcome back</h1>
+          <p className="text-gray-600 text-lg font-normal">Let's strengthen your connections today</p>
         </div>
 
         {/* Quick Actions */}
