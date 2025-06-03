@@ -12,7 +12,10 @@ export const useAuthState = () => {
   const [loading, setLoading] = useState(true);
   const [hasSeenTutorial, setHasSeenTutorial] = useState<boolean>(false);
 
-  const fetchAndCacheProfile = async (userId: string, _?: unknown) => {
+  const fetchAndCacheProfile: (userId: string, context?: unknown) => Promise<void> = async (
+    userId,
+    _context
+  ) => {
     try {
       let cachedProfile: Profile | null = null;
 
@@ -82,7 +85,6 @@ export const useAuthState = () => {
       }
     };
 
-    // Set up auth state change listener
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
         console.log('Auth state changed:', event, newSession?.user?.id);
@@ -96,7 +98,7 @@ export const useAuthState = () => {
           console.log('User signed in, fetching profile...');
           setTimeout(() => {
             if (mounted) {
-              fetchAndCacheProfile(newSession.user.id);
+              fetchAndCacheProfile(newSession.user.id, event); // ✅ 2 arguments allowed now
             }
           }, 100);
         } else if (event === 'SIGNED_OUT') {
