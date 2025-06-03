@@ -20,6 +20,7 @@ export default function UnifiedAuthCallbackHandler() {
         const state = searchParams.get('state');
         const error = searchParams.get('error');
         const scope = searchParams.get('scope');
+        const type = searchParams.get('type'); // Magic link includes type=magiclink
 
         // Handle OAuth errors
         if (error) {
@@ -34,12 +35,63 @@ export default function UnifiedAuthCallbackHandler() {
         }
 
         // Determine the type of callback
-        const isSupabaseAuth = !scope && !state;
+        const isMagicLink = type === 'magiclink' || searchParams.has('token_hash');
+        const isSupabaseAuth = !scope && !state && !isMagicLink;
         const isGoogleIntegration = scope && (scope.includes('gmail') || scope.includes('calendar'));
         const isTwitterIntegration = state && localStorage.getItem('twitter_auth_state') === state;
 
-        if (isSupabaseAuth) {
-          // Handle standard Supabase authentication
+        if (isMagicLink) {
+          // Handle magic link authentication
+          console.log('Processing magic link authentication...');
+          
+          try {
+            // For magic links, Supabase automatically handles the session exchange
+            // We just need to verify the session was established
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+            
+            if (sessionError) {
+              console.error('Magic link session error:', sessionError);
+              toast({
+                title: "Authentication Failed",
+                description: "Failed to complete magic link sign in. Please try again.",
+                variant: "destructive",
+              });
+              navigate("/signin", { replace: true });
+              return;
+            }
+
+            if (session?.user) {
+              console.log('Magic link authentication successful:', session.user.email);
+              
+              toast({
+                title: "Welcome!",
+                description: "You have been signed in successfully via magic link.",
+              });
+
+              // Navigate to home page after successful magic link authentication
+              setTimeout(() => {
+                navigate("/", { replace: true });
+              }, 1000);
+            } else {
+              console.warn('No session found after magic link');
+              toast({
+                title: "Authentication Failed", 
+                description: "Magic link authentication failed. Please try again.",
+                variant: "destructive",
+              });
+              navigate("/signin", { replace: true });
+            }
+          } catch (magicLinkError) {
+            console.error('Magic link callback error:', magicLinkError);
+            toast({
+              title: "Authentication Error",
+              description: "Failed to complete magic link authentication. Please try again.",
+              variant: "destructive",
+            });
+            navigate("/signin", { replace: true });
+          }
+        } else if (isSupabaseAuth) {
+          // Handle standard Supabase authentication (OAuth providers like Google)
           if (!code) {
             console.warn('No auth code found for Supabase auth');
             navigate("/signin", { replace: true });
@@ -47,7 +99,7 @@ export default function UnifiedAuthCallbackHandler() {
           }
 
           try {
-            console.log('Processing Supabase auth callback...');
+            console.log('Processing Supabase OAuth callback...');
             
             const { data, error: authError } = await supabase.auth.exchangeCodeForSession(window.location.href);
 
@@ -63,7 +115,7 @@ export default function UnifiedAuthCallbackHandler() {
             }
 
             if (data?.session?.user) {
-              console.log('Authentication successful, user:', data.session.user.email);
+              console.log('OAuth authentication successful, user:', data.session.user.email);
               
               toast({
                 title: "Welcome!",
