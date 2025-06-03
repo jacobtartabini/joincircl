@@ -13,7 +13,7 @@ export const useAuthState = () => {
   const [loading, setLoading] = useState(true);
   const [hasSeenTutorial, setHasSeenTutorial] = useState<boolean>(false);
 
-  const fetchAndCacheProfile = async (userId: string) => {
+  const fetchAndCacheProfile = async (userId: string, _?: unknown) => {
     try {
       let cachedProfile: Profile | null = null;
 
@@ -90,14 +90,11 @@ export const useAuthState = () => {
 
         if (!mounted) return;
 
-        // Update state immediately
         setSession(newSession);
         setUser(newSession?.user ?? null);
 
-        // Handle different auth events
         if (event === 'SIGNED_IN' && newSession?.user) {
           console.log('User signed in, fetching profile...');
-          // Use setTimeout to avoid potential callback deadlocks
           setTimeout(() => {
             if (mounted) {
               fetchAndCacheProfile(newSession.user.id);
@@ -111,14 +108,12 @@ export const useAuthState = () => {
           console.log('Token refreshed for user:', newSession.user.id);
         }
 
-        // Always set loading to false after handling auth state changes
         if (mounted) {
           setLoading(false);
         }
       }
     );
 
-    // Initialize auth after setting up listener
     initializeAuth();
 
     return () => {
