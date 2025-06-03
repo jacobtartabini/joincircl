@@ -94,7 +94,7 @@ const ProfileTab = () => {
                   {profile?.last_name?.charAt(0) || ''}
                 </AvatarFallback>
               </Avatar>
-              <button onClick={handlePhotoUpload} disabled={uploading} className="absolute -bottom-1 -right-1 p-1.5 bg-white border border-gray-200 rounded-full shadow-sm hover:bg-gray-50 transition-colors disabled:opacity-50 text-base py-[6px]">
+              <button onClick={handlePhotoUpload} disabled={uploading} className="absolute -bottom-1 -right-1 p-1.5 bg-white border border-gray-200 rounded-full shadow-sm hover:bg-gray-50 transition-colors disabled:opacity-50 text-base px-[3px] py-[3px] font-normal">
                 {uploading ? <Loader2 className="h-3 w-3 animate-spin text-gray-600" /> : <Camera className="h-3 w-3 text-gray-600" />}
               </button>
             </div>
