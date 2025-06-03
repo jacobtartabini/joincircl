@@ -1,10 +1,13 @@
 
 import { ReactNode } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { cn } from "@/lib/utils";
+import { useContacts } from "@/hooks/use-contacts";
+import { useGlobalAI } from "@/hooks/use-global-ai";
 import DesktopNav from "./DesktopNav";
 import MobileNav from "./MobileNav";
 import TopStatusBar from "./TopStatusBar";
+import GlobalAIAssistant from "@/components/ai/GlobalAIAssistant";
+import AIFloatingButton from "@/components/ai/AIFloatingButton";
 
 interface MobileOptimizedLayoutProps {
   children: ReactNode;
@@ -12,6 +15,8 @@ interface MobileOptimizedLayoutProps {
 
 export function MobileOptimizedLayout({ children }: MobileOptimizedLayoutProps) {
   const isMobile = useIsMobile();
+  const { contacts } = useContacts();
+  const { isOpen, isMinimized, toggleOpen, minimize } = useGlobalAI();
 
   if (isMobile) {
     return (
@@ -23,6 +28,19 @@ export function MobileOptimizedLayout({ children }: MobileOptimizedLayoutProps) 
           </div>
         </main>
         <MobileNav />
+        
+        {/* AI Assistant for mobile - only show floating button */}
+        <AIFloatingButton 
+          onClick={toggleOpen}
+          isActive={isOpen}
+        />
+        <GlobalAIAssistant
+          contacts={contacts}
+          isOpen={isOpen}
+          onToggle={toggleOpen}
+          isMinimized={isMinimized}
+          onMinimize={minimize}
+        />
       </div>
     );
   }
@@ -40,6 +58,19 @@ export function MobileOptimizedLayout({ children }: MobileOptimizedLayoutProps) 
           </div>
         </main>
       </div>
+      
+      {/* Global AI Assistant for desktop */}
+      <AIFloatingButton 
+        onClick={toggleOpen}
+        isActive={isOpen}
+      />
+      <GlobalAIAssistant
+        contacts={contacts}
+        isOpen={isOpen}
+        onToggle={toggleOpen}
+        isMinimized={isMinimized}
+        onMinimize={minimize}
+      />
     </div>
   );
 }
