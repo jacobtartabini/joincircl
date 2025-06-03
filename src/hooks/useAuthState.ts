@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -29,7 +28,7 @@ export const useAuthState = () => {
 
       if (navigator.onLine) {
         const data = await authService.fetchProfile(userId);
-        
+
         if (data) {
           setProfile(data);
           setHasSeenTutorial(data.has_seen_tutorial || false);
@@ -51,7 +50,10 @@ export const useAuthState = () => {
 
     const initializeAuth = async () => {
       try {
-        const { data: { session: initialSession }, error } = await supabase.auth.getSession();
+        const {
+          data: { session: initialSession },
+          error,
+        } = await supabase.auth.getSession();
 
         if (error) {
           console.error('Error getting initial session:', error);
@@ -74,7 +76,7 @@ export const useAuthState = () => {
       }
     };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    const { data: subscription } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
         console.log('Auth state changed:', event, newSession?.user?.id);
 
@@ -102,7 +104,7 @@ export const useAuthState = () => {
 
     return () => {
       mounted = false;
-      subscription.unsubscribe();
+      subscription?.unsubscribe();
     };
   }, []);
 
