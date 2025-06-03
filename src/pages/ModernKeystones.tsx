@@ -168,7 +168,7 @@ export default function ModernKeystones() {
   }
   return <div className="h-full flex flex-col bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b px-6 py-4">
+      <div className="bg-white border-b px-6 py-4 rounded-2xl">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Keystones</h1>
