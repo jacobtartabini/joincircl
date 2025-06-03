@@ -52,7 +52,6 @@ export const useAuthState = () => {
       try {
         console.log('Initializing auth state...');
         
-        // Check for stored session on web
         if (typeof window !== 'undefined') {
           try {
             const storedSession = localStorage.getItem('supabase.auth.token');
@@ -107,7 +106,6 @@ export const useAuthState = () => {
         if (event === 'SIGNED_IN' && newSession?.user) {
           console.log('User signed in, fetching profile...');
           
-          // Store session on web
           if (typeof window !== 'undefined' && newSession) {
             try {
               localStorage.setItem('supabase.auth.token', JSON.stringify(newSession));
@@ -126,7 +124,6 @@ export const useAuthState = () => {
           setProfile(null);
           setHasSeenTutorial(false);
           
-          // Clear stored session on web
           if (typeof window !== 'undefined') {
             try {
               localStorage.removeItem('supabase.auth.token');
@@ -137,7 +134,6 @@ export const useAuthState = () => {
         } else if (event === 'TOKEN_REFRESHED' && newSession?.user) {
           console.log('Token refreshed for user:', newSession.user.id);
           
-          // Update stored session on web
           if (typeof window !== 'undefined' && newSession) {
             try {
               localStorage.setItem('supabase.auth.token', JSON.stringify(newSession));
