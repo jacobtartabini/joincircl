@@ -60,7 +60,7 @@ export function RequireAuth({ children, requiredPermission }: RequireAuthProps) 
         return;
       }
 
-      console.log('RequireAuth: auth check passed');
+      console.log('RequireAuth: auth check passed, user is authenticated');
       setIsChecking(false);
     };
 

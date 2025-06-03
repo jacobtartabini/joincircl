@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext } from 'react';
 import { AuthContextProps } from '@/types/auth';
 import { useAuthState } from '@/hooks/useAuthState';
@@ -18,11 +19,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   } = useAuthState();
 
   const signIn = async (email: string, password: string) => {
-    console.log('AuthContext: signIn called');
+    console.log('AuthContext: signIn called for', email);
     setLoading(true);
     try {
       const result = await authService.signIn(email, password);
-      console.log('AuthContext: signIn result:', result);
+      console.log('AuthContext: signIn result:', result.error ? 'error' : 'success');
+      
+      if (!result.error) {
+        console.log('AuthContext: Sign in successful, user should be authenticated');
+      }
+      
       return result;
     } catch (error) {
       console.error('AuthContext: signIn error:', error);

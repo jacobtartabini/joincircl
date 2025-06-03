@@ -42,9 +42,11 @@ export default function SignIn() {
     checkAuthStatus();
   }, []);
 
+  // Redirect if user is already authenticated
   if (user) {
     return <Navigate to="/" replace />;
   }
+
   if (isCheckingAuth) {
     return <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
         <div className="text-center">
@@ -57,45 +59,81 @@ export default function SignIn() {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError(null);
+    
     if (!email || !password) {
       setAuthError("Please fill in all fields");
       return;
     }
-    setIsLoading(true);
-    try {
-      console.log('Starting sign in process...');
 
-      // First try to sign in with 2FA verification
-      try {
-        const result = await verifyLogin2FA(email, password, totpCode || '000000');
-        if (result.requires2FA && !totpCode) {
+    setIsLoading(true);
+    
+    try {
+      console.log('Starting sign in process for:', email);
+
+      // If 2FA is required and we have a TOTP code, try 2FA verification
+      if (requires2FA && totpCode) {
+        console.log('Attempting 2FA verification...');
+        const result = await verifyLogin2FA(email, password, totpCode);
+        console.log('2FA verification successful');
+        
+        toast({
+          title: "Welcome back!",
+          description: "You have been signed in successfully.",
+        });
+        
+        navigate("/");
+        return;
+      }
+
+      // Otherwise, try regular sign-in first
+      console.log('Attempting regular sign in...');
+      const { error: signInError } = await signIn(email, password);
+      
+      if (signInError) {
+        console.error('Sign in error:', signInError);
+        
+        // Check if this is a 2FA required error
+        if (signInError.message && signInError.message.includes('2FA')) {
+          console.log('2FA required for this account');
           setRequires2FA(true);
+          setAuthError("This account has 2FA enabled. Please enter your verification code.");
           setIsLoading(false);
           return;
         }
-        console.log('2FA login successful, redirecting...');
-        navigate("/");
-      } catch (error: any) {
-        console.log('2FA verification failed, trying regular sign in...');
-        // If 2FA verification fails, try regular sign in (for users without 2FA)
-        if (!requires2FA) {
-          const {
-            error: signInError
-          } = await signIn(email, password);
-          if (signInError) {
-            console.error('Regular sign in failed:', signInError);
-            setAuthError(getErrorMessage(signInError));
-          } else {
-            console.log('Regular sign in successful, redirecting...');
-            navigate("/");
+        
+        // Try 2FA verification as fallback for accounts that might have 2FA
+        try {
+          console.log('Trying 2FA verification as fallback...');
+          const result = await verifyLogin2FA(email, password, '000000');
+          
+          if (result.requires2FA) {
+            console.log('Account requires 2FA');
+            setRequires2FA(true);
+            setAuthError("This account has 2FA enabled. Please enter your verification code.");
+            setIsLoading(false);
+            return;
           }
-        } else {
-          console.error('2FA required but verification failed:', error);
-          setAuthError(getErrorMessage(error));
+        } catch (twoFAError) {
+          console.log('2FA verification failed, showing original error');
+          // Show the original sign-in error
+          setAuthError(getErrorMessage(signInError));
+          setIsLoading(false);
+          return;
         }
+        
+        setAuthError(getErrorMessage(signInError));
+      } else {
+        console.log('Regular sign in successful');
+        
+        toast({
+          title: "Welcome back!",
+          description: "You have been signed in successfully.",
+        });
+        
+        navigate("/");
       }
     } catch (error: any) {
-      console.error("Error signing in:", error);
+      console.error("Unexpected error during sign in:", error);
       setAuthError(getErrorMessage(error));
     } finally {
       setIsLoading(false);
@@ -111,6 +149,12 @@ export default function SignIn() {
     setAuthError(null);
     try {
       await verifyLogin2FA(email, password, backupCode, true);
+      
+      toast({
+        title: "Welcome back!",
+        description: "You have been signed in successfully.",
+      });
+      
       navigate("/");
     } catch (error: any) {
       console.error("Error signing in with backup code:", error);
@@ -257,9 +301,9 @@ export default function SignIn() {
                     <span>Signing in as {email}</span>
                   </div>}
 
-                {!showBackupCodeInput ?
-            // TOTP code input
-            <div className="space-y-6">
+                {!showBackupCodeInput ? (
+                  // TOTP code input
+                  <div className="space-y-6">
                     <div className="text-center space-y-4">
                       <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
                         <Shield className="h-8 w-8 text-green-600" />
@@ -293,9 +337,10 @@ export default function SignIn() {
                         Use backup code instead
                       </Button>
                     </div>
-                  </div> :
-            // Backup code input
-            <div className="space-y-6">
+                  </div>
+                ) : (
+                  // Backup code input
+                  <div className="space-y-6">
                     <div className="text-center space-y-4">
                       <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
                         <Shield className="h-8 w-8 text-blue-600" />
@@ -321,7 +366,8 @@ export default function SignIn() {
                         Use authenticator app instead
                       </Button>
                     </div>
-                  </div>}
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
