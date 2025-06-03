@@ -49,6 +49,7 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    overflow-x: hidden;
   }
   
   h1, h2, h3, h4, h5, h6 {
@@ -274,6 +275,27 @@
   .timeline-item:last-child::after {
     @apply h-0;
   }
+  
+  /* Panel Header and Content Classes */
+  .panel-header {
+    @apply bg-white border-b border-gray-100 p-6 flex-shrink-0;
+  }
+  
+  .panel-content {
+    @apply flex-1 overflow-y-auto bg-white;
+    scroll-behavior: smooth;
+  }
+  
+  /* Ensure proper scrolling containers */
+  .scrollable-container {
+    @apply overflow-hidden;
+    height: 100vh;
+  }
+  
+  .scrollable-content {
+    @apply h-full overflow-y-auto;
+    scroll-behavior: smooth;
+  }
 }
 
 /* Enhanced keyframes */
@@ -365,6 +387,18 @@
     @apply grid gap-6 md:gap-8 lg:gap-10;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr));
   }
+  
+  /* Scrolling fixes */
+  .enable-scroll {
+    overflow-y: auto !important;
+    height: auto !important;
+    max-height: 100vh;
+  }
+  
+  .full-height-scroll {
+    height: 100vh;
+    overflow-y: auto;
+  }
 }
 
 /* Enhanced device-specific optimizations */
@@ -401,4 +435,48 @@
   .card-hover {
     @apply border-2 border-gray-400;
   }
+}
+
+/* Global button styling improvements */
+button {
+  @apply transition-all duration-200 font-medium;
+}
+
+button:hover {
+  @apply transform-gpu;
+}
+
+/* Input styling improvements */
+input, textarea, select {
+  @apply transition-all duration-200;
+}
+
+input:focus, textarea:focus, select:focus {
+  @apply ring-2 ring-blue-500/20 border-blue-400;
+}
+
+/* Card and panel improvements */
+.card, .panel {
+  @apply bg-white border border-gray-100 shadow-sm transition-all duration-200;
+}
+
+/* Ensure all pages can scroll properly */
+html, body, #root {
+  height: 100%;
+  overflow-x: hidden;
+}
+
+#root > div {
+  min-height: 100vh;
+}
+
+/* Fix specific layout containers */
+.layout-container {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.layout-content {
+  height: calc(100vh - 80px);
+  overflow-y: auto;
 }

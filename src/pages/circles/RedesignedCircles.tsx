@@ -1,3 +1,4 @@
+
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCirclesState } from "./hooks/useCirclesState";
@@ -10,11 +11,14 @@ import { EditContactDialog } from "./dialogs/EditContactDialog";
 import { InteractionDialog } from "./dialogs/InteractionDialog";
 import { InsightsDialog } from "./dialogs/InsightsDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ScrollArea } from "@/components/ui/scroll-area";
+
 export default function RedesignedCircles() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [searchParams] = useSearchParams();
   const tagFilter = searchParams.get('tag');
+
   const {
     contacts,
     isLoading,
@@ -85,11 +89,16 @@ export default function RedesignedCircles() {
   // Filter and sort contacts
   const filteredSortedContacts = useMemo(() => {
     if (!contacts) return [];
+    
     let result = contacts.filter(contact => {
       // Search query filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
-        const matchesSearch = contact.name?.toLowerCase().includes(query) || contact.personal_email?.toLowerCase().includes(query) || contact.company_name?.toLowerCase().includes(query) || contact.job_title?.toLowerCase().includes(query);
+        const matchesSearch = 
+          contact.name?.toLowerCase().includes(query) || 
+          contact.personal_email?.toLowerCase().includes(query) || 
+          contact.company_name?.toLowerCase().includes(query) || 
+          contact.job_title?.toLowerCase().includes(query);
         if (!matchesSearch) return false;
       }
 
@@ -107,6 +116,7 @@ export default function RedesignedCircles() {
       }
       return true;
     });
+
     return [...result].sort((a, b) => {
       if (sortBy === "name") {
         return a.name.localeCompare(b.name);
@@ -122,81 +132,174 @@ export default function RedesignedCircles() {
   // Mock interactions for selected contact
   const selectedContactInteractions = useMemo(() => {
     if (!selectedContact) return [];
-    return [{
-      id: "int1",
-      user_id: "user1",
-      contact_id: selectedContact.id,
-      type: "Meeting",
-      notes: "Discussed project timeline and deliverables",
-      date: new Date().toISOString(),
-      created_at: new Date().toISOString()
-    }, {
-      id: "int2",
-      user_id: "user1",
-      contact_id: selectedContact.id,
-      type: "Email",
-      notes: "Sent follow-up email with meeting notes",
-      date: new Date(Date.now() - 86400000).toISOString(),
-      created_at: new Date(Date.now() - 86400000).toISOString()
-    }, {
-      id: "int3",
-      user_id: "user1",
-      contact_id: selectedContact.id,
-      type: "Phone",
-      notes: "Quick call to discuss budget changes",
-      date: new Date(Date.now() - 172800000).toISOString(),
-      created_at: new Date(Date.now() - 172800000).toISOString()
-    }];
+    return [
+      {
+        id: "int1",
+        user_id: "user1",
+        contact_id: selectedContact.id,
+        type: "Meeting",
+        notes: "Discussed project timeline and deliverables",
+        date: new Date().toISOString(),
+        created_at: new Date().toISOString()
+      },
+      {
+        id: "int2",
+        user_id: "user1",
+        contact_id: selectedContact.id,
+        type: "Email",
+        notes: "Sent follow-up email with meeting notes",
+        date: new Date(Date.now() - 86400000).toISOString(),
+        created_at: new Date(Date.now() - 86400000).toISOString()
+      },
+      {
+        id: "int3",
+        user_id: "user1",
+        contact_id: selectedContact.id,
+        type: "Phone",
+        notes: "Quick call to discuss budget changes",
+        date: new Date(Date.now() - 172800000).toISOString(),
+        created_at: new Date(Date.now() - 172800000).toISOString()
+      }
+    ];
   }, [selectedContact]);
+
   if (isMobile) {
-    return <div className="h-full flex flex-col animate-fade-in">
+    return (
+      <div className="h-full flex flex-col animate-fade-in">
         <div className="panel-header">
-          <CirclesFilter searchQuery={searchQuery} onSearchChange={setSearchQuery} onAddContact={() => setIsAddDialogOpen(true)} onSort={setSortBy} onFilter={setFilterBy} activeTagFilter={tagFilter} />
+          <CirclesFilter
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            onAddContact={() => setIsAddDialogOpen(true)}
+            onSort={setSortBy}
+            onFilter={setFilterBy}
+            activeTagFilter={tagFilter}
+          />
         </div>
-        <div className="panel-content">
-          <CirclesList contacts={filteredSortedContacts} isLoading={isLoading} onSelectContact={handleSelectContact} selectedContactId={selectedContactId} />
-        </div>
+        <ScrollArea className="flex-1">
+          <div className="p-4">
+            <CirclesList
+              contacts={filteredSortedContacts}
+              isLoading={isLoading}
+              onSelectContact={handleSelectContact}
+              selectedContactId={selectedContactId}
+            />
+          </div>
+        </ScrollArea>
         
         {/* Dialogs */}
-        <AddContactDialog isOpen={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} onSuccess={fetchContacts} />
+        <AddContactDialog
+          isOpen={isAddDialogOpen}
+          onOpenChange={setIsAddDialogOpen}
+          onSuccess={fetchContacts}
+        />
         
-        <EditContactDialog isOpen={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} contact={initialSelectedContact} onSuccess={fetchContacts} onCancel={() => setIsEditDialogOpen(false)} />
+        <EditContactDialog
+          isOpen={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          contact={initialSelectedContact}
+          onSuccess={fetchContacts}
+          onCancel={() => setIsEditDialogOpen(false)}
+        />
         
-        <InteractionDialog isOpen={isInteractionDialogOpen} onOpenChange={setIsInteractionDialogOpen} contact={initialSelectedContact} onSuccess={fetchContacts} onCancel={() => setIsInteractionDialogOpen(false)} />
+        <InteractionDialog
+          isOpen={isInteractionDialogOpen}
+          onOpenChange={setIsInteractionDialogOpen}
+          contact={initialSelectedContact}
+          onSuccess={fetchContacts}
+          onCancel={() => setIsInteractionDialogOpen(false)}
+        />
         
-        <InsightsDialog isOpen={isInsightsDialogOpen} onOpenChange={setIsInsightsDialogOpen} contact={initialSelectedContact} />
-      </div>;
+        <InsightsDialog
+          isOpen={isInsightsDialogOpen}
+          onOpenChange={setIsInsightsDialogOpen}
+          contact={initialSelectedContact}
+        />
+      </div>
+    );
   }
-  return <div className="h-full animate-fade-in flex overflow-hidden">
+
+  return (
+    <div className="h-full animate-fade-in flex overflow-hidden bg-gray-50">
       {/* Middle Panel - Contact List */}
-      <div className="flex-1 flex flex-col border-r overflow-hidden min-w-0">
-        <div className="panel-header">
-          <CirclesFilter searchQuery={searchQuery} onSearchChange={setSearchQuery} onAddContact={() => setIsAddDialogOpen(true)} onSort={setSortBy} onFilter={setFilterBy} activeTagFilter={tagFilter} />
+      <div className="flex-1 flex flex-col bg-white border-r border-gray-200 overflow-hidden min-w-0">
+        <div className="panel-header border-b border-gray-100">
+          <CirclesFilter
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            onAddContact={() => setIsAddDialogOpen(true)}
+            onSort={setSortBy}
+            onFilter={setFilterBy}
+            activeTagFilter={tagFilter}
+          />
         </div>
-        <div className="panel-content">
-          <CirclesList contacts={filteredSortedContacts} isLoading={isLoading} onSelectContact={handleSelectContact} selectedContactId={selectedContactId} />
-        </div>
+        <ScrollArea className="flex-1">
+          <div className="p-6">
+            <CirclesList
+              contacts={filteredSortedContacts}
+              isLoading={isLoading}
+              onSelectContact={handleSelectContact}
+              selectedContactId={selectedContactId}
+            />
+          </div>
+        </ScrollArea>
       </div>
       
       {/* Right Panel - Contact Details */}
-      <div className="w-80 flex-shrink-0 overflow-hidden">
-        {selectedContact ? <EnhancedContactDetail contact={selectedContact} interactions={selectedContactInteractions} onEdit={handleEditContact} onDelete={handleDeleteContact} onViewAll={handleViewAllDetails} /> : <div className="flex items-center justify-center h-full p-6 text-muted-foreground rounded-2xl">
-            <div className="text-center max-w-sm">
-              <h3 className="text-lg font-medium mb-2">No contact selected</h3>
-              <p className="text-sm leading-relaxed">
-                Select someone from the list to view their details, or add a new person to your circles.
+      <div className="w-96 flex-shrink-0 overflow-hidden bg-white">
+        {selectedContact ? (
+          <EnhancedContactDetail
+            contact={selectedContact}
+            interactions={selectedContactInteractions}
+            onEdit={handleEditContact}
+            onDelete={handleDeleteContact}
+            onViewAll={handleViewAllDetails}
+          />
+        ) : (
+          <div className="flex items-center justify-center h-full p-8 text-center">
+            <div className="max-w-sm">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No contact selected</h3>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Select someone from your circles to view their details, or add a new person to get started.
               </p>
             </div>
-          </div>}
+          </div>
+        )}
       </div>
       
       {/* Dialogs */}
-      <AddContactDialog isOpen={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} onSuccess={fetchContacts} />
+      <AddContactDialog
+        isOpen={isAddDialogOpen}
+        onOpenChange={setIsAddDialogOpen}
+        onSuccess={fetchContacts}
+      />
       
-      <EditContactDialog isOpen={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} contact={initialSelectedContact} onSuccess={fetchContacts} onCancel={() => setIsEditDialogOpen(false)} />
+      <EditContactDialog
+        isOpen={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        contact={initialSelectedContact}
+        onSuccess={fetchContacts}
+        onCancel={() => setIsEditDialogOpen(false)}
+      />
       
-      <InteractionDialog isOpen={isInteractionDialogOpen} onOpenChange={setIsInteractionDialogOpen} contact={initialSelectedContact} onSuccess={fetchContacts} onCancel={() => setIsInteractionDialogOpen(false)} />
+      <InteractionDialog
+        isOpen={isInteractionDialogOpen}
+        onOpenChange={setIsInteractionDialogOpen}
+        contact={initialSelectedContact}
+        onSuccess={fetchContacts}
+        onCancel={() => setIsInteractionDialogOpen(false)}
+      />
       
-      <InsightsDialog isOpen={isInsightsDialogOpen} onOpenChange={setIsInsightsDialogOpen} contact={initialSelectedContact} />
-    </div>;
+      <InsightsDialog
+        isOpen={isInsightsDialogOpen}
+        onOpenChange={setIsInsightsDialogOpen}
+        contact={initialSelectedContact}
+      />
+    </div>
+  );
 }
