@@ -64,7 +64,7 @@ const ModernHomeContent: React.FC = () => {
 
         {/* Quick Actions */}
         <div className="flex gap-3">
-          <Button onClick={handleAddContact} className="rounded-full px-6 py-2 text-white transition-colors bg-circl-lightBlue">
+          <Button onClick={handleAddContact} className="rounded-full px-6 py-2 text-white transition-colors bg-[#0daeec]">
             <Plus className="h-4 w-4 mr-2" />
             Add Contact
           </Button>
