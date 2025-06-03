@@ -13,10 +13,7 @@ export const useAuthState = () => {
   const [loading, setLoading] = useState(true);
   const [hasSeenTutorial, setHasSeenTutorial] = useState<boolean>(false);
 
-  const fetchAndCacheProfile: (userId: string, context?: unknown) => Promise<void> = async (
-    userId,
-    _context
-  ) => {
+  const fetchAndCacheProfile = async (userId: string, _context?: unknown): Promise<void> => {
     try {
       let cachedProfile: Profile | null = null;
 
