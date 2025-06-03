@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +10,6 @@ import { keystoneService } from "@/services/keystoneService";
 import { Keystone } from "@/types/keystone";
 import { Contact } from "@/types/contact";
 import { format } from "date-fns";
-
 interface KeystoneFormProps {
   keystone?: Keystone | null;
   contacts?: Contact[];
@@ -19,8 +17,13 @@ interface KeystoneFormProps {
   onSuccess: () => void;
   onCancel: () => void;
 }
-
-function KeystoneForm({ keystone, contacts = [], contact, onSuccess, onCancel }: KeystoneFormProps) {
+function KeystoneForm({
+  keystone,
+  contacts = [],
+  contact,
+  onSuccess,
+  onCancel
+}: KeystoneFormProps) {
   const [formData, setFormData] = useState({
     title: "",
     date: "",
@@ -49,24 +52,28 @@ function KeystoneForm({ keystone, contacts = [], contact, onSuccess, onCancel }:
       });
     } else if (contact) {
       // Pre-select the contact if creating a new keystone for a specific contact
-      setFormData(prev => ({ ...prev, contact_id: contact.id }));
+      setFormData(prev => ({
+        ...prev,
+        contact_id: contact.id
+      }));
     }
   }, [keystone, contact, defaultContactId]);
-
   const createMutation = useMutation({
     mutationFn: keystoneService.createKeystone,
     onSuccess: onSuccess
   });
-
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Keystone> }) =>
-      keystoneService.updateKeystone(id, data),
+    mutationFn: ({
+      id,
+      data
+    }: {
+      id: string;
+      data: Partial<Keystone>;
+    }) => keystoneService.updateKeystone(id, data),
     onSuccess: onSuccess
   });
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
     const keystoneData = {
       title: formData.title,
       date: new Date(formData.date).toISOString(),
@@ -76,47 +83,36 @@ function KeystoneForm({ keystone, contacts = [], contact, onSuccess, onCancel }:
       recurrence_frequency: formData.is_recurring ? formData.recurrence_frequency : undefined,
       notes: formData.notes || undefined
     };
-
     if (keystone) {
-      updateMutation.mutate({ id: keystone.id, data: keystoneData });
+      updateMutation.mutate({
+        id: keystone.id,
+        data: keystoneData
+      });
     } else {
       createMutation.mutate(keystoneData);
     }
   };
-
   const handleChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
-
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+  return <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="title">Title *</Label>
-        <Input
-          id="title"
-          value={formData.title}
-          onChange={(e) => handleChange("title", e.target.value)}
-          placeholder="Enter keystone title"
-          required
-        />
+        <Input id="title" value={formData.title} onChange={e => handleChange("title", e.target.value)} placeholder="Enter keystone title" required className="rounded-full" />
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="date">Date *</Label>
-        <Input
-          id="date"
-          type="date"
-          value={formData.date}
-          onChange={(e) => handleChange("date", e.target.value)}
-          required
-        />
+        <Input id="date" type="date" value={formData.date} onChange={e => handleChange("date", e.target.value)} required className="rounded-full" />
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="category">Category</Label>
-        <Select value={formData.category} onValueChange={(value) => handleChange("category", value)}>
+        <Select value={formData.category} onValueChange={value => handleChange("category", value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select a category" />
           </SelectTrigger>
@@ -133,43 +129,31 @@ function KeystoneForm({ keystone, contacts = [], contact, onSuccess, onCancel }:
         </Select>
       </div>
 
-      {availableContacts.length > 0 && (
-        <div className="space-y-2">
+      {availableContacts.length > 0 && <div className="space-y-2">
           <Label htmlFor="contact">Associated Contact</Label>
-          <Select value={formData.contact_id} onValueChange={(value) => handleChange("contact_id", value)}>
+          <Select value={formData.contact_id} onValueChange={value => handleChange("contact_id", value)}>
             <SelectTrigger>
               <SelectValue placeholder="Select a contact (optional)" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="none">No contact</SelectItem>
-              {availableContacts.map((contact) => (
-                <SelectItem key={contact.id} value={contact.id}>
+              {availableContacts.map(contact => <SelectItem key={contact.id} value={contact.id}>
                   {contact.name}
-                </SelectItem>
-              ))}
+                </SelectItem>)}
             </SelectContent>
           </Select>
-        </div>
-      )}
+        </div>}
 
       <div className="space-y-2">
         <div className="flex items-center space-x-2">
-          <Checkbox
-            id="recurring"
-            checked={formData.is_recurring}
-            onCheckedChange={(checked) => handleChange("is_recurring", checked)}
-          />
-          <Label htmlFor="recurring">Recurring keystone</Label>
+          <Checkbox id="recurring" checked={formData.is_recurring} onCheckedChange={checked => handleChange("is_recurring", checked)} />
+          <Label htmlFor="recurring">Recurring</Label>
         </div>
       </div>
 
-      {formData.is_recurring && (
-        <div className="space-y-2">
+      {formData.is_recurring && <div className="space-y-2">
           <Label htmlFor="frequency">Recurrence Frequency</Label>
-          <Select 
-            value={formData.recurrence_frequency} 
-            onValueChange={(value) => handleChange("recurrence_frequency", value)}
-          >
+          <Select value={formData.recurrence_frequency} onValueChange={value => handleChange("recurrence_frequency", value)}>
             <SelectTrigger>
               <SelectValue placeholder="Select frequency" />
             </SelectTrigger>
@@ -180,30 +164,21 @@ function KeystoneForm({ keystone, contacts = [], contact, onSuccess, onCancel }:
               <SelectItem value="Yearly">Yearly</SelectItem>
             </SelectContent>
           </Select>
-        </div>
-      )}
+        </div>}
 
       <div className="space-y-2">
         <Label htmlFor="notes">Notes</Label>
-        <Textarea
-          id="notes"
-          value={formData.notes}
-          onChange={(e) => handleChange("notes", e.target.value)}
-          placeholder="Add any additional notes..."
-          rows={3}
-        />
+        <Textarea id="notes" value={formData.notes} onChange={e => handleChange("notes", e.target.value)} placeholder="Add any additional notes..." rows={3} className="rounded-2xl" />
       </div>
 
       <div className="flex justify-end gap-3 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
+        <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting} className="rounded-full">
           Cancel
         </Button>
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" disabled={isSubmitting} className="rounded-full">
           {isSubmitting ? "Saving..." : keystone ? "Update Keystone" : "Create Keystone"}
         </Button>
       </div>
-    </form>
-  );
+    </form>;
 }
-
 export default KeystoneForm;
