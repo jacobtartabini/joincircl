@@ -113,7 +113,7 @@ const ModernHomeContent: React.FC = () => {
                   <ArrowRight className="h-4 w-4 text-gray-400" />
                 </Button>
                 
-                <Button variant="ghost" className="w-full justify-between p-4 h-auto hover:bg-gray-50" onClick={() => navigate('/keystones')}>
+                <Button variant="ghost" onClick={() => navigate('/keystones')} className="w-full justify-between p-4 h-auto hover:bg-gray-50 rounded-full">
                   <div className="flex items-center space-x-3">
                     <Calendar className="h-5 w-5 text-gray-600" />
                     <span className="font-medium">Upcoming Events</span>
@@ -121,7 +121,7 @@ const ModernHomeContent: React.FC = () => {
                   <ArrowRight className="h-4 w-4 text-gray-400" />
                 </Button>
                 
-                <Button variant="ghost" className="w-full justify-between p-4 h-auto hover:bg-gray-50" onClick={() => navigate('/ai-assistant')}>
+                <Button variant="ghost" onClick={() => navigate('/ai-assistant')} className="w-full justify-between p-4 h-auto hover:bg-gray-50 rounded-full">
                   <div className="flex items-center space-x-3">
                     <Brain className="h-5 w-5 text-gray-600" />
                     <span className="font-medium">AI Assistant</span>
