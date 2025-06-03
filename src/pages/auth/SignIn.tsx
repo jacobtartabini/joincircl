@@ -8,7 +8,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { useToast } from "@/hooks/use-toast";
 import { Navigate, Link, useNavigate } from "react-router-dom";
 import { use2FA } from "@/hooks/use2FA";
-import { Shield, ArrowLeft, AlertCircle } from "lucide-react";
+import { Shield, ArrowLeft, AlertCircle, Link2 } from "lucide-react";
 import MagicLinkSignIn from "@/components/auth/MagicLinkSignIn";
 
 export default function SignIn() {
@@ -215,6 +215,7 @@ export default function SignIn() {
                     onClick={() => setShowMagicLink(true)}
                     className="w-full h-12 border-gray-200 hover:bg-gray-50 font-semibold transition-all duration-200 rounded-full"
                   >
+                    <Link2 className="h-5 w-5 mr-3" />
                     Sign in with Magic Link
                   </Button>
 
