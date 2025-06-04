@@ -7,7 +7,6 @@ import EditContactDialog from "@/components/dialogs/EditContactDialog";
 import DeleteContactDialog from "@/components/dialogs/DeleteContactDialog";
 import ContactDetailSkeleton from "@/components/contact/ContactDetailSkeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { cn } from "@/lib/utils";
 import { ContactTimeline } from "@/components/contact/ContactTimeline";
 
 export default function RedesignedContactDetail() {
@@ -40,8 +39,8 @@ export default function RedesignedContactDetail() {
 
   if (isMobile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="bg-white rounded-t-2xl mt-4 shadow-xl border border-gray-200 overflow-hidden animate-fade-in">
+      <div className="min-h-screen bg-gray-50">
+        <div className="h-full">
           <EnhancedContactDetail 
             contact={contact}
             interactions={interactions}
@@ -68,25 +67,27 @@ export default function RedesignedContactDetail() {
     );
   }
 
-  // Desktop two-panel layout
+  // Desktop clean, modern layout
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <div className="max-w-7xl mx-auto p-6">
-        <div className={cn("flex h-[calc(100vh-3rem)] w-full overflow-hidden bg-white rounded-2xl shadow-xl border border-gray-200 animate-fade-in")}>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex h-screen overflow-hidden">
           {/* Contact Timeline Panel - Left/Center */}
-          <div className="flex-1 overflow-hidden min-w-0 max-w-[calc(100%-24rem)] border-r border-gray-200">
+          <div className="flex-1 overflow-hidden min-w-0 max-w-[calc(100%-28rem)]">
             <div className="h-full overflow-y-auto">
-              <ContactTimeline 
-                contact={contact}
-                interactions={interactions}
-                keystones={keystones}
-                contactMedia={contactMedia}
-              />
+              <div className="p-8">
+                <ContactTimeline 
+                  contact={contact}
+                  interactions={interactions}
+                  keystones={keystones}
+                  contactMedia={contactMedia}
+                />
+              </div>
             </div>
           </div>
           
           {/* Contact Detail Panel - Right Side */}
-          <div className="w-96 flex-shrink-0 overflow-hidden">
+          <div className="w-[28rem] flex-shrink-0 bg-white border-l border-gray-100 shadow-sm">
             <EnhancedContactDetail 
               contact={contact}
               interactions={interactions}
