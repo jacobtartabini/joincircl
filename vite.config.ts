@@ -1,4 +1,3 @@
-
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
@@ -240,6 +239,10 @@ export default defineConfig(({ mode }) => ({
       strategies: 'injectManifest',
       srcDir: 'src',
       filename: 'sw.js',
+      injectManifest: {
+        // Increase the maximum file size limit to 4 MB to handle large bundles
+        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024, // 4 MB
+      },
       // Enable push notifications
       devOptions: {
         enabled: true,
