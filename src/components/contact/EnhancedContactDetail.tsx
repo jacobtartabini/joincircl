@@ -37,15 +37,15 @@ export function EnhancedContactDetail({
       {/* Header with Actions */}
       <div className="border-b border-gray-100 p-6 bg-white">
         <div className="flex justify-end gap-2">
-          {onEdit && <Button variant="outline" size="sm" onClick={onEdit} className="h-8 px-3 text-xs font-medium border-gray-200 hover:bg-gray-50 transition-colors">
+          {onEdit && <Button variant="outline" size="sm" onClick={onEdit} className="h-8 px-3 text-xs font-medium border-gray-200 hover:bg-gray-50 transition-colors rounded-full">
               <Edit className="h-3.5 w-3.5 mr-1.5" />
               Edit
             </Button>}
-          {onDelete && <Button variant="outline" size="sm" onClick={onDelete} className="h-8 px-3 text-xs font-medium border-red-200 text-red-600 hover:bg-red-50 transition-colors">
+          {onDelete && <Button variant="outline" size="sm" onClick={onDelete} className="h-8 px-3 text-xs font-medium border-red-200 text-red-600 hover:bg-red-50 transition-colors rounded-full">
               <Trash className="h-3.5 w-3.5 mr-1.5" />
               Delete
             </Button>}
-          {onViewAll && <Button variant="outline" size="sm" onClick={onViewAll} className="h-8 px-3 text-xs font-medium border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors">
+          {onViewAll && <Button variant="outline" size="sm" onClick={onViewAll} className="h-8 px-3 text-xs font-medium border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors rounded-full">
               <Eye className="h-3.5 w-3.5 mr-1.5" />
               View All
             </Button>}
