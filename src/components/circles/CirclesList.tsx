@@ -2,6 +2,7 @@
 import { Contact } from "@/types/contact";
 import { CircleCard } from "./CircleCard";
 import { CircleCardSkeleton } from "./CircleCardSkeleton";
+import { Users } from "lucide-react";
 
 interface CirclesListProps {
   contacts: Contact[];
@@ -18,8 +19,8 @@ export function CirclesList({
 }: CirclesListProps) {
   if (isLoading) {
     return (
-      <div className="space-y-4 animate-pulse">
-        {[...Array(5)].map((_, i) => (
+      <div className="space-y-3">
+        {[...Array(6)].map((_, i) => (
           <CircleCardSkeleton key={i} />
         ))}
       </div>
@@ -28,16 +29,20 @@ export function CirclesList({
 
   if (!contacts || contacts.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12">
-        <p className="text-muted-foreground text-center">
-          No contacts found. Add your first contact to get started.
+      <div className="flex flex-col items-center justify-center py-16 px-4">
+        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+          <Users className="w-8 h-8 text-gray-400" />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">No contacts found</h3>
+        <p className="text-gray-600 text-center max-w-sm leading-relaxed">
+          Add your first contact to get started building your network.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {contacts.map((contact) => (
         <CircleCard
           key={contact.id}

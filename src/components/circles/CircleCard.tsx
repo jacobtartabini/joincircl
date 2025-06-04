@@ -1,3 +1,4 @@
+
 import { Contact } from "@/types/contact";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -5,11 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Calendar, Mail, Phone } from "lucide-react";
 import { format } from "date-fns";
+
 interface CircleCardProps {
   contact: Contact;
   onClick: () => void;
   isSelected: boolean;
 }
+
 export function CircleCard({
   contact,
   onClick,
@@ -27,55 +30,81 @@ export function CircleCard({
     return format(interactionDate, 'MMM d');
   };
 
-  // Determine circle type badge
+  // Determine circle type badge with improved styling
   const getCircleBadge = () => {
     switch (contact.circle) {
       case "inner":
-        return <Badge className="bg-rose-500 text-xs py-0 px-1">Inner</Badge>;
+        return <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs py-0.5 px-2 font-medium">Inner</Badge>;
       case "middle":
-        return <Badge className="bg-amber-500 text-xs py-0 px-1">Middle</Badge>;
+        return <Badge className="bg-amber-500 hover:bg-amber-600 text-white text-xs py-0.5 px-2 font-medium">Middle</Badge>;
       case "outer":
-        return <Badge className="bg-blue-500 text-xs py-0 px-1">Outer</Badge>;
+        return <Badge className="bg-blue-500 hover:bg-blue-600 text-white text-xs py-0.5 px-2 font-medium">Outer</Badge>;
       default:
         return null;
     }
   };
-  return <Card className={cn("cursor-pointer transition-all duration-200 hover:shadow-md contact-card border-0 shadow-sm", isSelected ? "ring-2 ring-primary shadow-md" : "hover:shadow-lg")} onClick={onClick}>
-      <CardContent className="p-3 rounded-2xl">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10 flex-shrink-0">
+
+  return (
+    <Card 
+      className={cn(
+        "cursor-pointer transition-all duration-200 border-0 shadow-sm hover:shadow-md hover:-translate-y-0.5", 
+        isSelected 
+          ? "ring-2 ring-blue-500 shadow-md bg-blue-50/50" 
+          : "hover:shadow-lg bg-white"
+      )} 
+      onClick={onClick}
+    >
+      <CardContent className="p-4">
+        <div className="flex items-center gap-4">
+          <Avatar className="h-12 w-12 flex-shrink-0 border-2 border-white shadow-sm">
             <AvatarImage src={contact.avatar_url || ''} alt={contact.name} />
-            <AvatarFallback className="text-xs font-medium">{getInitials(contact.name)}</AvatarFallback>
+            <AvatarFallback className="text-sm font-semibold bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+              {getInitials(contact.name)}
+            </AvatarFallback>
           </Avatar>
           
           <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-1">
-              <h3 className="font-medium text-sm truncate pr-2">{contact.name}</h3>
-              {getCircleBadge()}
+            <div className="flex items-start justify-between mb-2">
+              <div className="min-w-0 flex-1">
+                <h3 className="font-semibold text-gray-900 truncate text-base mb-1">
+                  {contact.name}
+                </h3>
+                {(contact.job_title || contact.company_name) && (
+                  <p className="text-sm text-gray-600 truncate">
+                    {contact.job_title ? `${contact.job_title}${contact.company_name ? ` at ${contact.company_name}` : ''}` : contact.company_name}
+                  </p>
+                )}
+              </div>
+              <div className="ml-3 flex-shrink-0">
+                {getCircleBadge()}
+              </div>
             </div>
             
-            {(contact.job_title || contact.company_name) && <p className="text-xs text-muted-foreground truncate mb-2">
-                {contact.job_title ? `${contact.job_title}${contact.company_name ? ` at ${contact.company_name}` : ''}` : contact.company_name}
-              </p>}
-            
-            <div className="flex items-center gap-3 text-xs text-muted-foreground">
-              {contact.personal_email && <div className="flex items-center gap-1 min-w-0">
-                  <Mail className="h-3 w-3 flex-shrink-0" />
-                  <span className="truncate max-w-[100px]">{contact.personal_email}</span>
-                </div>}
+            <div className="flex items-center gap-4 text-xs text-gray-500 mt-3">
+              {contact.personal_email && (
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <Mail className="h-3.5 w-3.5 flex-shrink-0 text-gray-400" />
+                  <span className="truncate max-w-[120px]">{contact.personal_email}</span>
+                </div>
+              )}
               
-              {contact.mobile_phone && <div className="flex items-center gap-1">
-                  <Phone className="h-3 w-3 flex-shrink-0" />
+              {contact.mobile_phone && (
+                <div className="flex items-center gap-1.5">
+                  <Phone className="h-3.5 w-3.5 flex-shrink-0 text-gray-400" />
                   <span className="truncate">{contact.mobile_phone}</span>
-                </div>}
+                </div>
+              )}
               
-              {contact.last_contact && <div className="flex items-center gap-1 ml-auto flex-shrink-0">
-                  <Calendar className="h-3 w-3" />
-                  <span>{formatDate(contact.last_contact)}</span>
-                </div>}
+              {contact.last_contact && (
+                <div className="flex items-center gap-1.5 ml-auto flex-shrink-0">
+                  <Calendar className="h-3.5 w-3.5 text-gray-400" />
+                  <span className="font-medium">{formatDate(contact.last_contact)}</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </CardContent>
-    </Card>;
+    </Card>
+  );
 }

@@ -165,27 +165,36 @@ export default function RedesignedCircles() {
 
   if (isMobile) {
     return (
-      <div className="h-full flex flex-col animate-fade-in">
-        <div className="panel-header">
-          <CirclesFilter
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            onAddContact={() => setIsAddDialogOpen(true)}
-            onSort={setSortBy}
-            onFilter={setFilterBy}
-            activeTagFilter={tagFilter}
-          />
-        </div>
-        <ScrollArea className="flex-1">
-          <div className="p-4">
-            <CirclesList
-              contacts={filteredSortedContacts}
-              isLoading={isLoading}
-              onSelectContact={handleSelectContact}
-              selectedContactId={selectedContactId}
-            />
+      <div className="min-h-screen bg-gray-50/50">
+        <div className="h-screen flex flex-col">
+          {/* Header */}
+          <div className="flex-shrink-0 bg-white border-b border-gray-200 shadow-sm">
+            <div className="p-4">
+              <CirclesFilter
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                onAddContact={() => setIsAddDialogOpen(true)}
+                onSort={setSortBy}
+                onFilter={setFilterBy}
+                activeTagFilter={tagFilter}
+              />
+            </div>
           </div>
-        </ScrollArea>
+
+          {/* Content */}
+          <div className="flex-1 overflow-hidden">
+            <ScrollArea className="h-full">
+              <div className="p-4 pb-20">
+                <CirclesList
+                  contacts={filteredSortedContacts}
+                  isLoading={isLoading}
+                  onSelectContact={handleSelectContact}
+                  selectedContactId={selectedContactId}
+                />
+              </div>
+            </ScrollArea>
+          </div>
+        </div>
         
         {/* Dialogs */}
         <AddContactDialog
@@ -220,56 +229,75 @@ export default function RedesignedCircles() {
   }
 
   return (
-    <div className="h-full animate-fade-in flex overflow-hidden bg-gray-50">
-      {/* Middle Panel - Contact List */}
-      <div className="flex-1 flex flex-col bg-white border-r border-gray-200 overflow-hidden min-w-0">
-        <div className="panel-header border-b border-gray-100">
-          <CirclesFilter
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            onAddContact={() => setIsAddDialogOpen(true)}
-            onSort={setSortBy}
-            onFilter={setFilterBy}
-            activeTagFilter={tagFilter}
-          />
-        </div>
-        <ScrollArea className="flex-1">
-          <div className="p-6">
-            <CirclesList
-              contacts={filteredSortedContacts}
-              isLoading={isLoading}
-              onSelectContact={handleSelectContact}
-              selectedContactId={selectedContactId}
-            />
-          </div>
-        </ScrollArea>
-      </div>
-      
-      {/* Right Panel - Contact Details */}
-      <div className="w-96 flex-shrink-0 overflow-hidden bg-white">
-        {selectedContact ? (
-          <EnhancedContactDetail
-            contact={selectedContact}
-            interactions={selectedContactInteractions}
-            onEdit={handleEditContact}
-            onDelete={handleDeleteContact}
-            onViewAll={handleViewAllDetails}
-          />
-        ) : (
-          <div className="flex items-center justify-center h-full p-8 text-center">
-            <div className="max-w-sm">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
+    <div className="min-h-screen bg-gray-50/50">
+      <div className="h-screen flex overflow-hidden">
+        {/* Main Content Area */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Contact List Panel */}
+          <div className="flex-1 flex flex-col bg-white border-r border-gray-200 shadow-sm overflow-hidden min-w-0 max-w-none">
+            {/* Header */}
+            <div className="flex-shrink-0 border-b border-gray-100 bg-white">
+              <div className="p-6 pb-4">
+                <div className="mb-4">
+                  <h1 className="text-2xl font-semibold text-gray-900 mb-1">My Circles</h1>
+                  <p className="text-sm text-gray-600">
+                    {filteredSortedContacts.length} contact{filteredSortedContacts.length !== 1 ? 's' : ''}
+                    {tagFilter && ` tagged with "${tagFilter}"`}
+                  </p>
+                </div>
+                <CirclesFilter
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  onAddContact={() => setIsAddDialogOpen(true)}
+                  onSort={setSortBy}
+                  onFilter={setFilterBy}
+                  activeTagFilter={tagFilter}
+                />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No contact selected</h3>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                Select someone from your circles to view their details, or add a new person to get started.
-              </p>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-hidden">
+              <ScrollArea className="h-full">
+                <div className="p-6 pt-4">
+                  <CirclesList
+                    contacts={filteredSortedContacts}
+                    isLoading={isLoading}
+                    onSelectContact={handleSelectContact}
+                    selectedContactId={selectedContactId}
+                  />
+                </div>
+              </ScrollArea>
             </div>
           </div>
-        )}
+          
+          {/* Contact Details Panel */}
+          <div className="w-96 flex-shrink-0 bg-white shadow-sm border-l border-gray-200 overflow-hidden">
+            {selectedContact ? (
+              <EnhancedContactDetail
+                contact={selectedContact}
+                interactions={selectedContactInteractions}
+                onEdit={handleEditContact}
+                onDelete={handleDeleteContact}
+                onViewAll={handleViewAllDetails}
+              />
+            ) : (
+              <div className="h-full flex items-center justify-center p-8">
+                <div className="text-center max-w-sm">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No contact selected</h3>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    Select someone from your circles to view their details, or add a new person to get started.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
       
       {/* Dialogs */}
