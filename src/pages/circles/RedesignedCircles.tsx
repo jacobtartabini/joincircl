@@ -1,4 +1,3 @@
-
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCirclesState } from "./hooks/useCirclesState";
@@ -12,13 +11,11 @@ import { InteractionDialog } from "./dialogs/InteractionDialog";
 import { InsightsDialog } from "./dialogs/InsightsDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
 export default function RedesignedCircles() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [searchParams] = useSearchParams();
   const tagFilter = searchParams.get('tag');
-
   const {
     contacts,
     isLoading,
@@ -89,16 +86,11 @@ export default function RedesignedCircles() {
   // Filter and sort contacts
   const filteredSortedContacts = useMemo(() => {
     if (!contacts) return [];
-    
     let result = contacts.filter(contact => {
       // Search query filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
-        const matchesSearch = 
-          contact.name?.toLowerCase().includes(query) || 
-          contact.personal_email?.toLowerCase().includes(query) || 
-          contact.company_name?.toLowerCase().includes(query) || 
-          contact.job_title?.toLowerCase().includes(query);
+        const matchesSearch = contact.name?.toLowerCase().includes(query) || contact.personal_email?.toLowerCase().includes(query) || contact.company_name?.toLowerCase().includes(query) || contact.job_title?.toLowerCase().includes(query);
         if (!matchesSearch) return false;
       }
 
@@ -116,7 +108,6 @@ export default function RedesignedCircles() {
       }
       return true;
     });
-
     return [...result].sort((a, b) => {
       if (sortBy === "name") {
         return a.name.localeCompare(b.name);
@@ -132,52 +123,39 @@ export default function RedesignedCircles() {
   // Mock interactions for selected contact
   const selectedContactInteractions = useMemo(() => {
     if (!selectedContact) return [];
-    return [
-      {
-        id: "int1",
-        user_id: "user1",
-        contact_id: selectedContact.id,
-        type: "Meeting",
-        notes: "Discussed project timeline and deliverables",
-        date: new Date().toISOString(),
-        created_at: new Date().toISOString()
-      },
-      {
-        id: "int2",
-        user_id: "user1",
-        contact_id: selectedContact.id,
-        type: "Email",
-        notes: "Sent follow-up email with meeting notes",
-        date: new Date(Date.now() - 86400000).toISOString(),
-        created_at: new Date(Date.now() - 86400000).toISOString()
-      },
-      {
-        id: "int3",
-        user_id: "user1",
-        contact_id: selectedContact.id,
-        type: "Phone",
-        notes: "Quick call to discuss budget changes",
-        date: new Date(Date.now() - 172800000).toISOString(),
-        created_at: new Date(Date.now() - 172800000).toISOString()
-      }
-    ];
+    return [{
+      id: "int1",
+      user_id: "user1",
+      contact_id: selectedContact.id,
+      type: "Meeting",
+      notes: "Discussed project timeline and deliverables",
+      date: new Date().toISOString(),
+      created_at: new Date().toISOString()
+    }, {
+      id: "int2",
+      user_id: "user1",
+      contact_id: selectedContact.id,
+      type: "Email",
+      notes: "Sent follow-up email with meeting notes",
+      date: new Date(Date.now() - 86400000).toISOString(),
+      created_at: new Date(Date.now() - 86400000).toISOString()
+    }, {
+      id: "int3",
+      user_id: "user1",
+      contact_id: selectedContact.id,
+      type: "Phone",
+      notes: "Quick call to discuss budget changes",
+      date: new Date(Date.now() - 172800000).toISOString(),
+      created_at: new Date(Date.now() - 172800000).toISOString()
+    }];
   }, [selectedContact]);
-
   if (isMobile) {
-    return (
-      <div className="min-h-screen bg-gray-50/50">
+    return <div className="min-h-screen bg-gray-50/50">
         <div className="h-screen flex flex-col">
           {/* Header */}
           <div className="flex-shrink-0 bg-white border-b border-gray-200 shadow-sm">
             <div className="p-4">
-              <CirclesFilter
-                searchQuery={searchQuery}
-                onSearchChange={setSearchQuery}
-                onAddContact={() => setIsAddDialogOpen(true)}
-                onSort={setSortBy}
-                onFilter={setFilterBy}
-                activeTagFilter={tagFilter}
-              />
+              <CirclesFilter searchQuery={searchQuery} onSearchChange={setSearchQuery} onAddContact={() => setIsAddDialogOpen(true)} onSort={setSortBy} onFilter={setFilterBy} activeTagFilter={tagFilter} />
             </div>
           </div>
 
@@ -185,51 +163,23 @@ export default function RedesignedCircles() {
           <div className="flex-1 overflow-hidden">
             <ScrollArea className="h-full">
               <div className="p-4 pb-20">
-                <CirclesList
-                  contacts={filteredSortedContacts}
-                  isLoading={isLoading}
-                  onSelectContact={handleSelectContact}
-                  selectedContactId={selectedContactId}
-                />
+                <CirclesList contacts={filteredSortedContacts} isLoading={isLoading} onSelectContact={handleSelectContact} selectedContactId={selectedContactId} />
               </div>
             </ScrollArea>
           </div>
         </div>
         
         {/* Dialogs */}
-        <AddContactDialog
-          isOpen={isAddDialogOpen}
-          onOpenChange={setIsAddDialogOpen}
-          onSuccess={fetchContacts}
-        />
+        <AddContactDialog isOpen={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} onSuccess={fetchContacts} />
         
-        <EditContactDialog
-          isOpen={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
-          contact={initialSelectedContact}
-          onSuccess={fetchContacts}
-          onCancel={() => setIsEditDialogOpen(false)}
-        />
+        <EditContactDialog isOpen={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} contact={initialSelectedContact} onSuccess={fetchContacts} onCancel={() => setIsEditDialogOpen(false)} />
         
-        <InteractionDialog
-          isOpen={isInteractionDialogOpen}
-          onOpenChange={setIsInteractionDialogOpen}
-          contact={initialSelectedContact}
-          onSuccess={fetchContacts}
-          onCancel={() => setIsInteractionDialogOpen(false)}
-        />
+        <InteractionDialog isOpen={isInteractionDialogOpen} onOpenChange={setIsInteractionDialogOpen} contact={initialSelectedContact} onSuccess={fetchContacts} onCancel={() => setIsInteractionDialogOpen(false)} />
         
-        <InsightsDialog
-          isOpen={isInsightsDialogOpen}
-          onOpenChange={setIsInsightsDialogOpen}
-          contact={initialSelectedContact}
-        />
-      </div>
-    );
+        <InsightsDialog isOpen={isInsightsDialogOpen} onOpenChange={setIsInsightsDialogOpen} contact={initialSelectedContact} />
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-gray-50/50">
+  return <div className="min-h-screen bg-gray-50/50">
       <div className="h-screen flex overflow-hidden">
         {/* Main Content Area */}
         <div className="flex-1 flex overflow-hidden">
@@ -239,20 +189,13 @@ export default function RedesignedCircles() {
             <div className="flex-shrink-0 border-b border-gray-100 bg-white">
               <div className="p-6 pb-4">
                 <div className="mb-4">
-                  <h1 className="text-2xl font-semibold text-gray-900 mb-1">My Circles</h1>
+                  <h1 className="text-2xl font-semibold text-gray-900 mb-1">Circles</h1>
                   <p className="text-sm text-gray-600">
                     {filteredSortedContacts.length} contact{filteredSortedContacts.length !== 1 ? 's' : ''}
                     {tagFilter && ` tagged with "${tagFilter}"`}
                   </p>
                 </div>
-                <CirclesFilter
-                  searchQuery={searchQuery}
-                  onSearchChange={setSearchQuery}
-                  onAddContact={() => setIsAddDialogOpen(true)}
-                  onSort={setSortBy}
-                  onFilter={setFilterBy}
-                  activeTagFilter={tagFilter}
-                />
+                <CirclesFilter searchQuery={searchQuery} onSearchChange={setSearchQuery} onAddContact={() => setIsAddDialogOpen(true)} onSort={setSortBy} onFilter={setFilterBy} activeTagFilter={tagFilter} />
               </div>
             </div>
 
@@ -260,12 +203,7 @@ export default function RedesignedCircles() {
             <div className="flex-1 overflow-hidden">
               <ScrollArea className="h-full">
                 <div className="p-6 pt-4">
-                  <CirclesList
-                    contacts={filteredSortedContacts}
-                    isLoading={isLoading}
-                    onSelectContact={handleSelectContact}
-                    selectedContactId={selectedContactId}
-                  />
+                  <CirclesList contacts={filteredSortedContacts} isLoading={isLoading} onSelectContact={handleSelectContact} selectedContactId={selectedContactId} />
                 </div>
               </ScrollArea>
             </div>
@@ -273,16 +211,7 @@ export default function RedesignedCircles() {
           
           {/* Contact Details Panel */}
           <div className="w-96 flex-shrink-0 bg-white shadow-sm border-l border-gray-200 overflow-hidden">
-            {selectedContact ? (
-              <EnhancedContactDetail
-                contact={selectedContact}
-                interactions={selectedContactInteractions}
-                onEdit={handleEditContact}
-                onDelete={handleDeleteContact}
-                onViewAll={handleViewAllDetails}
-              />
-            ) : (
-              <div className="h-full flex items-center justify-center p-8">
+            {selectedContact ? <EnhancedContactDetail contact={selectedContact} interactions={selectedContactInteractions} onEdit={handleEditContact} onDelete={handleDeleteContact} onViewAll={handleViewAllDetails} /> : <div className="h-full flex items-center justify-center p-8">
                 <div className="text-center max-w-sm">
                   <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -294,40 +223,18 @@ export default function RedesignedCircles() {
                     Select someone from your circles to view their details, or add a new person to get started.
                   </p>
                 </div>
-              </div>
-            )}
+              </div>}
           </div>
         </div>
       </div>
       
       {/* Dialogs */}
-      <AddContactDialog
-        isOpen={isAddDialogOpen}
-        onOpenChange={setIsAddDialogOpen}
-        onSuccess={fetchContacts}
-      />
+      <AddContactDialog isOpen={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} onSuccess={fetchContacts} />
       
-      <EditContactDialog
-        isOpen={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
-        contact={initialSelectedContact}
-        onSuccess={fetchContacts}
-        onCancel={() => setIsEditDialogOpen(false)}
-      />
+      <EditContactDialog isOpen={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} contact={initialSelectedContact} onSuccess={fetchContacts} onCancel={() => setIsEditDialogOpen(false)} />
       
-      <InteractionDialog
-        isOpen={isInteractionDialogOpen}
-        onOpenChange={setIsInteractionDialogOpen}
-        contact={initialSelectedContact}
-        onSuccess={fetchContacts}
-        onCancel={() => setIsInteractionDialogOpen(false)}
-      />
+      <InteractionDialog isOpen={isInteractionDialogOpen} onOpenChange={setIsInteractionDialogOpen} contact={initialSelectedContact} onSuccess={fetchContacts} onCancel={() => setIsInteractionDialogOpen(false)} />
       
-      <InsightsDialog
-        isOpen={isInsightsDialogOpen}
-        onOpenChange={setIsInsightsDialogOpen}
-        contact={initialSelectedContact}
-      />
-    </div>
-  );
+      <InsightsDialog isOpen={isInsightsDialogOpen} onOpenChange={setIsInsightsDialogOpen} contact={initialSelectedContact} />
+    </div>;
 }
