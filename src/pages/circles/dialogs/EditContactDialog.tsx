@@ -39,8 +39,7 @@ export function EditContactDialog({
     return (
       <Sheet open={isOpen} onOpenChange={onOpenChange}>
         <SheetContent side="bottom" className="h-[90vh] overflow-auto">
-          <div className="mx-auto -mt-1 mb-4 h-1.5 w-[60px] rounded-full bg-muted" />
-          <SheetHeader className="mb-4">
+          <SheetHeader className="pb-4">
             <SheetTitle>Edit Contact</SheetTitle>
             <SheetDescription>
               Edit information for {contact.name}

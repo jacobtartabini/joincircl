@@ -6,6 +6,7 @@ import { Contact } from "@/types/contact";
 import { AddContactDialog } from "./dialogs/AddContactDialog";
 import { EditContactDialog } from "./dialogs/EditContactDialog";
 import { InteractionDialog } from "./dialogs/InteractionDialog";
+import { MobileContactDetailSlideIn } from "@/components/contact/MobileContactDetailSlideIn";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileCard, MobileCardContent } from "@/components/ui/mobile-card";
 import { MobileInput } from "@/components/ui/mobile-input";
@@ -41,6 +42,8 @@ export default function MobileOptimizedCircles() {
   const [filterBy, setFilterBy] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<string>("name");
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedContactForDetail, setSelectedContactForDetail] = useState<Contact | null>(null);
+  const [isDetailSlideInOpen, setIsDetailSlideInOpen] = useState(false);
 
   useEffect(() => {
     if (tagFilter) {
@@ -93,6 +96,48 @@ export default function MobileOptimizedCircles() {
     }
   };
 
+  const handleContactTap = (contact: Contact) => {
+    setSelectedContactForDetail(contact);
+    setIsDetailSlideInOpen(true);
+  };
+
+  const handleEditFromDetail = () => {
+    if (selectedContactForDetail) {
+      setSelectedContact(selectedContactForDetail);
+      setIsEditDialogOpen(true);
+      setIsDetailSlideInOpen(false);
+    }
+  };
+
+  const handleDeleteFromDetail = () => {
+    if (selectedContactForDetail) {
+      // Navigate to full contact detail page for deletion
+      navigate(`/contacts/${selectedContactForDetail.id}`);
+    }
+  };
+
+  // Mock interactions for the selected contact
+  const selectedContactInteractions = useMemo(() => {
+    if (!selectedContactForDetail) return [];
+    return [{
+      id: "int1",
+      user_id: "user1",
+      contact_id: selectedContactForDetail.id,
+      type: "Meeting",
+      notes: "Discussed project timeline and deliverables",
+      date: new Date().toISOString(),
+      created_at: new Date().toISOString()
+    }, {
+      id: "int2",
+      user_id: "user1",
+      contact_id: selectedContactForDetail.id,
+      type: "Email",
+      notes: "Sent follow-up email with meeting notes",
+      date: new Date(Date.now() - 86400000).toISOString(),
+      created_at: new Date(Date.now() - 86400000).toISOString()
+    }];
+  }, [selectedContactForDetail]);
+
   const ContactCard = ({ contact }: { contact: Contact }) => (
     <motion.div
       layout
@@ -103,7 +148,7 @@ export default function MobileOptimizedCircles() {
     >
       <MobileCard 
         isPressable
-        onClick={() => navigate(`/contacts/${contact.id}`)}
+        onClick={() => handleContactTap(contact)}
         className="mb-3"
       >
         <MobileCardContent className="p-4">
@@ -184,108 +229,119 @@ export default function MobileOptimizedCircles() {
   );
 
   if (!isMobile) {
-    // Return the existing desktop layout
     return null;
   }
 
   return (
-    <div className="h-full flex flex-col bg-gray-50">
-      {/* Search Header */}
-      <div className="bg-white border-b border-gray-100 p-4 space-y-3">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-          <MobileInput
-            placeholder="Search contacts..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 pr-4"
-          />
-        </div>
-        
-        <div className="flex items-center justify-between">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2"
-          >
-            <Filter className="h-4 w-4" />
-            Filters
-          </Button>
-          
-          <Button
-            onClick={() => setIsAddDialogOpen(true)}
-            size="sm"
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
-          >
-            <Plus className="h-4 w-4" />
-            Add Contact
-          </Button>
-        </div>
-        
-        {/* Filter Options */}
-        <AnimatePresence>
-          {showFilters && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
-            >
-              <div className="flex gap-2 pt-2">
-                {['all', 'inner', 'middle', 'outer'].map((filter) => (
-                  <Button
-                    key={filter}
-                    variant={filterBy === filter ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setFilterBy(filter === 'all' ? null : filter)}
-                    className="capitalize"
-                  >
-                    {filter}
-                  </Button>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* Contact List */}
-      <div className="flex-1 overflow-y-auto p-4">
-        {isLoading ? (
-          <div className="space-y-3">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl p-4 animate-pulse">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gray-200 rounded-full" />
-                  <div className="flex-1">
-                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
-                    <div className="h-3 bg-gray-200 rounded w-1/2" />
-                  </div>
-                </div>
-              </div>
-            ))}
+    <>
+      <div className="h-full flex flex-col bg-gray-50">
+        {/* Search Header */}
+        <div className="bg-white border-b border-gray-100 p-4 space-y-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <MobileInput
+              placeholder="Search contacts..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 pr-4"
+            />
           </div>
-        ) : filteredSortedContacts.length > 0 ? (
-          <AnimatePresence mode="popLayout">
-            {filteredSortedContacts.map((contact) => (
-              <ContactCard key={contact.id} contact={contact} />
-            ))}
-          </AnimatePresence>
-        ) : (
-          <div className="text-center py-12">
-            <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No contacts found</h3>
-            <p className="text-gray-600 mb-6">
-              {searchQuery ? "Try adjusting your search" : "Add your first contact to get started"}
-            </p>
-            <Button onClick={() => setIsAddDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
+          
+          <div className="flex items-center justify-between">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2"
+            >
+              <Filter className="h-4 w-4" />
+              Filters
+            </Button>
+            
+            <Button
+              onClick={() => setIsAddDialogOpen(true)}
+              size="sm"
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+            >
+              <Plus className="h-4 w-4" />
               Add Contact
             </Button>
           </div>
-        )}
+          
+          {/* Filter Options */}
+          <AnimatePresence>
+            {showFilters && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="flex gap-2 pt-2">
+                  {['all', 'inner', 'middle', 'outer'].map((filter) => (
+                    <Button
+                      key={filter}
+                      variant={filterBy === filter ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setFilterBy(filter === 'all' ? null : filter)}
+                      className="capitalize"
+                    >
+                      {filter}
+                    </Button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Contact List */}
+        <div className="flex-1 overflow-y-auto p-4">
+          {isLoading ? (
+            <div className="space-y-3">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="bg-white rounded-2xl p-4 animate-pulse">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-gray-200 rounded-full" />
+                    <div className="flex-1">
+                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
+                      <div className="h-3 bg-gray-200 rounded w-1/2" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : filteredSortedContacts.length > 0 ? (
+            <AnimatePresence mode="popLayout">
+              {filteredSortedContacts.map((contact) => (
+                <ContactCard key={contact.id} contact={contact} />
+              ))}
+            </AnimatePresence>
+          ) : (
+            <div className="text-center py-12">
+              <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No contacts found</h3>
+              <p className="text-gray-600 mb-6">
+                {searchQuery ? "Try adjusting your search" : "Add your first contact to get started"}
+              </p>
+              <Button onClick={() => setIsAddDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Contact
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Mobile Contact Detail Slide-in */}
+      <MobileContactDetailSlideIn
+        contact={selectedContactForDetail}
+        interactions={selectedContactInteractions}
+        isOpen={isDetailSlideInOpen}
+        onClose={() => setIsDetailSlideInOpen(false)}
+        onEdit={handleEditFromDetail}
+        onDelete={handleDeleteFromDetail}
+      />
 
       {/* Dialogs */}
       <AddContactDialog
@@ -309,6 +365,6 @@ export default function MobileOptimizedCircles() {
         onSuccess={fetchContacts}
         onCancel={() => setIsInteractionDialogOpen(false)}
       />
-    </div>
+    </>
   );
 }

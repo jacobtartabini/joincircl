@@ -152,10 +152,10 @@ export function InteractionDialog({
   if (isMobile) {
     return (
       <Sheet open={isOpen} onOpenChange={onOpenChange}>
-        <SheetContent side="bottom" className="h-[80vh] pb-safe-area-bottom pt-6">
-          <SheetHeader className="space-y-2">
-            <SheetTitle className="text-xl">Add Interaction</SheetTitle>
-            <SheetDescription className="text-base">
+        <SheetContent side="bottom" className="h-[80vh] pb-safe-area-bottom">
+          <SheetHeader className="pb-4">
+            <SheetTitle>Add Interaction</SheetTitle>
+            <SheetDescription>
               Record an interaction with {contact.name}
             </SheetDescription>
           </SheetHeader>
