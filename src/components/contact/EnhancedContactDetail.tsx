@@ -231,7 +231,7 @@ export function EnhancedContactDetail({
               <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">Recent Timeline</h3>
               
               {interactions && interactions.length > 0 ? <div className="space-y-4">
-                  {interactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 3).map(interaction => <div key={interaction.id} className="bg-gray-50 p-4 rounded-full">
+                  {interactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 3).map(interaction => <div key={interaction.id} className="bg-gray-50 p-4 rounded-2xl">
                         <div className="flex gap-4">
                           <div className="flex-shrink-0 pt-1">
                             {getInteractionIcon(interaction.type)}
