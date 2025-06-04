@@ -149,7 +149,7 @@ export default function MobileOptimizedCircles() {
       <MobileCard 
         isPressable
         onClick={() => handleContactTap(contact)}
-        className="mb-3"
+        className="mb-3 active:scale-95 transition-transform duration-150"
       >
         <MobileCardContent className="p-4">
           <div className="flex items-center gap-3">
@@ -338,7 +338,10 @@ export default function MobileOptimizedCircles() {
         contact={selectedContactForDetail}
         interactions={selectedContactInteractions}
         isOpen={isDetailSlideInOpen}
-        onClose={() => setIsDetailSlideInOpen(false)}
+        onClose={() => {
+          setIsDetailSlideInOpen(false);
+          setSelectedContactForDetail(null);
+        }}
         onEdit={handleEditFromDetail}
         onDelete={handleDeleteFromDetail}
       />
