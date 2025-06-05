@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ import { toast } from "sonner";
 import { useChatHistory } from "@/hooks/use-chat-history";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface GlobalAIAssistantProps {
   contacts?: Contact[];
@@ -40,6 +42,7 @@ export default function GlobalAIAssistant({
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { messages, addMessage, clearHistory } = useChatHistory();
+  const isMobile = useIsMobile();
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;
@@ -178,15 +181,33 @@ export default function GlobalAIAssistant({
 
   return (
     <div className={cn(
-      "fixed bottom-4 right-4 z-50 transition-all duration-300",
-      isMinimized ? "w-80 h-16" : "w-96 h-[600px]"
+      "fixed z-50 transition-all duration-300",
+      isMobile 
+        ? isMinimized 
+          ? "bottom-20 right-4 left-4 h-16" // Mobile minimized: full width minus padding, above nav
+          : "bottom-20 right-4 left-4 top-20" // Mobile expanded: full screen minus safe areas
+        : isMinimized 
+          ? "bottom-4 right-4 w-80 h-16" // Desktop minimized: original behavior
+          : "bottom-4 right-4 w-96 h-[600px]" // Desktop expanded: original behavior
     )}>
       <Card className="h-full border-0 shadow-xl bg-white/95 backdrop-blur-sm flex flex-col">
-        <CardHeader className="pb-3 border-b border-gray-100 flex-shrink-0">
+        <CardHeader className={cn(
+          "border-b border-gray-100 flex-shrink-0",
+          isMobile ? "pb-2" : "pb-3"
+        )}>
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <Brain className="h-4 w-4 text-white" />
+            <CardTitle className={cn(
+              "flex items-center gap-2",
+              isMobile ? "text-sm" : "text-base"
+            )}>
+              <div className={cn(
+                "bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center",
+                isMobile ? "w-6 h-6" : "w-8 h-8"
+              )}>
+                <Brain className={cn(
+                  "text-white",
+                  isMobile ? "h-3 w-3" : "h-4 w-4"
+                )} />
               </div>
               <span className="text-gray-900">AI Assistant</span>
             </CardTitle>
@@ -196,27 +217,43 @@ export default function GlobalAIAssistant({
                   variant="ghost"
                   size="sm"
                   onClick={onMinimize}
-                  className="h-8 w-8 p-0 hover:bg-gray-100"
+                  className={cn(
+                    "p-0 hover:bg-gray-100",
+                    isMobile ? "h-6 w-6" : "h-8 w-8"
+                  )}
                 >
-                  {isMinimized ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  {isMinimized ? (
+                    <ChevronUp className={cn(isMobile ? "h-3 w-3" : "h-4 w-4")} />
+                  ) : (
+                    <ChevronDown className={cn(isMobile ? "h-3 w-3" : "h-4 w-4")} />
+                  )}
                 </Button>
               )}
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onToggle}
-                className="h-8 w-8 p-0 hover:bg-gray-100"
+                className={cn(
+                  "p-0 hover:bg-gray-100",
+                  isMobile ? "h-6 w-6" : "h-8 w-8"
+                )}
               >
-                <X className="h-4 w-4" />
+                <X className={cn(isMobile ? "h-3 w-3" : "h-4 w-4")} />
               </Button>
             </div>
           </div>
           {!isMinimized && (
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-xs bg-blue-50 border-blue-200 text-blue-700">
+              <Badge variant="outline" className={cn(
+                "bg-blue-50 border-blue-200 text-blue-700",
+                isMobile ? "text-xs" : "text-xs"
+              )}>
                 {contacts.length} contacts
               </Badge>
-              <Badge variant="outline" className="text-xs bg-purple-50 border-purple-200 text-purple-700">
+              <Badge variant="outline" className={cn(
+                "bg-purple-50 border-purple-200 text-purple-700",
+                isMobile ? "text-xs" : "text-xs"
+              )}>
                 Smart insights
               </Badge>
             </div>
@@ -228,14 +265,29 @@ export default function GlobalAIAssistant({
             {/* Scrollable Messages Area */}
             <div className="flex-1 min-h-0 overflow-hidden">
               <ScrollArea className="h-full">
-                <div className="p-4 space-y-4">
+                <div className={cn(
+                  "space-y-4",
+                  isMobile ? "p-3" : "p-4"
+                )}>
                   {messages.length === 0 && (
-                    <div className="text-center py-8">
-                      <MessageCircle className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                      <p className="text-sm text-gray-600 mb-4">
+                    <div className={cn(
+                      "text-center",
+                      isMobile ? "py-6" : "py-8"
+                    )}>
+                      <MessageCircle className={cn(
+                        "text-gray-300 mx-auto mb-3",
+                        isMobile ? "h-10 w-10" : "h-12 w-12"
+                      )} />
+                      <p className={cn(
+                        "text-gray-600 mb-4",
+                        isMobile ? "text-xs" : "text-sm"
+                      )}>
                         **Welcome!** I'm your relationship assistant.
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className={cn(
+                        "text-gray-500",
+                        isMobile ? "text-xs" : "text-xs"
+                      )}>
                         Ask me about networking, follow-ups, or relationship strategies.
                       </p>
                     </div>
@@ -251,14 +303,15 @@ export default function GlobalAIAssistant({
                     >
                       <div
                         className={cn(
-                          "max-w-[85%] rounded-lg p-3 relative group",
+                          "max-w-[85%] rounded-lg relative group",
+                          isMobile ? "p-2" : "p-3",
                           message.role === 'user'
                             ? 'bg-blue-500 text-white'
                             : 'bg-gray-50 border border-gray-200'
                         )}
                       >
                         {message.role === 'user' ? (
-                          <p className="text-sm">{message.content}</p>
+                          <p className={cn(isMobile ? "text-xs" : "text-sm")}>{message.content}</p>
                         ) : (
                           <div className="prose prose-sm max-w-none">
                             {formatMessage(message.content)}
@@ -270,13 +323,21 @@ export default function GlobalAIAssistant({
                             variant="ghost"
                             size="sm"
                             onClick={() => handleCopyMessage(message.content)}
-                            className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0 hover:bg-gray-200"
+                            className={cn(
+                              "absolute opacity-0 group-hover:opacity-100 transition-opacity p-0 hover:bg-gray-200",
+                              isMobile 
+                                ? "top-1 right-1 h-5 w-5" 
+                                : "top-1 right-1 h-6 w-6"
+                            )}
                           >
-                            <Copy className="h-3 w-3" />
+                            <Copy className={cn(isMobile ? "h-2.5 w-2.5" : "h-3 w-3")} />
                           </Button>
                         )}
                         
-                        <div className="text-xs opacity-70 mt-2">
+                        <div className={cn(
+                          "opacity-70 mt-2",
+                          isMobile ? "text-xs" : "text-xs"
+                        )}>
                           {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </div>
                       </div>
@@ -285,10 +346,19 @@ export default function GlobalAIAssistant({
                   
                   {isLoading && (
                     <div className="flex justify-start">
-                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                      <div className={cn(
+                        "bg-gray-50 border border-gray-200 rounded-lg",
+                        isMobile ? "p-2" : "p-3"
+                      )}>
                         <div className="flex items-center gap-2">
-                          <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
-                          <span className="text-sm text-gray-600">Thinking...</span>
+                          <Loader2 className={cn(
+                            "animate-spin text-blue-500",
+                            isMobile ? "h-3 w-3" : "h-4 w-4"
+                          )} />
+                          <span className={cn(
+                            "text-gray-600",
+                            isMobile ? "text-xs" : "text-sm"
+                          )}>Thinking...</span>
                         </div>
                       </div>
                     </div>
@@ -299,8 +369,14 @@ export default function GlobalAIAssistant({
 
             {/* Quick Suggestions */}
             {messages.length <= 1 && (
-              <div className="flex-shrink-0 px-4 pb-2 border-t border-gray-100">
-                <div className="text-xs font-medium text-gray-700 mb-2 mt-2">Quick questions:</div>
+              <div className={cn(
+                "flex-shrink-0 border-t border-gray-100",
+                isMobile ? "px-3 pb-2" : "px-4 pb-2"
+              )}>
+                <div className={cn(
+                  "font-medium text-gray-700 mb-2 mt-2",
+                  isMobile ? "text-xs" : "text-xs"
+                )}>Quick questions:</div>
                 <div className="flex flex-wrap gap-1">
                   {quickSuggestions.map((suggestion, index) => (
                     <Button
@@ -308,7 +384,10 @@ export default function GlobalAIAssistant({
                       variant="outline"
                       size="sm"
                       onClick={() => setInputMessage(suggestion)}
-                      className="text-xs h-7 px-2 border-gray-200 hover:bg-gray-50"
+                      className={cn(
+                        "border-gray-200 hover:bg-gray-50",
+                        isMobile ? "text-xs h-6 px-2" : "text-xs h-7 px-2"
+                      )}
                     >
                       {suggestion}
                     </Button>
@@ -318,7 +397,10 @@ export default function GlobalAIAssistant({
             )}
 
             {/* Fixed Input Area */}
-            <div className="flex-shrink-0 p-4 border-t border-gray-100 bg-white rounded-b-lg">
+            <div className={cn(
+              "flex-shrink-0 border-t border-gray-100 bg-white rounded-b-lg",
+              isMobile ? "p-3" : "p-4"
+            )}>
               <div className="flex gap-2">
                 <Input
                   placeholder="Ask about your network..."
@@ -326,18 +408,29 @@ export default function GlobalAIAssistant({
                   onChange={(e) => setInputMessage(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
                   disabled={isLoading}
-                  className="flex-1 text-sm border-gray-200 focus:border-blue-300"
+                  className={cn(
+                    "flex-1 border-gray-200 focus:border-blue-300",
+                    isMobile ? "text-sm h-9" : "text-sm"
+                  )}
                 />
                 <Button 
                   onClick={handleSendMessage} 
                   disabled={isLoading || !inputMessage.trim()}
                   size="sm"
-                  className="bg-blue-500 hover:bg-blue-600"
+                  className={cn(
+                    "bg-blue-500 hover:bg-blue-600",
+                    isMobile ? "h-9 px-3" : ""
+                  )}
                 >
                   {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className={cn(
+                      "animate-spin",
+                      isMobile ? "h-3 w-3" : "h-4 w-4"
+                    )} />
                   ) : (
-                    <Send className="h-4 w-4" />
+                    <Send className={cn(
+                      isMobile ? "h-3 w-3" : "h-4 w-4"
+                    )} />
                   )}
                 </Button>
               </div>
