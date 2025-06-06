@@ -78,6 +78,7 @@ export default function MobileKeystones() {
     const contact = keystone.contact_id ? contactMap.get(keystone.contact_id) : null;
     const daysUntil = Math.ceil((new Date(keystone.date).getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     const isRevealed = swipedKeystoneId === keystone.id;
+    
     const handleTouchStart = (e: React.TouchEvent) => {
       setStartX(e.touches[0].clientX);
       setCurrentX(0);
@@ -122,6 +123,7 @@ export default function MobileKeystones() {
       setSwipedKeystoneId(null);
       setCurrentX(0);
     };
+    
     return <motion.div layout initial={{
       opacity: 0,
       y: 20
@@ -132,7 +134,7 @@ export default function MobileKeystones() {
       opacity: 0,
       y: -20
     }} className="relative overflow-hidden mb-3 rounded-2xl">
-        {/* Enhanced Action buttons with modern styling */}
+        {/* Enhanced Action buttons with matching modern styling */}
         <div className="absolute right-0 top-0 bottom-0 flex items-center">
           <motion.div className="flex h-full" initial={{
           x: 160
@@ -162,18 +164,18 @@ export default function MobileKeystones() {
         damping: 20,
         stiffness: 300
       }}>
-          <MobileCard isPressable onClick={handleCardTap} className={cn("bg-white shadow-sm", isPast && "opacity-75")}>
+          <MobileCard isPressable onClick={handleCardTap} className={cn("bg-white dark:bg-gray-800 shadow-sm", isPast && "opacity-75")}>
             <MobileCardContent className="p-4">
               <div className="flex items-start justify-between">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2">
-                    <h3 className="font-semibold text-gray-900 truncate">{keystone.title}</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-white truncate">{keystone.title}</h3>
                     {keystone.category && <Badge variant="secondary" className="text-xs rounded-full">
                         {keystone.category}
                       </Badge>}
                   </div>
                   
-                  <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 mb-2">
                     <Calendar className="h-4 w-4" />
                     <span>{format(new Date(keystone.date), 'MMM d, yyyy')}</span>
                     {!isPast && daysUntil >= 0 && <Badge variant={daysUntil <= 7 ? "destructive" : "outline"} className="text-xs rounded-full">
@@ -183,14 +185,14 @@ export default function MobileKeystones() {
                   
                   {contact && <div className="flex items-center gap-2 mb-2">
                       <Avatar className="h-6 w-6">
-                        {contact.avatar_url ? <AvatarImage src={contact.avatar_url} alt={contact.name} /> : <AvatarFallback className="text-xs bg-gray-100">
+                        {contact.avatar_url ? <AvatarImage src={contact.avatar_url} alt={contact.name} /> : <AvatarFallback className="text-xs bg-gray-100 dark:bg-gray-700">
                             {contact.name.charAt(0)}
                           </AvatarFallback>}
                       </Avatar>
-                      <span className="text-sm text-gray-600">{contact.name}</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-300">{contact.name}</span>
                     </div>}
                   
-                  {keystone.notes && <p className="text-sm text-gray-500 line-clamp-2">{keystone.notes}</p>}
+                  {keystone.notes && <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">{keystone.notes}</p>}
                 </div>
               </div>
             </MobileCardContent>
@@ -199,18 +201,18 @@ export default function MobileKeystones() {
       </motion.div>;
   };
   if (isLoading) {
-    return <div className="h-full flex items-center justify-center">
+    return <div className="h-full flex items-center justify-center pb-safe">
         <div className="text-center">
           <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600">Loading keystones...</p>
+          <p className="text-gray-600 dark:text-gray-300">Loading keystones...</p>
         </div>
       </div>;
   }
-  return <div className="h-full flex flex-col bg-gray-50">
+  return <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900 pb-safe">
       {/* Header */}
-      <div className="bg-white border-b border-gray-100 p-4">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 p-4">
         <div className="flex items-center justify-between mb-2">
-          <h1 className="text-xl font-bold text-gray-900">Keystones</h1>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">Keystones</h1>
           <Button onClick={() => {
           setEditingKeystone(null);
           setIsFormOpen(true);
@@ -219,22 +221,22 @@ export default function MobileKeystones() {
             Add
           </Button>
         </div>
-        <p className="text-sm text-gray-600">Important dates and milestones</p>
+        <p className="text-sm text-gray-600 dark:text-gray-300">Important dates and milestones</p>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4">
+      {/* Content with bottom padding for nav */}
+      <div className="flex-1 overflow-y-auto p-4 pb-20">
         {/* Upcoming Keystones */}
         <section className="mb-6">
-          <h2 className="text-lg font-semibold mb-3 text-gray-900">
+          <h2 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">
             Upcoming ({categorizedKeystones.upcoming.length})
           </h2>
           {categorizedKeystones.upcoming.length > 0 ? <AnimatePresence mode="popLayout">
               {categorizedKeystones.upcoming.map(keystone => <SwipeableKeystoneCard key={keystone.id} keystone={keystone} />)}
             </AnimatePresence> : <div className="text-center py-8">
               <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="font-medium text-gray-900 mb-2">No upcoming keystones</h3>
-              <p className="text-sm text-gray-600 mb-4">Add your first keystone to get started</p>
+              <h3 className="font-medium text-gray-900 dark:text-white mb-2">No upcoming keystones</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">Add your first keystone to get started</p>
               <Button onClick={() => setIsFormOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Keystone
@@ -244,7 +246,7 @@ export default function MobileKeystones() {
 
         {/* Past Keystones */}
         {categorizedKeystones.past.length > 0 && <section>
-            <h2 className="text-lg font-semibold mb-3 text-gray-900">
+            <h2 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">
               Past ({categorizedKeystones.past.length})
             </h2>
             <AnimatePresence mode="popLayout">
@@ -280,9 +282,9 @@ export default function MobileKeystones() {
       setSelectedKeystone(null);
     }} title="Keystone Details">
         {selectedKeystone && <div className="space-y-4">
-            <h3 className="text-lg font-semibold">{selectedKeystone.title}</h3>
-            <p className="text-gray-600">{format(new Date(selectedKeystone.date), 'MMMM d, yyyy')}</p>
-            {selectedKeystone.notes && <p className="text-sm text-gray-600">{selectedKeystone.notes}</p>}
+            <h3 className="text-lg font-semibold dark:text-white">{selectedKeystone.title}</h3>
+            <p className="text-gray-600 dark:text-gray-300">{format(new Date(selectedKeystone.date), 'MMMM d, yyyy')}</p>
+            {selectedKeystone.notes && <p className="text-sm text-gray-600 dark:text-gray-300">{selectedKeystone.notes}</p>}
             <div className="flex gap-3 pt-4">
               <Button variant="outline" className="flex-1" onClick={() => {
             setIsDetailOpen(false);
@@ -338,7 +340,7 @@ function KeystoneFormContent({
     }))} required />
 
       <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700">Category</label>
+        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Category</label>
         <Select value={formData.category} onValueChange={value => setFormData(prev => ({
         ...prev,
         category: value
@@ -356,7 +358,7 @@ function KeystoneFormContent({
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700">Notes</label>
+        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Notes</label>
         <Textarea value={formData.notes} onChange={e => setFormData(prev => ({
         ...prev,
         notes: e.target.value

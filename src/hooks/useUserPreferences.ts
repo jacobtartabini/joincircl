@@ -118,17 +118,35 @@ export const useUserPreferences = () => {
     } else {
       root.classList.add(theme);
     }
+    
+    // Store theme preference in localStorage for immediate access
+    localStorage.setItem('theme', theme);
   };
 
   useEffect(() => {
     fetchPreferences();
   }, []);
 
-  // Apply theme on initial load
+  // Apply theme on initial load and listen for system theme changes
   useEffect(() => {
     if (preferences?.theme) {
       applyTheme(preferences.theme);
+    } else {
+      // Apply stored theme immediately on load
+      const storedTheme = localStorage.getItem('theme') || 'system';
+      applyTheme(storedTheme);
     }
+
+    // Listen for system theme changes
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = () => {
+      if (preferences?.theme === 'system' || !preferences?.theme) {
+        applyTheme('system');
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
   }, [preferences?.theme]);
 
   return { preferences, loading, updatePreferences, refetch: fetchPreferences };

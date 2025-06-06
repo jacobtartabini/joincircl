@@ -7,7 +7,6 @@ import DesktopNav from "./DesktopNav";
 import MobileNav from "./MobileNav";
 import TopStatusBar from "./TopStatusBar";
 import GlobalAIAssistant from "@/components/ai/GlobalAIAssistant";
-import AIFloatingButton from "@/components/ai/AIFloatingButton";
 
 interface MobileOptimizedLayoutProps {
   children: ReactNode;
@@ -25,16 +24,16 @@ export function MobileOptimizedLayout({
 
   if (shouldRenderMobile) {
     return (
-      <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
+      <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
         <TopStatusBar />
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto pb-20">
           <div className="min-h-full">
             {children}
           </div>
         </main>
         <MobileNav />
         
-        {/* AI Assistant for mobile - no floating button needed since AI is in nav */}
+        {/* AI Assistant for mobile */}
         <GlobalAIAssistant 
           contacts={contacts} 
           isOpen={isOpen} 
@@ -48,21 +47,19 @@ export function MobileOptimizedLayout({
 
   // Desktop layout
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
       <DesktopNav />
       <div className="flex-1 flex flex-col min-w-0 ml-16 overflow-hidden">
         <TopStatusBar />
         <main className="flex-1 overflow-y-auto">
           <div className="min-h-full max-w-full">
-            <div className="container mx-auto px-6 py-6 max-w-7xl min-h-full bg-white">
+            <div className="container mx-auto px-6 py-6 max-w-7xl min-h-full bg-white dark:bg-gray-800">
               {children}
             </div>
           </div>
         </main>
       </div>
       
-      {/* Desktop AI Assistant with floating button */}
-      <AIFloatingButton onClick={toggleOpen} isActive={isOpen} />
       <GlobalAIAssistant 
         contacts={contacts} 
         isOpen={isOpen} 
