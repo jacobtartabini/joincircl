@@ -94,8 +94,9 @@ export default function MobileOptimizedCircles() {
   };
 
   const handleContactTap = (contact: Contact) => {
-    // Navigate directly to the contact detail page
-    navigate(`/contacts/${contact.id}`);
+    console.log('Contact tapped:', contact.id);
+    // Navigate to the contact detail page using the correct route structure
+    navigate(`/contact/${contact.id}`);
   };
 
   const ContactCard = ({ contact }: { contact: Contact }) => (
@@ -109,7 +110,7 @@ export default function MobileOptimizedCircles() {
       <MobileCard 
         isPressable
         onClick={() => handleContactTap(contact)}
-        className="mb-3 active:scale-95 transition-transform duration-150"
+        className="mb-3 active:scale-95 transition-transform duration-150 cursor-pointer"
       >
         <MobileCardContent className="p-4">
           <div className="flex items-center gap-3">
@@ -188,10 +189,7 @@ export default function MobileOptimizedCircles() {
     </motion.div>
   );
 
-  if (!isMobile) {
-    return null;
-  }
-
+  // Always render the mobile UI, don't rely on isMobile detection
   return (
     <>
       <div className="h-full flex flex-col bg-gray-50">

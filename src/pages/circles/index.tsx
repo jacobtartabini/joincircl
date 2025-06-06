@@ -6,7 +6,9 @@ import RedesignedCircles from "./RedesignedCircles";
 const Circles = () => {
   const isMobile = useIsMobile();
   
-  if (isMobile) {
+  // Always render MobileOptimizedCircles on mobile devices
+  // Add fallback for when isMobile hook might not work correctly
+  if (isMobile || window.innerWidth <= 768) {
     return <MobileOptimizedCircles />;
   }
   
