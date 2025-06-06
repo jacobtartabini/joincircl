@@ -161,6 +161,20 @@ export default function SignIn() {
       setIsLoading(false);
     }
   };
+  const signInWithLinkedIn = async () => {
+    setIsLoading(true);
+    setAuthError(null);
+    try {
+      console.log('Starting LinkedIn sign in...');
+      const { authService } = await import('@/services/authService');
+      await authService.signInWithLinkedIn();
+      // The redirect will happen automatically, no need to navigate manually
+    } catch (error: any) {
+      console.error("Error signing in with LinkedIn:", error);
+      setAuthError(getErrorMessage(error));
+      setIsLoading(false);
+    }
+  };
   const getErrorMessage = (error: any): string => {
     if (typeof error === 'string') return error;
     if (error?.message) return error.message;
@@ -175,20 +189,20 @@ export default function SignIn() {
     setBackupCode("");
     setAuthError(null);
   };
-  return <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center px-4 py-8">
+  return <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-background dark:to-muted flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
-        <Card className="border-0 shadow-xl bg-white backdrop-blur-sm">
+        <Card className="unified-modal">
           <CardHeader className="space-y-6 text-center pb-8">
             <div className="flex justify-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center shadow-lg rounded-2xl">
+              <div className="w-20 h-20 bg-gradient-to-br from-gray-800 to-gray-900 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center shadow-lg rounded-2xl">
                 <img alt="Circl" className="w-12 h-12 object-contain" src="/lovable-uploads/f2a3e9f1-5d82-4979-af1a-02fc9a8856f8.png" />
               </div>
             </div>
             <div className="space-y-3">
-              <CardTitle className="text-3xl font-bold text-gray-900">
+              <CardTitle className="text-3xl font-bold text-foreground">
                 {requires2FA ? 'Verify Your Identity' : 'Welcome back'}
               </CardTitle>
-              <CardDescription className="text-gray-600 text-base">
+              <CardDescription className="text-muted-foreground text-base">
                 {requires2FA ? 'Enter the verification code from your authenticator app' : 'Sign in to your Circl account to continue'}
               </CardDescription>
             </div>
@@ -200,7 +214,8 @@ export default function SignIn() {
                 <p className="text-sm text-red-700">{authError}</p>
               </div>}
 
-            {!requires2FA && !showMagicLink && <>
+            {!requires2FA && !showMagicLink && (
+              <>
                 {/* Regular sign-in form */}
                 <form onSubmit={handleSignIn} className="space-y-5">
                   <div className="space-y-3">
@@ -223,22 +238,33 @@ export default function SignIn() {
 
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-200"></div>
+                    <div className="w-full border-t border-border"></div>
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-4 bg-white text-gray-500 font-medium">
+                    <span className="px-4 bg-card text-muted-foreground font-medium">
                       or continue with
                     </span>
                   </div>
                 </div>
 
                 <div className="space-y-3">
-                  <Button type="button" variant="outline" onClick={() => setShowMagicLink(true)} className="w-full h-12 border-gray-200 hover:bg-gray-50 font-semibold transition-all duration-200 rounded-full">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setShowMagicLink(true)} 
+                    className="unified-button w-full h-12 border-border hover:bg-accent font-semibold transition-all duration-200 rounded-xl"
+                  >
                     <Link2 className="h-5 w-5 mr-3" />
                     Sign in with Magic Link
                   </Button>
 
-                  <Button type="button" variant="outline" onClick={handleGoogleSignIn} disabled={isLoading} className="w-full h-12 border-gray-200 hover:bg-gray-50 font-semibold transition-all duration-200 rounded-full">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={handleGoogleSignIn} 
+                    disabled={isLoading} 
+                    className="unified-button w-full h-12 border-border hover:bg-accent font-semibold transition-all duration-200 rounded-xl"
+                  >
                     <svg viewBox="0 0 24 24" className="h-5 w-5 mr-3" aria-hidden="true">
                       <path d="M12.0003 4.75C13.7703 4.75 15.3553 5.36002 16.6053 6.54998L20.0303 3.125C17.9502 1.19 15.2353 0 12.0003 0C7.31028 0 3.25529 2.69 1.28528 6.60998L5.27026 9.70498C6.21525 6.86002 8.87028 4.75 12.0003 4.75Z" fill="#EA4335" />
                       <path d="M23.49 12.275C23.49 11.49 23.415 10.73 23.3 10H12V14.51H18.47C18.18 15.99 17.34 17.25 16.08 18.1L19.945 21.1C22.2 19.01 23.49 15.92 23.49 12.275Z" fill="#4285F4" />
@@ -247,8 +273,22 @@ export default function SignIn() {
                     </svg>
                     Sign in with Google
                   </Button>
+
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={signInWithLinkedIn} 
+                    disabled={isLoading} 
+                    className="unified-button w-full h-12 border-border hover:bg-accent font-semibold transition-all duration-200 rounded-xl"
+                  >
+                    <svg viewBox="0 0 24 24" className="h-5 w-5 mr-3" fill="#0077B5">
+                      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                    </svg>
+                    Sign in with LinkedIn
+                  </Button>
                 </div>
-              </>}
+              </>
+            )}
 
             {!requires2FA && showMagicLink && <div className="space-y-4">
                 <Button variant="ghost" onClick={() => setShowMagicLink(false)} className="flex items-center gap-2 text-gray-600 hover:text-gray-900 p-0 h-auto">

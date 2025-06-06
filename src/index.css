@@ -31,28 +31,28 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
+    --radius: 0.75rem;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 220 13% 9%;
     --foreground: 210 40% 98%;
-    --card: 217.2 32.6% 17.5%;
+    --card: 220 13% 11%;
     --card-foreground: 210 40% 98%;
-    --popover: 217.2 32.6% 17.5%;
+    --popover: 220 13% 11%;
     --popover-foreground: 210 40% 98%;
     --primary: 217.2 91.2% 59.8%;
     --primary-foreground: 222.2 84% 4.9%;
-    --secondary: 217.2 32.6% 17.5%;
+    --secondary: 220 13% 14%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
+    --muted: 220 13% 14%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
+    --accent: 220 13% 14%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
+    --border: 220 13% 18%;
+    --input: 220 13% 18%;
     --ring: 224.3 76.3% 94.1%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
@@ -82,41 +82,29 @@
   .dark p, .dark span, .dark div {
     @apply text-foreground;
   }
-  
-  .dark .text-gray-900 {
-    @apply text-gray-100;
+}
+
+/* Standardized component outlines */
+@layer components {
+  .unified-card {
+    @apply bg-card border border-border shadow-sm rounded-xl backdrop-blur-sm;
+    background: hsl(var(--card) / 0.98);
   }
   
-  .dark .text-gray-800 {
-    @apply text-gray-200;
+  .unified-button {
+    @apply transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] rounded-xl;
   }
   
-  .dark .text-gray-700 {
-    @apply text-gray-300;
+  .unified-input {
+    @apply transition-all duration-200 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl;
   }
   
-  .dark .text-gray-600 {
-    @apply text-gray-400;
+  .unified-modal {
+    @apply bg-card border border-border shadow-xl rounded-2xl backdrop-blur-md;
   }
   
-  .dark .bg-gray-50 {
-    @apply bg-gray-900;
-  }
-  
-  .dark .bg-gray-100 {
-    @apply bg-gray-800;
-  }
-  
-  .dark .bg-white {
-    @apply bg-card;
-  }
-  
-  .dark .border-gray-100 {
-    @apply border-border;
-  }
-  
-  .dark .border-gray-200 {
-    @apply border-border;
+  .unified-container {
+    @apply bg-card/50 border border-border rounded-xl p-6;
   }
 }
 
@@ -170,18 +158,5 @@
 @media (min-width: 769px) {
   .unified-web-theme {
     background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%);
-  }
-  
-  .unified-card {
-    @apply bg-card border border-border shadow-sm rounded-xl backdrop-blur-sm;
-    background: hsl(var(--card) / 0.95);
-  }
-  
-  .unified-button {
-    @apply transition-all duration-200 shadow-sm hover:shadow-md active:scale-95;
-  }
-  
-  .unified-input {
-    @apply transition-all duration-200 focus:ring-2 focus:ring-primary/20 focus:border-primary;
   }
 }

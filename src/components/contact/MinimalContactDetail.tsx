@@ -83,40 +83,45 @@ export function MinimalContactDetail({
     }
     return content;
   };
-  return <div className="h-full flex flex-col bg-white">
+  return (
+    <div className="h-full flex flex-col bg-background">
       {/* Header with back button and actions */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-white sticky top-0 z-10">
-        <Button variant="ghost" size="sm" onClick={handleBack} className="p-2 -ml-2">
+      <div className="flex items-center justify-between p-4 border-b border-border bg-card sticky top-0 z-10">
+        <Button variant="ghost" size="sm" onClick={handleBack} className="unified-button p-2 -ml-2">
           <ArrowLeft className="h-5 w-5" />
         </Button>
         
         <div className="relative">
-          <Button variant="ghost" size="sm" onClick={() => setShowActions(!showActions)} className="p-2">
+          <Button variant="ghost" size="sm" onClick={() => setShowActions(!showActions)} className="unified-button p-2">
             <MoreVertical className="h-5 w-5" />
           </Button>
           
-          {showActions && <motion.div initial={{
-          opacity: 0,
-          scale: 0.95
-        }} animate={{
-          opacity: 1,
-          scale: 1
-        }} className="absolute right-0 top-12 bg-white border border-gray-200 rounded-lg shadow-lg p-2 z-20 min-w-[120px]">
-              <Button variant="ghost" size="sm" onClick={() => {
-            onEdit();
-            setShowActions(false);
-          }} className="w-full justify-start text-left p-2 h-auto">
+          {showActions && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }} 
+              animate={{ opacity: 1, scale: 1 }} 
+              className="absolute right-0 top-12 unified-modal p-2 z-20 min-w-[120px]"
+            >
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => { onEdit(); setShowActions(false); }} 
+                className="unified-button w-full justify-start text-left p-2 h-auto"
+              >
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => {
-            onDelete();
-            setShowActions(false);
-          }} className="w-full justify-start text-left p-2 h-auto text-red-600 hover:text-red-700">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => { onDelete(); setShowActions(false); }} 
+                className="unified-button w-full justify-start text-left p-2 h-auto text-destructive hover:text-destructive"
+              >
                 <Trash className="h-4 w-4 mr-2" />
                 Delete
               </Button>
-            </motion.div>}
+            </motion.div>
+          )}
         </div>
       </div>
 
@@ -127,22 +132,30 @@ export function MinimalContactDetail({
           <div className="text-center space-y-4">
             <div className="relative inline-block">
               <Avatar className="h-24 w-24 mx-auto">
-                {contact.avatar_url ? <AvatarImage src={contact.avatar_url} alt={contact.name} /> : <AvatarFallback className="text-xl bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                {contact.avatar_url ? (
+                  <AvatarImage src={contact.avatar_url} alt={contact.name} />
+                ) : (
+                  <AvatarFallback className="text-xl bg-gradient-to-br from-blue-500 to-purple-600 text-white">
                     {contact.name.charAt(0)}
-                  </AvatarFallback>}
+                  </AvatarFallback>
+                )}
               </Avatar>
-              <div className={cn("absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-2 border-white", getCircleColor(contact.circle || 'outer'))} />
+              <div className={cn("absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-2 border-card", getCircleColor(contact.circle || 'outer'))} />
             </div>
             
             <div className="space-y-2">
-              <h1 className="text-2xl font-semibold text-gray-900">{contact.name}</h1>
-              {contact.job_title && contact.company_name && <p className="text-lg text-gray-600">
+              <h1 className="text-2xl font-semibold text-foreground">{contact.name}</h1>
+              {contact.job_title && contact.company_name && (
+                <p className="text-lg text-muted-foreground">
                   {contact.job_title} at {contact.company_name}
-                </p>}
-              {contact.location && <p className="text-sm text-gray-500 flex items-center justify-center gap-1">
+                </p>
+              )}
+              {contact.location && (
+                <p className="text-sm text-muted-foreground flex items-center justify-center gap-1">
                   <MapPin className="h-4 w-4" />
                   {contact.location}
-                </p>}
+                </p>
+              )}
               <Badge variant="secondary" className="text-sm">
                 {contact.circle.charAt(0).toUpperCase() + contact.circle.slice(1)} Circle
               </Badge>
@@ -151,81 +164,140 @@ export function MinimalContactDetail({
 
           {/* Contact Actions */}
           <div className="grid grid-cols-2 gap-3">
-            {contact.personal_email && <Button variant="outline" onClick={() => window.open(`mailto:${contact.personal_email}`)} className="h-12 flex items-center gap-2 rounded-full">
+            {contact.personal_email && (
+              <Button 
+                variant="outline" 
+                onClick={() => window.open(`mailto:${contact.personal_email}`)} 
+                className="unified-button h-12 flex items-center gap-2 rounded-xl"
+              >
                 <Mail className="h-4 w-4" />
                 Email
-              </Button>}
-            {contact.mobile_phone && <Button variant="outline" onClick={() => window.open(`tel:${contact.mobile_phone}`)} className="h-12 flex items-center gap-2 rounded-full">
+              </Button>
+            )}
+            {contact.mobile_phone && (
+              <Button 
+                variant="outline" 
+                onClick={() => window.open(`tel:${contact.mobile_phone}`)} 
+                className="unified-button h-12 flex items-center gap-2 rounded-xl"
+              >
                 <Phone className="h-4 w-4" />
                 Call
-              </Button>}
+              </Button>
+            )}
           </div>
 
-          {/* Contact Details */}
-          {(contact.personal_email || contact.mobile_phone || contact.website) && <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-gray-900">Contact</h2>
-              <div className="space-y-1">
-                {contact.personal_email && <ContactInfoItem icon={Mail} label="Email" value={contact.personal_email} href={`mailto:${contact.personal_email}`} />}
-                {contact.mobile_phone && <ContactInfoItem icon={Phone} label="Phone" value={contact.mobile_phone} href={`tel:${contact.mobile_phone}`} />}
+          {/* Contact Details Sections */}
+          {(contact.personal_email || contact.mobile_phone || contact.website) && (
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold text-foreground">Contact</h2>
+              <div className="unified-container space-y-1">
+                {contact.personal_email && (
+                  <ContactInfoItem 
+                    icon={Mail} 
+                    label="Email" 
+                    value={contact.personal_email} 
+                    href={`mailto:${contact.personal_email}`} 
+                  />
+                )}
+                {contact.mobile_phone && (
+                  <ContactInfoItem 
+                    icon={Phone} 
+                    label="Phone" 
+                    value={contact.mobile_phone} 
+                    href={`tel:${contact.mobile_phone}`} 
+                  />
+                )}
               </div>
-            </div>}
+            </div>
+          )}
 
           {/* Professional Information */}
-          {(contact.company_name || contact.industry || contact.department) && <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-gray-900">Professional</h2>
+          {(contact.company_name || contact.industry || contact.department) && (
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold text-foreground">Professional</h2>
               <div className="space-y-1">
-                {contact.company_name && <ContactInfoItem icon={User} label="Company" value={contact.company_name} />}
-                {contact.industry && <ContactInfoItem icon={User} label="Industry" value={contact.industry} />}
-                {contact.department && <ContactInfoItem icon={User} label="Department" value={contact.department} />}
+                {contact.company_name && (
+                  <ContactInfoItem 
+                    icon={User} 
+                    label="Company" 
+                    value={contact.company_name} 
+                  />
+                )}
+                {contact.industry && (
+                  <ContactInfoItem 
+                    icon={User} 
+                    label="Industry" 
+                    value={contact.industry} 
+                  />
+                )}
+                {contact.department && (
+                  <ContactInfoItem 
+                    icon={User} 
+                    label="Department" 
+                    value={contact.department} 
+                  />
+                )}
               </div>
-            </div>}
+            </div>
+          )}
 
           {/* Tags */}
-          {contact.tags && contact.tags.length > 0 && <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-gray-900">Tags</h2>
+          {contact.tags && contact.tags.length > 0 && (
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold text-foreground">Tags</h2>
               <div className="flex flex-wrap gap-2">
-                {contact.tags.map(tag => <Badge key={tag} variant="secondary" className="rounded-full">
+                {contact.tags.map(tag => (
+                  <Badge key={tag} variant="secondary" className="rounded-full">
                     {tag}
-                  </Badge>)}
+                  </Badge>
+                ))}
               </div>
-            </div>}
+            </div>
+          )}
 
           {/* Notes */}
-          {contact.notes && <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-gray-900">Notes</h2>
+          {contact.notes && (
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold text-foreground">Notes</h2>
               <div className="p-4 bg-gray-50 rounded-2xl">
                 <p className="text-gray-700 leading-relaxed">{contact.notes}</p>
               </div>
-            </div>}
+            </div>
+          )}
 
           {/* Recent Interactions */}
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
-            {interactions.length === 0 ? <div className="text-center py-8 text-gray-500">
-                <MessageSquare className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+            <h2 className="text-lg font-semibold text-foreground">Recent Activity</h2>
+            {interactions.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <MessageSquare className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
                 <p>No recent interactions</p>
-              </div> : <div className="space-y-4">
-                {interactions.slice(0, 5).map(interaction => <div key={interaction.id} className="flex gap-3 p-3 bg-gray-50 rounded-2xl">
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {interactions.slice(0, 5).map((interaction) => (
+                  <div key={interaction.id} className="unified-container flex gap-3">
                     <div className="flex-shrink-0 mt-1">
                       {getInteractionIcon(interaction.type)}
                     </div>
                     <div className="flex-1 space-y-1">
                       <div className="flex items-center justify-between">
-                        <h3 className="font-medium text-gray-900">
+                        <h3 className="font-medium text-foreground">
                           {interaction.type.charAt(0).toUpperCase() + interaction.type.slice(1)}
                         </h3>
-                        <span className="text-xs text-gray-500">
-                          {formatDistanceToNow(new Date(interaction.date), {
-                      addSuffix: true
-                    })}
+                        <span className="text-xs text-muted-foreground">
+                          {formatDistanceToNow(new Date(interaction.date), { addSuffix: true })}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600">{interaction.notes}</p>
+                      <p className="text-sm text-muted-foreground">{interaction.notes}</p>
                     </div>
-                  </div>)}
-              </div>}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </ScrollArea>
-    </div>;
+    </div>
+  );
 }

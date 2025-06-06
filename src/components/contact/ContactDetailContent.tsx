@@ -4,6 +4,7 @@ import { Keystone } from "@/types/keystone";
 import { calculateConnectionStrength } from "@/utils/connectionStrength";
 import ContactDetailLeftColumn from "@/components/contact/ContactDetailLeftColumn";
 import ContactDetailRightColumn from "@/components/contact/ContactDetailRightColumn";
+import { ContactRecommendations } from "@/components/contact/ContactRecommendations";
 
 interface ContactDetailContentProps {
   contact: Contact;
@@ -27,25 +28,30 @@ export default function ContactDetailContent({
   const connectionStrength = contact ? calculateConnectionStrength(contact, safeInteractions) : undefined;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {/* Left column (2/3 width) */}
-      <div className="md:col-span-2">
-        <ContactDetailLeftColumn
-          contact={contact}
-          interactions={safeInteractions}
-          keystones={keystones}
-          contactMedia={contactMedia}
-          onKeystoneAdded={onKeystoneAdded}
-          onInteractionAdded={onInteractionAdded}
-        />
-      </div>
+    <div className="space-y-6">
+      {/* AI Recommendations */}
+      <ContactRecommendations contact={contact} />
       
-      {/* Right column (1/3 width) */}
-      <div>
-        <ContactDetailRightColumn 
-          connectionStrength={connectionStrength} 
-          contactId={contact.id} 
-        />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Left column (2/3 width) */}
+        <div className="md:col-span-2">
+          <ContactDetailLeftColumn
+            contact={contact}
+            interactions={safeInteractions}
+            keystones={keystones}
+            contactMedia={contactMedia}
+            onKeystoneAdded={onKeystoneAdded}
+            onInteractionAdded={onInteractionAdded}
+          />
+        </div>
+        
+        {/* Right column (1/3 width) */}
+        <div>
+          <ContactDetailRightColumn 
+            connectionStrength={connectionStrength} 
+            contactId={contact.id} 
+          />
+        </div>
       </div>
     </div>
   );

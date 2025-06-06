@@ -159,6 +159,35 @@ export const authService = {
     }
   },
 
+  signInWithLinkedIn: async () => {
+    try {
+      console.log('Attempting to sign in with LinkedIn');
+
+      // Get the current origin for redirect URL
+      const redirectTo = typeof window !== 'undefined' 
+        ? `${window.location.origin}/auth/callback`
+        : undefined;
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'linkedin_oidc',
+        options: {
+          redirectTo,
+          scopes: 'openid profile email',
+        },
+      });
+
+      if (error) {
+        console.error('LinkedIn sign in error:', error);
+        throw error;
+      }
+
+      console.log('LinkedIn sign in initiated successfully');
+    } catch (error) {
+      console.error('LinkedIn sign in error:', error);
+      throw error;
+    }
+  },
+
   updateProfile: async (userId: string, updates: Partial<Profile>) => {
     try {
       const { error } = await supabase

@@ -36,7 +36,7 @@ export default function ContactDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen unified-web-theme">
       <div className="max-w-7xl mx-auto p-6 space-y-8 animate-fade-in">
         {/* Header with navigation and actions */}
         <ContactDetailHeader 
@@ -44,8 +44,8 @@ export default function ContactDetail() {
           onDeleteClick={() => setIsDeleteDialogOpen(true)}
         />
         
-        {/* Main content in a card */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+        {/* Main content in a unified card */}
+        <div className="unified-card p-8">
           <ContactDetailContent 
             contact={contact}
             interactions={interactions}
