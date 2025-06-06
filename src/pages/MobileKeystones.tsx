@@ -18,10 +18,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+
 export default function MobileKeystones() {
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingKeystone, setEditingKeystone] = useState<Keystone | null>(null);
@@ -29,6 +28,7 @@ export default function MobileKeystones() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [swipedKeystoneId, setSwipedKeystoneId] = useState<string | null>(null);
   const today = startOfToday();
+
   const {
     data: keystones = [],
     isLoading
@@ -63,6 +63,7 @@ export default function MobileKeystones() {
       past: past.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     };
   }, [keystones, today]);
+
   const SwipeableKeystoneCard = ({
     keystone,
     isPast = false
@@ -86,16 +87,14 @@ export default function MobileKeystones() {
       if (!isDragging) return;
       const diffX = startX - e.touches[0].clientX;
       if (diffX > 0) {
-        // Only allow left swipe
-        setCurrentX(Math.min(diffX, 140)); // Limit swipe distance
+        setCurrentX(Math.min(diffX, 160)); // Limit swipe distance
       }
     };
     const handleTouchEnd = () => {
       setIsDragging(false);
-      if (currentX > 70) {
-        // Threshold for revealing actions
+      if (currentX > 80) {
         setSwipedKeystoneId(keystone.id);
-        setCurrentX(140);
+        setCurrentX(160);
       } else {
         setCurrentX(0);
         setSwipedKeystoneId(null);
@@ -132,32 +131,32 @@ export default function MobileKeystones() {
     }} exit={{
       opacity: 0,
       y: -20
-    }} className="relative overflow-hidden mb-3">
-        {/* Action buttons revealed by swipe */}
+    }} className="relative overflow-hidden mb-3 rounded-2xl">
+        {/* Enhanced Action buttons with modern styling */}
         <div className="absolute right-0 top-0 bottom-0 flex items-center">
           <motion.div className="flex h-full" initial={{
-          x: 140
+          x: 160
         }} animate={{
-          x: isRevealed ? 0 : 140
+          x: isRevealed ? 0 : 160
         }} transition={{
           type: "spring",
           damping: 20,
           stiffness: 300
         }}>
-            <Button variant="outline" size="sm" onClick={handleEdit} className="h-full rounded-none bg-blue-500 hover:bg-blue-600 text-white border-0 px-4 flex flex-col items-center justify-center gap-1">
-              <Edit className="h-4 w-4" />
-              <span className="text-xs">Edit</span>
+            <Button variant="outline" size="sm" onClick={handleEdit} className="h-full rounded-none bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white border-0 px-6 flex flex-col items-center justify-center gap-1 shadow-lg transition-all duration-200 active:scale-95">
+              <Edit className="h-5 w-5" />
+              <span className="text-xs font-medium">Edit</span>
             </Button>
-            <Button variant="outline" size="sm" onClick={handleDelete} className="h-full rounded-none bg-red-500 hover:bg-red-600 text-white border-0 px-4 flex flex-col items-center justify-center gap-1">
-              <Trash className="h-4 w-4" />
-              <span className="text-xs">Delete</span>
+            <Button variant="outline" size="sm" onClick={handleDelete} className="h-full rounded-none bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-0 px-6 flex flex-col items-center justify-center gap-1 shadow-lg transition-all duration-200 active:scale-95">
+              <Trash className="h-5 w-5" />
+              <span className="text-xs font-medium">Delete</span>
             </Button>
           </motion.div>
         </div>
 
         {/* Main card */}
         <motion.div ref={cardRef} className="relative z-10" style={{
-        transform: `translateX(-${isDragging ? currentX : isRevealed ? 140 : 0}px)`
+        transform: `translateX(-${isDragging ? currentX : isRevealed ? 160 : 0}px)`
       }} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} transition={{
         type: "spring",
         damping: 20,

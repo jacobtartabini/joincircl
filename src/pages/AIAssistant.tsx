@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +17,8 @@ import { useSmartSuggestions } from "@/hooks/use-smart-suggestions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function AIAssistant() {
   const { contacts } = useContacts();
@@ -25,6 +26,7 @@ export default function AIAssistant() {
   const { currentSuggestions } = useSmartSuggestions(contacts);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const isMobile = useIsMobile();
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;
@@ -155,6 +157,179 @@ export default function AIAssistant() {
       return <div key={index} className="mb-4 text-gray-700 leading-relaxed">{section}</div>;
     });
   };
+
+  const MobileChatBubble = ({ message, isUser }: { message: any; isUser: boolean }) => (
+    <motion.div
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className={cn(
+        "flex mb-4",
+        isUser ? "justify-end" : "justify-start"
+      )}
+    >
+      <div
+        className={cn(
+          "max-w-[85%] rounded-3xl px-5 py-3 relative group",
+          isUser
+            ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg"
+            : "bg-white border border-gray-100 text-gray-900 shadow-sm"
+        )}
+      >
+        {isUser ? (
+          <p className="text-base leading-relaxed">{message.content}</p>
+        ) : (
+          <div className="prose prose-sm max-w-none text-gray-900">
+            {formatMessage(message.content)}
+          </div>
+        )}
+        
+        {!isUser && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleCopyMessage(message.content)}
+            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0 hover:bg-gray-100 rounded-full"
+          >
+            <Copy className="h-4 w-4 text-gray-500" />
+          </Button>
+        )}
+      </div>
+    </motion.div>
+  );
+
+  const RotatingSuggestions = () => (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="px-6 pb-4"
+    >
+      <div className="flex items-center gap-2 mb-3">
+        <Sparkles className="h-4 w-4 text-purple-500" />
+        <span className="text-sm font-medium text-gray-700">Try asking:</span>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {currentSuggestions.map((suggestion, index) => (
+          <motion.div
+            key={`${suggestion.text}-${index}`}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: index * 0.1 }}
+          >
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleSuggestionClick(suggestion.text)}
+              className="text-sm bg-white border-gray-200 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:border-blue-200 hover:text-blue-700 transition-all duration-300 rounded-full px-4 py-2 shadow-sm active:scale-95"
+            >
+              {suggestion.text}
+            </Button>
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
+  );
+
+  if (isMobile) {
+    return (
+      <div className="h-full flex flex-col bg-gradient-to-br from-gray-50 to-blue-50/20">
+        {/* Mobile Header */}
+        <div className="flex-shrink-0 bg-white/80 backdrop-blur-sm border-b border-gray-100 p-6 pt-8">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <Brain className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">AI Assistant</h1>
+              <p className="text-sm text-gray-600">Your intelligent companion</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Chat Messages Area */}
+        <div className="flex-1 min-h-0">
+          <ScrollArea className="h-full">
+            <div className="p-6 pb-24">
+              {messages.length === 0 ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-center py-16"
+                >
+                  <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-purple-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                    <MessageCircle className="h-10 w-10 text-blue-500" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    Hi there! 👋
+                  </h3>
+                  <p className="text-gray-600 max-w-sm mx-auto leading-relaxed">
+                    I'm here to help you manage relationships and grow your network. What would you like to explore?
+                  </p>
+                </motion.div>
+              ) : (
+                <AnimatePresence>
+                  {messages.map((message) => (
+                    <MobileChatBubble
+                      key={message.id}
+                      message={message}
+                      isUser={message.role === 'user'}
+                    />
+                  ))}
+                </AnimatePresence>
+              )}
+              
+              {isLoading && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex justify-start mb-4"
+                >
+                  <div className="bg-white border border-gray-100 rounded-3xl px-5 py-3 shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
+                      <span className="text-gray-600">Thinking...</span>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          </ScrollArea>
+        </div>
+
+        {/* Smart Suggestions */}
+        {messages.length <= 2 && <RotatingSuggestions />}
+
+        {/* Fixed Input Area */}
+        <div className="flex-shrink-0 bg-white/90 backdrop-blur-sm border-t border-gray-100 p-6 pb-8">
+          <div className="flex gap-3 items-end">
+            <div className="flex-1 relative">
+              <Input
+                placeholder="Ask me anything..."
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+                disabled={isLoading}
+                className="h-12 text-base border-gray-200 focus:border-blue-300 rounded-2xl bg-white shadow-sm pr-14 resize-none"
+                style={{ minHeight: '48px' }}
+              />
+            </div>
+            <Button 
+              onClick={handleSendMessage} 
+              disabled={isLoading || !inputMessage.trim()}
+              size="sm"
+              className="h-12 w-12 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-2xl shadow-lg transition-all duration-200 active:scale-95 flex-shrink-0"
+            >
+              {isLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Send className="h-5 w-5" />
+              )}
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30">
