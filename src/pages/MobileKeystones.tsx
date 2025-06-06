@@ -177,7 +177,7 @@ export default function MobileKeystones() {
                   <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
                     <Calendar className="h-4 w-4" />
                     <span>{format(new Date(keystone.date), 'MMM d, yyyy')}</span>
-                    {!isPast && daysUntil >= 0 && <Badge variant={daysUntil <= 7 ? "destructive" : "outline"} className="text-xs">
+                    {!isPast && daysUntil >= 0 && <Badge variant={daysUntil <= 7 ? "destructive" : "outline"} className="text-xs rounded-full">
                         {daysUntil === 0 ? "Today" : daysUntil === 1 ? "Tomorrow" : `${daysUntil} days`}
                       </Badge>}
                   </div>
