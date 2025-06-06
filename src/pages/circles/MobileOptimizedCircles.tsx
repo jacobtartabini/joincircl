@@ -167,16 +167,16 @@ export default function MobileOptimizedCircles() {
         <div className="bg-white border-b border-gray-100 p-4 space-y-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-            <MobileInput placeholder="Search contacts..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10 pr-4" />
+            <MobileInput placeholder="Search contacts..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10 pr-4 rounded-full" />
           </div>
           
           <div className="flex items-center justify-between">
-            <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)} className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)} className="flex items-center gap-2 rounded-full">
               <Filter className="h-4 w-4" />
               Filters
             </Button>
             
-            <Button onClick={() => setIsAddDialogOpen(true)} size="sm" className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700">
+            <Button onClick={() => setIsAddDialogOpen(true)} size="sm" className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 rounded-full">
               <Plus className="h-4 w-4" />
               Add Contact
             </Button>
