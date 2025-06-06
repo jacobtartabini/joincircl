@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,8 +9,8 @@ import MainLayout from "@/components/layout/MainLayout";
 import Home from "@/pages/home";
 import NotFound from "./pages/NotFound";
 
-// Import redesigned pages
-import RedesignedCircles from "@/pages/circles/RedesignedCircles";
+// Import circles index component that handles mobile detection
+import Circles from "@/pages/circles";
 import RedesignedContactDetail from "@/pages/contact/RedesignedContactDetail";
 
 // Authentication pages
@@ -69,9 +70,9 @@ function App() {
                 >
                   <Route path="/" element={<Home />} />
                   
-                  {/* Core application routes */}
-                  <Route path="/circles" element={<RedesignedCircles />} />
-                  <Route path="/contacts/:id" element={<RedesignedContactDetail />} />
+                  {/* Core application routes - using the mobile-aware Circles component */}
+                  <Route path="/circles" element={<Circles />} />
+                  <Route path="/contact/:id" element={<RedesignedContactDetail />} />
                   <Route path="/keystones" element={<Keystones />} />
                   <Route path="/notifications" element={<Notifications />} />
                   <Route path="/ai-assistant" element={<AIAssistant />} />

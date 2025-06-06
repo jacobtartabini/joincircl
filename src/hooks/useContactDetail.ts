@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Contact, Interaction, ContactMedia } from "@/types/contact";

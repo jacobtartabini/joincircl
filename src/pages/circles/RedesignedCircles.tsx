@@ -11,11 +11,13 @@ import { InteractionDialog } from "./dialogs/InteractionDialog";
 import { InsightsDialog } from "./dialogs/InsightsDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ScrollArea } from "@/components/ui/scroll-area";
+
 export default function RedesignedCircles() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [searchParams] = useSearchParams();
   const tagFilter = searchParams.get('tag');
+  
   const {
     contacts,
     isLoading,
@@ -72,14 +74,14 @@ export default function RedesignedCircles() {
   const handleDeleteContact = () => {
     if (selectedContact) {
       console.log("Delete contact:", selectedContact.id);
-      navigate(`/contacts/${selectedContact.id}`);
+      navigate(`/contact/${selectedContact.id}`);
     }
   };
 
   // Handle view all action from contact detail panel
   const handleViewAllDetails = () => {
     if (selectedContact) {
-      navigate(`/contacts/${selectedContact.id}`);
+      navigate(`/contact/${selectedContact.id}`);
     }
   };
 
@@ -149,6 +151,7 @@ export default function RedesignedCircles() {
       created_at: new Date(Date.now() - 172800000).toISOString()
     }];
   }, [selectedContact]);
+
   if (isMobile) {
     return <div className="min-h-screen bg-gray-50/50">
         <div className="h-screen flex flex-col">
@@ -179,6 +182,7 @@ export default function RedesignedCircles() {
         <InsightsDialog isOpen={isInsightsDialogOpen} onOpenChange={setIsInsightsDialogOpen} contact={initialSelectedContact} />
       </div>;
   }
+
   return <div className="min-h-screen bg-gray-50/50">
       <div className="h-screen flex overflow-hidden">
         {/* Main Content Area */}
