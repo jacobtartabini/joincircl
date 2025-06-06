@@ -1,5 +1,5 @@
 
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { Button } from "./button";
@@ -16,6 +16,11 @@ interface MobileModalProps {
 
 export function MobileModal({ isOpen, onClose, title, children, className }: MobileModalProps) {
   const isMobile = useIsMobile();
+  const [isDragging, setIsDragging] = useState(false);
+  const [startY, setStartY] = useState(0);
+  const [offsetY, setOffsetY] = useState(0);
+  const [velocity, setVelocity] = useState(0);
+  const [lastMoveTime, setLastMoveTime] = useState(0);
 
   useEffect(() => {
     if (isOpen) {
@@ -29,9 +34,61 @@ export function MobileModal({ isOpen, onClose, title, children, className }: Mob
     };
   }, [isOpen]);
 
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    setIsDragging(true);
+    setStartY(e.touches[0].clientY);
+    setOffsetY(0);
+    setVelocity(0);
+    setLastMoveTime(Date.now());
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!isDragging) return;
+    
+    const currentY = e.touches[0].clientY;
+    const currentTime = Date.now();
+    const diff = currentY - startY;
+    const timeDiff = currentTime - lastMoveTime;
+    
+    if (diff > 0) { // Only allow swiping down
+      setOffsetY(diff);
+      
+      // Calculate velocity for momentum-based closing
+      if (timeDiff > 0) {
+        setVelocity(diff / timeDiff);
+      }
+      setLastMoveTime(currentTime);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    
+    // Close conditions: either swiped down enough distance OR has enough velocity
+    const shouldClose = offsetY > 80 || (offsetY > 40 && velocity > 0.5);
+    
+    if (shouldClose) {
+      onClose();
+    }
+    
+    // Reset state
+    setOffsetY(0);
+    setVelocity(0);
+  };
+
   if (!isMobile) {
     return null; // Use regular dialog on desktop
   }
+
+  // Apply transform style for drag effect
+  const dragStyle = isDragging ? {
+    transform: `translateY(${offsetY}px)`,
+    transition: 'none'
+  } : offsetY > 0 ? {
+    transform: 'translateY(0px)',
+    transition: 'transform 0.3s ease-out'
+  } : {};
 
   return (
     <AnimatePresence>
@@ -56,24 +113,20 @@ export function MobileModal({ isOpen, onClose, title, children, className }: Mob
               "fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl max-h-[90vh] flex flex-col",
               className
             )}
+            style={dragStyle}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
           >
-            {/* Drag Handle */}
-            <div className="flex justify-center pt-3 pb-2">
-              <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
+            {/* Enhanced Drag Handle - more prominent for gesture discovery */}
+            <div className="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing">
+              <div className="w-12 h-1.5 bg-gray-300 rounded-full hover:bg-gray-400 transition-colors" />
             </div>
             
-            {/* Header */}
+            {/* Header - remove visible close button */}
             {title && (
-              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <div className="flex items-center justify-center px-6 py-4 border-b border-gray-100">
                 <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onClose}
-                  className="p-2 -mr-2"
-                >
-                  <X className="h-5 w-5" />
-                </Button>
               </div>
             )}
             

@@ -101,7 +101,10 @@ export default function MobileOptimizedCircles() {
 
   const handleContactTap = (contact: Contact) => {
     console.log('Contact tapped:', contact.id);
-    navigate(`/contact/${contact.id}`);
+    // Pass navigation state to maintain back button context
+    navigate(`/contact/${contact.id}`, { 
+      state: { from: '/circles' } 
+    });
   };
 
   const ContactCard = ({ contact }: { contact: Contact }) => (

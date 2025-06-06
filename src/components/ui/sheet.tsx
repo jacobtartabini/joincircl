@@ -59,22 +59,37 @@ const SheetContent = React.forwardRef<
   const [isDragging, setIsDragging] = React.useState(false);
   const [startY, setStartY] = React.useState(0);
   const [offsetY, setOffsetY] = React.useState(0);
+  const [velocity, setVelocity] = React.useState(0);
+  const [lastMoveTime, setLastMoveTime] = React.useState(0);
   const contentRef = React.useRef<HTMLDivElement>(null);
   const closeRef = React.useRef<HTMLButtonElement>(null);
   
-  // Function to handle touch events for swipe to close (for bottom sheets only)
+  // Enhanced touch events for smooth swipe-down gesture dismissal
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     if (side !== "bottom") return;
     setIsDragging(true);
     setStartY(e.touches[0].clientY);
+    setOffsetY(0);
+    setVelocity(0);
+    setLastMoveTime(Date.now());
   };
 
   const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
     if (!isDragging || side !== "bottom") return;
+    
     const currentY = e.touches[0].clientY;
+    const currentTime = Date.now();
     const diff = currentY - startY;
+    const timeDiff = currentTime - lastMoveTime;
+    
     if (diff > 0) { // Only allow swiping down
       setOffsetY(diff);
+      
+      // Calculate velocity for momentum-based closing
+      if (timeDiff > 0) {
+        setVelocity(diff / timeDiff);
+      }
+      setLastMoveTime(currentTime);
     }
   };
 
@@ -82,19 +97,25 @@ const SheetContent = React.forwardRef<
     if (!isDragging || side !== "bottom") return;
     setIsDragging(false);
     
-    // If swiped down more than 100px, close the sheet
-    if (offsetY > 100 && closeRef.current) {
+    // Close conditions: either swiped down enough distance OR has enough velocity
+    const shouldClose = offsetY > 80 || (offsetY > 40 && velocity > 0.5);
+    
+    if (shouldClose && closeRef.current) {
       closeRef.current.click();
     }
     
-    // Reset offset
+    // Reset state
     setOffsetY(0);
+    setVelocity(0);
   };
   
-  // Apply transform style for drag effect
+  // Apply transform style for drag effect with smooth animation
   const dragStyle = isDragging && side === "bottom" ? {
     transform: `translateY(${offsetY}px)`,
     transition: 'none'
+  } : offsetY > 0 ? {
+    transform: 'translateY(0px)',
+    transition: 'transform 0.3s ease-out'
   } : {};
 
   return (
@@ -113,17 +134,18 @@ const SheetContent = React.forwardRef<
         onTouchEnd={handleTouchEnd}
         {...props}
       >
-        {/* Consistent grab bar for bottom sheets */}
+        {/* Enhanced drag indicator for bottom sheets - more prominent for gesture discovery */}
         {side === "bottom" && (
-          <div className="flex justify-center -mt-2 mb-4">
-            <div className="w-10 h-1 bg-gray-300 rounded-full" />
+          <div className="flex justify-center -mt-2 mb-4 cursor-grab active:cursor-grabbing">
+            <div className="w-12 h-1.5 bg-gray-300 rounded-full hover:bg-gray-400 transition-colors" />
           </div>
         )}
         
         {children}
         
+        {/* Remove visible close button for non-bottom sheets to maintain clean UI */}
         {side !== "bottom" && (
-          <SheetPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+          <SheetPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary sr-only">
             <X className="h-4 w-4" />
             <span className="sr-only">Close</span>
           </SheetPrimitive.Close>

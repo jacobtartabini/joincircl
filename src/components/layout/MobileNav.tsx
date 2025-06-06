@@ -22,14 +22,15 @@ const MobileNav = () => {
       path: "/circles"
     },
     {
+      icon: Brain,
+      label: "AI",
+      path: "/ai-assistant",
+      isCenter: true
+    },
+    {
       icon: Calendar,
       label: "Keystones",
       path: "/keystones"
-    },
-    {
-      icon: Brain,
-      label: "AI",
-      path: "/ai-assistant"
     },
     {
       icon: Settings,
@@ -58,21 +59,29 @@ const MobileNav = () => {
               <motion.div 
                 className={cn(
                   "flex flex-col items-center justify-center p-2 rounded-xl transition-colors min-h-12 min-w-12",
-                  isActive ? "bg-blue-50" : "hover:bg-gray-50"
+                  item.isCenter 
+                    ? isActive 
+                      ? "bg-gradient-to-br from-blue-500 to-purple-600 text-white scale-110" 
+                      : "bg-gradient-to-br from-blue-500 to-purple-600 text-white"
+                    : isActive ? "bg-blue-50" : "hover:bg-gray-50"
                 )}
                 whileTap={{ scale: 0.95 }}
                 transition={{ duration: 0.1 }}
               >
                 <item.icon 
-                  size={24} 
+                  size={item.isCenter ? 28 : 24} 
                   className={cn(
                     "transition-colors",
-                    isActive ? "text-blue-600" : "text-gray-500"
+                    item.isCenter 
+                      ? "text-white" 
+                      : isActive ? "text-blue-600" : "text-gray-500"
                   )} 
                 />
                 <span className={cn(
                   "text-xs mt-1 font-medium transition-colors",
-                  isActive ? "text-blue-600" : "text-gray-500"
+                  item.isCenter 
+                    ? "text-white" 
+                    : isActive ? "text-blue-600" : "text-gray-500"
                 )}>
                   {item.label}
                 </span>
