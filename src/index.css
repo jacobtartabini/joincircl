@@ -37,9 +37,9 @@
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    --card: 217.2 32.6% 17.5%;
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    --popover: 217.2 32.6% 17.5%;
     --popover-foreground: 210 40% 98%;
     --primary: 217.2 91.2% 59.8%;
     --primary-foreground: 222.2 84% 4.9%;
@@ -67,7 +67,60 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground transition-colors duration-300;
+  }
+  
+  /* Ensure proper dark mode text colors */
+  .dark {
+    color-scheme: dark;
+  }
+  
+  .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+    @apply text-foreground;
+  }
+  
+  .dark p, .dark span, .dark div {
+    @apply text-foreground;
+  }
+  
+  .dark .text-gray-900 {
+    @apply text-gray-100;
+  }
+  
+  .dark .text-gray-800 {
+    @apply text-gray-200;
+  }
+  
+  .dark .text-gray-700 {
+    @apply text-gray-300;
+  }
+  
+  .dark .text-gray-600 {
+    @apply text-gray-400;
+  }
+  
+  .dark .text-gray-500 {
+    @apply text-gray-500;
+  }
+  
+  .dark .bg-gray-50 {
+    @apply bg-gray-900;
+  }
+  
+  .dark .bg-gray-100 {
+    @apply bg-gray-800;
+  }
+  
+  .dark .bg-white {
+    @apply bg-card;
+  }
+  
+  .dark .border-gray-100 {
+    @apply border-border;
+  }
+  
+  .dark .border-gray-200 {
+    @apply border-border;
   }
 }
 
@@ -114,5 +167,25 @@
   .mobile-scroll {
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
+  }
+}
+
+/* Unified web theme */
+@media (min-width: 769px) {
+  .unified-web-theme {
+    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%);
+  }
+  
+  .unified-card {
+    @apply bg-card border border-border shadow-sm rounded-xl backdrop-blur-sm;
+    background: hsl(var(--card) / 0.95);
+  }
+  
+  .unified-button {
+    @apply transition-all duration-200 shadow-sm hover:shadow-md active:scale-95;
+  }
+  
+  .unified-input {
+    @apply transition-all duration-200 focus:ring-2 focus:ring-primary/20 focus:border-primary;
   }
 }

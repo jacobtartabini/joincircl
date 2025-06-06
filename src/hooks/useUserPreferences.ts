@@ -110,6 +110,8 @@ export const useUserPreferences = () => {
 
   const applyTheme = (theme: string) => {
     const root = window.document.documentElement;
+    
+    // Remove existing theme classes
     root.classList.remove('light', 'dark');
     
     if (theme === 'system') {
@@ -121,6 +123,9 @@ export const useUserPreferences = () => {
     
     // Store theme preference in localStorage for immediate access
     localStorage.setItem('theme', theme);
+    
+    // Trigger a custom event to notify components of theme change
+    window.dispatchEvent(new CustomEvent('themeChange', { detail: { theme } }));
   };
 
   useEffect(() => {
@@ -148,6 +153,12 @@ export const useUserPreferences = () => {
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, [preferences?.theme]);
+
+  // Initialize theme immediately on component mount
+  useEffect(() => {
+    const storedTheme = localStorage.getItem('theme') || 'system';
+    applyTheme(storedTheme);
+  }, []);
 
   return { preferences, loading, updatePreferences, refetch: fetchPreferences };
 };
