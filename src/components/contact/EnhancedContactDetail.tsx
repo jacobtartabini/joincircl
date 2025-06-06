@@ -71,11 +71,11 @@ export function EnhancedContactDetail({
               </p>}
             
             <div className="flex flex-wrap gap-2 justify-center">
-              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs font-medium">
+              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs font-medium rounded-full">
                 {contact.circle.charAt(0).toUpperCase() + contact.circle.slice(1)} Circle
               </Badge>
               
-              {contact.tags && contact.tags.map(tag => <Badge key={tag} variant="secondary" className="bg-gray-100 text-gray-700 border-gray-200 text-xs font-medium">
+              {contact.tags && contact.tags.map(tag => <Badge key={tag} variant="secondary" className="bg-gray-100 text-gray-700 border-gray-200 text-xs font-medium rounded-full">
                   {tag}
                 </Badge>)}
             </div>
