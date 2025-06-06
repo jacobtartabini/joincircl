@@ -17,13 +17,12 @@ export default function AIFloatingButton({
   hasUnreadSuggestions = false 
 }: AIFloatingButtonProps) {
   const isMobile = useIsMobile();
+  const [isHovered, setIsHovered] = useState(false);
   
-  // On mobile, we don't show the floating button as it's integrated into the nav
+  // Don't render on mobile - AI is integrated into mobile nav
   if (isMobile) {
     return null;
   }
-
-  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <Button
@@ -34,7 +33,7 @@ export default function AIFloatingButton({
         "fixed z-40 rounded-full shadow-lg transition-all duration-300",
         "bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700",
         "border-0 hover:scale-110 hover:shadow-xl",
-        "bottom-6 right-6 h-14 w-14", // Desktop only positioning
+        "bottom-6 right-6 h-14 w-14",
         isActive && "scale-110 shadow-xl"
       )}
     >

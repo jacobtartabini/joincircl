@@ -1,4 +1,3 @@
-
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCirclesState } from "./hooks/useCirclesState";
@@ -21,6 +20,13 @@ export default function MobileOptimizedCircles() {
   const isMobile = useIsMobile();
   const [searchParams] = useSearchParams();
   const tagFilter = searchParams.get('tag');
+  
+  // Add debug logging
+  useEffect(() => {
+    console.log('MobileOptimizedCircles: Component mounted');
+    console.log('MobileOptimizedCircles: isMobile =', isMobile);
+    console.log('MobileOptimizedCircles: window.innerWidth =', window.innerWidth);
+  }, [isMobile]);
   
   const {
     contacts,
@@ -95,7 +101,6 @@ export default function MobileOptimizedCircles() {
 
   const handleContactTap = (contact: Contact) => {
     console.log('Contact tapped:', contact.id);
-    // Navigate to the contact detail page using the correct route structure
     navigate(`/contact/${contact.id}`);
   };
 
@@ -189,7 +194,9 @@ export default function MobileOptimizedCircles() {
     </motion.div>
   );
 
-  // Always render the mobile UI, don't rely on isMobile detection
+  // Always render the mobile UI with debug info
+  console.log('MobileOptimizedCircles: Rendering mobile UI');
+  
   return (
     <>
       <div className="h-full flex flex-col bg-gray-50">
