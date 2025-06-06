@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -43,6 +42,11 @@ export default function GlobalAIAssistant({
   const [isLoading, setIsLoading] = useState(false);
   const { messages, addMessage, clearHistory } = useChatHistory();
   const isMobile = useIsMobile();
+
+  // On mobile, don't render the global assistant as it's integrated into navigation
+  if (isMobile) {
+    return null;
+  }
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;
@@ -182,13 +186,9 @@ export default function GlobalAIAssistant({
   return (
     <div className={cn(
       "fixed z-50 transition-all duration-300",
-      isMobile 
-        ? isMinimized 
-          ? "bottom-20 right-4 left-4 h-16" // Mobile minimized: full width minus padding, above nav
-          : "bottom-20 right-4 left-4 top-20" // Mobile expanded: full screen minus safe areas
-        : isMinimized 
-          ? "bottom-4 right-4 w-80 h-16" // Desktop minimized: original behavior
-          : "bottom-4 right-4 w-96 h-[600px]" // Desktop expanded: original behavior
+      isMinimized 
+        ? "bottom-4 right-4 w-80 h-16" // Desktop minimized
+        : "bottom-4 right-4 w-96 h-[600px]" // Desktop expanded
     )}>
       <Card className="h-full border-0 shadow-xl bg-white/95 backdrop-blur-sm flex flex-col">
         <CardHeader className={cn(

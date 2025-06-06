@@ -6,7 +6,6 @@ import { Contact } from "@/types/contact";
 import { AddContactDialog } from "./dialogs/AddContactDialog";
 import { EditContactDialog } from "./dialogs/EditContactDialog";
 import { InteractionDialog } from "./dialogs/InteractionDialog";
-import { MobileContactDetailSlideIn } from "@/components/contact/MobileContactDetailSlideIn";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileCard, MobileCardContent } from "@/components/ui/mobile-card";
 import { MobileInput } from "@/components/ui/mobile-input";
@@ -42,8 +41,6 @@ export default function MobileOptimizedCircles() {
   const [filterBy, setFilterBy] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<string>("name");
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedContactForDetail, setSelectedContactForDetail] = useState<Contact | null>(null);
-  const [isDetailSlideInOpen, setIsDetailSlideInOpen] = useState(false);
 
   useEffect(() => {
     if (tagFilter) {
@@ -97,46 +94,9 @@ export default function MobileOptimizedCircles() {
   };
 
   const handleContactTap = (contact: Contact) => {
-    setSelectedContactForDetail(contact);
-    setIsDetailSlideInOpen(true);
+    // Navigate directly to the contact detail page
+    navigate(`/contacts/${contact.id}`);
   };
-
-  const handleEditFromDetail = () => {
-    if (selectedContactForDetail) {
-      setSelectedContact(selectedContactForDetail);
-      setIsEditDialogOpen(true);
-      setIsDetailSlideInOpen(false);
-    }
-  };
-
-  const handleDeleteFromDetail = () => {
-    if (selectedContactForDetail) {
-      // Navigate to full contact detail page for deletion
-      navigate(`/contacts/${selectedContactForDetail.id}`);
-    }
-  };
-
-  // Mock interactions for the selected contact
-  const selectedContactInteractions = useMemo(() => {
-    if (!selectedContactForDetail) return [];
-    return [{
-      id: "int1",
-      user_id: "user1",
-      contact_id: selectedContactForDetail.id,
-      type: "Meeting",
-      notes: "Discussed project timeline and deliverables",
-      date: new Date().toISOString(),
-      created_at: new Date().toISOString()
-    }, {
-      id: "int2",
-      user_id: "user1",
-      contact_id: selectedContactForDetail.id,
-      type: "Email",
-      notes: "Sent follow-up email with meeting notes",
-      date: new Date(Date.now() - 86400000).toISOString(),
-      created_at: new Date(Date.now() - 86400000).toISOString()
-    }];
-  }, [selectedContactForDetail]);
 
   const ContactCard = ({ contact }: { contact: Contact }) => (
     <motion.div
@@ -332,19 +292,6 @@ export default function MobileOptimizedCircles() {
           )}
         </div>
       </div>
-
-      {/* Mobile Contact Detail Slide-in */}
-      <MobileContactDetailSlideIn
-        contact={selectedContactForDetail}
-        interactions={selectedContactInteractions}
-        isOpen={isDetailSlideInOpen}
-        onClose={() => {
-          setIsDetailSlideInOpen(false);
-          setSelectedContactForDetail(null);
-        }}
-        onEdit={handleEditFromDetail}
-        onDelete={handleDeleteFromDetail}
-      />
 
       {/* Dialogs */}
       <AddContactDialog

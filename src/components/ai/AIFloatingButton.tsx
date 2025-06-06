@@ -16,8 +16,14 @@ export default function AIFloatingButton({
   isActive = false, 
   hasUnreadSuggestions = false 
 }: AIFloatingButtonProps) {
-  const [isHovered, setIsHovered] = useState(false);
   const isMobile = useIsMobile();
+  
+  // On mobile, we don't show the floating button as it's integrated into the nav
+  if (isMobile) {
+    return null;
+  }
+
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <Button
@@ -28,32 +34,19 @@ export default function AIFloatingButton({
         "fixed z-40 rounded-full shadow-lg transition-all duration-300",
         "bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700",
         "border-0 hover:scale-110 hover:shadow-xl",
-        isMobile 
-          ? "bottom-20 right-4 h-12 w-12" // Mobile: smaller, positioned above mobile nav
-          : "bottom-6 right-6 h-14 w-14", // Desktop: original size and position
+        "bottom-6 right-6 h-14 w-14", // Desktop only positioning
         isActive && "scale-110 shadow-xl"
       )}
     >
       <div className="relative">
-        {isHovered && !isMobile ? (
-          <MessageCircle className={cn(
-            "text-white",
-            isMobile ? "h-5 w-5" : "h-6 w-6"
-          )} />
+        {isHovered ? (
+          <MessageCircle className="h-6 w-6 text-white" />
         ) : (
-          <Brain className={cn(
-            "text-white",
-            isMobile ? "h-5 w-5" : "h-6 w-6"
-          )} />
+          <Brain className="h-6 w-6 text-white" />
         )}
         
         {hasUnreadSuggestions && !isActive && (
-          <div className={cn(
-            "absolute bg-red-500 rounded-full border-2 border-white",
-            isMobile 
-              ? "-top-0.5 -right-0.5 w-2.5 h-2.5" 
-              : "-top-1 -right-1 w-3 h-3"
-          )} />
+          <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white" />
         )}
       </div>
     </Button>
