@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { SessionManager } from '@/services/security/sessionManager';
 import { RateLimiter } from '@/services/security/rateLimiter';
