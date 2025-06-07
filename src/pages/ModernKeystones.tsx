@@ -1,259 +1,338 @@
-import { useState, useMemo } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { keystoneService } from "@/services/keystoneService";
-import { contactService } from "@/services/contactService";
-import { Keystone } from "@/types/keystone";
-import { Contact } from "@/types/contact";
-import { KeystoneCard } from "@/components/ui/keystone-card";
-import { Button } from "@/components/ui/button";
-import { Plus, Calendar, MoreVertical, Edit, Trash } from "lucide-react";
-import { format, isAfter, isBefore, startOfToday } from "date-fns";
-import { useToast } from "@/hooks/use-toast";
-import KeystoneForm from "@/components/keystone/KeystoneForm";
-import { KeystoneDetailModal } from "@/components/keystone/KeystoneDetailModal";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
+import { useState, useMemo } from 'react';
+import { format, isToday, isTomorrow, isYesterday, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
+import { Calendar, Plus, Filter, Clock, MapPin, User, ChevronDown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useQuery } from '@tanstack/react-query';
+import { keystoneService } from '@/services/keystoneService';
+import { useAuth } from '@/contexts/AuthContext';
+import { Keystone } from '@/types/keystone';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useToast } from '@/hooks/use-toast';
+
 export default function ModernKeystones() {
-  const {
-    toast
-  } = useToast();
-  const queryClient = useQueryClient();
-  const [selectedKeystone, setSelectedKeystone] = useState<Keystone | null>(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
-  const [editingKeystone, setEditingKeystone] = useState<Keystone | null>(null);
-  const [deleteConfirmKeystone, setDeleteConfirmKeystone] = useState<Keystone | null>(null);
-  const today = startOfToday();
+  const { user } = useAuth();
+  const isMobile = useIsMobile();
+  const { toast } = useToast();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTimeframe, setSelectedTimeframe] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState('all');
 
-  // Fetch keystones
-  const {
-    data: keystones = [],
-    isLoading
-  } = useQuery({
-    queryKey: ['keystones'],
-    queryFn: keystoneService.getKeystones
+  const { data: keystones = [], isLoading, refetch } = useQuery({
+    queryKey: ['keystones', user?.id],
+    queryFn: keystoneService.getKeystones,
+    enabled: !!user?.id,
   });
 
-  // Fetch contacts for dropdown
-  const {
-    data: contacts = []
-  } = useQuery({
-    queryKey: ['contacts'],
-    queryFn: contactService.getContacts
-  });
+  const filteredKeystones = useMemo(() => {
+    let filtered = keystones;
 
-  // Create contact lookup map
-  const contactMap = useMemo(() => {
-    const map = new Map<string, Contact>();
-    contacts.forEach(contact => map.set(contact.id, contact));
-    return map;
-  }, [contacts]);
-
-  // Delete mutation
-  const deleteMutation = useMutation({
-    mutationFn: keystoneService.deleteKeystone,
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['keystones']
-      });
-      toast({
-        title: "Keystone deleted",
-        description: "The keystone has been successfully deleted."
-      });
-      setDeleteConfirmKeystone(null);
-    },
-    onError: error => {
-      console.error("Error deleting keystone:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete keystone. Please try again.",
-        variant: "destructive"
-      });
+    // Search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(keystone => 
+        keystone.title.toLowerCase().includes(query) ||
+        keystone.notes?.toLowerCase().includes(query) ||
+        keystone.category?.toLowerCase().includes(query)
+      );
     }
-  });
 
-  // Categorize keystones
-  const categorizedKeystones = useMemo(() => {
-    const upcoming: Keystone[] = [];
-    const past: Keystone[] = [];
-    keystones.forEach(keystone => {
+    // Category filter
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(keystone => keystone.category === selectedCategory);
+    }
+
+    // Timeframe filter
+    if (selectedTimeframe !== 'all') {
+      const now = new Date();
       const keystoneDate = new Date(keystone.date);
-      if (isAfter(keystoneDate, today) || format(keystoneDate, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd')) {
-        upcoming.push(keystone);
-      } else {
-        past.push(keystone);
-      }
-    });
-    return {
-      upcoming: upcoming.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()),
-      past: past.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    };
-  }, [keystones, today]);
-  const handleKeystoneClick = (keystone: Keystone) => {
-    setSelectedKeystone(keystone);
-    setIsDetailModalOpen(true);
+      
+      filtered = filtered.filter(keystone => {
+        const date = new Date(keystone.date);
+        
+        switch (selectedTimeframe) {
+          case 'today':
+            return isToday(date);
+          case 'tomorrow':
+            return isTomorrow(date);
+          case 'yesterday':
+            return isYesterday(date);
+          case 'thisWeek':
+            return date >= startOfWeek(now) && date <= endOfWeek(now);
+          case 'thisMonth':
+            return date >= startOfMonth(now) && date <= endOfMonth(now);
+          default:
+            return true;
+        }
+      });
+    }
+
+    // Sort by date
+    return filtered.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }, [keystones, searchQuery, selectedCategory, selectedTimeframe]);
+
+  const getDateLabel = (date: string) => {
+    const keystoneDate = new Date(date);
+    
+    if (isToday(keystoneDate)) return 'Today';
+    if (isTomorrow(keystoneDate)) return 'Tomorrow';
+    if (isYesterday(keystoneDate)) return 'Yesterday';
+    
+    return format(keystoneDate, 'MMMM d, yyyy');
   };
-  const handleEdit = (keystone: Keystone) => {
-    setEditingKeystone(keystone);
-    setIsFormDialogOpen(true);
-  };
-  const handleDelete = (keystone: Keystone) => {
-    setDeleteConfirmKeystone(keystone);
-  };
-  const confirmDelete = () => {
-    if (deleteConfirmKeystone) {
-      deleteMutation.mutate(deleteConfirmKeystone.id);
+
+  const getCategoryColor = (category: string) => {
+    switch (category?.toLowerCase()) {
+      case 'birthday':
+        return 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200';
+      case 'anniversary':
+        return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
+      case 'meeting':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+      case 'reminder':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+      case 'milestone':
+        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
     }
   };
-  const handleFormSuccess = () => {
-    queryClient.invalidateQueries({
-      queryKey: ['keystones']
-    });
-    setIsFormDialogOpen(false);
-    setEditingKeystone(null);
-    toast({
-      title: editingKeystone ? "Keystone updated" : "Keystone created",
-      description: `The keystone has been successfully ${editingKeystone ? "updated" : "created"}.`
-    });
-  };
-  const renderKeystoneCard = (keystone: Keystone, isPast = false) => {
-    const contact = keystone.contact_id ? contactMap.get(keystone.contact_id) : null;
-    return <div key={keystone.id} className="relative group">
-        <KeystoneCard keystone={{
-        id: keystone.id,
-        title: keystone.title,
-        date: keystone.date,
-        category: keystone.category,
-        contactId: keystone.contact_id,
-        contactName: contact?.name,
-        contactAvatar: contact?.avatar_url
-      }} isPast={isPast} onEdit={() => handleKeystoneClick(keystone)} className="cursor-pointer" />
-        
-        {/* Three dots menu */}
-        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 bg-white/90 hover:bg-white shadow-sm" onClick={e => e.stopPropagation()}>
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={e => {
-              e.stopPropagation();
-              handleEdit(keystone);
-            }}>
-                <Edit className="h-4 w-4 mr-2" />
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={e => {
-              e.stopPropagation();
-              handleDelete(keystone);
-            }} className="text-red-600">
-                <Trash className="h-4 w-4 mr-2" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+
+  if (isMobile) {
+    return (
+      <div className="min-h-screen bg-background dark:bg-background p-4 pb-20">
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-foreground dark:text-foreground mb-2">Keystones</h1>
+            <p className="text-muted-foreground dark:text-muted-foreground">
+              Important dates and milestones
+            </p>
+          </div>
+
+          {/* Search and Filters */}
+          <div className="space-y-3">
+            <div className="relative">
+              <Input
+                placeholder="Search keystones..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            </div>
+            
+            <div className="flex gap-2">
+              <Select value={selectedTimeframe} onValueChange={setSelectedTimeframe}>
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="Timeframe" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All dates</SelectItem>
+                  <SelectItem value="today">Today</SelectItem>
+                  <SelectItem value="tomorrow">Tomorrow</SelectItem>
+                  <SelectItem value="thisWeek">This week</SelectItem>
+                  <SelectItem value="thisMonth">This month</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All categories</SelectItem>
+                  <SelectItem value="birthday">Birthday</SelectItem>
+                  <SelectItem value="anniversary">Anniversary</SelectItem>
+                  <SelectItem value="meeting">Meeting</SelectItem>
+                  <SelectItem value="reminder">Reminder</SelectItem>
+                  <SelectItem value="milestone">Milestone</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Keystones List */}
+          <div className="space-y-3">
+            {isLoading ? (
+              [...Array(3)].map((_, i) => (
+                <Card key={i} className="animate-pulse">
+                  <CardContent className="p-4">
+                    <div className="space-y-2">
+                      <div className="h-4 bg-muted rounded w-3/4" />
+                      <div className="h-3 bg-muted rounded w-1/2" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : filteredKeystones.length > 0 ? (
+              filteredKeystones.map((keystone) => (
+                <Card key={keystone.id} className="unified-card">
+                  <CardContent className="p-4">
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-foreground dark:text-foreground">
+                            {keystone.title}
+                          </h3>
+                          {keystone.notes && (
+                            <p className="text-sm text-muted-foreground dark:text-muted-foreground mt-1">
+                              {keystone.notes}
+                            </p>
+                          )}
+                        </div>
+                        {keystone.category && (
+                          <Badge className={getCategoryColor(keystone.category)}>
+                            {keystone.category}
+                          </Badge>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center text-sm text-muted-foreground dark:text-muted-foreground">
+                        <Clock className="h-4 w-4 mr-2" />
+                        {getDateLabel(keystone.date)}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <div className="text-center py-12">
+                <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-foreground dark:text-foreground mb-2">
+                  No keystones found
+                </h3>
+                <p className="text-muted-foreground dark:text-muted-foreground">
+                  {searchQuery ? "Try adjusting your search" : "Add your first keystone to get started"}
+                </p>
+              </div>
+            )}
+          </div>
         </div>
-      </div>;
-  };
-  if (isLoading) {
-    return <div className="h-full flex items-center justify-center">
-        <div className="text-center">
-          <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading keystones...</p>
-        </div>
-      </div>;
+      </div>
+    );
   }
-  return <div className="h-full flex flex-col bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b px-6 py-4 rounded-2xl">
+
+  // Desktop version with dark mode support
+  return (
+    <div className="min-h-screen bg-background dark:bg-background">
+      <div className="max-w-7xl mx-auto p-6 space-y-8">
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Keystones</h1>
-            <p className="text-muted-foreground">Important dates and milestones</p>
+            <h1 className="text-3xl font-bold text-foreground dark:text-foreground">Keystones</h1>
+            <p className="text-muted-foreground dark:text-muted-foreground">
+              Track important dates and milestones
+            </p>
           </div>
-          <Button onClick={() => setIsFormDialogOpen(true)} className="rounded-full">
+          <Button className="unified-button">
             <Plus className="h-4 w-4 mr-2" />
             Add Keystone
           </Button>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-auto p-6">
-        <div className="max-w-4xl mx-auto space-y-8">
-          {/* Upcoming Keystones */}
-          <section>
-            <h2 className="text-lg font-semibold mb-4 text-gray-900">
-              Upcoming ({categorizedKeystones.upcoming.length})
-            </h2>
-            {categorizedKeystones.upcoming.length > 0 ? <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {categorizedKeystones.upcoming.map(keystone => renderKeystoneCard(keystone))}
-              </div> : <div className="text-center py-8 text-muted-foreground">
-                <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>No upcoming keystones</p>
-                <p className="text-sm">Add your first keystone to get started</p>
-              </div>}
-          </section>
-
-          {/* Past Keystones */}
-          {categorizedKeystones.past.length > 0 && <section>
-              <h2 className="text-lg font-semibold mb-4 text-gray-900">
-                Past ({categorizedKeystones.past.length})
-              </h2>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {categorizedKeystones.past.map(keystone => renderKeystoneCard(keystone, true))}
+        {/* Filters */}
+        <Card className="unified-card">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <Input
+                  placeholder="Search keystones..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="unified-input"
+                />
               </div>
-            </section>}
+              <Select value={selectedTimeframe} onValueChange={setSelectedTimeframe}>
+                <SelectTrigger className="w-full md:w-40">
+                  <SelectValue placeholder="Timeframe" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All dates</SelectItem>
+                  <SelectItem value="today">Today</SelectItem>
+                  <SelectItem value="tomorrow">Tomorrow</SelectItem>
+                  <SelectItem value="thisWeek">This week</SelectItem>
+                  <SelectItem value="thisMonth">This month</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-full md:w-40">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All categories</SelectItem>
+                  <SelectItem value="birthday">Birthday</SelectItem>
+                  <SelectItem value="anniversary">Anniversary</SelectItem>
+                  <SelectItem value="meeting">Meeting</SelectItem>
+                  <SelectItem value="reminder">Reminder</SelectItem>
+                  <SelectItem value="milestone">Milestone</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Keystones Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {isLoading ? (
+            [...Array(6)].map((_, i) => (
+              <Card key={i} className="animate-pulse unified-card">
+                <CardContent className="p-6">
+                  <div className="space-y-3">
+                    <div className="h-5 bg-muted rounded w-3/4" />
+                    <div className="h-4 bg-muted rounded w-full" />
+                    <div className="h-4 bg-muted rounded w-1/2" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          ) : filteredKeystones.length > 0 ? (
+            filteredKeystones.map((keystone) => (
+              <Card key={keystone.id} className="unified-card hover:shadow-lg transition-shadow">
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between">
+                      <h3 className="font-semibold text-foreground dark:text-foreground text-lg">
+                        {keystone.title}
+                      </h3>
+                      {keystone.category && (
+                        <Badge className={getCategoryColor(keystone.category)}>
+                          {keystone.category}
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    {keystone.notes && (
+                      <p className="text-muted-foreground dark:text-muted-foreground">
+                        {keystone.notes}
+                      </p>
+                    )}
+                    
+                    <div className="flex items-center text-sm text-muted-foreground dark:text-muted-foreground">
+                      <Clock className="h-4 w-4 mr-2" />
+                      {getDateLabel(keystone.date)}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <div className="col-span-full text-center py-12">
+              <Calendar className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-xl font-medium text-foreground dark:text-foreground mb-2">
+                No keystones found
+              </h3>
+              <p className="text-muted-foreground dark:text-muted-foreground">
+                {searchQuery ? "Try adjusting your search filters" : "Add your first keystone to get started"}
+              </p>
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Keystone Detail Modal */}
-      <KeystoneDetailModal keystone={selectedKeystone} isOpen={isDetailModalOpen} onOpenChange={setIsDetailModalOpen} onEdit={() => {
-      if (selectedKeystone) {
-        setIsDetailModalOpen(false);
-        handleEdit(selectedKeystone);
-      }
-    }} onDelete={() => {
-      if (selectedKeystone) {
-        setIsDetailModalOpen(false);
-        handleDelete(selectedKeystone);
-      }
-    }} />
-
-      {/* Form Dialog */}
-      <Dialog open={isFormDialogOpen} onOpenChange={setIsFormDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>
-              {editingKeystone ? "Edit Keystone" : "Create New Keystone"}
-            </DialogTitle>
-          </DialogHeader>
-          <KeystoneForm keystone={editingKeystone} contacts={contacts} onSuccess={handleFormSuccess} onCancel={() => {
-          setIsFormDialogOpen(false);
-          setEditingKeystone(null);
-        }} />
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Confirmation */}
-      <AlertDialog open={!!deleteConfirmKeystone} onOpenChange={() => setDeleteConfirmKeystone(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Keystone</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete "{deleteConfirmKeystone?.title}"? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700" disabled={deleteMutation.isPending}>
-              {deleteMutation.isPending ? "Deleting..." : "Delete"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>;
+    </div>
+  );
 }

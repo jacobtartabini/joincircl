@@ -28,15 +28,17 @@ export default function ContactDetail() {
   
   // Show loading or error states
   if (loading || error || !contact) {
-    return <ContactDetailSkeleton 
-             isLoading={loading}
-             error={error || !contact} 
-             errorMessage="The contact you're looking for doesn't exist or you don't have access to it." 
-           />;
+    return (
+      <ContactDetailSkeleton 
+        isLoading={loading}
+        error={error || !contact} 
+        errorMessage="The contact you're looking for doesn't exist or you don't have access to it." 
+      />
+    );
   }
 
   return (
-    <div className="min-h-screen unified-web-theme">
+    <div className="min-h-screen bg-background dark:bg-background">
       <div className="max-w-7xl mx-auto p-6 space-y-8 animate-fade-in">
         {/* Header with navigation and actions */}
         <ContactDetailHeader 

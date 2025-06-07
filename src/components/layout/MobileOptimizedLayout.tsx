@@ -1,3 +1,4 @@
+
 import { ReactNode } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useContacts } from "@/hooks/use-contacts";
@@ -6,9 +7,12 @@ import DesktopNav from "./DesktopNav";
 import MobileNav from "./MobileNav";
 import TopStatusBar from "./TopStatusBar";
 import GlobalAIAssistant from "@/components/ai/GlobalAIAssistant";
+import AIFloatingButton from "@/components/ai/AIFloatingButton";
+
 interface MobileOptimizedLayoutProps {
   children: ReactNode;
 }
+
 export function MobileOptimizedLayout({
   children
 }: MobileOptimizedLayoutProps) {
@@ -25,8 +29,10 @@ export function MobileOptimizedLayout({
 
   // Add fallback for mobile detection timing - render mobile by default if undefined
   const shouldRenderMobile = isMobile === undefined ? true : isMobile;
+  
   if (shouldRenderMobile) {
-    return <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
+    return (
+      <div className="flex flex-col h-screen bg-background dark:bg-background overflow-hidden">
         <TopStatusBar />
         <main className="flex-1 overflow-y-auto pb-20">
           <div className="min-h-full">
@@ -36,12 +42,20 @@ export function MobileOptimizedLayout({
         <MobileNav />
         
         {/* AI Assistant for mobile */}
-        <GlobalAIAssistant contacts={contacts} isOpen={isOpen} onToggle={toggleOpen} isMinimized={isMinimized} onMinimize={minimize} />
-      </div>;
+        <GlobalAIAssistant 
+          contacts={contacts} 
+          isOpen={isOpen} 
+          onToggle={toggleOpen} 
+          isMinimized={isMinimized} 
+          onMinimize={minimize} 
+        />
+      </div>
+    );
   }
 
   // Desktop layout
-  return <div className="flex h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
+  return (
+    <div className="flex h-screen bg-background dark:bg-background overflow-hidden">
       <DesktopNav />
       <div className="flex-1 flex flex-col min-w-0 ml-16 overflow-hidden">
         <TopStatusBar />
@@ -54,6 +68,21 @@ export function MobileOptimizedLayout({
         </main>
       </div>
       
-      <GlobalAIAssistant contacts={contacts} isOpen={isOpen} onToggle={toggleOpen} isMinimized={isMinimized} onMinimize={minimize} />
-    </div>;
+      {/* AI Assistant for desktop */}
+      <GlobalAIAssistant 
+        contacts={contacts} 
+        isOpen={isOpen} 
+        onToggle={toggleOpen} 
+        isMinimized={isMinimized} 
+        onMinimize={minimize} 
+      />
+      
+      {/* Floating AI Button for desktop only */}
+      <AIFloatingButton 
+        onClick={toggleOpen} 
+        isActive={isOpen} 
+        hasUnreadSuggestions={false} 
+      />
+    </div>
+  );
 }
