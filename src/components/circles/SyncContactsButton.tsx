@@ -9,6 +9,45 @@ interface SyncContactsButtonProps {
   onContactsImported?: () => void;
 }
 
+// Type definitions for Capacitor Contacts
+interface ContactName {
+  display?: string;
+  given?: string;
+  family?: string;
+}
+
+interface ContactEmail {
+  address?: string;
+}
+
+interface ContactPhone {
+  number?: string;
+}
+
+interface ContactBirthday {
+  year?: number;
+  month?: number;
+  day?: number;
+}
+
+interface Contact {
+  name?: ContactName;
+  emails?: ContactEmail[];
+  phones?: ContactPhone[];
+  organizationName?: string;
+  organizationRole?: string;
+  birthday?: ContactBirthday;
+}
+
+interface ContactsResult {
+  contacts: Contact[];
+}
+
+interface ContactsPlugin {
+  requestPermissions(): Promise<{ contacts: string }>;
+  getContacts(options: any): Promise<ContactsResult>;
+}
+
 export function SyncContactsButton({ onContactsImported }: SyncContactsButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -21,8 +60,14 @@ export function SyncContactsButton({ onContactsImported }: SyncContactsButtonPro
       // Check if we're in a mobile app environment (Capacitor)
       if (typeof window !== 'undefined' && (window as any).Capacitor) {
         try {
-          // Import Capacitor Contacts plugin dynamically
-          const { Contacts } = await import('@capacitor/contacts');
+          // Import Capacitor Contacts plugin dynamically with proper error handling
+          const contactsModule = await import('@capacitor/contacts').catch(() => null);
+          
+          if (!contactsModule) {
+            throw new Error('Capacitor Contacts plugin not available');
+          }
+          
+          const { Contacts } = contactsModule as { Contacts: ContactsPlugin };
           
           // Request permission
           const permission = await Contacts.requestPermissions();
