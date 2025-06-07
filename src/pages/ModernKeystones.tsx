@@ -12,32 +12,33 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Keystone } from '@/types/keystone';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
-
 export default function ModernKeystones() {
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const isMobile = useIsMobile();
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTimeframe, setSelectedTimeframe] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
-
-  const { data: keystones = [], isLoading, refetch } = useQuery({
+  const {
+    data: keystones = [],
+    isLoading,
+    refetch
+  } = useQuery({
     queryKey: ['keystones', user?.id],
     queryFn: keystoneService.getKeystones,
-    enabled: !!user?.id,
+    enabled: !!user?.id
   });
-
   const filteredKeystones = useMemo(() => {
     let filtered = keystones;
 
     // Search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(keystone => 
-        keystone.title.toLowerCase().includes(query) ||
-        keystone.notes?.toLowerCase().includes(query) ||
-        keystone.category?.toLowerCase().includes(query)
-      );
+      filtered = filtered.filter(keystone => keystone.title.toLowerCase().includes(query) || keystone.notes?.toLowerCase().includes(query) || keystone.category?.toLowerCase().includes(query));
     }
 
     // Category filter
@@ -48,10 +49,8 @@ export default function ModernKeystones() {
     // Timeframe filter
     if (selectedTimeframe !== 'all') {
       const now = new Date();
-      
       filtered = filtered.filter(keystone => {
         const date = new Date(keystone.date);
-        
         switch (selectedTimeframe) {
           case 'today':
             return isToday(date);
@@ -72,17 +71,13 @@ export default function ModernKeystones() {
     // Sort by date
     return filtered.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [keystones, searchQuery, selectedCategory, selectedTimeframe]);
-
   const getDateLabel = (date: string) => {
     const keystoneDate = new Date(date);
-    
     if (isToday(keystoneDate)) return 'Today';
     if (isTomorrow(keystoneDate)) return 'Tomorrow';
     if (isYesterday(keystoneDate)) return 'Yesterday';
-    
     return format(keystoneDate, 'MMMM d, yyyy');
   };
-
   const getCategoryColor = (category: string) => {
     switch (category?.toLowerCase()) {
       case 'birthday':
@@ -99,10 +94,8 @@ export default function ModernKeystones() {
         return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
     }
   };
-
   if (isMobile) {
-    return (
-      <div className="min-h-screen bg-background dark:bg-background p-4 pb-20">
+    return <div className="min-h-screen bg-background dark:bg-background p-4 pb-20">
         <div className="space-y-6">
           {/* Header */}
           <div className="text-center">
@@ -115,12 +108,7 @@ export default function ModernKeystones() {
           {/* Search and Filters */}
           <div className="space-y-3">
             <div className="relative">
-              <Input
-                placeholder="Search keystones..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
+              <Input placeholder="Search keystones..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
               <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             </div>
             
@@ -156,20 +144,14 @@ export default function ModernKeystones() {
 
           {/* Keystones List */}
           <div className="space-y-3">
-            {isLoading ? (
-              [...Array(3)].map((_, i) => (
-                <Card key={i} className="animate-pulse">
+            {isLoading ? [...Array(3)].map((_, i) => <Card key={i} className="animate-pulse">
                   <CardContent className="p-4">
                     <div className="space-y-2">
                       <div className="h-4 bg-muted rounded w-3/4" />
                       <div className="h-3 bg-muted rounded w-1/2" />
                     </div>
                   </CardContent>
-                </Card>
-              ))
-            ) : filteredKeystones.length > 0 ? (
-              filteredKeystones.map((keystone) => (
-                <Card key={keystone.id} className="unified-card">
+                </Card>) : filteredKeystones.length > 0 ? filteredKeystones.map(keystone => <Card key={keystone.id} className="unified-card">
                   <CardContent className="p-4">
                     <div className="space-y-3">
                       <div className="flex items-start justify-between">
@@ -177,17 +159,13 @@ export default function ModernKeystones() {
                           <h3 className="font-semibold text-foreground dark:text-foreground">
                             {keystone.title}
                           </h3>
-                          {keystone.notes && (
-                            <p className="text-sm text-muted-foreground dark:text-muted-foreground mt-1">
+                          {keystone.notes && <p className="text-sm text-muted-foreground dark:text-muted-foreground mt-1">
                               {keystone.notes}
-                            </p>
-                          )}
+                            </p>}
                         </div>
-                        {keystone.category && (
-                          <Badge className={getCategoryColor(keystone.category)}>
+                        {keystone.category && <Badge className={getCategoryColor(keystone.category)}>
                             {keystone.category}
-                          </Badge>
-                        )}
+                          </Badge>}
                       </div>
                       
                       <div className="flex items-center text-sm text-muted-foreground dark:text-muted-foreground">
@@ -196,10 +174,7 @@ export default function ModernKeystones() {
                       </div>
                     </div>
                   </CardContent>
-                </Card>
-              ))
-            ) : (
-              <div className="text-center py-12">
+                </Card>) : <div className="text-center py-12">
                 <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-foreground dark:text-foreground mb-2">
                   No keystones found
@@ -207,17 +182,14 @@ export default function ModernKeystones() {
                 <p className="text-muted-foreground dark:text-muted-foreground">
                   {searchQuery ? "Try adjusting your search" : "Add your first keystone to get started"}
                 </p>
-              </div>
-            )}
+              </div>}
           </div>
         </div>
-      </div>
-    );
+      </div>;
   }
 
   // Desktop version with dark mode support
-  return (
-    <div className="min-h-screen bg-background dark:bg-background">
+  return <div className="min-h-screen bg-background dark:bg-background">
       <div className="max-w-7xl mx-auto p-6 space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -227,7 +199,7 @@ export default function ModernKeystones() {
               Track important dates and milestones
             </p>
           </div>
-          <Button className="unified-button">
+          <Button className="unified-button rounded-full">
             <Plus className="h-4 w-4 mr-2" />
             Add Keystone
           </Button>
@@ -238,12 +210,7 @@ export default function ModernKeystones() {
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">
-                <Input
-                  placeholder="Search keystones..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="unified-input"
-                />
+                <Input placeholder="Search keystones..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="unified-input" />
               </div>
               <Select value={selectedTimeframe} onValueChange={setSelectedTimeframe}>
                 <SelectTrigger className="w-full md:w-40">
@@ -276,9 +243,7 @@ export default function ModernKeystones() {
 
         {/* Keystones Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {isLoading ? (
-            [...Array(6)].map((_, i) => (
-              <Card key={i} className="animate-pulse unified-card">
+          {isLoading ? [...Array(6)].map((_, i) => <Card key={i} className="animate-pulse unified-card">
                 <CardContent className="p-6">
                   <div className="space-y-3">
                     <div className="h-5 bg-muted rounded w-3/4" />
@@ -286,29 +251,21 @@ export default function ModernKeystones() {
                     <div className="h-4 bg-muted rounded w-1/2" />
                   </div>
                 </CardContent>
-              </Card>
-            ))
-          ) : filteredKeystones.length > 0 ? (
-            filteredKeystones.map((keystone) => (
-              <Card key={keystone.id} className="unified-card hover:shadow-lg transition-shadow">
+              </Card>) : filteredKeystones.length > 0 ? filteredKeystones.map(keystone => <Card key={keystone.id} className="unified-card hover:shadow-lg transition-shadow">
                 <CardContent className="p-6">
                   <div className="space-y-4">
                     <div className="flex items-start justify-between">
                       <h3 className="font-semibold text-foreground dark:text-foreground text-lg">
                         {keystone.title}
                       </h3>
-                      {keystone.category && (
-                        <Badge className={getCategoryColor(keystone.category)}>
+                      {keystone.category && <Badge className={getCategoryColor(keystone.category)}>
                           {keystone.category}
-                        </Badge>
-                      )}
+                        </Badge>}
                     </div>
                     
-                    {keystone.notes && (
-                      <p className="text-muted-foreground dark:text-muted-foreground">
+                    {keystone.notes && <p className="text-muted-foreground dark:text-muted-foreground">
                         {keystone.notes}
-                      </p>
-                    )}
+                      </p>}
                     
                     <div className="flex items-center text-sm text-muted-foreground dark:text-muted-foreground">
                       <Clock className="h-4 w-4 mr-2" />
@@ -316,10 +273,7 @@ export default function ModernKeystones() {
                     </div>
                   </div>
                 </CardContent>
-              </Card>
-            ))
-          ) : (
-            <div className="col-span-full text-center py-12">
+              </Card>) : <div className="col-span-full text-center py-12">
               <Calendar className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-xl font-medium text-foreground dark:text-foreground mb-2">
                 No keystones found
@@ -327,10 +281,8 @@ export default function ModernKeystones() {
               <p className="text-muted-foreground dark:text-muted-foreground">
                 {searchQuery ? "Try adjusting your search filters" : "Add your first keystone to get started"}
               </p>
-            </div>
-          )}
+            </div>}
         </div>
       </div>
-    </div>
-  );
+    </div>;
 }
