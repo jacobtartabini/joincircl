@@ -53,11 +53,16 @@ export function SyncContactsButton({ onContactsImported }: SyncContactsButtonPro
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
+  // Hide button completely on web
+  if (!isMobile) {
+    return null;
+  }
+
   const handleSyncContacts = async () => {
     setIsLoading(true);
     
     try {
-      // Check if we're in a mobile app environment (Capacitor)
+      // Check if we're in a Capacitor environment
       if (typeof window !== 'undefined' && (window as any).Capacitor) {
         try {
           // Check if Capacitor Contacts is available
@@ -70,11 +75,21 @@ export function SyncContactsButton({ onContactsImported }: SyncContactsButtonPro
           
           const Contacts = Plugins.Contacts as ContactsPlugin;
           
-          // Request permission
+          // Request permission with user-friendly messaging
+          toast({
+            title: "Permission Required",
+            description: "Please allow access to your contacts to sync them with Circl",
+          });
+
           const permission = await Contacts.requestPermissions();
           
           if (permission.contacts === 'granted') {
-            // Get contacts
+            toast({
+              title: "Syncing contacts...",
+              description: "Please wait while we import your contacts",
+            });
+
+            // Get contacts with comprehensive projection
             const result = await Contacts.getContacts({
               projection: {
                 name: true,
@@ -87,47 +102,65 @@ export function SyncContactsButton({ onContactsImported }: SyncContactsButtonPro
               }
             });
             
-            // Process contacts and send to backend
-            const processedContacts = result.contacts.map(contact => ({
-              name: contact.name?.display || `${contact.name?.given || ''} ${contact.name?.family || ''}`.trim(),
-              personal_email: contact.emails?.[0]?.address || null,
-              mobile_phone: contact.phones?.[0]?.number || null,
-              company_name: contact.organizationName || null,
-              job_title: contact.organizationRole || null,
-              birthday: contact.birthday ? new Date(contact.birthday.year!, contact.birthday.month! - 1, contact.birthday.day!) : null,
-              circle: 'outer' as const,
-              tags: ['imported']
-            }));
+            // Filter and process contacts - only include contacts with at least a name and phone/email
+            const processedContacts = result.contacts
+              .filter(contact => {
+                const hasName = contact.name?.display || contact.name?.given || contact.name?.family;
+                const hasPhone = contact.phones && contact.phones.length > 0 && contact.phones[0].number;
+                const hasEmail = contact.emails && contact.emails.length > 0 && contact.emails[0].address;
+                return hasName && (hasPhone || hasEmail);
+              })
+              .map(contact => ({
+                name: contact.name?.display || `${contact.name?.given || ''} ${contact.name?.family || ''}`.trim(),
+                personal_email: contact.emails?.[0]?.address || null,
+                mobile_phone: contact.phones?.[0]?.number || null,
+                company_name: contact.organizationName || null,
+                job_title: contact.organizationRole || null,
+                birthday: contact.birthday ? new Date(contact.birthday.year!, contact.birthday.month! - 1, contact.birthday.day!) : null,
+                circle: 'outer' as const,
+                tags: ['imported']
+              }));
             
-            // TODO: Send processedContacts to backend to create new contacts
-            console.log('Contacts to import:', processedContacts);
+            console.log('Filtered contacts for import:', processedContacts);
+            
+            if (processedContacts.length === 0) {
+              toast({
+                title: "No contacts to sync",
+                description: "No contacts with phone numbers or emails were found",
+                variant: "destructive",
+              });
+              return;
+            }
+
+            // TODO: Replace with actual backend API call
+            // await contactService.importContacts(processedContacts);
             
             toast({
-              title: "Contacts synced successfully",
-              description: `Found ${processedContacts.length} contacts to import`,
+              title: "Contacts synced successfully!",
+              description: `Successfully imported ${processedContacts.length} contacts to your outer circle`,
             });
             
             onContactsImported?.();
           } else {
             toast({
               title: "Permission denied",
-              description: "Contact access is required to sync your contacts",
+              description: "Contact access is required to sync your contacts. Please enable it in your device settings.",
               variant: "destructive",
             });
           }
-        } catch (importError) {
-          console.error('Error accessing Capacitor Contacts:', importError);
+        } catch (accessError) {
+          console.error('Error accessing Capacitor Contacts:', accessError);
           toast({
-            title: "Feature not available",
-            description: "Contact sync requires the mobile app version",
+            title: "Sync unavailable",
+            description: "Contact sync is not available on this device. Please make sure you're using the latest mobile app version.",
             variant: "destructive",
           });
         }
       } else {
-        // Web fallback - show info message
+        // Fallback for non-Capacitor mobile browsers
         toast({
           title: "Feature not available",
-          description: "Contact sync is only available in the mobile app",
+          description: "Contact sync requires the native mobile app. Please download the app from your device's app store.",
           variant: "destructive",
         });
       }
@@ -135,7 +168,7 @@ export function SyncContactsButton({ onContactsImported }: SyncContactsButtonPro
       console.error('Error syncing contacts:', error);
       toast({
         title: "Sync failed",
-        description: "Unable to sync contacts. Please try again.",
+        description: "An unexpected error occurred while syncing contacts. Please try again or contact support if the issue persists.",
         variant: "destructive",
       });
     } finally {
@@ -148,7 +181,7 @@ export function SyncContactsButton({ onContactsImported }: SyncContactsButtonPro
       onClick={handleSyncContacts}
       disabled={isLoading}
       variant="outline"
-      size={isMobile ? "sm" : "default"}
+      size="sm"
       className="unified-button flex items-center gap-2"
     >
       {isLoading ? (

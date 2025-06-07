@@ -82,29 +82,84 @@
   .dark p, .dark span, .dark div {
     @apply text-foreground;
   }
+
+  /* Dark mode fixes for specific elements */
+  .dark input[type="text"], 
+  .dark input[type="email"], 
+  .dark input[type="password"], 
+  .dark textarea, 
+  .dark select {
+    @apply bg-input border-border text-foreground;
+  }
+
+  .dark button:not(.unified-button) {
+    @apply text-foreground;
+  }
 }
 
-/* Standardized component outlines */
+/* Standardized component outlines with dark mode support */
 @layer components {
   .unified-card {
     @apply bg-card border border-border shadow-sm rounded-xl backdrop-blur-sm;
     background: hsl(var(--card) / 0.98);
   }
   
+  .dark .unified-card {
+    @apply bg-card border-border shadow-lg;
+    background: hsl(var(--card) / 0.95);
+  }
+  
   .unified-button {
     @apply transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98] rounded-xl;
+    @apply bg-background border border-border text-foreground;
+    @apply hover:bg-accent hover:text-accent-foreground;
+    @apply dark:bg-card dark:border-border dark:text-foreground;
+    @apply dark:hover:bg-accent dark:hover:text-accent-foreground;
   }
   
   .unified-input {
     @apply transition-all duration-200 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl;
+    @apply bg-background border border-input text-foreground;
+    @apply dark:bg-input dark:border-border dark:text-foreground;
+    @apply placeholder:text-muted-foreground dark:placeholder:text-muted-foreground;
   }
   
   .unified-modal {
     @apply bg-card border border-border shadow-xl rounded-2xl backdrop-blur-md;
+    @apply dark:bg-card dark:border-border dark:shadow-2xl;
   }
   
   .unified-container {
     @apply bg-card/50 border border-border rounded-xl p-6;
+    @apply dark:bg-card/50 dark:border-border;
+  }
+
+  /* Navigation components */
+  .unified-nav {
+    @apply bg-background border-border;
+    @apply dark:bg-background dark:border-border;
+  }
+
+  .unified-nav-item {
+    @apply text-foreground hover:text-primary hover:bg-accent;
+    @apply dark:text-foreground dark:hover:text-primary dark:hover:bg-accent;
+  }
+
+  /* Contact card specific styling */
+  .contact-card {
+    @apply bg-card border border-border shadow-sm hover:shadow-md;
+    @apply dark:bg-card dark:border-border dark:shadow-lg dark:hover:shadow-xl;
+  }
+
+  /* Settings page styling */
+  .settings-section {
+    @apply bg-card border border-border rounded-xl;
+    @apply dark:bg-card dark:border-border;
+  }
+
+  .settings-item {
+    @apply bg-background hover:bg-accent;
+    @apply dark:bg-background dark:hover:bg-accent;
   }
 }
 
@@ -152,11 +207,21 @@
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
   }
+
+  /* Mobile navigation dark mode */
+  .mobile-nav {
+    @apply bg-background border-border;
+    @apply dark:bg-background dark:border-border;
+  }
 }
 
-/* Unified web theme */
+/* Unified web theme with dark mode */
 @media (min-width: 769px) {
   .unified-web-theme {
     background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%);
+  }
+  
+  .dark .unified-web-theme {
+    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--card)) 100%);
   }
 }

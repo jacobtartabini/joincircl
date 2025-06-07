@@ -41,7 +41,7 @@ const MobileNav = () => {
 
   return (
     <motion.nav 
-      className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-40 pb-safe"
+      className="mobile-nav fixed bottom-0 left-0 right-0 bg-background border-t border-border z-40 pb-safe dark:bg-background dark:border-border"
       initial={{ y: 100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
@@ -61,9 +61,11 @@ const MobileNav = () => {
                   "flex flex-col items-center justify-center p-2 rounded-xl transition-colors min-h-12 min-w-12",
                   item.isCenter 
                     ? isActive 
-                      ? "bg-gradient-to-br from-blue-500 to-purple-600 text-white scale-110" 
-                      : "bg-gradient-to-br from-blue-500 to-purple-600 text-white"
-                    : isActive ? "bg-blue-50" : "hover:bg-gray-50"
+                      ? "bg-gradient-to-br from-blue-500 to-purple-600 text-white scale-110 dark:from-blue-600 dark:to-purple-700" 
+                      : "bg-gradient-to-br from-blue-500 to-purple-600 text-white dark:from-blue-600 dark:to-purple-700"
+                    : isActive 
+                      ? "bg-accent text-accent-foreground dark:bg-accent dark:text-accent-foreground" 
+                      : "hover:bg-accent/50 dark:hover:bg-accent/50"
                 )}
                 whileTap={{ scale: 0.95 }}
                 transition={{ duration: 0.1 }}
@@ -74,14 +76,18 @@ const MobileNav = () => {
                     "transition-colors",
                     item.isCenter 
                       ? "text-white" 
-                      : isActive ? "text-blue-600" : "text-gray-500"
+                      : isActive 
+                        ? "text-primary dark:text-primary" 
+                        : "text-muted-foreground dark:text-muted-foreground"
                   )} 
                 />
                 <span className={cn(
                   "text-xs mt-1 font-medium transition-colors",
                   item.isCenter 
                     ? "text-white" 
-                    : isActive ? "text-blue-600" : "text-gray-500"
+                    : isActive 
+                      ? "text-primary dark:text-primary" 
+                      : "text-muted-foreground dark:text-muted-foreground"
                 )}>
                   {item.label}
                 </span>
