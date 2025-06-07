@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Link, Navigate } from "react-router-dom";
 import { CheckCircle } from "lucide-react";
+
 export default function SignUp() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -28,6 +30,7 @@ export default function SignUp() {
   if (user) {
     return <Navigate to="/" replace />;
   }
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName || !email || !password || !confirmPassword) {
@@ -58,6 +61,7 @@ export default function SignUp() {
       setIsLoading(false);
     }
   };
+
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
@@ -68,17 +72,18 @@ export default function SignUp() {
       setIsLoading(false);
     }
   };
-  const signInWithLinkedIn = async () => {
+
+  const handleLinkedInSignIn = async () => {
     setIsLoading(true);
     try {
-      const { authService } = await import('@/services/authService');
-      await authService.signInWithLinkedIn();
+      await signInWithLinkedIn();
     } catch (error) {
       console.error("Error signing in with LinkedIn:", error);
     } finally {
       setIsLoading(false);
     }
   };
+
   if (isSignupComplete) {
     return <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-md">
@@ -118,6 +123,7 @@ export default function SignUp() {
         </div>
       </div>;
   }
+
   return <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-background dark:to-muted flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
         <Card className="unified-modal">
@@ -189,7 +195,7 @@ export default function SignUp() {
               <Button 
                 type="button" 
                 variant="outline" 
-                onClick={signInWithLinkedIn} 
+                onClick={handleLinkedInSignIn} 
                 disabled={isLoading} 
                 className="unified-button w-full h-12 border-border hover:bg-accent font-semibold transition-all duration-200 rounded-xl"
               >

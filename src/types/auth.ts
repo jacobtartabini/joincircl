@@ -23,6 +23,7 @@ export interface AuthContextProps {
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
   deleteAccount: () => Promise<void>;
   signInWithGoogle: () => Promise<void>;
+  signInWithLinkedIn: () => Promise<void>;
   hasPermission: (permission: string) => boolean;
   hasSeenTutorial: boolean;
   setHasSeenTutorial: (value: boolean) => void;

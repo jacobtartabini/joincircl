@@ -93,6 +93,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const signInWithLinkedIn = async () => {
+    console.log('AuthContext: signInWithLinkedIn called');
+    setLoading(true);
+    try {
+      await authService.signInWithLinkedIn();
+      // Don't set loading to false here as the redirect will happen
+    } catch (error) {
+      console.error('AuthContext: signInWithLinkedIn error:', error);
+      setLoading(false);
+      throw error;
+    }
+  };
+
   const updateProfile = async (updates: Partial<typeof profile>) => {
     if (!user) {
       console.warn('AuthContext: updateProfile called without user');
@@ -138,6 +151,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     updateProfile,
     deleteAccount,
     signInWithGoogle,
+    signInWithLinkedIn,
     hasPermission,
     hasSeenTutorial,
     setHasSeenTutorial,
