@@ -60,14 +60,15 @@ export function SyncContactsButton({ onContactsImported }: SyncContactsButtonPro
       // Check if we're in a mobile app environment (Capacitor)
       if (typeof window !== 'undefined' && (window as any).Capacitor) {
         try {
-          // Import Capacitor Contacts plugin dynamically with proper error handling
-          const contactsModule = await import('@capacitor/contacts').catch(() => null);
+          // Check if Capacitor Contacts is available
+          const CapacitorCore = (window as any).Capacitor;
+          const { Plugins } = CapacitorCore;
           
-          if (!contactsModule) {
+          if (!Plugins || !Plugins.Contacts) {
             throw new Error('Capacitor Contacts plugin not available');
           }
           
-          const { Contacts } = contactsModule as { Contacts: ContactsPlugin };
+          const Contacts = Plugins.Contacts as ContactsPlugin;
           
           // Request permission
           const permission = await Contacts.requestPermissions();
@@ -115,7 +116,7 @@ export function SyncContactsButton({ onContactsImported }: SyncContactsButtonPro
             });
           }
         } catch (importError) {
-          console.error('Error importing Capacitor Contacts:', importError);
+          console.error('Error accessing Capacitor Contacts:', importError);
           toast({
             title: "Feature not available",
             description: "Contact sync requires the mobile app version",
