@@ -1,10 +1,10 @@
-
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { SessionManager } from '@/services/security/sessionManager';
 import { RateLimiter } from '@/services/security/rateLimiter';
 import { AuditLogger } from '@/services/security/auditLogger';
 import { useToast } from '@/hooks/use-toast';
+import { ToastAction } from '@/components/ui/toast';
 
 export const useSecureAuth = () => {
   const auth = useAuth();
@@ -22,17 +22,21 @@ export const useSecureAuth = () => {
             title: "Session Expiring",
             description: "Your session will expire in 5 minutes due to inactivity. Click here to extend it.",
             duration: 30000,
-            action: {
-              label: "Extend Session",
-              onClick: () => {
-                SessionManager.extendSession();
-                setSessionWarningShown(false);
-                toast({
-                  title: "Session Extended",
-                  description: "Your session has been extended."
-                });
-              }
-            }
+            action: (
+              <ToastAction 
+                altText="Extend Session"
+                onClick={() => {
+                  SessionManager.extendSession();
+                  setSessionWarningShown(false);
+                  toast({
+                    title: "Session Extended",
+                    description: "Your session has been extended."
+                  });
+                }}
+              >
+                Extend Session
+              </ToastAction>
+            )
           });
         }
       },
