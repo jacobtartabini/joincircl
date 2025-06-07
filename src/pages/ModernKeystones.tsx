@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from 'react';
 import { format, isToday, isTomorrow, isYesterday, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { Calendar, Plus, Filter, Clock, MapPin, User, ChevronDown } from 'lucide-react';
@@ -49,7 +48,6 @@ export default function ModernKeystones() {
     // Timeframe filter
     if (selectedTimeframe !== 'all') {
       const now = new Date();
-      const keystoneDate = new Date(keystone.date);
       
       filtered = filtered.filter(keystone => {
         const date = new Date(keystone.date);

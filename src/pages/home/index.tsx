@@ -1,8 +1,8 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { MobileHomeContent } from '@/components/home-page/MobileHomeContent';
-import { ModernHomeContent } from '@/components/home-page/ModernHomeContent';
+import MobileHomeContent from '@/components/home-page/MobileHomeContent';
+import ModernHomeContent from '@/components/home-page/ModernHomeContent';
 
 export default function HomePage() {
   const { user, loading } = useAuth();
