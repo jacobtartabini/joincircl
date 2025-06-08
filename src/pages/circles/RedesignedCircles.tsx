@@ -13,6 +13,7 @@ import { InteractionDialog } from "./dialogs/InteractionDialog";
 import { InsightsDialog } from "./dialogs/InsightsDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Circle, Users } from "lucide-react";
 
 export default function RedesignedCircles() {
   const navigate = useNavigate();
@@ -87,6 +88,24 @@ export default function RedesignedCircles() {
     }
   };
 
+  // Handle filter changes - this fixes the filter functionality
+  const handleFilterChange = (filter: string | null) => {
+    setFilterBy(filter);
+    if (filter && filter !== tagFilter) {
+      // If it's a circle filter (inner, middle, outer), don't update URL
+      // If it's a tag filter, update URL
+      if (['inner', 'middle', 'outer'].includes(filter)) {
+        // Clear any existing tag filter from URL
+        const newSearchParams = new URLSearchParams(searchParams);
+        newSearchParams.delete('tag');
+        navigate(`/circles?${newSearchParams.toString()}`, { replace: true });
+      }
+    } else if (!filter) {
+      // Clear all filters including URL params
+      navigate('/circles', { replace: true });
+    }
+  };
+
   // Filter and sort contacts
   const filteredSortedContacts = useMemo(() => {
     if (!contacts) return [];
@@ -102,7 +121,7 @@ export default function RedesignedCircles() {
       }
 
       // Tag filter (either from filterBy state or URL param)
-      const activeTagFilter = tagFilter || filterBy;
+      const activeTagFilter = tagFilter || (filterBy && !['inner', 'middle', 'outer'].includes(filterBy) ? filterBy : null);
       if (activeTagFilter) {
         if (!contact.tags || !contact.tags.includes(activeTagFilter)) {
           return false;
@@ -110,7 +129,7 @@ export default function RedesignedCircles() {
       }
 
       // Circle filter
-      if (filterBy && !tagFilter && contact.circle !== filterBy) {
+      if (filterBy && ['inner', 'middle', 'outer'].includes(filterBy) && contact.circle !== filterBy) {
         return false;
       }
       return true;
@@ -165,15 +184,28 @@ export default function RedesignedCircles() {
     return (
       <div className="min-h-screen bg-background dark:bg-background">
         <div className="h-screen flex flex-col">
-          {/* Header */}
+          {/* Header with page title */}
           <div className="flex-shrink-0 bg-card dark:bg-card border-b border-border dark:border-border shadow-sm">
             <div className="p-4">
+              {/* Page Header */}
+              <div className="mb-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Circle className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <h1 className="text-xl font-semibold text-foreground">Circles</h1>
+                    <p className="text-sm text-muted-foreground">Manage your network</p>
+                  </div>
+                </div>
+              </div>
+              
               <CirclesFilter 
                 searchQuery={searchQuery} 
                 onSearchChange={setSearchQuery} 
                 onAddContact={() => setIsAddDialogOpen(true)} 
                 onSort={setSortBy} 
-                onFilter={setFilterBy} 
+                onFilter={handleFilterChange} 
                 activeTagFilter={tagFilter} 
               />
               <div className="mt-3 flex justify-end">
@@ -239,8 +271,20 @@ export default function RedesignedCircles() {
             {/* Header */}
             <div className="flex-shrink-0 border-b border-border dark:border-border bg-card dark:bg-card">
               <div className="p-6 pb-4">
+                {/* Page Header */}
+                <div className="mb-6">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <Circle className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <h1 className="text-2xl font-semibold text-foreground">Circles</h1>
+                      <p className="text-muted-foreground">Manage your network of contacts</p>
+                    </div>
+                  </div>
+                </div>
+                
                 <div className="mb-4">
-                  <h1 className="font-semibold text-foreground dark:text-foreground mb-1 text-2xl">Circles</h1>
                   <p className="text-sm text-muted-foreground dark:text-muted-foreground">
                     {filteredSortedContacts.length} contact{filteredSortedContacts.length !== 1 ? 's' : ''}
                     {tagFilter && ` tagged with "${tagFilter}"`}
@@ -253,7 +297,7 @@ export default function RedesignedCircles() {
                       onSearchChange={setSearchQuery} 
                       onAddContact={() => setIsAddDialogOpen(true)} 
                       onSort={setSortBy} 
-                      onFilter={setFilterBy} 
+                      onFilter={handleFilterChange} 
                       activeTagFilter={tagFilter} 
                     />
                   </div>

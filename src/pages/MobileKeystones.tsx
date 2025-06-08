@@ -1,368 +1,245 @@
-import { useState, useMemo, useRef } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { keystoneService } from "@/services/keystoneService";
-import { contactService } from "@/services/contactService";
-import { Keystone } from "@/types/keystone";
-import { Contact } from "@/types/contact";
+
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Calendar, Edit, Trash } from "lucide-react";
-import { format, isAfter, startOfToday } from "date-fns";
-import { useToast } from "@/hooks/use-toast";
-import { MobileCard, MobileCardContent } from "@/components/ui/mobile-card";
-import { MobileModal } from "@/components/ui/mobile-modal";
-import { MobileForm } from "@/components/ui/mobile-form";
-import { MobileInput } from "@/components/ui/mobile-input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { Plus, Calendar, Clock, User } from "lucide-react";
+import { keystoneService } from "@/services/keystoneService";
+import { Keystone } from "@/types/keystone";
+import { useToast } from "@/hooks/use-toast";
+import { KeystoneForm } from "@/components/keystone/KeystoneForm";
+import { KeystoneDetailModal } from "@/components/keystone/KeystoneDetailModal";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
-export default function MobileKeystones() {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingKeystone, setEditingKeystone] = useState<Keystone | null>(null);
+const MobileKeystones = () => {
+  const [keystones, setKeystones] = useState<Keystone[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedKeystone, setSelectedKeystone] = useState<Keystone | null>(null);
-  const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [swipedKeystoneId, setSwipedKeystoneId] = useState<string | null>(null);
-  const today = startOfToday();
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const { toast } = useToast();
 
-  const {
-    data: keystones = [],
-    isLoading
-  } = useQuery({
-    queryKey: ['keystones'],
-    queryFn: keystoneService.getKeystones
-  });
-  const {
-    data: contacts = []
-  } = useQuery({
-    queryKey: ['contacts'],
-    queryFn: contactService.getContacts
-  });
-  const contactMap = useMemo(() => {
-    const map = new Map<string, Contact>();
-    contacts.forEach(contact => map.set(contact.id, contact));
-    return map;
-  }, [contacts]);
-  const categorizedKeystones = useMemo(() => {
-    const upcoming: Keystone[] = [];
-    const past: Keystone[] = [];
-    keystones.forEach(keystone => {
-      const keystoneDate = new Date(keystone.date);
-      if (isAfter(keystoneDate, today) || format(keystoneDate, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd')) {
-        upcoming.push(keystone);
-      } else {
-        past.push(keystone);
-      }
+  useEffect(() => {
+    fetchKeystones();
+  }, []);
+
+  const fetchKeystones = async () => {
+    try {
+      setIsLoading(true);
+      const data = await keystoneService.getKeystones();
+      setKeystones(data || []);
+    } catch (error) {
+      console.error("Error fetching keystones:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load keystones. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleKeystoneClick = (keystone: Keystone) => {
+    setSelectedKeystone(keystone);
+    setIsDetailModalOpen(true);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
     });
-    return {
-      upcoming: upcoming.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()),
-      past: past.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    };
-  }, [keystones, today]);
+  };
 
-  const SwipeableKeystoneCard = ({
-    keystone,
-    isPast = false
-  }: {
-    keystone: Keystone;
-    isPast?: boolean;
-  }) => {
-    const [startX, setStartX] = useState(0);
-    const [currentX, setCurrentX] = useState(0);
-    const [isDragging, setIsDragging] = useState(false);
-    const cardRef = useRef<HTMLDivElement>(null);
-    const contact = keystone.contact_id ? contactMap.get(keystone.contact_id) : null;
-    const daysUntil = Math.ceil((new Date(keystone.date).getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    const isRevealed = swipedKeystoneId === keystone.id;
-    
-    const handleTouchStart = (e: React.TouchEvent) => {
-      setStartX(e.touches[0].clientX);
-      setCurrentX(0);
-      setIsDragging(true);
-    };
-    const handleTouchMove = (e: React.TouchEvent) => {
-      if (!isDragging) return;
-      const diffX = startX - e.touches[0].clientX;
-      if (diffX > 0) {
-        setCurrentX(Math.min(diffX, 160)); // Limit swipe distance
-      }
-    };
-    const handleTouchEnd = () => {
-      setIsDragging(false);
-      if (currentX > 80) {
-        setSwipedKeystoneId(keystone.id);
-        setCurrentX(160);
-      } else {
-        setCurrentX(0);
-        setSwipedKeystoneId(null);
-      }
-    };
-    const handleCardTap = () => {
-      if (isRevealed) {
-        setSwipedKeystoneId(null);
-        setCurrentX(0);
-      } else {
-        setSelectedKeystone(keystone);
-        setIsDetailOpen(true);
-      }
-    };
-    const handleEdit = (e: React.MouseEvent) => {
-      e.stopPropagation();
-      setEditingKeystone(keystone);
-      setIsFormOpen(true);
-      setSwipedKeystoneId(null);
-      setCurrentX(0);
-    };
-    const handleDelete = (e: React.MouseEvent) => {
-      e.stopPropagation();
-      // Handle delete logic here
-      setSwipedKeystoneId(null);
-      setCurrentX(0);
-    };
-    
-    return <motion.div layout initial={{
-      opacity: 0,
-      y: 20
-    }} animate={{
-      opacity: 1,
-      y: 0
-    }} exit={{
-      opacity: 0,
-      y: -20
-    }} className="relative overflow-hidden mb-3 rounded-2xl">
-        {/* Enhanced Action buttons with matching modern styling */}
-        <div className="absolute right-0 top-0 bottom-0 flex items-center">
-          <motion.div className="flex h-full" initial={{
-          x: 160
-        }} animate={{
-          x: isRevealed ? 0 : 160
-        }} transition={{
-          type: "spring",
-          damping: 20,
-          stiffness: 300
-        }}>
-            <Button variant="outline" size="sm" onClick={handleEdit} className="h-full rounded-none bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white border-0 px-6 flex flex-col items-center justify-center gap-1 shadow-lg transition-all duration-200 active:scale-95">
-              <Edit className="h-5 w-5" />
-              <span className="text-xs font-medium">Edit</span>
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleDelete} className="h-full rounded-none bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-0 px-6 flex flex-col items-center justify-center gap-1 shadow-lg transition-all duration-200 active:scale-95">
-              <Trash className="h-5 w-5" />
-              <span className="text-xs font-medium">Delete</span>
-            </Button>
-          </motion.div>
-        </div>
+  const formatTime = (dateString: string) => {
+    return new Date(dateString).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
 
-        {/* Main card */}
-        <motion.div ref={cardRef} className="relative z-10" style={{
-        transform: `translateX(-${isDragging ? currentX : isRevealed ? 160 : 0}px)`
-      }} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} transition={{
-        type: "spring",
-        damping: 20,
-        stiffness: 300
-      }}>
-          <MobileCard isPressable onClick={handleCardTap} className={cn("bg-white dark:bg-gray-800 shadow-sm", isPast && "opacity-75")}>
-            <MobileCardContent className="p-4">
-              <div className="flex items-start justify-between">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="font-semibold text-gray-900 dark:text-white truncate">{keystone.title}</h3>
-                    {keystone.category && <Badge variant="secondary" className="text-xs rounded-full">
-                        {keystone.category}
-                      </Badge>}
-                  </div>
-                  
-                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 mb-2">
-                    <Calendar className="h-4 w-4" />
-                    <span>{format(new Date(keystone.date), 'MMM d, yyyy')}</span>
-                    {!isPast && daysUntil >= 0 && <Badge variant={daysUntil <= 7 ? "destructive" : "outline"} className="text-xs rounded-full">
-                        {daysUntil === 0 ? "Today" : daysUntil === 1 ? "Tomorrow" : `${daysUntil} days`}
-                      </Badge>}
-                  </div>
-                  
-                  {contact && <div className="flex items-center gap-2 mb-2">
-                      <Avatar className="h-6 w-6">
-                        {contact.avatar_url ? <AvatarImage src={contact.avatar_url} alt={contact.name} /> : <AvatarFallback className="text-xs bg-gray-100 dark:bg-gray-700">
-                            {contact.name.charAt(0)}
-                          </AvatarFallback>}
-                      </Avatar>
-                      <span className="text-sm text-gray-600 dark:text-gray-300">{contact.name}</span>
-                    </div>}
-                  
-                  {keystone.notes && <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">{keystone.notes}</p>}
+  const getCategoryColor = (category: string) => {
+    const colors: { [key: string]: string } = {
+      'birthday': 'bg-pink-100 text-pink-800 border-pink-200',
+      'anniversary': 'bg-purple-100 text-purple-800 border-purple-200',
+      'meeting': 'bg-blue-100 text-blue-800 border-blue-200',
+      'follow-up': 'bg-green-100 text-green-800 border-green-200',
+      'other': 'bg-gray-100 text-gray-800 border-gray-200',
+    };
+    return colors[category?.toLowerCase()] || colors.other;
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="h-screen flex flex-col">
+        {/* Header */}
+        <div className="flex-shrink-0 bg-card border-b border-border shadow-sm">
+          <div className="p-4">
+            {/* Page Header */}
+            <div className="mb-4">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Calendar className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-semibold text-foreground">Keystones</h1>
+                  <p className="text-sm text-muted-foreground">Important dates & events</p>
                 </div>
               </div>
-            </MobileCardContent>
-          </MobileCard>
-        </motion.div>
-      </motion.div>;
-  };
-  if (isLoading) {
-    return <div className="h-full flex items-center justify-center pb-safe">
-        <div className="text-center">
-          <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-300">Loading keystones...</p>
-        </div>
-      </div>;
-  }
-  return <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900 pb-safe">
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 p-4">
-        <div className="flex items-center justify-between mb-2">
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">Keystones</h1>
-          <Button onClick={() => {
-          setEditingKeystone(null);
-          setIsFormOpen(true);
-        }} size="sm" className="bg-blue-600 hover:bg-blue-700 rounded-full">
-            <Plus className="h-4 w-4 mr-2" />
-            Add
-          </Button>
-        </div>
-        <p className="text-sm text-gray-600 dark:text-gray-300">Important dates and milestones</p>
-      </div>
-
-      {/* Content with bottom padding for nav */}
-      <div className="flex-1 overflow-y-auto p-4 pb-20">
-        {/* Upcoming Keystones */}
-        <section className="mb-6">
-          <h2 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">
-            Upcoming ({categorizedKeystones.upcoming.length})
-          </h2>
-          {categorizedKeystones.upcoming.length > 0 ? <AnimatePresence mode="popLayout">
-              {categorizedKeystones.upcoming.map(keystone => <SwipeableKeystoneCard key={keystone.id} keystone={keystone} />)}
-            </AnimatePresence> : <div className="text-center py-8">
-              <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="font-medium text-gray-900 dark:text-white mb-2">No upcoming keystones</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">Add your first keystone to get started</p>
-              <Button onClick={() => setIsFormOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Keystone
-              </Button>
-            </div>}
-        </section>
-
-        {/* Past Keystones */}
-        {categorizedKeystones.past.length > 0 && <section>
-            <h2 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">
-              Past ({categorizedKeystones.past.length})
-            </h2>
-            <AnimatePresence mode="popLayout">
-              {categorizedKeystones.past.map(keystone => <SwipeableKeystoneCard key={keystone.id} keystone={keystone} isPast />)}
-            </AnimatePresence>
-          </section>}
-      </div>
-
-      {/* Form Modal */}
-      <MobileModal isOpen={isFormOpen} onClose={() => {
-      setIsFormOpen(false);
-      setEditingKeystone(null);
-    }} title={editingKeystone ? "Edit Keystone" : "Add Keystone"}>
-        <KeystoneFormContent keystone={editingKeystone} contacts={contacts} onSuccess={() => {
-        queryClient.invalidateQueries({
-          queryKey: ['keystones']
-        });
-        setIsFormOpen(false);
-        setEditingKeystone(null);
-        toast({
-          title: editingKeystone ? "Keystone updated" : "Keystone created",
-          description: "Your keystone has been saved successfully."
-        });
-      }} onCancel={() => {
-        setIsFormOpen(false);
-        setEditingKeystone(null);
-      }} />
-      </MobileModal>
-
-      {/* Detail Modal */}
-      <MobileModal isOpen={isDetailOpen} onClose={() => {
-      setIsDetailOpen(false);
-      setSelectedKeystone(null);
-    }} title="Keystone Details">
-        {selectedKeystone && <div className="space-y-4">
-            <h3 className="text-lg font-semibold dark:text-white">{selectedKeystone.title}</h3>
-            <p className="text-gray-600 dark:text-gray-300">{format(new Date(selectedKeystone.date), 'MMMM d, yyyy')}</p>
-            {selectedKeystone.notes && <p className="text-sm text-gray-600 dark:text-gray-300">{selectedKeystone.notes}</p>}
-            <div className="flex gap-3 pt-4">
-              <Button variant="outline" className="flex-1" onClick={() => {
-            setIsDetailOpen(false);
-            setEditingKeystone(selectedKeystone);
-            setIsFormOpen(true);
-          }}>
-                Edit
-              </Button>
-              <Button variant="destructive" className="flex-1" onClick={() => {
-            // Handle delete
-          }}>
-                Delete
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                {keystones.length} keystone{keystones.length !== 1 ? 's' : ''}
+              </p>
+              <Button 
+                onClick={() => setIsAddModalOpen(true)}
+                size="sm"
+                className="rounded-full"
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add
               </Button>
             </div>
-          </div>}
-      </MobileModal>
-    </div>;
-}
+          </div>
+        </div>
 
-// Simplified form component for mobile
-function KeystoneFormContent({
-  keystone,
-  contacts,
-  onSuccess,
-  onCancel
-}: {
-  keystone?: Keystone | null;
-  contacts: Contact[];
-  onSuccess: () => void;
-  onCancel: () => void;
-}) {
-  const [formData, setFormData] = useState({
-    title: keystone?.title || "",
-    date: keystone?.date ? format(new Date(keystone.date), 'yyyy-MM-dd') : "",
-    category: keystone?.category || "",
-    contact_id: keystone?.contact_id || "",
-    notes: keystone?.notes || ""
-  });
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Handle form submission
-    onSuccess();
-  };
-  return <MobileForm onSubmit={handleSubmit} onCancel={onCancel} submitLabel={keystone ? "Update" : "Create"}>
-      <MobileInput label="Title *" value={formData.title} onChange={e => setFormData(prev => ({
-      ...prev,
-      title: e.target.value
-    }))} placeholder="Enter keystone title" required />
+        {/* Content */}
+        <div className="flex-1 overflow-hidden">
+          <ScrollArea className="h-full">
+            <div className="p-4 pb-20">
+              {keystones.length === 0 ? (
+                <Card className="unified-card text-center py-8">
+                  <CardContent>
+                    <Calendar className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+                    <CardTitle className="text-lg mb-2">No keystones yet</CardTitle>
+                    <CardDescription className="mb-4 text-sm">
+                      Track important dates and events
+                    </CardDescription>
+                    <Button 
+                      onClick={() => setIsAddModalOpen(true)}
+                      size="sm"
+                      className="rounded-full"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add First Keystone
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-3">
+                  {keystones.map((keystone) => (
+                    <Card 
+                      key={keystone.id} 
+                      className="unified-card cursor-pointer hover:shadow-sm transition-shadow"
+                      onClick={() => handleKeystoneClick(keystone)}
+                    >
+                      <CardHeader className="pb-2">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <CardTitle className="text-base font-semibold text-foreground mb-1 line-clamp-1">
+                              {keystone.title}
+                            </CardTitle>
+                            {keystone.category && (
+                              <Badge 
+                                variant="secondary" 
+                                className={`text-xs px-2 py-0.5 ${getCategoryColor(keystone.category)}`}
+                              >
+                                {keystone.category}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </CardHeader>
+                      
+                      <CardContent className="pt-0">
+                        <div className="space-y-2">
+                          {/* Date and Time */}
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              <span>{formatDate(keystone.date)}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              <span>{formatTime(keystone.date)}</span>
+                            </div>
+                          </div>
 
-      <MobileInput label="Date *" type="date" value={formData.date} onChange={e => setFormData(prev => ({
-      ...prev,
-      date: e.target.value
-    }))} required />
+                          {/* Contact Name */}
+                          {keystone.contact_id && (
+                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                              <User className="h-3 w-3" />
+                              <span>Contact Event</span>
+                            </div>
+                          )}
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Category</label>
-        <Select value={formData.category} onValueChange={value => setFormData(prev => ({
-        ...prev,
-        category: value
-      }))}>
-          <SelectTrigger className="h-12">
-            <SelectValue placeholder="Select category" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Birthday">Birthday</SelectItem>
-            <SelectItem value="Anniversary">Anniversary</SelectItem>
-            <SelectItem value="Meeting">Meeting</SelectItem>
-            <SelectItem value="Deadline">Deadline</SelectItem>
-          </SelectContent>
-        </Select>
+                          {/* Recurring Badge */}
+                          {keystone.is_recurring && (
+                            <Badge variant="outline" className="text-xs w-fit">
+                              Recurring
+                            </Badge>
+                          )}
+
+                          {/* Notes Preview */}
+                          {keystone.notes && (
+                            <p className="text-sm text-muted-foreground line-clamp-1">
+                              {keystone.notes}
+                            </p>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+        </div>
+
+        {/* Add Keystone Modal */}
+        <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+          <DialogContent className="unified-modal max-w-sm max-h-[90vh] mx-4">
+            <DialogHeader>
+              <DialogTitle>Add Keystone</DialogTitle>
+            </DialogHeader>
+            <ScrollArea className="max-h-[calc(90vh-6rem)]">
+              <KeystoneForm
+                onSuccess={() => {
+                  setIsAddModalOpen(false);
+                  fetchKeystones();
+                }}
+                onCancel={() => setIsAddModalOpen(false)}
+              />
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
+
+        {/* Keystone Detail Modal */}
+        {selectedKeystone && (
+          <KeystoneDetailModal
+            keystone={selectedKeystone}
+            isOpen={isDetailModalOpen}
+            onOpenChange={setIsDetailModalOpen}
+            onUpdate={fetchKeystones}
+            onDelete={fetchKeystones}
+          />
+        )}
       </div>
+    </div>
+  );
+};
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Notes</label>
-        <Textarea value={formData.notes} onChange={e => setFormData(prev => ({
-        ...prev,
-        notes: e.target.value
-      }))} placeholder="Add notes..." className="min-h-24 resize-none" />
-      </div>
-    </MobileForm>;
-}
+export default MobileKeystones;

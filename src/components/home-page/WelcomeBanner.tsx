@@ -34,10 +34,10 @@ export const WelcomeBanner = ({ onAddContact }: WelcomeBannerProps) => {
           <Button 
             variant="outline" 
             size="sm" 
-            onClick={() => navigate("/circles")}
+            onClick={() => navigate("/keystones")}
             className="shadow-sm"
           >
-            <Search size={16} className="mr-1" /> Search
+            <Plus size={16} className="mr-1" /> Add Keystone
           </Button>
         </div>
       </div>

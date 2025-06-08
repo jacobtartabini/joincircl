@@ -1,288 +1,228 @@
-import { useState, useMemo } from 'react';
-import { format, isToday, isTomorrow, isYesterday, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
-import { Calendar, Plus, Filter, Clock, MapPin, User, ChevronDown } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useQuery } from '@tanstack/react-query';
-import { keystoneService } from '@/services/keystoneService';
-import { useAuth } from '@/contexts/AuthContext';
-import { Keystone } from '@/types/keystone';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { useToast } from '@/hooks/use-toast';
-export default function ModernKeystones() {
-  const {
-    user
-  } = useAuth();
-  const isMobile = useIsMobile();
-  const {
-    toast
-  } = useToast();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTimeframe, setSelectedTimeframe] = useState('all');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const {
-    data: keystones = [],
-    isLoading,
-    refetch
-  } = useQuery({
-    queryKey: ['keystones', user?.id],
-    queryFn: keystoneService.getKeystones,
-    enabled: !!user?.id
-  });
-  const filteredKeystones = useMemo(() => {
-    let filtered = keystones;
 
-    // Search filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(keystone => keystone.title.toLowerCase().includes(query) || keystone.notes?.toLowerCase().includes(query) || keystone.category?.toLowerCase().includes(query));
-    }
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Calendar, Clock, User, MapPin } from "lucide-react";
+import { keystoneService } from "@/services/keystoneService";
+import { Keystone } from "@/types/keystone";
+import { useToast } from "@/hooks/use-toast";
+import { KeystoneForm } from "@/components/keystone/KeystoneForm";
+import { KeystoneDetailModal } from "@/components/keystone/KeystoneDetailModal";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
-    // Category filter
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(keystone => keystone.category === selectedCategory);
-    }
+const ModernKeystones = () => {
+  const [keystones, setKeystones] = useState<Keystone[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedKeystone, setSelectedKeystone] = useState<Keystone | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const { toast } = useToast();
 
-    // Timeframe filter
-    if (selectedTimeframe !== 'all') {
-      const now = new Date();
-      filtered = filtered.filter(keystone => {
-        const date = new Date(keystone.date);
-        switch (selectedTimeframe) {
-          case 'today':
-            return isToday(date);
-          case 'tomorrow':
-            return isTomorrow(date);
-          case 'yesterday':
-            return isYesterday(date);
-          case 'thisWeek':
-            return date >= startOfWeek(now) && date <= endOfWeek(now);
-          case 'thisMonth':
-            return date >= startOfMonth(now) && date <= endOfMonth(now);
-          default:
-            return true;
-        }
+  useEffect(() => {
+    fetchKeystones();
+  }, []);
+
+  const fetchKeystones = async () => {
+    try {
+      setIsLoading(true);
+      const data = await keystoneService.getKeystones();
+      setKeystones(data || []);
+    } catch (error) {
+      console.error("Error fetching keystones:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load keystones. Please try again.",
+        variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
-
-    // Sort by date
-    return filtered.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  }, [keystones, searchQuery, selectedCategory, selectedTimeframe]);
-  const getDateLabel = (date: string) => {
-    const keystoneDate = new Date(date);
-    if (isToday(keystoneDate)) return 'Today';
-    if (isTomorrow(keystoneDate)) return 'Tomorrow';
-    if (isYesterday(keystoneDate)) return 'Yesterday';
-    return format(keystoneDate, 'MMMM d, yyyy');
   };
+
+  const handleKeystoneClick = (keystone: Keystone) => {
+    setSelectedKeystone(keystone);
+    setIsDetailModalOpen(true);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
+  const formatTime = (dateString: string) => {
+    return new Date(dateString).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
   const getCategoryColor = (category: string) => {
-    switch (category?.toLowerCase()) {
-      case 'birthday':
-        return 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200';
-      case 'anniversary':
-        return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
-      case 'meeting':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-      case 'reminder':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
-      case 'milestone':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
-    }
+    const colors: { [key: string]: string } = {
+      'birthday': 'bg-pink-100 text-pink-800 border-pink-200',
+      'anniversary': 'bg-purple-100 text-purple-800 border-purple-200',
+      'meeting': 'bg-blue-100 text-blue-800 border-blue-200',
+      'follow-up': 'bg-green-100 text-green-800 border-green-200',
+      'other': 'bg-gray-100 text-gray-800 border-gray-200',
+    };
+    return colors[category?.toLowerCase()] || colors.other;
   };
-  if (isMobile) {
-    return <div className="min-h-screen bg-background dark:bg-background p-4 pb-20">
-        <div className="space-y-6">
-          {/* Header */}
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-foreground dark:text-foreground mb-2">Keystones</h1>
-            <p className="text-muted-foreground dark:text-muted-foreground">
-              Important dates and milestones
-            </p>
-          </div>
 
-          {/* Search and Filters */}
-          <div className="space-y-3">
-            <div className="relative">
-              <Input placeholder="Search keystones..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
-              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            </div>
-            
-            <div className="flex gap-2">
-              <Select value={selectedTimeframe} onValueChange={setSelectedTimeframe}>
-                <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Timeframe" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All dates</SelectItem>
-                  <SelectItem value="today">Today</SelectItem>
-                  <SelectItem value="tomorrow">Tomorrow</SelectItem>
-                  <SelectItem value="thisWeek">This week</SelectItem>
-                  <SelectItem value="thisMonth">This month</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All categories</SelectItem>
-                  <SelectItem value="birthday">Birthday</SelectItem>
-                  <SelectItem value="anniversary">Anniversary</SelectItem>
-                  <SelectItem value="meeting">Meeting</SelectItem>
-                  <SelectItem value="reminder">Reminder</SelectItem>
-                  <SelectItem value="milestone">Milestone</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Keystones List */}
-          <div className="space-y-3">
-            {isLoading ? [...Array(3)].map((_, i) => <Card key={i} className="animate-pulse">
-                  <CardContent className="p-4">
-                    <div className="space-y-2">
-                      <div className="h-4 bg-muted rounded w-3/4" />
-                      <div className="h-3 bg-muted rounded w-1/2" />
-                    </div>
-                  </CardContent>
-                </Card>) : filteredKeystones.length > 0 ? filteredKeystones.map(keystone => <Card key={keystone.id} className="unified-card">
-                  <CardContent className="p-4">
-                    <div className="space-y-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-foreground dark:text-foreground">
-                            {keystone.title}
-                          </h3>
-                          {keystone.notes && <p className="text-sm text-muted-foreground dark:text-muted-foreground mt-1">
-                              {keystone.notes}
-                            </p>}
-                        </div>
-                        {keystone.category && <Badge className={getCategoryColor(keystone.category)}>
-                            {keystone.category}
-                          </Badge>}
-                      </div>
-                      
-                      <div className="flex items-center text-sm text-muted-foreground dark:text-muted-foreground">
-                        <Clock className="h-4 w-4 mr-2" />
-                        {getDateLabel(keystone.date)}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>) : <div className="text-center py-12">
-                <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-foreground dark:text-foreground mb-2">
-                  No keystones found
-                </h3>
-                <p className="text-muted-foreground dark:text-muted-foreground">
-                  {searchQuery ? "Try adjusting your search" : "Add your first keystone to get started"}
-                </p>
-              </div>}
-          </div>
-        </div>
-      </div>;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
-  // Desktop version with dark mode support
-  return <div className="min-h-screen bg-background dark:bg-background">
-      <div className="max-w-7xl mx-auto p-6 space-y-8">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground dark:text-foreground">Keystones</h1>
-            <p className="text-muted-foreground dark:text-muted-foreground">
-              Track important dates and milestones
-            </p>
-          </div>
-          <Button className="unified-button rounded-full">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Keystone
-          </Button>
-        </div>
-
-        {/* Filters */}
-        <Card className="unified-card">
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1">
-                <Input placeholder="Search keystones..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="unified-input" />
-              </div>
-              <Select value={selectedTimeframe} onValueChange={setSelectedTimeframe}>
-                <SelectTrigger className="w-full md:w-40">
-                  <SelectValue placeholder="Timeframe" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All dates</SelectItem>
-                  <SelectItem value="today">Today</SelectItem>
-                  <SelectItem value="tomorrow">Tomorrow</SelectItem>
-                  <SelectItem value="thisWeek">This week</SelectItem>
-                  <SelectItem value="thisMonth">This month</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-full md:w-40">
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All categories</SelectItem>
-                  <SelectItem value="birthday">Birthday</SelectItem>
-                  <SelectItem value="anniversary">Anniversary</SelectItem>
-                  <SelectItem value="meeting">Meeting</SelectItem>
-                  <SelectItem value="reminder">Reminder</SelectItem>
-                  <SelectItem value="milestone">Milestone</SelectItem>
-                </SelectContent>
-              </Select>
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto p-6 max-w-7xl">
+        {/* Page Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Calendar className="h-5 w-5 text-primary" />
             </div>
-          </CardContent>
-        </Card>
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">Keystones</h1>
+              <p className="text-muted-foreground">Important dates and events in your relationships</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              {keystones.length} keystone{keystones.length !== 1 ? 's' : ''} scheduled
+            </p>
+            <Button 
+              onClick={() => setIsAddModalOpen(true)}
+              className="rounded-full shadow-sm"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Keystone
+            </Button>
+          </div>
+        </div>
 
         {/* Keystones Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {isLoading ? [...Array(6)].map((_, i) => <Card key={i} className="animate-pulse unified-card">
-                <CardContent className="p-6">
-                  <div className="space-y-3">
-                    <div className="h-5 bg-muted rounded w-3/4" />
-                    <div className="h-4 bg-muted rounded w-full" />
-                    <div className="h-4 bg-muted rounded w-1/2" />
-                  </div>
-                </CardContent>
-              </Card>) : filteredKeystones.length > 0 ? filteredKeystones.map(keystone => <Card key={keystone.id} className="unified-card hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <div className="space-y-4">
-                    <div className="flex items-start justify-between">
-                      <h3 className="font-semibold text-foreground dark:text-foreground text-lg">
+        {keystones.length === 0 ? (
+          <Card className="unified-card text-center py-12">
+            <CardContent>
+              <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <CardTitle className="text-xl mb-2">No keystones yet</CardTitle>
+              <CardDescription className="mb-4">
+                Start tracking important dates and events in your relationships
+              </CardDescription>
+              <Button 
+                onClick={() => setIsAddModalOpen(true)}
+                className="rounded-full"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Your First Keystone
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {keystones.map((keystone) => (
+              <Card 
+                key={keystone.id} 
+                className="unified-card cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-[1.02]"
+                onClick={() => handleKeystoneClick(keystone)}
+              >
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <CardTitle className="text-lg font-semibold text-foreground mb-1 line-clamp-1">
                         {keystone.title}
-                      </h3>
-                      {keystone.category && <Badge className={getCategoryColor(keystone.category)}>
+                      </CardTitle>
+                      {keystone.category && (
+                        <Badge 
+                          variant="secondary" 
+                          className={`text-xs px-2 py-1 ${getCategoryColor(keystone.category)}`}
+                        >
                           {keystone.category}
-                        </Badge>}
-                    </div>
-                    
-                    {keystone.notes && <p className="text-muted-foreground dark:text-muted-foreground">
-                        {keystone.notes}
-                      </p>}
-                    
-                    <div className="flex items-center text-sm text-muted-foreground dark:text-muted-foreground">
-                      <Clock className="h-4 w-4 mr-2" />
-                      {getDateLabel(keystone.date)}
+                        </Badge>
+                      )}
                     </div>
                   </div>
+                </CardHeader>
+                
+                <CardContent className="pt-0">
+                  <div className="space-y-3">
+                    {/* Date and Time */}
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Calendar className="h-4 w-4" />
+                      <span>{formatDate(keystone.date)}</span>
+                      <Clock className="h-4 w-4 ml-2" />
+                      <span>{formatTime(keystone.date)}</span>
+                    </div>
+
+                    {/* Contact Name */}
+                    {keystone.contact_id && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <User className="h-4 w-4" />
+                        <span>Contact Event</span>
+                      </div>
+                    )}
+
+                    {/* Recurring Badge */}
+                    {keystone.is_recurring && (
+                      <Badge variant="outline" className="text-xs">
+                        Recurring • {keystone.recurrence_frequency}
+                      </Badge>
+                    )}
+
+                    {/* Notes Preview */}
+                    {keystone.notes && (
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {keystone.notes}
+                      </p>
+                    )}
+                  </div>
                 </CardContent>
-              </Card>) : <div className="col-span-full text-center py-12">
-              <Calendar className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-xl font-medium text-foreground dark:text-foreground mb-2">
-                No keystones found
-              </h3>
-              <p className="text-muted-foreground dark:text-muted-foreground">
-                {searchQuery ? "Try adjusting your search filters" : "Add your first keystone to get started"}
-              </p>
-            </div>}
-        </div>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {/* Add Keystone Modal */}
+        <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+          <DialogContent className="unified-modal max-w-2xl max-h-[90vh]">
+            <DialogHeader>
+              <DialogTitle>Add New Keystone</DialogTitle>
+            </DialogHeader>
+            <ScrollArea className="max-h-[calc(90vh-8rem)]">
+              <KeystoneForm
+                onSuccess={() => {
+                  setIsAddModalOpen(false);
+                  fetchKeystones();
+                }}
+                onCancel={() => setIsAddModalOpen(false)}
+              />
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
+
+        {/* Keystone Detail Modal */}
+        {selectedKeystone && (
+          <KeystoneDetailModal
+            keystone={selectedKeystone}
+            isOpen={isDetailModalOpen}
+            onOpenChange={setIsDetailModalOpen}
+            onUpdate={fetchKeystones}
+            onDelete={fetchKeystones}
+          />
+        )}
       </div>
-    </div>;
-}
+    </div>
+  );
+};
+
+export default ModernKeystones;
