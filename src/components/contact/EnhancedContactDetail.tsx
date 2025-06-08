@@ -1,270 +1,271 @@
 
-import { Phone, Mail, MapPin, Briefcase, Link as LinkIcon, Calendar, MessageSquare, Edit, Trash, Eye, Gift, GraduationCap, Facebook, Instagram, Linkedin } from "lucide-react";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Contact, Interaction } from "@/types/contact";
-import { formatDistanceToNow } from "date-fns";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { 
+  User, 
+  Mail, 
+  Phone, 
+  MapPin, 
+  Building, 
+  Calendar,
+  MessageSquare,
+  Edit,
+  Trash2,
+  ExternalLink,
+  Eye
+} from "lucide-react";
+import { Contact, Interaction } from "@/types/contact";
+import { ContactActivityTimeline } from "./ContactActivityTimeline";
 
 interface EnhancedContactDetailProps {
   contact: Contact;
-  interactions?: Interaction[];
-  onEdit?: () => void;
-  onDelete?: () => void;
-  onViewAll?: () => void;
+  interactions: Interaction[];
+  onEdit: () => void;
+  onDelete: () => void;
+  onViewAll: () => void;
 }
 
-export function EnhancedContactDetail({
-  contact,
-  interactions = [],
-  onEdit,
-  onDelete,
-  onViewAll
+export function EnhancedContactDetail({ 
+  contact, 
+  interactions, 
+  onEdit, 
+  onDelete, 
+  onViewAll 
 }: EnhancedContactDetailProps) {
-  const getInteractionIcon = (type: string) => {
-    switch (type.toLowerCase()) {
-      case "meeting":
-        return <Calendar className="h-4 w-4 text-blue-600" />;
-      case "email":
-        return <Mail className="h-4 w-4 text-green-600" />;
-      case "phone":
-        return <Phone className="h-4 w-4 text-amber-600" />;
-      case "note":
-        return <MessageSquare className="h-4 w-4 text-purple-600" />;
+  const getCircleColor = (circle: string) => {
+    switch (circle) {
+      case 'inner':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'middle':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'outer':
+        return 'bg-gray-100 text-gray-800 border-gray-200';
       default:
-        return <MessageSquare className="h-4 w-4 text-gray-500" />;
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
-  
-  return <div className="h-full flex flex-col bg-white dark:bg-gray-800 pb-safe">
-      {/* Header with Actions */}
-      <div className="border-b border-gray-100 dark:border-gray-700 p-6 bg-white dark:bg-gray-800">
-        <div className="flex justify-end gap-2">
-          {onEdit && <Button variant="outline" size="sm" onClick={onEdit} className="h-8 px-3 text-xs font-medium border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors rounded-full">
-              <Edit className="h-3.5 w-3.5 mr-1.5" />
-              Edit
-            </Button>}
-          {onDelete && <Button variant="outline" size="sm" onClick={onDelete} className="h-8 px-3 text-xs font-medium border-red-200 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors rounded-full">
-              <Trash className="h-3.5 w-3.5 mr-1.5" />
-              Delete
-            </Button>}
-          {onViewAll && <Button variant="outline" size="sm" onClick={onViewAll} className="h-8 px-3 text-xs font-medium border-blue-200 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors rounded-full">
-              <Eye className="h-3.5 w-3.5 mr-1.5" />
-              View All
-            </Button>}
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'Never';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
+  return (
+    <div className="h-full flex flex-col">
+      {/* Header */}
+      <div className="flex-shrink-0 p-6 border-b border-border">
+        <div className="flex items-start justify-between">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+              {contact.avatar_url ? (
+                <img 
+                  src={contact.avatar_url} 
+                  alt={contact.name} 
+                  className="w-12 h-12 rounded-full object-cover"
+                />
+              ) : (
+                <User className="h-6 w-6 text-primary" />
+              )}
+            </div>
+            <div className="flex-1">
+              <h2 className="text-xl font-semibold text-foreground">{contact.name}</h2>
+              {contact.job_title && (
+                <p className="text-sm text-muted-foreground">{contact.job_title}</p>
+              )}
+              {contact.company_name && (
+                <p className="text-sm text-muted-foreground">{contact.company_name}</p>
+              )}
+              <div className="flex items-center gap-2 mt-2">
+                <Badge 
+                  variant="secondary" 
+                  className={`text-xs capitalize ${getCircleColor(contact.circle)}`}
+                >
+                  {contact.circle} Circle
+                </Badge>
+                {contact.tags && contact.tags.length > 0 && (
+                  <div className="flex gap-1">
+                    {contact.tags.slice(0, 2).map((tag) => (
+                      <Badge key={tag} variant="outline" className="text-xs">
+                        {tag}
+                      </Badge>
+                    ))}
+                    {contact.tags.length > 2 && (
+                      <Badge variant="outline" className="text-xs">
+                        +{contact.tags.length - 2}
+                      </Badge>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={onEdit}>
+              <Edit className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="sm" onClick={onViewAll}>
+              <Eye className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Scrollable Content */}
-      <ScrollArea className="flex-1">
-        <div className="p-6 space-y-8 pb-20">
-          {/* Profile Header */}
-          <div className="text-center pb-6 border-b border-gray-100 dark:border-gray-700">
-            <Avatar className="h-16 w-16 mx-auto mb-4">
-              {contact.avatar_url ? <AvatarImage src={contact.avatar_url} alt={contact.name} /> : <AvatarFallback className="text-lg font-semibold bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-                  {contact.name.charAt(0)}
-                </AvatarFallback>}
-            </Avatar>
-            
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{contact.name}</h2>
-            
-            {contact.location && <p className="text-sm text-gray-600 dark:text-gray-300 mb-3 flex items-center justify-center">
-                <MapPin className="h-4 w-4 mr-1.5" />
-                {contact.location}
-              </p>}
-            
-            <div className="flex flex-wrap gap-2 justify-center">
-              <Badge variant="outline" className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800 text-xs font-medium rounded-full">
-                {contact.circle.charAt(0).toUpperCase() + contact.circle.slice(1)} Circle
-              </Badge>
-              
-              {contact.tags && contact.tags.map(tag => <Badge key={tag} variant="secondary" className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 text-xs font-medium rounded-full">
-                  {tag}
-                </Badge>)}
-            </div>
-          </div>
+      {/* Content */}
+      <div className="flex-1 overflow-hidden">
+        <ScrollArea className="h-full">
+          <div className="p-6 space-y-6">
+            {/* Contact Information */}
+            <Card className="unified-card">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base font-semibold">Contact Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {contact.personal_email && (
+                  <div className="flex items-center gap-3 text-sm">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-foreground">{contact.personal_email}</span>
+                  </div>
+                )}
+                {contact.mobile_phone && (
+                  <div className="flex items-center gap-3 text-sm">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-foreground">{contact.mobile_phone}</span>
+                  </div>
+                )}
+                {contact.location && (
+                  <div className="flex items-center gap-3 text-sm">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-foreground">{contact.location}</span>
+                  </div>
+                )}
+                {contact.company_name && (
+                  <div className="flex items-center gap-3 text-sm">
+                    <Building className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-foreground">{contact.company_name}</span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-          {/* Contact Information */}
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider mb-4">Contact Details</h3>
-              
-              <div className="space-y-3">
-                {contact.personal_email && <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors rounded-lg">
-                    <div className="bg-green-100 dark:bg-green-900/20 p-2 rounded-lg">
-                      <Mail className="h-4 w-4 text-green-700 dark:text-green-400" />
-                    </div>
-                    <span className="text-sm text-gray-900 dark:text-white font-medium">{contact.personal_email}</span>
-                  </div>}
-                
-                {contact.mobile_phone && <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors rounded-lg">
-                    <div className="bg-blue-100 dark:bg-blue-900/20 p-2 rounded-lg">
-                      <Phone className="h-4 w-4 text-blue-700 dark:text-blue-400" />
-                    </div>
-                    <span className="text-sm text-gray-900 dark:text-white font-medium">{contact.mobile_phone}</span>
-                  </div>}
-
-                {contact.birthday && <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors rounded-lg">
-                    <div className="bg-pink-100 dark:bg-pink-900/20 p-2 rounded-lg">
-                      <Gift className="h-4 w-4 text-pink-700 dark:text-pink-400" />
-                    </div>
-                    <span className="text-sm text-gray-900 dark:text-white font-medium">{new Date(contact.birthday).toLocaleDateString()}</span>
-                  </div>}
-
-                {contact.website && <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors rounded-lg">
-                    <div className="bg-purple-100 dark:bg-purple-900/20 p-2 rounded-lg">
-                      <LinkIcon className="h-4 w-4 text-purple-700 dark:text-purple-400" />
-                    </div>
-                    <span className="text-sm text-gray-900 dark:text-white font-medium truncate">{contact.website}</span>
-                  </div>}
-              </div>
-            </div>
-            
-            {/* Professional Info */}
-            {(contact.job_title || contact.company_name || contact.industry || contact.department || contact.work_address) && <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Professional</h3>
-                
-                <div className="bg-gray-50 dark:bg-gray-700 p-4 space-y-3 rounded-xl">
-                  {contact.job_title && contact.company_name && <div className="flex items-start gap-3">
-                      <Briefcase className="h-4 w-4 text-gray-600 dark:text-gray-400 mt-0.5" />
-                      <div>
-                        <p className="text-sm font-medium text-gray-900 dark:text-white">{contact.job_title}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">{contact.company_name}</p>
-                      </div>
-                    </div>}
-                  
-                  {contact.industry && <div className="text-sm text-gray-600 dark:text-gray-300 pl-7">
-                      <span className="font-medium">Industry:</span> {contact.industry}
-                    </div>}
-
-                  {contact.department && <div className="text-sm text-gray-600 dark:text-gray-300 pl-7">
-                      <span className="font-medium">Department:</span> {contact.department}
-                    </div>}
-
-                  {contact.work_address && <div className="text-sm text-gray-600 dark:text-gray-300 pl-7">
-                      <span className="font-medium">Office:</span> {contact.work_address}
-                    </div>}
+            {/* Last Contact */}
+            <Card className="unified-card">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base font-semibold">Last Contact</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-3 text-sm">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-foreground">{formatDate(contact.last_contact)}</span>
                 </div>
-              </div>}
+              </CardContent>
+            </Card>
 
-            {/* Education */}
-            {(contact.university || contact.major || contact.minor || contact.graduation_year) && <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Education</h3>
-                
-                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-xl">
-                  {contact.university && <div className="flex items-start gap-3">
-                      <GraduationCap className="h-4 w-4 text-gray-600 dark:text-gray-400 mt-0.5" />
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white">{contact.university}</p>
-                        {contact.major && <p className="text-sm text-gray-600 dark:text-gray-300">
-                            <span className="font-medium">Major:</span> {contact.major}
-                            {contact.minor && ` • Minor: ${contact.minor}`}
-                          </p>}
-                        {contact.graduation_year && <p className="text-sm text-gray-600 dark:text-gray-300">
-                            <span className="font-medium">Graduated:</span> {contact.graduation_year}
-                          </p>}
+            {/* Recent Interactions */}
+            <Card className="unified-card">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base font-semibold flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4" />
+                  Recent Interactions
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {interactions.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No recent interactions</p>
+                ) : (
+                  <div className="space-y-3">
+                    {interactions.slice(0, 3).map((interaction) => (
+                      <div key={interaction.id} className="text-sm">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-foreground">{interaction.type}</span>
+                          <span className="text-muted-foreground text-xs">
+                            {formatDate(interaction.date)}
+                          </span>
+                        </div>
+                        {interaction.notes && (
+                          <p className="text-muted-foreground mt-1 line-clamp-2">
+                            {interaction.notes}
+                          </p>
+                        )}
                       </div>
-                    </div>}
-                </div>
-              </div>}
+                    ))}
+                    {interactions.length > 3 && (
+                      <Button variant="outline" size="sm" onClick={onViewAll} className="w-full">
+                        View All Interactions
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-            {/* Social Media */}
-            {(contact.linkedin || contact.twitter || contact.facebook || contact.instagram) && <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Social Media</h3>
-                
-                <div className="space-y-3">
-                  {contact.linkedin && <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors rounded-lg">
-                      <div className="bg-blue-100 dark:bg-blue-900/20 p-2 rounded-lg">
-                        <Linkedin className="h-4 w-4 text-blue-700 dark:text-blue-400" />
-                      </div>
-                      <span className="text-sm text-gray-900 dark:text-white font-medium truncate">{contact.linkedin}</span>
-                    </div>}
-
-                  {contact.twitter && <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors rounded-lg">
-                      <div className="bg-sky-100 dark:bg-sky-900/20 p-2 rounded-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky-700 dark:text-sky-400">
-                          <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path>
-                        </svg>
-                      </div>
-                      <span className="text-sm text-gray-900 dark:text-white font-medium">@{contact.twitter}</span>
-                    </div>}
-
-                  {contact.facebook && <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors rounded-lg">
-                      <div className="bg-blue-100 dark:bg-blue-900/20 p-2 rounded-lg">
-                        <Facebook className="h-4 w-4 text-blue-700 dark:text-blue-400" />
-                      </div>
-                      <span className="text-sm text-gray-900 dark:text-white font-medium truncate">{contact.facebook}</span>
-                    </div>}
-
-                  {contact.instagram && <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors rounded-lg">
-                      <div className="bg-pink-100 dark:bg-pink-900/20 p-2 rounded-lg">
-                        <Instagram className="h-4 w-4 text-pink-700 dark:text-pink-400" />
-                      </div>
-                      <span className="text-sm text-gray-900 dark:text-white font-medium">@{contact.instagram}</span>
-                    </div>}
-                </div>
-              </div>}
+            {/* Social Links */}
+            {(contact.linkedin || contact.twitter || contact.website) && (
+              <Card className="unified-card">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base font-semibold">Social & Web</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {contact.linkedin && (
+                    <a 
+                      href={contact.linkedin} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-sm text-primary hover:underline"
+                    >
+                      LinkedIn <ExternalLink className="h-3 w-3" />
+                    </a>
+                  )}
+                  {contact.twitter && (
+                    <a 
+                      href={`https://twitter.com/${contact.twitter}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-sm text-primary hover:underline"
+                    >
+                      Twitter <ExternalLink className="h-3 w-3" />
+                    </a>
+                  )}
+                  {contact.website && (
+                    <a 
+                      href={contact.website} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-sm text-primary hover:underline"
+                    >
+                      Website <ExternalLink className="h-3 w-3" />
+                    </a>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Notes */}
-            {contact.notes && <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Notes</h3>
-                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-xl">
-                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{contact.notes}</p>
-                </div>
-              </div>}
-
-            {/* How We Met */}
-            {contact.how_met && <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider">How We Met</h3>
-                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-xl">
-                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{contact.how_met}</p>
-                </div>
-              </div>}
-
-            {/* Hobbies & Interests */}
-            {contact.hobbies_interests && <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Hobbies & Interests</h3>
-                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-xl">
-                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{contact.hobbies_interests}</p>
-                </div>
-              </div>}
-            
-            {/* Timeline Section */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider">Recent Timeline</h3>
-              
-              {interactions && interactions.length > 0 ? <div className="space-y-3">
-                  {interactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 3).map(interaction => <div key={interaction.id} className="bg-gray-50 dark:bg-gray-700 p-4 rounded-xl">
-                        <div className="flex gap-3">
-                          <div className="flex-shrink-0 pt-1">
-                            {getInteractionIcon(interaction.type)}
-                          </div>
-                          
-                          <div className="flex-1 space-y-2">
-                            <div className="flex justify-between items-start">
-                              <span className="font-medium text-sm text-gray-900 dark:text-white">{interaction.type}</span>
-                              <span className="text-xs text-gray-500 dark:text-gray-400">
-                                {formatDistanceToNow(new Date(interaction.date), {
-                          addSuffix: true
-                        })}
-                              </span>
-                            </div>
-                            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{interaction.notes || "No notes"}</p>
-                          </div>
-                        </div>
-                      </div>)}
-                  
-                  {interactions.length > 3 && onViewAll && <Button variant="ghost" size="sm" className="w-full mt-3 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-sm font-medium" onClick={onViewAll}>
-                      View All {interactions.length} Interactions
-                    </Button>}
-                </div> : <div className="text-center py-6">
-                  <MessageSquare className="h-8 w-8 text-gray-400 mx-auto mb-3" />
-                  <p className="text-sm text-gray-500 dark:text-gray-400">No recent interactions.</p>
-                </div>}
-            </div>
+            {contact.notes && (
+              <Card className="unified-card">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base font-semibold">Notes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-foreground whitespace-pre-wrap">{contact.notes}</p>
+                </CardContent>
+              </Card>
+            )}
           </div>
-        </div>
-      </ScrollArea>
-    </div>;
+        </ScrollArea>
+      </div>
+
+      {/* Replace the old timeline section with the new dynamic timeline */}
+      <div className="flex-shrink-0 border-t border-border">
+        <ContactActivityTimeline contact={contact} />
+      </div>
+    </div>
+  );
 }
