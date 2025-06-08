@@ -1,10 +1,15 @@
-
 // Re-export all security services for easy importing
 export { InputValidator } from './inputValidator';
 export { RateLimiter } from './rateLimiter';
 export { AuditLogger } from './auditLogger';
 export { SessionManager } from './sessionManager';
 export { Enhanced2FA } from '../enhanced2FA';
+
+// Additional security exports
+export { EnhancedInputValidator } from './enhancedInputValidator';
+export { SecurityHeaders } from './securityHeaders';
+export { AdvancedRateLimiter } from './advancedRateLimiter';
+export { SecurityMonitor } from './securityMonitor';
 
 // Security utilities
 export const SecurityUtils = {

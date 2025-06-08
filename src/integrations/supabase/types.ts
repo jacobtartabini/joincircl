@@ -790,7 +790,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      handle_new_user: {
+        Args:
+          | { new_user_id: string }
+          | { p_email: string; p_password: string; p_username: string }
+        Returns: undefined
+      }
+      initialize_user_preferences: {
+        Args: { user_uuid: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
