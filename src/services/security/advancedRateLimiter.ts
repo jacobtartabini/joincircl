@@ -11,14 +11,21 @@ interface AdvancedRateLimit {
 
 export class AdvancedRateLimiter extends RateLimiter {
   private static advancedStorage = new Map<string, AdvancedRateLimit>();
+  
+  // Define configs locally since we can't access private parent configs
+  private static advancedConfigs = {
+    auth: { maxAttempts: 5, windowMs: 15 * 60 * 1000, blockDurationMs: 30 * 60 * 1000 },
+    api_calls: { maxAttempts: 100, windowMs: 60 * 1000, blockDurationMs: 5 * 60 * 1000 },
+    contact_creation: { maxAttempts: 10, windowMs: 60 * 1000, blockDurationMs: 2 * 60 * 1000 }
+  };
 
   // Progressive rate limiting with suspicion detection
   static isAllowedAdvanced(
     identifier: string, 
-    type: keyof typeof RateLimiter['configs'],
+    type: keyof typeof AdvancedRateLimiter['advancedConfigs'],
     requestPattern?: { userAgent?: string; endpoint?: string }
   ): { allowed: boolean; retryAfter?: number; suspicious?: boolean } {
-    const config = this.configs[type];
+    const config = this.advancedConfigs[type];
     const key = `${type}:${identifier}`;
     const now = Date.now();
     
@@ -110,7 +117,7 @@ export class AdvancedRateLimiter extends RateLimiter {
   }
 
   // Get detailed status including suspicious activity
-  static getAdvancedStatus(identifier: string, type: keyof typeof RateLimiter['configs']) {
+  static getAdvancedStatus(identifier: string, type: keyof typeof AdvancedRateLimiter['advancedConfigs']) {
     const baseStatus = this.getStatus(identifier, type);
     const key = `${type}:${identifier}`;
     const advancedEntry = this.advancedStorage.get(key);
@@ -128,7 +135,8 @@ export class AdvancedRateLimiter extends RateLimiter {
     const now = Date.now();
     
     for (const [key, entry] of this.advancedStorage.entries()) {
-      const config = this.configs[key.split(':')[0] as keyof typeof this.configs];
+      const configKey = key.split(':')[0] as keyof typeof this.advancedConfigs;
+      const config = this.advancedConfigs[configKey];
       if (config && (now - entry.firstAttempt) > Math.max(config.windowMs, config.blockDurationMs)) {
         this.advancedStorage.delete(key);
       }
