@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +6,7 @@ import { Plus, Calendar, Clock, User } from "lucide-react";
 import { keystoneService } from "@/services/keystoneService";
 import { Keystone } from "@/types/keystone";
 import { useToast } from "@/hooks/use-toast";
-import { KeystoneForm } from "@/components/keystone/KeystoneForm";
+import KeystoneForm from "@/components/keystone/KeystoneForm";
 import { KeystoneDetailModal } from "@/components/keystone/KeystoneDetailModal";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -18,6 +17,7 @@ const MobileKeystones = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedKeystone, setSelectedKeystone] = useState<Keystone | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -71,6 +71,33 @@ const MobileKeystones = () => {
       'other': 'bg-gray-100 text-gray-800 border-gray-200',
     };
     return colors[category?.toLowerCase()] || colors.other;
+  };
+
+  const handleEdit = () => {
+    setIsDetailModalOpen(false);
+    setIsEditModalOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!selectedKeystone) return;
+    
+    try {
+      await keystoneService.deleteKeystone(selectedKeystone.id);
+      toast({
+        title: "Success",
+        description: "Keystone deleted successfully",
+      });
+      setIsDetailModalOpen(false);
+      setSelectedKeystone(null);
+      fetchKeystones();
+    } catch (error) {
+      console.error("Error deleting keystone:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete keystone. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   if (isLoading) {
@@ -227,14 +254,37 @@ const MobileKeystones = () => {
           </DialogContent>
         </Dialog>
 
+        {/* Edit Keystone Modal */}
+        <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+          <DialogContent className="unified-modal max-w-sm max-h-[90vh] mx-4">
+            <DialogHeader>
+              <DialogTitle>Edit Keystone</DialogTitle>
+            </DialogHeader>
+            <ScrollArea className="max-h-[calc(90vh-6rem)]">
+              <KeystoneForm
+                keystone={selectedKeystone}
+                onSuccess={() => {
+                  setIsEditModalOpen(false);
+                  setSelectedKeystone(null);
+                  fetchKeystones();
+                }}
+                onCancel={() => {
+                  setIsEditModalOpen(false);
+                  setSelectedKeystone(null);
+                }}
+              />
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
+
         {/* Keystone Detail Modal */}
         {selectedKeystone && (
           <KeystoneDetailModal
             keystone={selectedKeystone}
             isOpen={isDetailModalOpen}
             onOpenChange={setIsDetailModalOpen}
-            onUpdate={fetchKeystones}
-            onDelete={fetchKeystones}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
           />
         )}
       </div>
