@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,7 @@ import KeystoneForm from "@/components/keystone/KeystoneForm";
 import { KeystoneDetailModal } from "@/components/keystone/KeystoneDetailModal";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { KeystoneFilters } from "@/components/keystone/KeystoneFilters";
 
 const ModernKeystones = () => {
   const [keystones, setKeystones] = useState<Keystone[]>([]);
@@ -19,6 +20,10 @@ const ModernKeystones = () => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const { toast } = useToast();
+
+  // New state for filtering and search
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeFilter, setActiveFilter] = useState<"all" | "upcoming" | "past">("all");
 
   useEffect(() => {
     fetchKeystones();
@@ -73,6 +78,42 @@ const ModernKeystones = () => {
     return colors[category?.toLowerCase()] || colors.other;
   };
 
+  // Filter and search keystones
+  const filteredKeystones = useMemo(() => {
+    let result = keystones;
+
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(keystone => 
+        keystone.title.toLowerCase().includes(query) ||
+        keystone.notes?.toLowerCase().includes(query) ||
+        keystone.category?.toLowerCase().includes(query) ||
+        keystone.contact_name?.toLowerCase().includes(query)
+      );
+    }
+
+    // Apply time-based filter
+    const now = new Date();
+    if (activeFilter === "upcoming") {
+      result = result.filter(keystone => new Date(keystone.date) >= now);
+    } else if (activeFilter === "past") {
+      result = result.filter(keystone => new Date(keystone.date) < now);
+    }
+
+    // Sort by date (upcoming first for upcoming filter, recent first for past filter)
+    return result.sort((a, b) => {
+      const dateA = new Date(a.date).getTime();
+      const dateB = new Date(b.date).getTime();
+      
+      if (activeFilter === "past") {
+        return dateB - dateA; // Recent first for past
+      } else {
+        return dateA - dateB; // Upcoming first for upcoming/all
+      }
+    });
+  }, [keystones, searchQuery, activeFilter]);
+
   const handleEdit = () => {
     setIsDetailModalOpen(false);
     setIsEditModalOpen(true);
@@ -123,9 +164,12 @@ const ModernKeystones = () => {
             </div>
           </div>
           
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-6">
             <p className="text-sm text-muted-foreground">
-              {keystones.length} keystone{keystones.length !== 1 ? 's' : ''} scheduled
+              {filteredKeystones.length} keystone{filteredKeystones.length !== 1 ? 's' : ''} 
+              {activeFilter === "upcoming" && " upcoming"}
+              {activeFilter === "past" && " from the past"}
+              {searchQuery && ` matching "${searchQuery}"`}
             </p>
             <Button 
               onClick={() => setIsAddModalOpen(true)}
@@ -135,29 +179,44 @@ const ModernKeystones = () => {
               Add Keystone
             </Button>
           </div>
+
+          {/* Search and Filter Controls */}
+          <KeystoneFilters
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            activeFilter={activeFilter}
+            onFilterChange={setActiveFilter}
+          />
         </div>
 
         {/* Keystones Grid */}
-        {keystones.length === 0 ? (
+        {filteredKeystones.length === 0 ? (
           <Card className="unified-card text-center py-12">
             <CardContent>
               <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <CardTitle className="text-xl mb-2">No keystones yet</CardTitle>
+              <CardTitle className="text-xl mb-2">
+                {searchQuery || activeFilter !== "all" ? "No keystones found" : "No keystones yet"}
+              </CardTitle>
               <CardDescription className="mb-4">
-                Start tracking important dates and events in your relationships
+                {searchQuery || activeFilter !== "all" 
+                  ? "Try adjusting your search or filter criteria"
+                  : "Start tracking important dates and events in your relationships"
+                }
               </CardDescription>
-              <Button 
-                onClick={() => setIsAddModalOpen(true)}
-                className="rounded-full"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Your First Keystone
-              </Button>
+              {!searchQuery && activeFilter === "all" && (
+                <Button 
+                  onClick={() => setIsAddModalOpen(true)}
+                  className="rounded-full"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Your First Keystone
+                </Button>
+              )}
             </CardContent>
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {keystones.map((keystone) => (
+            {filteredKeystones.map((keystone) => (
               <Card 
                 key={keystone.id} 
                 className="unified-card cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-[1.02]"
