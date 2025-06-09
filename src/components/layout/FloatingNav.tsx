@@ -4,11 +4,23 @@ import { Link, useLocation } from "react-router-dom";
 import { ExpandableTabs } from "@/components/ui/expandable-tabs";
 import { useState, useEffect } from "react";
 
+interface NavTab {
+  title: string;
+  icon: typeof Home;
+  path: string;
+}
+
+interface NavSeparator {
+  type: "separator";
+}
+
+type NavItem = NavTab | NavSeparator;
+
 export default function FloatingNav() {
   const location = useLocation();
   const [selectedTab, setSelectedTab] = useState<number | null>(null);
 
-  const tabs = [
+  const tabs: NavItem[] = [
     { title: "Home", icon: Home, path: "/" },
     { title: "Circles", icon: Users, path: "/circles" },
     { title: "Keystones", icon: Target, path: "/keystones" },
@@ -20,7 +32,7 @@ export default function FloatingNav() {
   useEffect(() => {
     const currentPath = location.pathname;
     const tabIndex = tabs.findIndex(tab => 
-      tab.path && (currentPath === tab.path || (tab.path !== "/" && currentPath.startsWith(tab.path)))
+      'path' in tab && (currentPath === tab.path || (tab.path !== "/" && currentPath.startsWith(tab.path)))
     );
     setSelectedTab(tabIndex >= 0 ? tabIndex : null);
   }, [location.pathname]);
@@ -28,7 +40,7 @@ export default function FloatingNav() {
   const handleTabChange = (index: number | null) => {
     if (index !== null) {
       const tab = tabs[index];
-      if (tab && 'path' in tab && tab.path) {
+      if ('path' in tab && tab.path) {
         // Navigation will be handled by the Link components
         setSelectedTab(index);
       }
@@ -47,13 +59,15 @@ export default function FloatingNav() {
             );
           }
 
-          const Icon = tab.icon;
+          // Type guard ensures tab is NavTab here
+          const navTab = tab as NavTab;
+          const Icon = navTab.icon;
           const isSelected = selectedTab === index;
           
           return (
             <Link
-              key={tab.title}
-              to={tab.path}
+              key={navTab.title}
+              to={navTab.path}
               className={`relative flex items-center rounded-xl px-4 py-2 text-sm font-medium transition-all duration-300 ${
                 isSelected
                   ? "bg-muted text-circl-blue gap-2"
@@ -64,7 +78,7 @@ export default function FloatingNav() {
               <Icon size={20} />
               {isSelected && (
                 <span className="overflow-hidden whitespace-nowrap">
-                  {tab.title}
+                  {navTab.title}
                 </span>
               )}
             </Link>
