@@ -53,7 +53,7 @@ export default function FloatingNav() {
     <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
       <div className="flex items-center gap-2 rounded-2xl border bg-white/95 backdrop-blur-sm p-1 shadow-lg">
         {tabs.map((tab, index) => {
-          if (tab.type === "separator") {
+          if ('type' in tab && tab.type === "separator") {
             return (
               <div key={`separator-${index}`} className="mx-1 h-[24px] w-[1.2px] bg-border" aria-hidden="true" />
             );
