@@ -38,7 +38,10 @@ export function MultiContactSelector({
   const id = useId();
   const [open, setOpen] = useState(false);
 
-  const handleSelect = (contact: Contact) => {
+  const handleSelect = (contactId: string) => {
+    const contact = contacts.find(c => c.id === contactId);
+    if (!contact) return;
+
     const isSelected = selectedContacts.some(c => c.id === contact.id);
     if (isSelected) {
       onSelectionChange(selectedContacts.filter(c => c.id !== contact.id));
@@ -102,7 +105,7 @@ export function MultiContactSelector({
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="w-full min-w-[var(--radix-popper-anchor-width)] border-input p-0"
+          className="w-[var(--radix-popover-trigger-width)] border-input p-0"
           align="start"
         >
           <Command>
@@ -115,8 +118,8 @@ export function MultiContactSelector({
                   return (
                     <CommandItem
                       key={contact.id}
-                      value={contact.name}
-                      onSelect={() => handleSelect(contact)}
+                      value={`${contact.name} ${contact.id}`}
+                      onSelect={() => handleSelect(contact.id)}
                       className="flex items-center justify-between cursor-pointer"
                     >
                       <div className="flex items-center gap-2">
