@@ -119,7 +119,9 @@ export default function GlobalAIAssistant({
         role: 'assistant',
         content: "**Sorry!** I'm having trouble right now. Please try asking about:\n\n• Specific contacts or relationships\n• Networking strategies\n• Follow-up timing\n• Communication tips"
       });
-      toast.error("Arlo is temporarily unavailable");
+      toast.error("Arlo is temporarily unavailable", {
+        description: "Please try again in a moment"
+      });
     } finally {
       setIsLoading(false);
     }
@@ -128,9 +130,9 @@ export default function GlobalAIAssistant({
   const handleCopyMessage = async (content: string) => {
     try {
       await navigator.clipboard.writeText(content);
-      toast.success("Copied!");
+      toast.success("Copied to clipboard!");
     } catch (error) {
-      toast.error("Copy failed");
+      toast.error("Failed to copy to clipboard");
     }
   };
 
