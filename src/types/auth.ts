@@ -9,6 +9,11 @@ export interface Profile {
   created_at: string;
   updated_at: string;
   has_seen_tutorial: boolean | null;
+  onboarding_completed: boolean | null;
+  role: string | null;
+  how_heard_about_us: string | null;
+  goals: string | null;
+  additional_notes: string | null;
 }
 
 export interface AuthContextProps {
