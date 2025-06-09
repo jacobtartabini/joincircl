@@ -7,8 +7,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MultiContactSelector } from "@/components/ui/multi-contact-selector";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { keystoneService } from "@/services/keystoneService";
+import { contactService } from "@/services/contactService";
 import { Keystone } from "@/types/keystone";
 import { Contact } from "@/types/contact";
 import { format } from "date-fns";
@@ -23,7 +24,7 @@ interface KeystoneFormProps {
 
 function KeystoneForm({
   keystone,
-  contacts = [],
+  contacts: propContacts = [],
   contact,
   onSuccess,
   onCancel
@@ -41,8 +42,20 @@ function KeystoneForm({
 
   const [selectedContacts, setSelectedContacts] = useState<Contact[]>([]);
 
-  // Use the single contact if provided, otherwise use the contacts array
-  const availableContacts = contact ? [contact] : contacts;
+  // Fetch contacts if not provided via props
+  const { data: fetchedContacts = [] } = useQuery({
+    queryKey: ['contacts'],
+    queryFn: contactService.getContacts,
+    enabled: propContacts.length === 0 && !contact // Only fetch if no contacts provided and no specific contact
+  });
+
+  // Use prop contacts, fetched contacts, or single contact
+  const availableContacts = contact 
+    ? [contact] 
+    : propContacts.length > 0 
+    ? propContacts 
+    : fetchedContacts;
+
   const defaultContactId = contact ? contact.id : "";
 
   // Populate form when editing
