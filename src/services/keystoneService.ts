@@ -44,24 +44,41 @@ export const keystoneService = {
   async getKeystonesByContactId(contactId: string): Promise<Keystone[]> {
     try {
       if (navigator.onLine) {
-        const { data, error } = await supabase
+        // Query for both legacy single contact and new multiple contacts
+        const { data: singleContactKeystones, error: singleError } = await supabase
           .from("keystones")
           .select("*")
           .eq("contact_id", contactId)
           .order("date");
 
-        if (error) {
-          throw new Error(error.message);
+        const { data: multiContactKeystones, error: multiError } = await supabase
+          .from("keystones")
+          .select("*")
+          .contains("contact_ids", [contactId])
+          .order("date");
+
+        if (singleError && multiError) {
+          throw new Error(singleError.message || multiError.message);
         }
 
+        // Combine and deduplicate results
+        const allKeystones = [
+          ...(singleContactKeystones || []),
+          ...(multiContactKeystones || [])
+        ];
+        
+        const uniqueKeystones = allKeystones.filter((keystone, index, self) => 
+          index === self.findIndex(k => k.id === keystone.id)
+        );
+
         // Cache keystones for this contact
-        if (data && data.length > 0) {
-          for (const keystone of data) {
+        if (uniqueKeystones.length > 0) {
+          for (const keystone of uniqueKeystones) {
             await offlineStorage.keystones.save(keystone);
           }
         }
 
-        return data as Keystone[];
+        return uniqueKeystones as Keystone[];
       } else {
         // Offline mode - get from local storage
         console.log("Offline: Loading keystones for contact from local storage");
@@ -94,6 +111,7 @@ export const keystoneService = {
       date: keystone.date,
       category: keystone.category,
       contact_id: keystone.contact_id,
+      contact_ids: keystone.contact_ids,
       is_recurring: keystone.is_recurring,
       recurrence_frequency: keystone.recurrence_frequency,
       notes: keystone.notes,
@@ -145,6 +163,7 @@ export const keystoneService = {
       date: keystone.date,
       category: keystone.category,
       contact_id: keystone.contact_id,
+      contact_ids: keystone.contact_ids,
       is_recurring: keystone.is_recurring,
       recurrence_frequency: keystone.recurrence_frequency,
       notes: keystone.notes,

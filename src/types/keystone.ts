@@ -6,6 +6,7 @@ export interface Keystone {
   due_date?: string; // Making this explicitly optional
   category?: string;
   contact_id?: string;
+  contact_ids?: string[]; // New field for multiple contacts
   contact_name?: string; // Added to match KeystoneProps
   user_id: string;
   is_recurring?: boolean;
