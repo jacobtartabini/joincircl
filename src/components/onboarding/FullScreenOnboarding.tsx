@@ -1,131 +1,88 @@
 
 import { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
-  Stepper,
-  StepperIndicator,
-  StepperItem,
-  StepperSeparator,
-  StepperTrigger,
+  Stepper, 
+  StepperItem, 
+  StepperIndicator, 
+  StepperSeparator 
 } from '@/components/ui/stepper';
 import ProfileSetupStep from './ProfileSetupStep';
-import SurveyStep, { SurveyData } from './SurveyStep';
+import SurveyStep from './SurveyStep';
 import ContactImportStep from './ContactImportStep';
 import FeatureTourStep from './FeatureTourStep';
 import CompletionStep from './CompletionStep';
-import { useUserProfile } from '@/hooks/useUserProfile';
 
 interface FullScreenOnboardingProps {
   onComplete: () => void;
 }
 
 export default function FullScreenOnboarding({ onComplete }: FullScreenOnboardingProps) {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [surveyData, setSurveyData] = useState<SurveyData | null>(null);
-  const { updateProfile } = useUserProfile();
+  const [currentStep, setCurrentStep] = useState(0);
+  const { updateProfile } = useAuth();
 
-  const steps = [1, 2, 3, 4, 5];
-  const stepLabels = ['Profile', 'Survey', 'Contacts', 'Features', 'Complete'];
+  const steps = [
+    { id: 'profile', title: 'Profile Setup' },
+    { id: 'survey', title: 'Survey' },
+    { id: 'contacts', title: 'Import Contacts' },
+    { id: 'features', title: 'Feature Tour' },
+    { id: 'completion', title: 'Complete' },
+  ];
 
-  const handleStepComplete = () => {
-    if (currentStep < steps.length) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      handleFinalComplete();
-    }
+  const handleNext = () => {
+    setCurrentStep(prev => Math.min(prev + 1, steps.length - 1));
   };
 
-  const handleSurveyComplete = (data: SurveyData) => {
-    setSurveyData(data);
-    handleStepComplete();
-  };
-
-  const handleSkipStep = () => {
-    handleStepComplete();
-  };
-
-  const handleFinalComplete = async () => {
+  const handleComplete = async () => {
     try {
-      // Save onboarding completion and survey data to profile
-      const updates: any = {
-        onboarding_completed: true,
-      };
-
-      if (surveyData) {
-        updates.role = surveyData.role;
-        updates.how_heard_about_us = surveyData.howHeardAboutUs;
-        updates.goals = surveyData.goals;
-        updates.additional_notes = surveyData.additionalNotes || null;
-      }
-
-      await updateProfile(updates);
+      await updateProfile({ onboarding_completed: true });
       onComplete();
     } catch (error) {
       console.error('Error completing onboarding:', error);
-      // Still complete onboarding even if there's an error
-      onComplete();
     }
   };
 
-  const renderCurrentStep = () => {
+  const renderStep = () => {
     switch (currentStep) {
+      case 0:
+        return <ProfileSetupStep onNext={handleNext} />;
       case 1:
-        return <ProfileSetupStep onNext={handleStepComplete} />;
+        return <SurveyStep onNext={handleNext} />;
       case 2:
-        return <SurveyStep onNext={handleSurveyComplete} />;
+        return <ContactImportStep onNext={handleNext} onSkip={handleNext} />;
       case 3:
-        return <ContactImportStep onNext={handleStepComplete} onSkip={handleSkipStep} />;
+        return <FeatureTourStep onNext={handleNext} />;
       case 4:
-        return <FeatureTourStep onNext={handleStepComplete} />;
-      case 5:
-        return <CompletionStep onComplete={handleFinalComplete} />;
+        return <CompletionStep onComplete={handleComplete} />;
       default:
-        return <ProfileSetupStep onNext={handleStepComplete} />;
+        return <ProfileSetupStep onNext={handleNext} />;
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-gradient-to-br from-blue-50/80 to-purple-50/80 backdrop-blur-sm">
-      <div className="min-h-screen flex flex-col">
-        {/* Header with logo */}
-        <div className="flex justify-center pt-8 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold text-lg">L</span>
-            </div>
-            <span className="font-bold text-2xl text-foreground">Lovable</span>
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
+      {/* Progress Stepper */}
+      <div className="w-full py-8 px-4">
+        <div className="max-w-2xl mx-auto">
+          <Stepper value={currentStep} className="w-full">
+            {steps.map((step, index) => (
+              <StepperItem
+                key={step.id}
+                step={index + 1}
+                completed={index < currentStep}
+                className="flex-1"
+              >
+                <StepperIndicator />
+                {index < steps.length - 1 && <StepperSeparator />}
+              </StepperItem>
+            ))}
+          </Stepper>
         </div>
+      </div>
 
-        {/* Main content area */}
-        <div className="flex-1 flex items-center justify-center px-4 py-8">
-          {renderCurrentStep()}
-        </div>
-
-        {/* Bottom stepper */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-200 p-6">
-          <div className="max-w-md mx-auto">
-            <Stepper value={currentStep} className="w-full">
-              {steps.map((step, index) => (
-                <StepperItem 
-                  key={step} 
-                  step={step} 
-                  completed={step < currentStep}
-                  className="[&:not(:last-child)]:flex-1"
-                >
-                  <StepperTrigger asChild>
-                    <div className="flex flex-col items-center gap-2">
-                      <StepperIndicator className="size-8 data-[state=active]:border-2 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=completed]:bg-primary data-[state=completed]:text-primary-foreground [&_span]:text-xs" />
-                      <span className="text-xs font-medium text-muted-foreground">
-                        {stepLabels[index]}
-                      </span>
-                    </div>
-                  </StepperTrigger>
-                  {step < steps.length && <StepperSeparator className="mt-4" />}
-                </StepperItem>
-              ))}
-            </Stepper>
-          </div>
-        </div>
+      {/* Step Content */}
+      <div className="flex-1 flex items-center justify-center px-4 pb-8">
+        {renderStep()}
       </div>
     </div>
   );
