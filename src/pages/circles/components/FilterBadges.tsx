@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
@@ -51,7 +50,6 @@ export const FilterBadges = ({
             <Badge 
               key={`selected-${key}-${value || ''}-${index}`}
               variant="secondary" 
-              size="small"
               className="cursor-pointer hover:ring-secondary/50"
             >
               {value}

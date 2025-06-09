@@ -247,10 +247,10 @@ export default function GlobalAIAssistant({
           </div>
           {!isMinimized && (
             <div className="flex items-center gap-2">
-              <Badge variant="brand" size="small">
+              <Badge variant="default">
                 {contacts.length} contacts
               </Badge>
-              <Badge variant="secondary" size="small">
+              <Badge variant="secondary">
                 Smart insights
               </Badge>
             </div>
@@ -379,7 +379,6 @@ export default function GlobalAIAssistant({
                     <Badge
                       key={index}
                       variant="outline"
-                      size="small"
                       onClick={() => setInputMessage(suggestion)}
                       className="cursor-pointer hover:ring-border/50"
                     >

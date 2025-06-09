@@ -1,4 +1,3 @@
-
 import { Contact } from "@/types/contact";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { CircleBadge, getCircleName } from "@/components/ui/circle-badge";
@@ -31,7 +30,7 @@ export default function ContactInfo({ contact }: ContactInfoProps) {
             {contact.tags && contact.tags.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {contact.tags.map(tag => (
-                  <Badge key={tag} variant="secondary" size="small">
+                  <Badge key={tag} variant="secondary">
                     {tag}
                   </Badge>
                 ))}
@@ -81,7 +80,7 @@ export default function ContactInfo({ contact }: ContactInfoProps) {
             </div>}
           
           <div className="flex flex-wrap gap-2 mt-4">
-            {contact.linkedin && <Badge variant="brand" size="small" className="cursor-pointer">
+            {contact.linkedin && <Badge variant="default" className="cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
                   <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
                   <rect width="4" height="12" x="2" y="9" />
@@ -90,19 +89,19 @@ export default function ContactInfo({ contact }: ContactInfoProps) {
                 LinkedIn
               </Badge>}
             
-            {contact.facebook && <Badge variant="brand" size="small" className="cursor-pointer">
+            {contact.facebook && <Badge variant="default" className="cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
                   <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
                 </svg>
                 Facebook
               </Badge>}
 
-            {contact.twitter && <Badge variant="brand" size="small" className="cursor-pointer">
+            {contact.twitter && <Badge variant="default" className="cursor-pointer">
                 <Twitter size={14} className="mr-1" />
                 Twitter
               </Badge>}
 
-            {contact.instagram && <Badge variant="brand" size="small" className="cursor-pointer">
+            {contact.instagram && <Badge variant="default" className="cursor-pointer">
                 <Instagram size={14} className="mr-1" />
                 Instagram
               </Badge>}

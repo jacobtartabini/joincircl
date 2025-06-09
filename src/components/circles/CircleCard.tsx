@@ -35,19 +35,19 @@ export function CircleCard({
     switch (contact.circle) {
       case "inner":
         return (
-          <Badge variant="success" size="small">
+          <Badge variant="success">
             Inner
           </Badge>
         );
       case "middle":
         return (
-          <Badge variant="warning" size="small">
+          <Badge variant="warning">
             Middle
           </Badge>
         );
       case "outer":
         return (
-          <Badge variant="brand" size="small">
+          <Badge variant="default">
             Outer
           </Badge>
         );
