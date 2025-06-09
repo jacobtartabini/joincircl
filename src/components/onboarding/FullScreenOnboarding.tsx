@@ -8,9 +8,11 @@ import {
   StepperTrigger,
 } from '@/components/ui/stepper';
 import ProfileSetupStep from './ProfileSetupStep';
+import SurveyStep, { SurveyData } from './SurveyStep';
 import ContactImportStep from './ContactImportStep';
 import FeatureTourStep from './FeatureTourStep';
 import CompletionStep from './CompletionStep';
+import { useUserProfile } from '@/hooks/useUserProfile';
 
 interface FullScreenOnboardingProps {
   onComplete: () => void;
@@ -18,24 +20,50 @@ interface FullScreenOnboardingProps {
 
 export default function FullScreenOnboarding({ onComplete }: FullScreenOnboardingProps) {
   const [currentStep, setCurrentStep] = useState(1);
+  const [surveyData, setSurveyData] = useState<SurveyData | null>(null);
+  const { updateProfile } = useUserProfile();
 
-  const steps = [1, 2, 3, 4];
-  const stepLabels = ['Profile', 'Contacts', 'Features', 'Complete'];
+  const steps = [1, 2, 3, 4, 5];
+  const stepLabels = ['Profile', 'Survey', 'Contacts', 'Features', 'Complete'];
 
   const handleStepComplete = () => {
     if (currentStep < steps.length) {
       setCurrentStep(currentStep + 1);
     } else {
-      onComplete();
+      handleFinalComplete();
     }
+  };
+
+  const handleSurveyComplete = (data: SurveyData) => {
+    setSurveyData(data);
+    handleStepComplete();
   };
 
   const handleSkipStep = () => {
     handleStepComplete();
   };
 
-  const handleComplete = () => {
-    onComplete();
+  const handleFinalComplete = async () => {
+    try {
+      // Save onboarding completion and survey data to profile
+      const updates: any = {
+        onboarding_completed: true,
+      };
+
+      if (surveyData) {
+        updates.role = surveyData.role;
+        updates.how_heard_about_us = surveyData.howHeardAboutUs;
+        updates.goals = surveyData.goals;
+        updates.additional_notes = surveyData.additionalNotes || null;
+      }
+
+      await updateProfile(updates);
+      onComplete();
+    } catch (error) {
+      console.error('Error completing onboarding:', error);
+      // Still complete onboarding even if there's an error
+      onComplete();
+    }
   };
 
   const renderCurrentStep = () => {
@@ -43,11 +71,13 @@ export default function FullScreenOnboarding({ onComplete }: FullScreenOnboardin
       case 1:
         return <ProfileSetupStep onNext={handleStepComplete} />;
       case 2:
-        return <ContactImportStep onNext={handleStepComplete} onSkip={handleSkipStep} />;
+        return <SurveyStep onNext={handleSurveyComplete} />;
       case 3:
-        return <FeatureTourStep onNext={handleStepComplete} />;
+        return <ContactImportStep onNext={handleStepComplete} onSkip={handleSkipStep} />;
       case 4:
-        return <CompletionStep onComplete={handleComplete} />;
+        return <FeatureTourStep onNext={handleStepComplete} />;
+      case 5:
+        return <CompletionStep onComplete={handleFinalComplete} />;
       default:
         return <ProfileSetupStep onNext={handleStepComplete} />;
     }
@@ -60,9 +90,9 @@ export default function FullScreenOnboarding({ onComplete }: FullScreenOnboardin
         <div className="flex justify-center pt-8 pb-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold text-lg">C</span>
+              <span className="text-white font-bold text-lg">L</span>
             </div>
-            <span className="font-bold text-2xl text-foreground">Circl</span>
+            <span className="font-bold text-2xl text-foreground">Lovable</span>
           </div>
         </div>
 
