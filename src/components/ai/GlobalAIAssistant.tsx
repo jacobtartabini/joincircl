@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -70,7 +71,7 @@ export default function GlobalAIAssistant({
           ).join(', ')}`
         : 'No contacts yet';
 
-      const systemPrompt = `You're Circl's relationship advisor. Provide helpful, structured responses.
+      const systemPrompt = `You're Arlo, Circl's relationship advisor. Provide helpful, structured responses.
 
       **Formatting Guidelines:**
       - Use **bold headers** for main topics
@@ -85,6 +86,7 @@ export default function GlobalAIAssistant({
       - Use "you" and "your" - be personal
       - Give specific, actionable advice
       - Sound like a knowledgeable assistant
+      - Always refer to yourself as "Arlo"
 
       Focus areas: relationship maintenance, networking strategies, follow-up timing, communication best practices.
 
@@ -118,7 +120,7 @@ export default function GlobalAIAssistant({
         role: 'assistant',
         content: "**Sorry!** I'm having trouble right now. Please try asking about:\n\n• Specific contacts or relationships\n• Networking strategies\n• Follow-up timing\n• Communication tips"
       });
-      toast.error("AI temporarily unavailable");
+      toast.error("Arlo is temporarily unavailable");
     } finally {
       setIsLoading(false);
     }
@@ -209,7 +211,7 @@ export default function GlobalAIAssistant({
                   isMobile ? "h-3 w-3" : "h-4 w-4"
                 )} />
               </div>
-              <span className="text-gray-900">AI Assistant</span>
+              <span className="text-gray-900">Arlo</span>
             </CardTitle>
             <div className="flex items-center gap-1">
               {onMinimize && (
@@ -282,7 +284,7 @@ export default function GlobalAIAssistant({
                         "text-gray-600 mb-4",
                         isMobile ? "text-xs" : "text-sm"
                       )}>
-                        **Welcome!** I'm your relationship assistant.
+                        **Welcome!** I'm Arlo, your relationship assistant.
                       </p>
                       <p className={cn(
                         "text-gray-500",
@@ -403,7 +405,7 @@ export default function GlobalAIAssistant({
             )}>
               <div className="flex gap-2">
                 <Input
-                  placeholder="Ask about your network..."
+                  placeholder="Ask Arlo about your network..."
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}

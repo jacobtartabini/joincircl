@@ -32,7 +32,7 @@ import ShareTarget from "@/pages/ShareTarget";
 import SecurityGuide from "@/pages/SecurityGuide";
 import Duplicates from "@/pages/Duplicates";
 import Contact from "@/pages/Contact";
-import AIAssistant from "@/pages/AIAssistant";
+import Arlo from "@/pages/Arlo";
 
 // User onboarding
 import { UserOnboarding } from "./components/UserOnboarding";
@@ -75,7 +75,7 @@ function App() {
                   <Route path="/contact/:id" element={<RedesignedContactDetail />} />
                   <Route path="/keystones" element={<Keystones />} />
                   <Route path="/notifications" element={<Notifications />} />
-                  <Route path="/ai-assistant" element={<AIAssistant />} />
+                  <Route path="/arlo" element={<Arlo />} />
                   
                   {/* Settings and management */}
                   <Route path="/settings" element={<Settings />} />
