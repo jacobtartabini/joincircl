@@ -36,7 +36,7 @@ export function MultiContactSelector({
   className
 }: MultiContactSelectorProps) {
   const id = useId();
-  const [open, setOpen] = useState<boolean>(false);
+  const [open, setOpen] = useState(false);
 
   const handleSelect = (contact: Contact) => {
     const isSelected = selectedContacts.some(c => c.id === contact.id);
@@ -62,13 +62,16 @@ export function MultiContactSelector({
             <Badge
               key={contact.id}
               variant="secondary"
-              size="small"
-              className="cursor-pointer hover:ring-secondary/50"
+              className="cursor-pointer hover:bg-secondary/80"
             >
               {contact.name}
               <X 
-                className="h-3 w-3 cursor-pointer ml-1" 
-                onClick={() => handleRemove(contact)} 
+                className="h-3 w-3 cursor-pointer ml-1 hover:text-destructive" 
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleRemove(contact);
+                }} 
               />
             </Badge>
           ))}
@@ -114,7 +117,7 @@ export function MultiContactSelector({
                       key={contact.id}
                       value={contact.name}
                       onSelect={() => handleSelect(contact)}
-                      className="flex items-center justify-between"
+                      className="flex items-center justify-between cursor-pointer"
                     >
                       <div className="flex items-center gap-2">
                         <div className="flex flex-col">
@@ -127,7 +130,7 @@ export function MultiContactSelector({
                         </div>
                       </div>
                       {isSelected && (
-                        <Check size={16} strokeWidth={2} className="text-brand" />
+                        <Check size={16} strokeWidth={2} className="text-primary" />
                       )}
                     </CommandItem>
                   );
