@@ -215,12 +215,22 @@ class EnhancedMakeService {
 
       if (error) throw error;
 
-      return data?.map(interaction => ({
-        ...interaction,
-        contact_name: Array.isArray(interaction.contacts) 
-          ? interaction.contacts[0]?.name || 'Unknown'
-          : interaction.contacts?.name || 'Unknown'
-      })) || [];
+      return data?.map(interaction => {
+        let contactName = 'Unknown';
+        
+        if (interaction.contacts) {
+          if (Array.isArray(interaction.contacts)) {
+            contactName = interaction.contacts[0]?.name || 'Unknown';
+          } else {
+            contactName = (interaction.contacts as any)?.name || 'Unknown';
+          }
+        }
+
+        return {
+          ...interaction,
+          contact_name: contactName
+        };
+      }) || [];
     } catch (error) {
       console.error('Error fetching recent interactions:', error);
       return [];
