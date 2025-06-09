@@ -51,7 +51,8 @@ export const FilterBadges = ({
             <Badge 
               key={`selected-${key}-${value || ''}-${index}`}
               variant="secondary" 
-              className="flex items-center gap-1 px-3 py-1 rounded-full bg-muted/80 hover:bg-muted"
+              size="small"
+              className="cursor-pointer hover:ring-secondary/50"
             >
               {value}
               <X 

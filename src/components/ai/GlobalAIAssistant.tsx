@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -246,16 +245,10 @@ export default function GlobalAIAssistant({
           </div>
           {!isMinimized && (
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className={cn(
-                "bg-blue-50 border-blue-200 text-blue-700",
-                isMobile ? "text-xs" : "text-xs"
-              )}>
+              <Badge variant="brand" size="small">
                 {contacts.length} contacts
               </Badge>
-              <Badge variant="outline" className={cn(
-                "bg-purple-50 border-purple-200 text-purple-700",
-                isMobile ? "text-xs" : "text-xs"
-              )}>
+              <Badge variant="secondary" size="small">
                 Smart insights
               </Badge>
             </div>
@@ -381,18 +374,15 @@ export default function GlobalAIAssistant({
                 )}>Quick questions:</div>
                 <div className="flex flex-wrap gap-1">
                   {quickSuggestions.map((suggestion, index) => (
-                    <Button
+                    <Badge
                       key={index}
                       variant="outline"
-                      size="sm"
+                      size="small"
                       onClick={() => setInputMessage(suggestion)}
-                      className={cn(
-                        "border-gray-200 hover:bg-gray-50",
-                        isMobile ? "text-xs h-6 px-2" : "text-xs h-7 px-2"
-                      )}
+                      className="cursor-pointer hover:ring-border/50"
                     >
                       {suggestion}
-                    </Button>
+                    </Badge>
                   ))}
                 </div>
               </div>

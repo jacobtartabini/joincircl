@@ -2,6 +2,7 @@
 import { Contact } from "@/types/contact";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { CircleBadge, getCircleName } from "@/components/ui/circle-badge";
+import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { Calendar, Mail, Phone, MapPin, Briefcase, GraduationCap, Instagram, Twitter } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
@@ -26,13 +27,13 @@ export default function ContactInfo({ contact }: ContactInfoProps) {
             <h1 className="text-2xl font-bold">{contact.name}</h1>
             <p className="text-muted-foreground">{getCircleName(contact.circle)} Circle</p>
             
-            {/* Tags below name */}
+            {/* Tags below name with unified styling */}
             {contact.tags && contact.tags.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {contact.tags.map(tag => (
-                  <span key={tag} className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                  <Badge key={tag} variant="secondary" size="small">
                     {tag}
-                  </span>
+                  </Badge>
                 ))}
               </div>
             )}
@@ -80,31 +81,31 @@ export default function ContactInfo({ contact }: ContactInfoProps) {
             </div>}
           
           <div className="flex flex-wrap gap-2 mt-4">
-            {contact.linkedin && <a href={contact.linkedin} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-2.5 py-1.5 rounded-md bg-blue-50 text-blue-700 text-xs hover:bg-blue-100">
+            {contact.linkedin && <Badge variant="brand" size="small" className="cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
                   <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
                   <rect width="4" height="12" x="2" y="9" />
                   <circle cx="4" cy="4" r="2" />
                 </svg>
                 LinkedIn
-              </a>}
+              </Badge>}
             
-            {contact.facebook && <a href={contact.facebook} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-2.5 py-1.5 rounded-md bg-blue-50 text-blue-700 text-xs hover:bg-blue-100">
+            {contact.facebook && <Badge variant="brand" size="small" className="cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
                   <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
                 </svg>
                 Facebook
-              </a>}
+              </Badge>}
 
-            {contact.twitter && <a href={contact.twitter} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-2.5 py-1.5 rounded-md bg-blue-50 text-blue-700 text-xs hover:bg-blue-100">
+            {contact.twitter && <Badge variant="brand" size="small" className="cursor-pointer">
                 <Twitter size={14} className="mr-1" />
                 Twitter
-              </a>}
+              </Badge>}
 
-            {contact.instagram && <a href={contact.instagram} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-2.5 py-1.5 rounded-md bg-blue-50 text-blue-700 text-xs hover:bg-blue-100">
+            {contact.instagram && <Badge variant="brand" size="small" className="cursor-pointer">
                 <Instagram size={14} className="mr-1" />
                 Instagram
-              </a>}
+              </Badge>}
           </div>
         </div>
         
