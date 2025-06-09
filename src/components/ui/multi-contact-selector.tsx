@@ -38,7 +38,11 @@ export function MultiContactSelector({
   const id = useId();
   const [open, setOpen] = useState(false);
 
-  const handleSelect = (contactId: string) => {
+  const handleSelect = (value: string) => {
+    // Extract contact ID from the value (format: "contactName contactId")
+    const parts = value.split(' ');
+    const contactId = parts[parts.length - 1]; // Last part should be the ID
+    
     const contact = contacts.find(c => c.id === contactId);
     if (!contact) return;
 
@@ -108,18 +112,22 @@ export function MultiContactSelector({
           className="w-[var(--radix-popover-trigger-width)] border-input p-0"
           align="start"
         >
-          <Command>
-            <CommandInput placeholder={placeholder} />
+          <Command shouldFilter={true}>
+            <CommandInput placeholder={placeholder} className="h-9" />
             <CommandList>
               <CommandEmpty>No contacts found.</CommandEmpty>
               <CommandGroup>
                 {contacts.map((contact) => {
                   const isSelected = selectedContacts.some(c => c.id === contact.id);
+                  const searchValue = `${contact.name} ${contact.id}`;
+                  
                   return (
                     <CommandItem
                       key={contact.id}
-                      value={`${contact.name} ${contact.id}`}
-                      onSelect={() => handleSelect(contact.id)}
+                      value={searchValue}
+                      onSelect={(value) => {
+                        handleSelect(value);
+                      }}
                       className="flex items-center justify-between cursor-pointer"
                     >
                       <div className="flex items-center gap-2">
