@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext } from 'react';
 import { AuthContextProps } from '@/types/auth';
 import { useAuthState } from '@/hooks/useAuthState';
