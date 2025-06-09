@@ -1,58 +1,146 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'sonner';
+import { useToast } from '@/hooks/use-toast';
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  first_name?: string;
+  last_name?: string;
+  phone_number?: string;
+  location?: string;
+  company_name?: string;
+  job_title?: string;
+  bio?: string;
+  avatar_url?: string;
+  full_name?: string;
+}
 
 export const useUserProfile = () => {
-  const [loading, setLoading] = useState(false);
-  const { user, profile } = useAuth();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  const updateProfile = async (updates: any) => {
-    if (!user) throw new Error('No user found');
-    
-    setLoading(true);
+  const fetchProfile = async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error;
+      
+      // If no profile exists, create one
+      if (!data) {
+        const newProfile = {
+          id: user.id,
+          email: user.email || '',
+          first_name: user.user_metadata?.first_name || '',
+          last_name: user.user_metadata?.last_name || '',
+          avatar_url: user.user_metadata?.avatar_url || '',
+        };
+        
+        const { data: createdProfile, error: createError } = await supabase
+          .from('profiles')
+          .insert(newProfile)
+          .select()
+          .single();
+          
+        if (createError) throw createError;
+        setProfile(createdProfile);
+      } else {
+        setProfile(data);
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load profile data",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateProfile = async (updates: Partial<UserProfile>) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
       const { error } = await supabase
         .from('profiles')
-        .update(updates)
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', user.id);
 
       if (error) throw error;
+
+      setProfile(prev => prev ? { ...prev, ...updates } : null);
+      toast({
+        title: "Success",
+        description: "Profile updated successfully",
+      });
       
-      toast.success('Profile updated successfully');
       return true;
     } catch (error) {
       console.error('Error updating profile:', error);
-      toast.error('Failed to update profile');
+      toast({
+        title: "Error",
+        description: "Failed to update profile",
+        variant: "destructive",
+      });
       return false;
-    } finally {
-      setLoading(false);
     }
   };
 
   const uploadAvatar = async (file: File) => {
-    if (!user) throw new Error('No user found');
-    
-    setLoading(true);
     try {
-      // For now, just simulate upload success
-      // In a real app, you would upload to Supabase storage
-      toast.success('Avatar uploaded successfully');
-      return true;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      // Create a unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+
+      // Upload file to storage
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      // Update profile with new avatar URL
+      await updateProfile({ avatar_url: publicUrl });
+      
+      return publicUrl;
     } catch (error) {
       console.error('Error uploading avatar:', error);
-      toast.error('Failed to upload avatar');
-      return false;
-    } finally {
-      setLoading(false);
+      toast({
+        title: "Error",
+        description: "Failed to upload profile photo",
+        variant: "destructive",
+      });
+      throw error;
     }
   };
 
-  return {
-    profile,
-    updateProfile,
-    uploadAvatar,
-    loading,
-  };
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  return { profile, loading, updateProfile, uploadAvatar, refetch: fetchProfile };
 };

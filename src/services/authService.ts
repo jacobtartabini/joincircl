@@ -1,72 +1,241 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Profile } from '@/types/auth';
 
 export const authService = {
   signIn: async (email: string, password: string) => {
-    return await supabase.auth.signInWithPassword({ email, password });
+    try {
+      console.log('Attempting to sign in with email:', email);
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password,
+      });
+
+      if (error) {
+        console.error('Sign in error:', error);
+        return { error };
+      }
+
+      console.log('Sign in successful:', data);
+      
+      // Ensure session is properly stored on web
+      if (typeof window !== 'undefined' && data.session) {
+        try {
+          localStorage.setItem('supabase.auth.token', JSON.stringify(data.session));
+        } catch (storageError) {
+          console.warn('Failed to store session in localStorage:', storageError);
+        }
+      }
+      
+      return { error: null };
+    } catch (error) {
+      console.error('Sign in error:', error);
+      return { error };
+    }
   },
 
   signInWithMagicLink: async (email: string) => {
-    return await supabase.auth.signInWithOtp({ email });
+    try {
+      console.log('Attempting to send magic link to email:', email);
+
+      // Get the current origin for redirect URL
+      const redirectTo = typeof window !== 'undefined' 
+        ? `${window.location.origin}/auth/callback`
+        : undefined;
+
+      const { data, error } = await supabase.auth.signInWithOtp({
+        email: email.trim().toLowerCase(),
+        options: {
+          emailRedirectTo: redirectTo,
+        },
+      });
+
+      if (error) {
+        console.error('Magic link error:', error);
+        return { error };
+      }
+
+      console.log('Magic link sent successfully:', data);
+      return { error: null };
+    } catch (error) {
+      console.error('Magic link error:', error);
+      return { error };
+    }
   },
 
   signUp: async (email: string, password: string, fullName?: string) => {
-    return await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
+    try {
+      console.log('Attempting to sign up with email:', email);
+
+      // Get the current origin for redirect URL
+      const redirectTo = typeof window !== 'undefined' 
+        ? `${window.location.origin}/auth/callback`
+        : undefined;
+
+      const signUpData: any = {
+        email: email.trim().toLowerCase(),
+        password,
+        options: {
+          emailRedirectTo: redirectTo,
         },
-      },
-    });
+      };
+
+      // Add user metadata if provided
+      if (fullName) {
+        signUpData.options.data = {
+          full_name: fullName,
+        };
+      }
+
+      const { data, error } = await supabase.auth.signUp(signUpData);
+
+      if (error) {
+        console.error('Sign up error:', error);
+        return { data: null, error };
+      }
+
+      console.log('Sign up successful:', data);
+      return { data, error: null };
+    } catch (error) {
+      console.error('Sign up error:', error);
+      return { data: null, error };
+    }
   },
 
   signOut: async () => {
-    await supabase.auth.signOut();
+    try {
+      console.log('Attempting to sign out');
+
+      const { error } = await supabase.auth.signOut();
+      
+      // Clear any stored session data on web
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.removeItem('supabase.auth.token');
+        } catch (storageError) {
+          console.warn('Failed to clear session from localStorage:', storageError);
+        }
+      }
+      
+      if (error) {
+        console.error('Sign out error:', error);
+      } else {
+        console.log('Sign out successful');
+      }
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
   },
 
-  fetchProfile: async (userId: string): Promise<Profile | null> => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
+  signInWithGoogle: async () => {
+    try {
+      console.log('Attempting to sign in with Google');
 
-    if (error) {
-      console.error('Error fetching profile:', error);
-      return null;
+      // Get the current origin for redirect URL
+      const redirectTo = typeof window !== 'undefined' 
+        ? `${window.location.origin}/auth/callback`
+        : undefined;
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
+      });
+
+      if (error) {
+        console.error('Google sign in error:', error);
+        throw error;
+      }
+
+      console.log('Google sign in initiated successfully');
+    } catch (error) {
+      console.error('Google sign in error:', error);
+      throw error;
     }
+  },
 
-    return data;
+  signInWithLinkedIn: async () => {
+    try {
+      console.log('Attempting to sign in with LinkedIn');
+
+      // Get the current origin for redirect URL
+      const redirectTo = typeof window !== 'undefined' 
+        ? `${window.location.origin}/auth/callback`
+        : undefined;
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'linkedin_oidc',
+        options: {
+          redirectTo,
+          scopes: 'openid profile email',
+        },
+      });
+
+      if (error) {
+        console.error('LinkedIn sign in error:', error);
+        throw error;
+      }
+
+      console.log('LinkedIn sign in initiated successfully');
+    } catch (error) {
+      console.error('LinkedIn sign in error:', error);
+      throw error;
+    }
   },
 
   updateProfile: async (userId: string, updates: Partial<Profile>) => {
-    const { error } = await supabase
-      .from('profiles')
-      .update(updates)
-      .eq('id', userId);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', userId);
 
-    if (error) {
+      if (error) {
+        console.error('Error updating profile:', error);
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
       throw error;
     }
   },
 
   deleteAccount: async () => {
-    // This would need to be implemented as an edge function
-    throw new Error('Delete account functionality not implemented');
+    try {
+      const { error } = await supabase.functions.invoke('delete-account');
+
+      if (error) {
+        console.error('Error deleting account:', error);
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      throw error;
+    }
   },
 
-  signInWithGoogle: async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-    });
-  },
+  fetchProfile: async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
 
-  signInWithLinkedIn: async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'linkedin_oidc',
-    });
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error in fetchProfile:', error);
+      return null;
+    }
   },
 };

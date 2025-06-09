@@ -379,7 +379,6 @@ export type Database = {
       }
       profiles: {
         Row: {
-          additional_notes: string | null
           avatar_url: string | null
           bio: string | null
           company_name: string | null
@@ -387,20 +386,15 @@ export type Database = {
           email: string
           first_name: string | null
           full_name: string | null
-          goals: string | null
           has_seen_tutorial: boolean | null
-          how_heard_about_us: string | null
           id: string
           job_title: string | null
           last_name: string | null
           location: string | null
-          onboarding_completed: boolean | null
           phone_number: string | null
-          role: string | null
           updated_at: string | null
         }
         Insert: {
-          additional_notes?: string | null
           avatar_url?: string | null
           bio?: string | null
           company_name?: string | null
@@ -408,20 +402,15 @@ export type Database = {
           email: string
           first_name?: string | null
           full_name?: string | null
-          goals?: string | null
           has_seen_tutorial?: boolean | null
-          how_heard_about_us?: string | null
           id: string
           job_title?: string | null
           last_name?: string | null
           location?: string | null
-          onboarding_completed?: boolean | null
           phone_number?: string | null
-          role?: string | null
           updated_at?: string | null
         }
         Update: {
-          additional_notes?: string | null
           avatar_url?: string | null
           bio?: string | null
           company_name?: string | null
@@ -429,16 +418,12 @@ export type Database = {
           email?: string
           first_name?: string | null
           full_name?: string | null
-          goals?: string | null
           has_seen_tutorial?: boolean | null
-          how_heard_about_us?: string | null
           id?: string
           job_title?: string | null
           last_name?: string | null
           location?: string | null
-          onboarding_completed?: boolean | null
           phone_number?: string | null
-          role?: string | null
           updated_at?: string | null
         }
         Relationships: []

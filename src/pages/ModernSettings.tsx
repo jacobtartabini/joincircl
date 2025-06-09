@@ -6,34 +6,30 @@ import { Settings, User, Shield, CreditCard, Bell, Zap, HelpCircle, Palette } fr
 import { useIsMobile } from "@/hooks/use-mobile";
 
 // Import tab components
-import { ProfileTab } from "@/components/settings/ProfileTab";
+import ProfileTab from "@/components/settings/ProfileTab";
 import SecurityTab from "@/components/settings/SecurityTab";
 import SubscriptionTab from "@/components/settings/SubscriptionTab";
 import ResourcesTab from "@/components/settings/ResourcesTab";
 import PreferencesTab from "@/components/settings/PreferencesTab";
 import IntegrationsTab from "@/components/settings/IntegrationsTab";
 import AccountTab from "@/components/settings/AccountTab";
-
 const ModernSettings = () => {
   const isMobile = useIsMobile();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'profile');
-  
   useEffect(() => {
     const tab = searchParams.get('tab');
     if (tab) {
       setActiveTab(tab);
     }
   }, [searchParams]);
-  
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     navigate(`/settings?tab=${value}`, {
       replace: true
     });
   };
-  
   const tabs = [{
     id: 'profile',
     label: 'Profile',
@@ -70,7 +66,6 @@ const ModernSettings = () => {
     icon: Settings,
     component: AccountTab
   }];
-  
   if (isMobile) {
     return <div className="flex flex-col h-full bg-background">
         {/* Mobile Header */}
@@ -111,7 +106,6 @@ const ModernSettings = () => {
         </Tabs>
       </div>;
   }
-  
   return <div className="h-full unified-web-theme">
       <div className="max-w-7xl mx-auto h-full flex flex-col rounded-2xl">
         {/* Header */}
@@ -161,5 +155,4 @@ const ModernSettings = () => {
       </div>
     </div>;
 };
-
 export default ModernSettings;

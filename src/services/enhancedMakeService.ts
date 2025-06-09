@@ -1,3 +1,4 @@
+
 import { makeService, AutomationPreferences } from "@/services/makeService";
 import { emailService } from "@/services/emailService";
 import { supabase } from "@/integrations/supabase/client";
@@ -215,22 +216,10 @@ class EnhancedMakeService {
 
       if (error) throw error;
 
-      return data?.map(interaction => {
-        let contactName = 'Unknown';
-        
-        if (interaction.contacts) {
-          if (Array.isArray(interaction.contacts)) {
-            contactName = interaction.contacts[0]?.name || 'Unknown';
-          } else {
-            contactName = (interaction.contacts as any)?.name || 'Unknown';
-          }
-        }
-
-        return {
-          ...interaction,
-          contact_name: contactName
-        };
-      }) || [];
+      return data?.map(interaction => ({
+        ...interaction,
+        contact_name: interaction.contacts?.name || 'Unknown'
+      })) || [];
     } catch (error) {
       console.error('Error fetching recent interactions:', error);
       return [];

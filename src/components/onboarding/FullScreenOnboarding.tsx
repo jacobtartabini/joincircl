@@ -1,14 +1,13 @@
 
 import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { 
-  Stepper, 
-  StepperItem, 
-  StepperIndicator, 
-  StepperSeparator 
+  Stepper,
+  StepperIndicator,
+  StepperItem,
+  StepperSeparator,
+  StepperTrigger,
 } from '@/components/ui/stepper';
 import ProfileSetupStep from './ProfileSetupStep';
-import SurveyStep from './SurveyStep';
 import ContactImportStep from './ContactImportStep';
 import FeatureTourStep from './FeatureTourStep';
 import CompletionStep from './CompletionStep';
@@ -18,71 +17,85 @@ interface FullScreenOnboardingProps {
 }
 
 export default function FullScreenOnboarding({ onComplete }: FullScreenOnboardingProps) {
-  const [currentStep, setCurrentStep] = useState(0);
-  const { updateProfile } = useAuth();
+  const [currentStep, setCurrentStep] = useState(1);
 
-  const steps = [
-    { id: 'profile', title: 'Profile Setup' },
-    { id: 'survey', title: 'Survey' },
-    { id: 'contacts', title: 'Import Contacts' },
-    { id: 'features', title: 'Feature Tour' },
-    { id: 'completion', title: 'Complete' },
-  ];
+  const steps = [1, 2, 3, 4];
+  const stepLabels = ['Profile', 'Contacts', 'Features', 'Complete'];
 
-  const handleNext = () => {
-    setCurrentStep(prev => Math.min(prev + 1, steps.length - 1));
-  };
-
-  const handleComplete = async () => {
-    try {
-      await updateProfile({ onboarding_completed: true });
+  const handleStepComplete = () => {
+    if (currentStep < steps.length) {
+      setCurrentStep(currentStep + 1);
+    } else {
       onComplete();
-    } catch (error) {
-      console.error('Error completing onboarding:', error);
     }
   };
 
-  const renderStep = () => {
+  const handleSkipStep = () => {
+    handleStepComplete();
+  };
+
+  const handleComplete = () => {
+    onComplete();
+  };
+
+  const renderCurrentStep = () => {
     switch (currentStep) {
-      case 0:
-        return <ProfileSetupStep onNext={handleNext} />;
       case 1:
-        return <SurveyStep onNext={handleNext} />;
+        return <ProfileSetupStep onNext={handleStepComplete} />;
       case 2:
-        return <ContactImportStep onNext={handleNext} onSkip={handleNext} />;
+        return <ContactImportStep onNext={handleStepComplete} onSkip={handleSkipStep} />;
       case 3:
-        return <FeatureTourStep onNext={handleNext} />;
+        return <FeatureTourStep onNext={handleStepComplete} />;
       case 4:
         return <CompletionStep onComplete={handleComplete} />;
       default:
-        return <ProfileSetupStep onNext={handleNext} />;
+        return <ProfileSetupStep onNext={handleStepComplete} />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
-      {/* Progress Stepper */}
-      <div className="w-full py-8 px-4">
-        <div className="max-w-2xl mx-auto">
-          <Stepper value={currentStep} className="w-full">
-            {steps.map((step, index) => (
-              <StepperItem
-                key={step.id}
-                step={index + 1}
-                completed={index < currentStep}
-                className="flex-1"
-              >
-                <StepperIndicator />
-                {index < steps.length - 1 && <StepperSeparator />}
-              </StepperItem>
-            ))}
-          </Stepper>
+    <div className="fixed inset-0 z-50 bg-gradient-to-br from-blue-50/80 to-purple-50/80 backdrop-blur-sm">
+      <div className="min-h-screen flex flex-col">
+        {/* Header with logo */}
+        <div className="flex justify-center pt-8 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+              <span className="text-white font-bold text-lg">C</span>
+            </div>
+            <span className="font-bold text-2xl text-foreground">Circl</span>
+          </div>
         </div>
-      </div>
 
-      {/* Step Content */}
-      <div className="flex-1 flex items-center justify-center px-4 pb-8">
-        {renderStep()}
+        {/* Main content area */}
+        <div className="flex-1 flex items-center justify-center px-4 py-8">
+          {renderCurrentStep()}
+        </div>
+
+        {/* Bottom stepper */}
+        <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-200 p-6">
+          <div className="max-w-md mx-auto">
+            <Stepper value={currentStep} className="w-full">
+              {steps.map((step, index) => (
+                <StepperItem 
+                  key={step} 
+                  step={step} 
+                  completed={step < currentStep}
+                  className="[&:not(:last-child)]:flex-1"
+                >
+                  <StepperTrigger asChild>
+                    <div className="flex flex-col items-center gap-2">
+                      <StepperIndicator className="size-8 data-[state=active]:border-2 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=completed]:bg-primary data-[state=completed]:text-primary-foreground [&_span]:text-xs" />
+                      <span className="text-xs font-medium text-muted-foreground">
+                        {stepLabels[index]}
+                      </span>
+                    </div>
+                  </StepperTrigger>
+                  {step < steps.length && <StepperSeparator className="mt-4" />}
+                </StepperItem>
+              ))}
+            </Stepper>
+          </div>
+        </div>
       </div>
     </div>
   );

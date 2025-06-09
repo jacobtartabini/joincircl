@@ -1,186 +1,142 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
-interface ContactStats {
-  total: number;
-  inner: number;
-  middle: number;
-  outer: number;
-}
-
-interface Interaction {
-  id: string;
-  type: string;
-  date: string;
-  notes?: string;
-  contact_name: string;
-}
-
-interface Contact {
-  id: string;
-  name: string;
-  personal_email?: string;
-  last_contact?: string;
-  circle: string;
+export interface EmailData {
+  type: 'reconnect_reminder' | 'onboarding' | 'weekly_digest' | 'security_notification';
+  to: string;
+  userId: string;
+  data?: any;
 }
 
 class EmailService {
-  async canSendEmail(
-    userId: string,
-    emailType: string,
-    cooldownHours: number
-  ): Promise<boolean> {
+  async sendEmail(emailData: EmailData): Promise<boolean> {
     try {
-      const { data, error } = await supabase
-        .from('email_logs')
-        .select('sent_at')
-        .eq('user_id', userId)
-        .eq('email_type', emailType)
-        .gte('sent_at', new Date(Date.now() - cooldownHours * 60 * 60 * 1000).toISOString())
-        .order('sent_at', { ascending: false })
-        .limit(1);
+      console.log('Sending email:', emailData);
+      
+      const { data, error } = await supabase.functions.invoke('send-email', {
+        body: emailData
+      });
 
       if (error) {
-        console.error('Error checking email cooldown:', error);
-        return true; // Allow sending if we can't check
+        console.error('Email sending failed:', error);
+        return false;
       }
 
-      return !data || data.length === 0;
-    } catch (error) {
-      console.error('Error in canSendEmail:', error);
+      console.log('Email sent successfully:', data);
       return true;
+    } catch (error) {
+      console.error('Email service error:', error);
+      return false;
     }
   }
 
   async sendReconnectReminder(
-    userId: string,
-    email: string,
-    name: string,
-    staleContacts: Contact[],
-    suggestions: string[]
+    userId: string, 
+    userEmail: string, 
+    userName: string, 
+    contacts: any[], 
+    suggestions?: string[]
   ): Promise<boolean> {
-    try {
-      // Log the email attempt
-      await this.logEmail(userId, email, 'reconnect_reminder');
+    return this.sendEmail({
+      type: 'reconnect_reminder',
+      to: userEmail,
+      userId,
+      data: {
+        userName,
+        contacts,
+        suggestions
+      }
+    });
+  }
 
-      // In a real implementation, this would send via Resend or another email service
-      console.log('Sending reconnect reminder email to:', email);
-      console.log('Stale contacts:', staleContacts.length);
-      console.log('Suggestions:', suggestions.length);
-
-      return true;
-    } catch (error) {
-      console.error('Error sending reconnect reminder:', error);
-      return false;
-    }
+  async sendOnboardingEmail(
+    userId: string, 
+    userEmail: string, 
+    userName?: string
+  ): Promise<boolean> {
+    return this.sendEmail({
+      type: 'onboarding',
+      to: userEmail,
+      userId,
+      data: {
+        userName,
+        userEmail
+      }
+    });
   }
 
   async sendWeeklyDigest(
     userId: string,
-    email: string,
-    name: string,
-    contactStats: ContactStats,
-    interactions: Interaction[],
-    staleContacts: Contact[],
-    recommendations: string
+    userEmail: string,
+    userName: string,
+    stats: any,
+    interactions: any[],
+    staleContacts: any[],
+    recommendations?: string
   ): Promise<boolean> {
-    try {
-      // Log the email attempt
-      await this.logEmail(userId, email, 'weekly_digest');
-
-      // In a real implementation, this would send via Resend or another email service
-      console.log('Sending weekly digest email to:', email);
-      console.log('Contact stats:', contactStats);
-      console.log('Interactions:', interactions.length);
-      console.log('Recommendations:', recommendations);
-
-      return true;
-    } catch (error) {
-      console.error('Error sending weekly digest:', error);
-      return false;
-    }
-  }
-
-  async sendOnboardingEmail(
-    userId: string,
-    email: string,
-    name?: string | null
-  ): Promise<boolean> {
-    try {
-      // Log the email attempt
-      await this.logEmail(userId, email, 'onboarding');
-
-      // In a real implementation, this would send via Resend or another email service
-      console.log('Sending onboarding email to:', email);
-
-      return true;
-    } catch (error) {
-      console.error('Error sending onboarding email:', error);
-      return false;
-    }
+    return this.sendEmail({
+      type: 'weekly_digest',
+      to: userEmail,
+      userId,
+      data: {
+        userName,
+        stats,
+        interactions,
+        staleContacts,
+        recommendations
+      }
+    });
   }
 
   async sendSecurityNotification(
     userId: string,
-    email: string,
-    name: string,
+    userEmail: string,
+    userName: string,
     notificationType: 'login_alert' | 'password_change' | 'email_change' | 'general',
     details?: string,
     location?: string
   ): Promise<boolean> {
-    try {
-      // Log the email attempt
-      await this.logEmail(userId, email, 'security_notification');
-
-      // In a real implementation, this would send via Resend or another email service
-      console.log('Sending security notification email to:', email);
-      console.log('Type:', notificationType);
-      console.log('Details:', details);
-      console.log('Location:', location);
-
-      return true;
-    } catch (error) {
-      console.error('Error sending security notification:', error);
-      return false;
-    }
+    return this.sendEmail({
+      type: 'security_notification',
+      to: userEmail,
+      userId,
+      data: {
+        userName,
+        notificationType,
+        details,
+        location,
+        timestamp: new Date().toISOString()
+      }
+    });
   }
 
-  async getEmailHistory(userId: string, limit: number = 10): Promise<any[]> {
+  // Get email sending history for a user (calls edge function)
+  async getEmailHistory(userId: string, limit: number = 50) {
     try {
-      const { data, error } = await supabase
-        .from('email_logs')
-        .select('*')
-        .eq('user_id', userId)
-        .order('sent_at', { ascending: false })
-        .limit(limit);
+      const { data, error } = await supabase.functions.invoke('get-email-history', {
+        body: { userId, limit }
+      });
 
-      if (error) {
-        console.error('Error fetching email history:', error);
-        return [];
-      }
-
-      return data || [];
+      if (error) throw error;
+      return data?.history || [];
     } catch (error) {
-      console.error('Error in getEmailHistory:', error);
+      console.error('Error fetching email history:', error);
       return [];
     }
   }
 
-  private async logEmail(
-    userId: string,
-    recipient: string,
-    emailType: string
-  ): Promise<void> {
+  // Check if we can send an email (calls edge function for rate limiting)
+  async canSendEmail(userId: string, emailType: string, cooldownHours: number = 24): Promise<boolean> {
     try {
-      await supabase
-        .from('email_logs')
-        .insert({
-          user_id: userId,
-          recipient,
-          email_type: emailType,
-          status: 'sent'
-        });
+      const { data, error } = await supabase.functions.invoke('check-email-cooldown', {
+        body: { userId, emailType, cooldownHours }
+      });
+
+      if (error) throw error;
+      return data?.canSend || false;
     } catch (error) {
-      console.error('Error logging email:', error);
+      console.error('Error checking email cooldown:', error);
+      return false;
     }
   }
 }
