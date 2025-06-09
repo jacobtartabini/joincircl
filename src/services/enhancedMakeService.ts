@@ -217,7 +217,9 @@ class EnhancedMakeService {
 
       return data?.map(interaction => ({
         ...interaction,
-        contact_name: interaction.contacts?.name || 'Unknown'
+        contact_name: Array.isArray(interaction.contacts) 
+          ? interaction.contacts[0]?.name || 'Unknown'
+          : interaction.contacts?.name || 'Unknown'
       })) || [];
     } catch (error) {
       console.error('Error fetching recent interactions:', error);
