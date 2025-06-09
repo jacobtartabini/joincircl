@@ -1,4 +1,3 @@
-
 import { makeService, AutomationPreferences } from "@/services/makeService";
 import { emailService } from "@/services/emailService";
 import { supabase } from "@/integrations/supabase/client";

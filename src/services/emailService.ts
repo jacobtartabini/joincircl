@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 interface ContactStats {
@@ -142,6 +141,27 @@ class EmailService {
     } catch (error) {
       console.error('Error sending security notification:', error);
       return false;
+    }
+  }
+
+  async getEmailHistory(userId: string, limit: number = 10): Promise<any[]> {
+    try {
+      const { data, error } = await supabase
+        .from('email_logs')
+        .select('*')
+        .eq('user_id', userId)
+        .order('sent_at', { ascending: false })
+        .limit(limit);
+
+      if (error) {
+        console.error('Error fetching email history:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error in getEmailHistory:', error);
+      return [];
     }
   }
 
