@@ -1,13 +1,13 @@
 
-import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ProtectedRouteProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, profile, loading } = useAuth();
 
   if (loading) {
@@ -18,17 +18,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
-  // Redirect to login if not authenticated
   if (!user) {
     return <Navigate to="/auth" replace />;
   }
 
-  // Redirect to onboarding if not completed
   if (!profile?.onboarding_completed) {
     return <Navigate to="/onboarding" replace />;
   }
 
   return <>{children}</>;
-};
-
-export default ProtectedRoute;
+}

@@ -14,6 +14,13 @@ export interface Profile {
   how_heard_about_us: string | null;
   goals: string | null;
   additional_notes: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  phone_number: string | null;
+  location: string | null;
+  company_name: string | null;
+  job_title: string | null;
+  bio: string | null;
 }
 
 export interface AuthContextProps {
