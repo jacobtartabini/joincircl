@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,11 +8,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { contactService } from "@/services/contactService";
-
 interface NetworkRecommendationsProps {
   contacts: Contact[];
 }
-
 interface Recommendation {
   id: string;
   type: 'reach_out' | 'follow_up' | 'strengthen' | 'birthday' | 'reconnect' | 'networking_opportunity';
@@ -24,25 +21,23 @@ interface Recommendation {
   reasoning: string;
   createdAt: Date;
 }
-
-export default function EnhancedNetworkRecommendations({ contacts }: NetworkRecommendationsProps) {
+export default function EnhancedNetworkRecommendations({
+  contacts
+}: NetworkRecommendationsProps) {
   const navigate = useNavigate();
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-
   useEffect(() => {
     loadPersistedRecommendations();
   }, [contacts.length]);
-
   const loadPersistedRecommendations = () => {
     const stored = localStorage.getItem('networkRecommendations');
     const lastUpdate = localStorage.getItem('recommendationsLastUpdate');
-    
     if (stored && lastUpdate) {
       const storedDate = new Date(lastUpdate);
       const daysSinceUpdate = (Date.now() - storedDate.getTime()) / (1000 * 60 * 60 * 24);
-      
+
       // Only use stored recommendations if they're less than 1 day old
       if (daysSinceUpdate < 1) {
         setRecommendations(JSON.parse(stored).map((rec: any) => ({
@@ -53,16 +48,14 @@ export default function EnhancedNetworkRecommendations({ contacts }: NetworkReco
         return;
       }
     }
-    
+
     // Generate new recommendations if none exist or they're stale
     if (contacts.length > 0) {
       generateEnhancedRecommendations();
     }
   };
-
   const generateEnhancedRecommendations = async () => {
     if (contacts.length === 0) return;
-    
     setIsLoading(true);
     try {
       // Create a comprehensive network analysis
@@ -77,7 +70,6 @@ export default function EnhancedNetworkRecommendations({ contacts }: NetworkReco
       - Mutual value creation opportunities
 
       Return JSON array: [{"type": "reach_out|follow_up|strengthen|birthday|reconnect|networking_opportunity", "contactName": "exact name", "suggestion": "specific actionable insight", "priority": "high|medium|low", "reasoning": "strategic rationale", "actionType": "message|call|meetup|introduction"}]`;
-
       const prompt = `Network Analysis:
 ${networkAnalysis}
 
@@ -89,10 +81,11 @@ Generate strategic networking recommendations that:
 5. Prioritize based on relationship strength and potential impact
 
 Make each recommendation feel personal and strategic, not generic.`;
-
       console.log('Generating enhanced network recommendations');
-
-      const { data, error } = await supabase.functions.invoke('openrouter-ai', {
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('openrouter-ai', {
         body: {
           prompt,
           systemPrompt,
@@ -101,7 +94,6 @@ Make each recommendation feel personal and strategic, not generic.`;
           temperature: 0.8
         }
       });
-
       if (error) {
         throw new Error(`AI service error: ${error.message}`);
       }
@@ -117,10 +109,8 @@ Make each recommendation feel personal and strategic, not generic.`;
 
       // Convert to our format with enhanced matching
       const enhancedRecommendations: Recommendation[] = [];
-      
       for (const aiRec of aiRecommendations.slice(0, 5)) {
         const contact = findBestContactMatch(aiRec.contactName);
-        
         if (contact) {
           enhancedRecommendations.push({
             id: `rec_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -144,11 +134,9 @@ Make each recommendation feel personal and strategic, not generic.`;
       // Persist recommendations
       localStorage.setItem('networkRecommendations', JSON.stringify(enhancedRecommendations));
       localStorage.setItem('recommendationsLastUpdate', new Date().toISOString());
-
       setRecommendations(enhancedRecommendations);
       setLastUpdated(new Date());
       toast.success("Fresh strategic recommendations generated!");
-
     } catch (error) {
       console.error('Error generating recommendations:', error);
       const fallbackRecs = await generateRuleBasedRecommendations();
@@ -158,10 +146,9 @@ Make each recommendation feel personal and strategic, not generic.`;
       setIsLoading(false);
     }
   };
-
   const analyzeNetworkPatterns = async (): Promise<string> => {
     const today = new Date();
-    
+
     // Analyze contact patterns
     const circleBreakdown = {
       inner: contacts.filter(c => c.circle === 'inner').length,
@@ -178,14 +165,13 @@ Make each recommendation feel personal and strategic, not generic.`;
 
     // Industry analysis
     const industries = [...new Set(contacts.map(c => c.company_name).filter(Boolean))];
-    
+
     // Recent activity
     const recentlyActive = contacts.filter(c => {
       if (!c.last_contact) return false;
       const daysSince = (today.getTime() - new Date(c.last_contact).getTime()) / (1000 * 60 * 60 * 24);
       return daysSince <= 7;
     });
-
     return `Network Overview:
 - Total contacts: ${contacts.length}
 - Inner circle: ${circleBreakdown.inner}, Middle: ${circleBreakdown.middle}, Outer: ${circleBreakdown.outer}
@@ -194,59 +180,40 @@ Make each recommendation feel personal and strategic, not generic.`;
 - Recent activity: ${recentlyActive.length} contacts contacted this week
 
 Key Contacts Needing Attention:
-${staleContacts.slice(0, 8).map(c => 
-  `- ${c.name} (${c.circle} circle, ${c.company_name || 'Unknown company'}, last contact: ${c.last_contact ? Math.floor((today.getTime() - new Date(c.last_contact).getTime()) / (1000 * 60 * 60 * 24)) + ' days ago' : 'never'})`
-).join('\n')}`;
+${staleContacts.slice(0, 8).map(c => `- ${c.name} (${c.circle} circle, ${c.company_name || 'Unknown company'}, last contact: ${c.last_contact ? Math.floor((today.getTime() - new Date(c.last_contact).getTime()) / (1000 * 60 * 60 * 24)) + ' days ago' : 'never'})`).join('\n')}`;
   };
-
   const findBestContactMatch = (contactName: string): Contact | null => {
     if (!contactName) return null;
-    
+
     // Exact match first
-    let match = contacts.find(c => 
-      c.name.toLowerCase() === contactName.toLowerCase()
-    );
-    
+    let match = contacts.find(c => c.name.toLowerCase() === contactName.toLowerCase());
+
     // Partial match
     if (!match) {
-      match = contacts.find(c => 
-        c.name.toLowerCase().includes(contactName.toLowerCase()) ||
-        contactName.toLowerCase().includes(c.name.toLowerCase())
-      );
+      match = contacts.find(c => c.name.toLowerCase().includes(contactName.toLowerCase()) || contactName.toLowerCase().includes(c.name.toLowerCase()));
     }
-    
+
     // Fuzzy match on first/last name
     if (!match) {
       const nameParts = contactName.toLowerCase().split(' ');
       match = contacts.find(c => {
         const contactParts = c.name.toLowerCase().split(' ');
-        return nameParts.some(part => 
-          contactParts.some(contactPart => 
-            contactPart.includes(part) || part.includes(contactPart)
-          )
-        );
+        return nameParts.some(part => contactParts.some(contactPart => contactPart.includes(part) || part.includes(contactPart)));
       });
     }
-    
     return match || null;
   };
-
   const generateRuleBasedRecommendations = async (): Promise<Recommendation[]> => {
     const recommendations: Recommendation[] = [];
     const today = new Date();
-
     for (const contact of contacts.slice(0, 10)) {
       if (recommendations.length >= 4) break;
-
       const lastContact = contact.last_contact ? new Date(contact.last_contact) : null;
-      const daysSinceContact = lastContact ? 
-        Math.floor((today.getTime() - lastContact.getTime()) / (1000 * 60 * 60 * 24)) : 999;
+      const daysSinceContact = lastContact ? Math.floor((today.getTime() - lastContact.getTime()) / (1000 * 60 * 60 * 24)) : 999;
 
       // Time-based recommendations
       let threshold = 90;
-      if (contact.circle === 'inner') threshold = 14;
-      else if (contact.circle === 'middle') threshold = 30;
-
+      if (contact.circle === 'inner') threshold = 14;else if (contact.circle === 'middle') threshold = 30;
       if (daysSinceContact > threshold) {
         recommendations.push({
           id: `rule_${Date.now()}_${contact.id}`,
@@ -268,7 +235,6 @@ ${staleContacts.slice(0, 8).map(c =>
           thisYearBirthday.setFullYear(today.getFullYear() + 1);
         }
         const daysUntilBirthday = Math.floor((thisYearBirthday.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-        
         if (daysUntilBirthday <= 14 && daysUntilBirthday >= 0) {
           recommendations.push({
             id: `birthday_${Date.now()}_${contact.id}`,
@@ -283,36 +249,47 @@ ${staleContacts.slice(0, 8).map(c =>
         }
       }
     }
-
     return recommendations;
   };
-
   const getActionLabel = (actionType: string): string => {
     switch (actionType) {
-      case 'message': return 'Message';
-      case 'call': return 'Call';
-      case 'meetup': return 'Meet Up';
-      case 'introduction': return 'Introduce';
-      case 'follow_up': return 'Follow Up';
-      case 'strengthen': return 'Strengthen';
-      case 'birthday': return 'Celebrate';
-      case 'reconnect': return 'Reconnect';
-      default: return 'Connect';
+      case 'message':
+        return 'Message';
+      case 'call':
+        return 'Call';
+      case 'meetup':
+        return 'Meet Up';
+      case 'introduction':
+        return 'Introduce';
+      case 'follow_up':
+        return 'Follow Up';
+      case 'strengthen':
+        return 'Strengthen';
+      case 'birthday':
+        return 'Celebrate';
+      case 'reconnect':
+        return 'Reconnect';
+      default:
+        return 'Connect';
     }
   };
-
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800';
-      case 'medium': return 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-300 dark:border-orange-800';
-      case 'low': return 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800';
-      default: return 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700';
+      case 'high':
+        return 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800';
+      case 'medium':
+        return 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-300 dark:border-orange-800';
+      case 'low':
+        return 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800';
+      default:
+        return 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700';
     }
   };
-
   const handleActionClick = async (recommendation: Recommendation) => {
-    const { contact, actionLabel } = recommendation;
-    
+    const {
+      contact,
+      actionLabel
+    } = recommendation;
     switch (actionLabel.toLowerCase()) {
       case 'message':
         if (contact.personal_email) {
@@ -337,61 +314,40 @@ ${staleContacts.slice(0, 8).map(c =>
         navigate(`/contacts/${contact.id}`);
         break;
     }
-    
     toast.success(`Action initiated for ${contact.name}`);
   };
-
   const handleRefresh = () => {
     localStorage.removeItem('networkRecommendations');
     localStorage.removeItem('recommendationsLastUpdate');
     generateEnhancedRecommendations();
   };
-
-  return (
-    <Card className="unified-card">
+  return <Card className="unified-card">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-medium flex items-center gap-2">
             <Brain className="h-5 w-5 text-purple-500" />
             Strategic Network Insights
           </CardTitle>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={isLoading || contacts.length === 0}
-            className="unified-button"
-          >
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <RefreshCw className="h-4 w-4" />
-            )}
+          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isLoading || contacts.length === 0} className="unified-button">
+            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
           </Button>
         </div>
-        {lastUpdated && (
-          <p className="text-xs text-muted-foreground">
-            Last updated: {lastUpdated.toLocaleDateString()} at {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-          </p>
-        )}
+        {lastUpdated && <p className="text-xs text-muted-foreground">
+            Last updated: {lastUpdated.toLocaleDateString()} at {lastUpdated.toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit'
+        })}
+          </p>}
       </CardHeader>
       
       <CardContent>
-        {isLoading && recommendations.length === 0 ? (
-          <div className="flex items-center justify-center py-8">
+        {isLoading && recommendations.length === 0 ? <div className="flex items-center justify-center py-8">
             <div className="text-center">
               <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-primary" />
               <p className="text-sm text-muted-foreground">Analyzing your network...</p>
             </div>
-          </div>
-        ) : recommendations.length > 0 ? (
-          <div className="space-y-4">
-            {recommendations.map((rec) => (
-              <div 
-                key={rec.id}
-                className="p-4 rounded-lg border bg-card hover:bg-accent/50 transition-all duration-200 cursor-pointer group"
-                onClick={() => handleActionClick(rec)}
-              >
+          </div> : recommendations.length > 0 ? <div className="space-y-4">
+            {recommendations.map(rec => <div key={rec.id} className="p-4 rounded-lg border bg-card hover:bg-accent/50 transition-all duration-200 cursor-pointer group" onClick={() => handleActionClick(rec)}>
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -414,30 +370,21 @@ ${staleContacts.slice(0, 8).map(c =>
                   <Badge variant="secondary" className="text-xs">
                     {rec.contact.circle} circle
                   </Badge>
-                  <Button 
-                    size="sm" 
-                    className="unified-button group-hover:bg-primary group-hover:text-primary-foreground"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleActionClick(rec);
-                    }}
-                  >
+                  <Button size="sm" onClick={e => {
+              e.stopPropagation();
+              handleActionClick(rec);
+            }} className="unified-button group-hover:bg-primary group-hover:text-primary-foreground rounded-full">
                     {rec.actionLabel === 'Message' && <MessageCircle className="h-3 w-3 mr-1" />}
                     {rec.actionLabel === 'Celebrate' && <Calendar className="h-3 w-3 mr-1" />}
                     {rec.actionLabel} <ArrowRight className="h-3 w-3 ml-1" />
                   </Button>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-8 text-muted-foreground">
+              </div>)}
+          </div> : <div className="text-center py-8 text-muted-foreground">
             <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
             <p>No strategic insights available yet.</p>
             <p className="text-sm mt-1">Add more contacts and interactions to get personalized networking recommendations.</p>
-          </div>
-        )}
+          </div>}
       </CardContent>
-    </Card>
-  );
+    </Card>;
 }
