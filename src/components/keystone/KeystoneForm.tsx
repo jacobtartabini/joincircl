@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +12,6 @@ import { contactService } from "@/services/contactService";
 import { Keystone } from "@/types/keystone";
 import { Contact } from "@/types/contact";
 import { format } from "date-fns";
-
 interface KeystoneFormProps {
   keystone?: Keystone | null;
   contacts?: Contact[];
@@ -21,7 +19,6 @@ interface KeystoneFormProps {
   onSuccess: () => void;
   onCancel: () => void;
 }
-
 function KeystoneForm({
   keystone,
   contacts: propContacts = [],
@@ -39,23 +36,19 @@ function KeystoneForm({
     recurrence_frequency: "",
     notes: ""
   });
-
   const [selectedContacts, setSelectedContacts] = useState<Contact[]>([]);
 
   // Fetch contacts if not provided via props
-  const { data: fetchedContacts = [] } = useQuery({
+  const {
+    data: fetchedContacts = []
+  } = useQuery({
     queryKey: ['contacts'],
     queryFn: contactService.getContacts,
     enabled: propContacts.length === 0 && !contact // Only fetch if no contacts provided and no specific contact
   });
 
   // Use prop contacts, fetched contacts, or single contact
-  const availableContacts = contact 
-    ? [contact] 
-    : propContacts.length > 0 
-    ? propContacts 
-    : fetchedContacts;
-
+  const availableContacts = contact ? [contact] : propContacts.length > 0 ? propContacts : fetchedContacts;
   const defaultContactId = contact ? contact.id : "";
 
   // Populate form when editing
@@ -64,7 +57,6 @@ function KeystoneForm({
       // Handle both legacy single contact and new multiple contacts
       const contactIds = keystone.contact_ids || (keystone.contact_id ? [keystone.contact_id] : []);
       const relatedContacts = availableContacts.filter(c => contactIds.includes(c.id));
-      
       setFormData({
         title: keystone.title || "",
         date: keystone.date ? format(new Date(keystone.date), 'yyyy-MM-dd') : "",
@@ -75,7 +67,6 @@ function KeystoneForm({
         recurrence_frequency: keystone.recurrence_frequency || "",
         notes: keystone.notes || ""
       });
-      
       setSelectedContacts(relatedContacts);
     } else if (contact) {
       // Pre-select the contact if creating a new keystone for a specific contact
@@ -87,12 +78,10 @@ function KeystoneForm({
       setSelectedContacts([contact]);
     }
   }, [keystone, contact, defaultContactId, availableContacts]);
-
   const createMutation = useMutation({
     mutationFn: keystoneService.createKeystone,
     onSuccess: onSuccess
   });
-
   const updateMutation = useMutation({
     mutationFn: ({
       id,
@@ -103,25 +92,23 @@ function KeystoneForm({
     }) => keystoneService.updateKeystone(id, data),
     onSuccess: onSuccess
   });
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Prepare contact data - use multiple contacts if available, fallback to single
     const contactIds = selectedContacts.map(c => c.id);
     const primaryContactId = contactIds.length > 0 ? contactIds[0] : undefined;
-    
     const keystoneData = {
       title: formData.title,
       date: new Date(formData.date).toISOString(),
       category: formData.category || undefined,
-      contact_id: primaryContactId, // Keep for backward compatibility
+      contact_id: primaryContactId,
+      // Keep for backward compatibility
       contact_ids: contactIds.length > 0 ? contactIds : undefined,
       is_recurring: formData.is_recurring,
       recurrence_frequency: formData.is_recurring ? formData.recurrence_frequency : undefined,
       notes: formData.notes || undefined
     };
-
     if (keystone) {
       updateMutation.mutate({
         id: keystone.id,
@@ -131,14 +118,12 @@ function KeystoneForm({
       createMutation.mutate(keystoneData);
     }
   };
-
   const handleChange = (field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
   };
-
   const handleContactsChange = (contacts: Contact[]) => {
     setSelectedContacts(contacts);
     const contactIds = contacts.map(c => c.id);
@@ -148,33 +133,16 @@ function KeystoneForm({
       contact_id: contactIds.length > 0 ? contactIds[0] : ""
     }));
   };
-
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+  return <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="title">Title *</Label>
-        <Input 
-          id="title" 
-          value={formData.title} 
-          onChange={e => handleChange("title", e.target.value)} 
-          placeholder="Enter keystone title" 
-          required 
-          className="rounded-full" 
-        />
+        <Input id="title" value={formData.title} onChange={e => handleChange("title", e.target.value)} placeholder="Enter keystone title" required className="rounded-full" />
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="date">Date *</Label>
-        <Input 
-          id="date" 
-          type="date" 
-          value={formData.date} 
-          onChange={e => handleChange("date", e.target.value)} 
-          required 
-          className="rounded-full" 
-        />
+        <Input id="date" type="date" value={formData.date} onChange={e => handleChange("date", e.target.value)} required className="rounded-full" />
       </div>
 
       <div className="space-y-2">
@@ -197,29 +165,16 @@ function KeystoneForm({
       </div>
 
       {/* Multi-contact selector - always show if contacts are available */}
-      {availableContacts.length > 0 && (
-        <MultiContactSelector
-          contacts={availableContacts}
-          selectedContacts={selectedContacts}
-          onSelectionChange={handleContactsChange}
-          label="Associated Contacts"
-          placeholder="Search contacts..."
-        />
-      )}
+      {availableContacts.length > 0 && <MultiContactSelector contacts={availableContacts} selectedContacts={selectedContacts} onSelectionChange={handleContactsChange} label="Associated Contacts" placeholder="Search contacts..." />}
 
       <div className="space-y-2">
         <div className="flex items-center space-x-2">
-          <Checkbox 
-            id="recurring" 
-            checked={formData.is_recurring} 
-            onCheckedChange={checked => handleChange("is_recurring", checked)} 
-          />
+          <Checkbox id="recurring" checked={formData.is_recurring} onCheckedChange={checked => handleChange("is_recurring", checked)} />
           <Label htmlFor="recurring">Recurring</Label>
         </div>
       </div>
 
-      {formData.is_recurring && (
-        <div className="space-y-2">
+      {formData.is_recurring && <div className="space-y-2">
           <Label htmlFor="frequency">Recurrence Frequency</Label>
           <Select value={formData.recurrence_frequency} onValueChange={value => handleChange("recurrence_frequency", value)}>
             <SelectTrigger>
@@ -232,41 +187,21 @@ function KeystoneForm({
               <SelectItem value="Yearly">Yearly</SelectItem>
             </SelectContent>
           </Select>
-        </div>
-      )}
+        </div>}
 
       <div className="space-y-2">
         <Label htmlFor="notes">Notes</Label>
-        <Textarea 
-          id="notes" 
-          value={formData.notes} 
-          onChange={e => handleChange("notes", e.target.value)} 
-          placeholder="Add any additional notes..." 
-          rows={3} 
-          className="rounded-2xl" 
-        />
+        <Textarea id="notes" value={formData.notes} onChange={e => handleChange("notes", e.target.value)} placeholder="Add any additional notes..." rows={3} className="rounded-2xl" />
       </div>
 
       <div className="flex justify-end gap-3 pt-4">
-        <Button 
-          type="button" 
-          variant="outline" 
-          onClick={onCancel} 
-          disabled={isSubmitting} 
-          className="rounded-full"
-        >
+        <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting} className="rounded-full">
           Cancel
         </Button>
-        <Button 
-          type="submit" 
-          disabled={isSubmitting} 
-          className="rounded-full"
-        >
+        <Button type="submit" disabled={isSubmitting} className="rounded-full bg-[s#30a2ed] bg-[#30a2ed]">
           {isSubmitting ? "Saving..." : keystone ? "Update Keystone" : "Create Keystone"}
         </Button>
       </div>
-    </form>
-  );
+    </form>;
 }
-
 export default KeystoneForm;
