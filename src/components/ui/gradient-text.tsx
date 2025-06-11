@@ -3,15 +3,27 @@ import * as React from "react"
 import { HTMLAttributes } from "react"
 
 interface GradientTextProps extends HTMLAttributes<HTMLDivElement> {
+  /**
+   * Array of colors for the gradient
+   * @default ["#3b82f6", "#60a5fa", "#2563eb"]
+   */
   colors?: string[]
+  /**
+   * Animation duration in seconds
+   * @default 8
+   */
   animationSpeed?: number
+  /**
+   * Show animated border
+   * @default false
+   */
   showBorder?: boolean
 }
 
 export function GradientText({
   children,
   className,
-  colors = ["#ffaa40", "#9c40ff", "#ffaa40"],
+  colors = ["#3b82f6", "#60a5fa", "#2563eb"], // blue tones
   animationSpeed = 8,
   showBorder = false,
   ...props
@@ -26,7 +38,7 @@ export function GradientText({
       className={cn(
         "relative flex max-w-fit flex-row items-center justify-start",
         "font-bold backdrop-blur transition-shadow duration-500",
-        "overflow-hidden cursor-pointer",
+        "overflow-hidden",
         className
       )}
       {...props}
