@@ -1,10 +1,8 @@
-
 import { Search, Plus, SlidersHorizontal } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-
 interface CirclesFilterProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
@@ -13,7 +11,6 @@ interface CirclesFilterProps {
   onFilter: (filter: string | null) => void;
   activeTagFilter?: string | null;
 }
-
 export function CirclesFilter({
   searchQuery,
   onSearchChange,
@@ -22,45 +19,25 @@ export function CirclesFilter({
   onFilter,
   activeTagFilter
 }: CirclesFilterProps) {
-  return (
-    <div className="flex items-center gap-3">
+  return <div className="flex items-center gap-3">
       {/* Search - Takes most space */}
       <div className="relative flex-1">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-        <Input
-          placeholder="Search contacts..."
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-10 h-10 border-gray-200 bg-gray-50/50 focus:bg-white focus:border-blue-300 transition-colors rounded-full"
-        />
+        <Input placeholder="Search contacts..." value={searchQuery} onChange={e => onSearchChange(e.target.value)} className="pl-10 h-10 border-gray-200 bg-gray-50/50 focus:bg-white focus:border-blue-300 transition-colors rounded-full" />
       </div>
 
       {/* Active Tag Filter Badge */}
-      {activeTagFilter && (
-        <Badge
-          variant="secondary"
-          className="px-3 py-1.5 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 transition-colors"
-        >
+      {activeTagFilter && <Badge variant="secondary" className="px-3 py-1.5 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 transition-colors">
           <span className="text-xs font-medium">Tag: {activeTagFilter}</span>
-          <button
-            onClick={() => onFilter(null)}
-            className="ml-2 text-blue-500 hover:text-blue-700 font-medium"
-            aria-label="Remove tag filter"
-          >
+          <button onClick={() => onFilter(null)} className="ml-2 text-blue-500 hover:text-blue-700 font-medium" aria-label="Remove tag filter">
             ×
           </button>
-        </Badge>
-      )}
+        </Badge>}
 
       {/* Sort & Filter Dropdown - Now with fully rounded edges */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-10 px-3 border-gray-200 hover:bg-gray-50 transition-colors rounded-full"
-            aria-label="Sort and filter options"
-          >
+          <Button variant="outline" size="sm" className="h-10 px-3 border-gray-200 hover:bg-gray-50 transition-colors rounded-full" aria-label="Sort and filter options">
             <SlidersHorizontal className="h-4 w-4 mr-2" />
             <span className="text-sm font-medium">Filter</span>
           </Button>
@@ -90,15 +67,9 @@ export function CirclesFilter({
       </DropdownMenu>
 
       {/* Add Contact Button */}
-      <Button
-        onClick={onAddContact}
-        size="sm"
-        aria-label="Add new contact"
-        className="h-10 px-4 bg-blue-600 hover:bg-blue-700 text-white transition-colors rounded-full"
-      >
+      <Button onClick={onAddContact} size="sm" aria-label="Add new contact" className="h-10 px-4 text-white transition-colors rounded-full bg-[#30a2ed]">
         <Plus className="h-4 w-4 mr-2" />
         <span className="text-sm font-medium">Add</span>
       </Button>
-    </div>
-  );
+    </div>;
 }
