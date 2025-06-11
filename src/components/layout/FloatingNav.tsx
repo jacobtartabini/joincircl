@@ -1,3 +1,4 @@
+
 import { Home, Users, Target, Settings } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { ExpandableTabs } from "@/components/ui/expandable-tabs";
@@ -55,16 +56,16 @@ export default function FloatingNav() {
   };
 
   return <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
-      <div className="flex items-center gap-2 border border-white/30 bg-white/20 backdrop-blur-xl p-1 shadow-2xl rounded-2xl transition-all duration-300">
+      <div className="glass-nav flex items-center gap-2 p-1 shadow-2xl rounded-2xl">
         {tabs.map((tab, index) => {
         if ('type' in tab && tab.type === "separator") {
-          return <div key={`separator-${index}`} className="mx-1 h-[24px] w-[1.2px] bg-white/30" aria-hidden="true" />;
+          return <div key={`separator-${index}`} className="mx-1 h-[24px] w-[1.2px] bg-white/30 dark:bg-white/20" aria-hidden="true" />;
         }
 
         const navTab = tab as NavTab;
         const Icon = navTab.icon;
         const isSelected = selectedTab === index;
-        return <Link key={navTab.title} to={navTab.path} className={`relative flex items-center rounded-2xl px-4 py-2 text-sm font-medium transition-all duration-300 backdrop-blur-md ${isSelected ? "bg-white/30 text-circl-blue gap-2 shadow-lg" : "text-muted-foreground hover:bg-white/20 hover:text-foreground gap-0"}`} onClick={() => handleTabChange(index)}>
+        return <Link key={navTab.title} to={navTab.path} className={`relative flex items-center rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ${isSelected ? "bg-white/30 dark:bg-white/20 text-primary gap-2 shadow-md" : "text-muted-foreground hover:bg-white/20 dark:hover:bg-white/10 hover:text-foreground gap-0"}`} onClick={() => handleTabChange(index)}>
               <Icon size={20} />
               {isSelected && <span className="overflow-hidden whitespace-nowrap">
                   {navTab.title}

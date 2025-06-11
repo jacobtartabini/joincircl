@@ -68,10 +68,9 @@
   }
   body {
     @apply bg-background text-foreground transition-colors duration-300;
-    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%);
+    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted)/0.5) 100%);
   }
   
-  /* Ensure proper dark mode text colors */
   .dark {
     color-scheme: dark;
     background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--card)) 100%);
@@ -85,7 +84,6 @@
     @apply text-foreground;
   }
 
-  /* Dark mode fixes for specific elements */
   .dark input[type="text"], 
   .dark input[type="email"], 
   .dark input[type="password"], 
@@ -94,96 +92,58 @@
     @apply bg-input border-border text-foreground;
   }
 
-  .dark button:not(.unified-button) {
+  .dark button:not(.glass-button) {
     @apply text-foreground;
   }
 }
 
-/* Glassmorphism Design System */
+/* Refined Glassmorphism Design System */
 @layer components {
-  /* Core Glassmorphism Card */
-  .unified-card {
-    @apply bg-white/10 backdrop-blur-md border border-white/20 shadow-xl rounded-2xl;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+  /* Subtle Glass Card */
+  .glass-card {
+    @apply bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-white/20 dark:border-white/10 shadow-lg rounded-xl;
+    backdrop-filter: blur(8px);
   }
   
-  .dark .unified-card {
-    @apply bg-black/20 border-white/10;
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-  
-  /* Glassmorphism Button */
-  .unified-button {
-    @apply transition-all duration-300 shadow-lg hover:shadow-xl active:scale-[0.98] rounded-xl;
-    @apply bg-white/20 border border-white/30 text-foreground backdrop-blur-md;
-    @apply hover:bg-white/30 hover:border-white/40;
-    @apply dark:bg-black/20 dark:border-white/20 dark:text-foreground;
-    @apply dark:hover:bg-black/30 dark:hover:border-white/30;
+  /* Enhanced Glass Card for important content */
+  .glass-card-enhanced {
+    @apply bg-white/80 dark:bg-white/8 backdrop-blur-md border border-white/30 dark:border-white/15 shadow-xl rounded-xl;
     backdrop-filter: blur(12px);
   }
   
-  /* Glassmorphism Input */
-  .unified-input {
-    @apply transition-all duration-300 focus:ring-2 focus:ring-primary/20 focus:border-primary/50 rounded-xl;
-    @apply bg-white/20 border border-white/30 text-foreground backdrop-blur-md;
-    @apply dark:bg-black/20 dark:border-white/20 dark:text-foreground;
-    @apply placeholder:text-muted-foreground dark:placeholder:text-muted-foreground;
-    backdrop-filter: blur(12px);
+  /* Glass Button */
+  .glass-button {
+    @apply transition-all duration-200 shadow-md hover:shadow-lg active:scale-[0.98] rounded-xl;
+    @apply bg-white/20 dark:bg-white/10 border border-white/30 dark:border-white/20 text-foreground backdrop-blur-sm;
+    @apply hover:bg-white/30 dark:hover:bg-white/15 hover:border-white/40 dark:hover:border-white/25;
+    backdrop-filter: blur(8px);
   }
   
-  /* Glassmorphism Modal */
-  .unified-modal {
-    @apply bg-white/20 border border-white/30 shadow-2xl rounded-2xl backdrop-blur-xl;
-    @apply dark:bg-black/30 dark:border-white/20;
-    backdrop-filter: blur(20px);
+  /* Glass Input */
+  .glass-input {
+    @apply transition-all duration-200 focus:ring-2 focus:ring-primary/20 focus:border-primary/50 rounded-xl;
+    @apply bg-white/40 dark:bg-white/5 border border-white/30 dark:border-white/15 text-foreground backdrop-blur-sm;
+    @apply placeholder:text-muted-foreground;
+    backdrop-filter: blur(8px);
   }
   
-  /* Glassmorphism Container */
-  .unified-container {
-    @apply bg-white/10 border border-white/20 rounded-2xl backdrop-blur-md;
-    @apply dark:bg-black/20 dark:border-white/10;
-    backdrop-filter: blur(12px);
+  /* Navigation Glass */
+  .glass-nav {
+    @apply bg-white/70 dark:bg-black/20 border-white/30 dark:border-white/15 backdrop-blur-lg;
+    backdrop-filter: blur(16px);
   }
 
-  /* Navigation components */
-  .unified-nav {
-    @apply bg-white/20 border-white/30 backdrop-blur-xl;
-    @apply dark:bg-black/30 dark:border-white/20;
-    backdrop-filter: blur(20px);
+  .glass-nav-item {
+    @apply text-foreground hover:text-primary hover:bg-white/20 dark:hover:bg-white/10 rounded-xl transition-all duration-200;
   }
 
-  .unified-nav-item {
-    @apply text-foreground hover:text-primary hover:bg-white/20 rounded-xl transition-all duration-300;
-    @apply dark:text-foreground dark:hover:text-primary dark:hover:bg-white/10;
+  /* Floating effects */
+  .glass-float {
+    @apply shadow-lg hover:shadow-xl transition-all duration-200;
   }
 
-  /* Contact card specific styling */
-  .contact-card {
-    @apply bg-white/15 border border-white/25 shadow-lg hover:shadow-xl rounded-2xl backdrop-blur-md;
-    @apply dark:bg-black/25 dark:border-white/15 dark:shadow-2xl;
-    backdrop-filter: blur(12px);
-    transition: all 0.3s ease;
-  }
-
-  .contact-card:hover {
-    @apply shadow-2xl bg-white/20;
-    @apply dark:bg-black/30;
-    transform: translateY(-2px);
-  }
-
-  /* Settings page styling */
-  .settings-section {
-    @apply bg-white/15 border border-white/25 rounded-2xl backdrop-blur-md;
-    @apply dark:bg-black/25 dark:border-white/15;
-    backdrop-filter: blur(12px);
-  }
-
-  .settings-item {
-    @apply bg-white/10 hover:bg-white/20 rounded-xl transition-all duration-300;
-    @apply dark:bg-black/20 dark:hover:bg-black/30;
+  .glass-float:hover {
+    transform: translateY(-1px);
   }
 
   /* Gradient Text Utility */
@@ -191,95 +151,64 @@
     @apply bg-clip-text text-transparent;
     background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--chart-1)) 50%, hsl(var(--chart-2)) 100%);
   }
-
-  .gradient-primary {
-    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--chart-1)) 100%);
-  }
-
-  /* Enhanced floating effects */
-  .glass-float {
-    @apply shadow-xl hover:shadow-2xl;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .glass-float:hover {
-    transform: translateY(-4px);
-  }
 }
 
 /* Hide scrollbar for mobile settings tabs */
 .scrollbar-hide {
-  -ms-overflow-style: none;  /* Internet Explorer 10+ */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .scrollbar-hide::-webkit-scrollbar { 
-  display: none;  /* Safari and Chrome */
+  display: none;
 }
 
-/* Smooth scroll behavior for mobile tabs */
 .mobile-tabs-scroll {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
 }
 
-/* Safe area for mobile devices */
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* Mobile-specific improvements */
 @media (max-width: 768px) {
-  /* Hide ALL scrollbars on mobile */
   * {
-    -ms-overflow-style: none;  /* Internet Explorer 10+ */
-    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
   
   *::-webkit-scrollbar {
-    display: none;  /* Safari and Chrome */
+    display: none;
   }
   
-  /* Ensure tap targets are large enough */
   .mobile-tap-target {
     min-height: 44px;
     min-width: 44px;
   }
   
-  /* Smooth scrolling for mobile */
   .mobile-scroll {
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
   }
-
-  /* Mobile navigation glassmorphism */
-  .mobile-nav {
-    @apply bg-white/20 border-white/30 backdrop-blur-xl;
-    @apply dark:bg-black/30 dark:border-white/20;
-    backdrop-filter: blur(20px);
-  }
 }
 
-/* Unified web theme with glassmorphism */
+/* Refined web theme */
 @media (min-width: 769px) {
-  .unified-web-theme {
+  .refined-web-theme {
     background: linear-gradient(135deg, 
-      rgba(255, 255, 255, 0.1) 0%, 
-      rgba(255, 255, 255, 0.05) 25%,
-      rgba(255, 255, 255, 0.1) 50%,
-      rgba(255, 255, 255, 0.05) 75%,
-      rgba(255, 255, 255, 0.1) 100%
+      hsl(var(--background)) 0%, 
+      hsl(var(--muted)/0.3) 50%,
+      hsl(var(--background)) 100%
     );
-    backdrop-filter: blur(40px);
   }
   
-  .dark .unified-web-theme {
+  .dark .refined-web-theme {
     background: linear-gradient(135deg, 
-      rgba(0, 0, 0, 0.2) 0%, 
-      rgba(0, 0, 0, 0.1) 25%,
-      rgba(0, 0, 0, 0.2) 50%,
-      rgba(0, 0, 0, 0.1) 75%,
-      rgba(0, 0, 0, 0.2) 100%
+      hsl(var(--background)) 0%, 
+      hsl(var(--card)/0.5) 50%,
+      hsl(var(--background)) 100%
     );
   }
 }

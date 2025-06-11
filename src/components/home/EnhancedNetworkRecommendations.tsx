@@ -290,14 +290,14 @@ ${staleContacts.slice(0, 8).map(c => `- ${c.name} (${c.circle} circle, ${c.compa
     generateEnhancedRecommendations();
   };
 
-  return <Card className="unified-card glass-float">
+  return <Card className="glass-card-enhanced">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-medium flex items-center gap-2">
             <Brain className="h-5 w-5 text-purple-500" />
             Strategic Network Insights
           </CardTitle>
-          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isLoading || contacts.length === 0} className="unified-button">
+          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isLoading || contacts.length === 0} className="glass-button">
             {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
           </Button>
         </div>
@@ -316,10 +316,10 @@ ${staleContacts.slice(0, 8).map(c => `- ${c.name} (${c.circle} circle, ${c.compa
               <p className="text-sm text-muted-foreground">Analyzing your network...</p>
             </div>
           </div> : recommendations.length > 0 ? <div className="space-y-4">
-            {recommendations.map(rec => <div key={rec.id} className="p-4 rounded-2xl border border-white/20 bg-white/10 hover:bg-white/20 transition-all duration-300 cursor-pointer group backdrop-blur-md shadow-lg hover:shadow-xl" onClick={() => handleActionClick(rec)}>
+            {recommendations.map(rec => <div key={rec.id} className="p-4 rounded-xl glass-card hover:bg-white/40 dark:hover:bg-white/10 transition-all duration-200 cursor-pointer group" onClick={() => handleActionClick(rec)}>
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-primary/20 flex items-center justify-center backdrop-blur-md border border-white/20">
+                    <div className="w-10 h-10 rounded-xl bg-primary/20 dark:bg-primary/15 flex items-center justify-center border border-white/20 dark:border-white/10">
                       <User className="h-5 w-5 text-primary" />
                     </div>
                     <div>
@@ -336,13 +336,13 @@ ${staleContacts.slice(0, 8).map(c => `- ${c.name} (${c.circle} circle, ${c.compa
                 <p className="text-xs text-muted-foreground/80 mb-3 italic">{rec.reasoning}</p>
                 
                 <div className="flex items-center justify-between">
-                  <Badge variant="secondary" className="text-xs bg-white/20 backdrop-blur-md border border-white/20">
+                  <Badge variant="secondary" className="text-xs bg-white/20 dark:bg-white/10 border border-white/20 dark:border-white/10">
                     {rec.contact.circle} circle
                   </Badge>
                   <Button size="sm" onClick={e => {
               e.stopPropagation();
               handleActionClick(rec);
-            }} className="unified-button group-hover:bg-primary/30 group-hover:text-primary-foreground rounded-2xl backdrop-blur-md">
+            }} className="group-hover:bg-primary/30 group-hover:text-primary-foreground rounded-xl">
                     {rec.actionLabel === 'Message' && <MessageCircle className="h-3 w-3 mr-1" />}
                     {rec.actionLabel === 'Celebrate' && <Calendar className="h-3 w-3 mr-1" />}
                     {rec.actionLabel} <ArrowRight className="h-3 w-3 ml-1" />
