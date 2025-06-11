@@ -107,7 +107,7 @@
   
   /* Enhanced Glass Card for important content */
   .glass-card-enhanced {
-    @apply bg-white/80 dark:bg-white/8 backdrop-blur-md border border-white/30 dark:border-white/15 shadow-xl rounded-xl;
+    @apply bg-white/80 dark:bg-white/10 backdrop-blur-md border border-white/30 dark:border-white/15 shadow-xl rounded-xl;
     backdrop-filter: blur(12px);
   }
   
