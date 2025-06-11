@@ -1,23 +1,10 @@
-
 import { cn } from "@/lib/utils"
 import * as React from "react"
 import { HTMLAttributes } from "react"
 
 interface GradientTextProps extends HTMLAttributes<HTMLDivElement> {
-  /**
-   * Array of colors for the gradient
-   * @default ["#ffaa40", "#9c40ff", "#ffaa40"]
-   */
   colors?: string[]
-  /**
-   * Animation duration in seconds
-   * @default 8
-   */
   animationSpeed?: number
-  /**
-   * Show animated border
-   * @default false
-   */
   showBorder?: boolean
 }
 
@@ -37,8 +24,8 @@ export function GradientText({
   return (
     <div
       className={cn(
-        "relative mx-auto flex max-w-fit flex-row items-center justify-center",
-        "rounded-[1.25rem] font-medium backdrop-blur transition-shadow duration-500",
+        "relative flex max-w-fit flex-row items-center justify-start",
+        "font-bold backdrop-blur transition-shadow duration-500",
         "overflow-hidden cursor-pointer",
         className
       )}
@@ -53,7 +40,7 @@ export function GradientText({
           }}
         >
           <div
-            className="absolute inset-0 bg-background rounded-[1.25rem] z-[-1]"
+            className="absolute inset-0 bg-background z-[-1]"
             style={{
               width: "calc(100% - 2px)",
               height: "calc(100% - 2px)",
