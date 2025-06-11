@@ -8,7 +8,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { contactService } from "@/services/contactService";
-
 interface NetworkRecommendationsProps {
   contacts: Contact[];
 }
@@ -22,7 +21,6 @@ interface Recommendation {
   reasoning: string;
   createdAt: Date;
 }
-
 export default function EnhancedNetworkRecommendations({
   contacts
 }: NetworkRecommendationsProps) {
@@ -30,11 +28,9 @@ export default function EnhancedNetworkRecommendations({
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-
   useEffect(() => {
     loadPersistedRecommendations();
   }, [contacts.length]);
-
   const loadPersistedRecommendations = () => {
     const stored = localStorage.getItem('networkRecommendations');
     const lastUpdate = localStorage.getItem('recommendationsLastUpdate');
@@ -54,7 +50,6 @@ export default function EnhancedNetworkRecommendations({
       generateEnhancedRecommendations();
     }
   };
-
   const generateEnhancedRecommendations = async () => {
     if (contacts.length === 0) return;
     setIsLoading(true);
@@ -138,7 +133,6 @@ Make each recommendation feel personal and strategic, not generic.`;
       setIsLoading(false);
     }
   };
-
   const analyzeNetworkPatterns = async (): Promise<string> => {
     const today = new Date();
     const circleBreakdown = {
@@ -167,7 +161,6 @@ Make each recommendation feel personal and strategic, not generic.`;
 Key Contacts Needing Attention:
 ${staleContacts.slice(0, 8).map(c => `- ${c.name} (${c.circle} circle, ${c.company_name || 'Unknown company'}, last contact: ${c.last_contact ? Math.floor((today.getTime() - new Date(c.last_contact).getTime()) / (1000 * 60 * 60 * 24)) + ' days ago' : 'never'})`).join('\n')}`;
   };
-
   const findBestContactMatch = (contactName: string): Contact | null => {
     if (!contactName) return null;
     let match = contacts.find(c => c.name.toLowerCase() === contactName.toLowerCase());
@@ -183,7 +176,6 @@ ${staleContacts.slice(0, 8).map(c => `- ${c.name} (${c.circle} circle, ${c.compa
     }
     return match || null;
   };
-
   const generateRuleBasedRecommendations = async (): Promise<Recommendation[]> => {
     const recommendations: Recommendation[] = [];
     const today = new Date();
@@ -228,30 +220,40 @@ ${staleContacts.slice(0, 8).map(c => `- ${c.name} (${c.circle} circle, ${c.compa
     }
     return recommendations;
   };
-
   const getActionLabel = (actionType: string): string => {
     switch (actionType) {
-      case 'message': return 'Message';
-      case 'call': return 'Call';
-      case 'meetup': return 'Meet Up';
-      case 'introduction': return 'Introduce';
-      case 'follow_up': return 'Follow Up';
-      case 'strengthen': return 'Strengthen';
-      case 'birthday': return 'Celebrate';
-      case 'reconnect': return 'Reconnect';
-      default: return 'Connect';
+      case 'message':
+        return 'Message';
+      case 'call':
+        return 'Call';
+      case 'meetup':
+        return 'Meet Up';
+      case 'introduction':
+        return 'Introduce';
+      case 'follow_up':
+        return 'Follow Up';
+      case 'strengthen':
+        return 'Strengthen';
+      case 'birthday':
+        return 'Celebrate';
+      case 'reconnect':
+        return 'Reconnect';
+      default:
+        return 'Connect';
     }
   };
-
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'bg-red-50/20 text-red-700 border-red-200/30 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800/30 backdrop-blur-md';
-      case 'medium': return 'bg-orange-50/20 text-orange-700 border-orange-200/30 dark:bg-orange-900/20 dark:text-orange-300 dark:border-orange-800/30 backdrop-blur-md';
-      case 'low': return 'bg-blue-50/20 text-blue-700 border-blue-200/30 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800/30 backdrop-blur-md';
-      default: return 'bg-gray-50/20 text-gray-700 border-gray-200/30 dark:bg-gray-800/20 dark:text-gray-300 dark:border-gray-700/30 backdrop-blur-md';
+      case 'high':
+        return 'bg-red-50/20 text-red-700 border-red-200/30 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800/30 backdrop-blur-md';
+      case 'medium':
+        return 'bg-orange-50/20 text-orange-700 border-orange-200/30 dark:bg-orange-900/20 dark:text-orange-300 dark:border-orange-800/30 backdrop-blur-md';
+      case 'low':
+        return 'bg-blue-50/20 text-blue-700 border-blue-200/30 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800/30 backdrop-blur-md';
+      default:
+        return 'bg-gray-50/20 text-gray-700 border-gray-200/30 dark:bg-gray-800/20 dark:text-gray-300 dark:border-gray-700/30 backdrop-blur-md';
     }
   };
-
   const handleActionClick = async (recommendation: Recommendation) => {
     const {
       contact,
@@ -283,13 +285,11 @@ ${staleContacts.slice(0, 8).map(c => `- ${c.name} (${c.circle} circle, ${c.compa
     }
     toast.success(`Action initiated for ${contact.name}`);
   };
-
   const handleRefresh = () => {
     localStorage.removeItem('networkRecommendations');
     localStorage.removeItem('recommendationsLastUpdate');
     generateEnhancedRecommendations();
   };
-
   return <Card className="glass-card-enhanced">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
@@ -342,7 +342,7 @@ ${staleContacts.slice(0, 8).map(c => `- ${c.name} (${c.circle} circle, ${c.compa
                   <Button size="sm" onClick={e => {
               e.stopPropagation();
               handleActionClick(rec);
-            }} className="group-hover:bg-primary/30 group-hover:text-primary-foreground rounded-xl">
+            }} className="group-hover:text-primary-foreground rounded-xl bg-[#30a2ed]">
                     {rec.actionLabel === 'Message' && <MessageCircle className="h-3 w-3 mr-1" />}
                     {rec.actionLabel === 'Celebrate' && <Calendar className="h-3 w-3 mr-1" />}
                     {rec.actionLabel} <ArrowRight className="h-3 w-3 ml-1" />
