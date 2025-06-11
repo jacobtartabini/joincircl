@@ -11,7 +11,6 @@ import { KeystoneDetailModal } from "@/components/keystone/KeystoneDetailModal";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { KeystoneFilters } from "@/components/keystone/KeystoneFilters";
-
 const ModernKeystones = () => {
   const [keystones, setKeystones] = useState<Keystone[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -19,16 +18,16 @@ const ModernKeystones = () => {
   const [selectedKeystone, setSelectedKeystone] = useState<Keystone | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
 
   // New state for filtering and search
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<"all" | "upcoming" | "past">("all");
-
   useEffect(() => {
     fetchKeystones();
   }, []);
-
   const fetchKeystones = async () => {
     try {
       setIsLoading(true);
@@ -39,18 +38,16 @@ const ModernKeystones = () => {
       toast({
         title: "Error",
         description: "Failed to load keystones. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsLoading(false);
     }
   };
-
   const handleKeystoneClick = (keystone: Keystone) => {
     setSelectedKeystone(keystone);
     setIsDetailModalOpen(true);
   };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
@@ -58,7 +55,6 @@ const ModernKeystones = () => {
       year: 'numeric'
     });
   };
-
   const formatTime = (dateString: string) => {
     return new Date(dateString).toLocaleTimeString('en-US', {
       hour: 'numeric',
@@ -66,14 +62,15 @@ const ModernKeystones = () => {
       hour12: true
     });
   };
-
   const getCategoryColor = (category: string) => {
-    const colors: { [key: string]: string } = {
+    const colors: {
+      [key: string]: string;
+    } = {
       'birthday': 'bg-pink-100 text-pink-800 border-pink-200',
       'anniversary': 'bg-purple-100 text-purple-800 border-purple-200',
       'meeting': 'bg-blue-100 text-blue-800 border-blue-200',
       'follow-up': 'bg-green-100 text-green-800 border-green-200',
-      'other': 'bg-gray-100 text-gray-800 border-gray-200',
+      'other': 'bg-gray-100 text-gray-800 border-gray-200'
     };
     return colors[category?.toLowerCase()] || colors.other;
   };
@@ -85,12 +82,7 @@ const ModernKeystones = () => {
     // Apply search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      result = result.filter(keystone => 
-        keystone.title.toLowerCase().includes(query) ||
-        keystone.notes?.toLowerCase().includes(query) ||
-        keystone.category?.toLowerCase().includes(query) ||
-        keystone.contact_name?.toLowerCase().includes(query)
-      );
+      result = result.filter(keystone => keystone.title.toLowerCase().includes(query) || keystone.notes?.toLowerCase().includes(query) || keystone.category?.toLowerCase().includes(query) || keystone.contact_name?.toLowerCase().includes(query));
     }
 
     // Apply time-based filter
@@ -105,7 +97,6 @@ const ModernKeystones = () => {
     return result.sort((a, b) => {
       const dateA = new Date(a.date).getTime();
       const dateB = new Date(b.date).getTime();
-      
       if (activeFilter === "past") {
         return dateB - dateA; // Recent first for past
       } else {
@@ -113,20 +104,17 @@ const ModernKeystones = () => {
       }
     });
   }, [keystones, searchQuery, activeFilter]);
-
   const handleEdit = () => {
     setIsDetailModalOpen(false);
     setIsEditModalOpen(true);
   };
-
   const handleDelete = async () => {
     if (!selectedKeystone) return;
-    
     try {
       await keystoneService.deleteKeystone(selectedKeystone.id);
       toast({
         title: "Success",
-        description: "Keystone deleted successfully",
+        description: "Keystone deleted successfully"
       });
       setIsDetailModalOpen(false);
       setSelectedKeystone(null);
@@ -136,21 +124,16 @@ const ModernKeystones = () => {
       toast({
         title: "Error",
         description: "Failed to delete keystone. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+    return <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6 max-w-7xl">
         {/* Page Header */}
         <div className="mb-8">
@@ -171,71 +154,42 @@ const ModernKeystones = () => {
               {activeFilter === "past" && " from the past"}
               {searchQuery && ` matching "${searchQuery}"`}
             </p>
-            <Button 
-              onClick={() => setIsAddModalOpen(true)}
-              className="rounded-full shadow-sm"
-            >
+            <Button onClick={() => setIsAddModalOpen(true)} className="rounded-full shadow-sm bg-[#30a2ed]">
               <Plus className="h-4 w-4 mr-2" />
               Add Keystone
             </Button>
           </div>
 
           {/* Search and Filter Controls */}
-          <KeystoneFilters
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            activeFilter={activeFilter}
-            onFilterChange={setActiveFilter}
-          />
+          <KeystoneFilters searchQuery={searchQuery} onSearchChange={setSearchQuery} activeFilter={activeFilter} onFilterChange={setActiveFilter} />
         </div>
 
         {/* Keystones Grid */}
-        {filteredKeystones.length === 0 ? (
-          <Card className="unified-card text-center py-12">
+        {filteredKeystones.length === 0 ? <Card className="unified-card text-center py-12">
             <CardContent>
               <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <CardTitle className="text-xl mb-2">
                 {searchQuery || activeFilter !== "all" ? "No keystones found" : "No keystones yet"}
               </CardTitle>
               <CardDescription className="mb-4">
-                {searchQuery || activeFilter !== "all" 
-                  ? "Try adjusting your search or filter criteria"
-                  : "Start tracking important dates and events in your relationships"
-                }
+                {searchQuery || activeFilter !== "all" ? "Try adjusting your search or filter criteria" : "Start tracking important dates and events in your relationships"}
               </CardDescription>
-              {!searchQuery && activeFilter === "all" && (
-                <Button 
-                  onClick={() => setIsAddModalOpen(true)}
-                  className="rounded-full"
-                >
+              {!searchQuery && activeFilter === "all" && <Button onClick={() => setIsAddModalOpen(true)} className="rounded-full">
                   <Plus className="h-4 w-4 mr-2" />
                   Add Your First Keystone
-                </Button>
-              )}
+                </Button>}
             </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredKeystones.map((keystone) => (
-              <Card 
-                key={keystone.id} 
-                className="unified-card cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-[1.02]"
-                onClick={() => handleKeystoneClick(keystone)}
-              >
+          </Card> : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredKeystones.map(keystone => <Card key={keystone.id} className="unified-card cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-[1.02]" onClick={() => handleKeystoneClick(keystone)}>
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <CardTitle className="text-lg font-semibold text-foreground mb-1 line-clamp-1">
                         {keystone.title}
                       </CardTitle>
-                      {keystone.category && (
-                        <Badge 
-                          variant="secondary" 
-                          className={`text-xs px-2 py-1 ${getCategoryColor(keystone.category)}`}
-                        >
+                      {keystone.category && <Badge variant="secondary" className={`text-xs px-2 py-1 ${getCategoryColor(keystone.category)}`}>
                           {keystone.category}
-                        </Badge>
-                      )}
+                        </Badge>}
                     </div>
                   </div>
                 </CardHeader>
@@ -251,32 +205,24 @@ const ModernKeystones = () => {
                     </div>
 
                     {/* Contact Name */}
-                    {keystone.contact_id && (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    {keystone.contact_id && <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <User className="h-4 w-4" />
                         <span>Contact Event</span>
-                      </div>
-                    )}
+                      </div>}
 
                     {/* Recurring Badge */}
-                    {keystone.is_recurring && (
-                      <Badge variant="outline" className="text-xs">
+                    {keystone.is_recurring && <Badge variant="outline" className="text-xs">
                         Recurring • {keystone.recurrence_frequency}
-                      </Badge>
-                    )}
+                      </Badge>}
 
                     {/* Notes Preview */}
-                    {keystone.notes && (
-                      <p className="text-sm text-muted-foreground line-clamp-2">
+                    {keystone.notes && <p className="text-sm text-muted-foreground line-clamp-2">
                         {keystone.notes}
-                      </p>
-                    )}
+                      </p>}
                   </div>
                 </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+              </Card>)}
+          </div>}
 
         {/* Add Keystone Modal */}
         <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
@@ -285,13 +231,10 @@ const ModernKeystones = () => {
               <DialogTitle>Add New Keystone</DialogTitle>
             </DialogHeader>
             <ScrollArea className="max-h-[calc(90vh-8rem)]">
-              <KeystoneForm
-                onSuccess={() => {
-                  setIsAddModalOpen(false);
-                  fetchKeystones();
-                }}
-                onCancel={() => setIsAddModalOpen(false)}
-              />
+              <KeystoneForm onSuccess={() => {
+              setIsAddModalOpen(false);
+              fetchKeystones();
+            }} onCancel={() => setIsAddModalOpen(false)} />
             </ScrollArea>
           </DialogContent>
         </Dialog>
@@ -303,35 +246,21 @@ const ModernKeystones = () => {
               <DialogTitle>Edit Keystone</DialogTitle>
             </DialogHeader>
             <ScrollArea className="max-h-[calc(90vh-8rem)]">
-              <KeystoneForm
-                keystone={selectedKeystone}
-                onSuccess={() => {
-                  setIsEditModalOpen(false);
-                  setSelectedKeystone(null);
-                  fetchKeystones();
-                }}
-                onCancel={() => {
-                  setIsEditModalOpen(false);
-                  setSelectedKeystone(null);
-                }}
-              />
+              <KeystoneForm keystone={selectedKeystone} onSuccess={() => {
+              setIsEditModalOpen(false);
+              setSelectedKeystone(null);
+              fetchKeystones();
+            }} onCancel={() => {
+              setIsEditModalOpen(false);
+              setSelectedKeystone(null);
+            }} />
             </ScrollArea>
           </DialogContent>
         </Dialog>
 
         {/* Keystone Detail Modal */}
-        {selectedKeystone && (
-          <KeystoneDetailModal
-            keystone={selectedKeystone}
-            isOpen={isDetailModalOpen}
-            onOpenChange={setIsDetailModalOpen}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
-        )}
+        {selectedKeystone && <KeystoneDetailModal keystone={selectedKeystone} isOpen={isDetailModalOpen} onOpenChange={setIsDetailModalOpen} onEdit={handleEdit} onDelete={handleDelete} />}
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default ModernKeystones;
