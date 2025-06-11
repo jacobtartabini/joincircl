@@ -108,7 +108,7 @@ const ModernHomeContent: React.FC = () => {
                 <CardTitle className="text-lg font-medium text-foreground">Quick Access</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button variant="ghost" onClick={() => navigate('/circles')} className="w-full justify-between p-4 h-auto rounded-xl">
+                <Button variant="ghost" onClick={() => navigate('/circles')} className="w-full justify-between p-4 h-auto rounded-full">
                   <div className="flex items-center space-x-3">
                     <Users className="h-5 w-5 text-muted-foreground" />
                     <span className="font-medium text-foreground">View All Contacts</span>
@@ -116,7 +116,7 @@ const ModernHomeContent: React.FC = () => {
                   <ArrowRight className="h-4 w-4 text-muted-foreground" />
                 </Button>
                 
-                <Button variant="ghost" onClick={() => navigate('/keystones')} className="w-full justify-between p-4 h-auto rounded-xl">
+                <Button variant="ghost" onClick={() => navigate('/keystones')} className="w-full justify-between p-4 h-auto rounded-full">
                   <div className="flex items-center space-x-3">
                     <Calendar className="h-5 w-5 text-muted-foreground" />
                     <span className="font-medium text-foreground">Upcoming Events</span>
@@ -124,7 +124,7 @@ const ModernHomeContent: React.FC = () => {
                   <ArrowRight className="h-4 w-4 text-muted-foreground" />
                 </Button>
                 
-                <Button variant="ghost" onClick={() => navigate('/ai-assistant')} className="w-full justify-between p-4 h-auto rounded-xl">
+                <Button variant="ghost" onClick={() => navigate('/ai-assistant')} className="w-full justify-between p-4 h-auto rounded-full">
                   <div className="flex items-center space-x-3">
                     <Brain className="h-5 w-5 text-muted-foreground" />
                     <span className="font-medium text-foreground">AI Assistant</span>
