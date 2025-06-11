@@ -10,7 +10,7 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "unified-card",
+      "unified-card glass-float transition-all duration-300",
       className
     )}
     {...props}
