@@ -1,14 +1,12 @@
 
-import { Home, Circle, Calendar, Settings, Brain } from "lucide-react";
+import { Home, Circle, Calendar, Settings, Atom } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { useContacts } from "@/hooks/use-contacts";
 
 const MobileNav = () => {
   const location = useLocation();
   const currentPath = location.pathname;
-  const { contacts } = useContacts();
   
   const navItems = [
     {
@@ -22,15 +20,15 @@ const MobileNav = () => {
       path: "/circles"
     },
     {
-      icon: Brain,
-      label: "AI",
-      path: "/ai-assistant",
-      isCenter: true
-    },
-    {
       icon: Calendar,
       label: "Keystones",
       path: "/keystones"
+    },
+    {
+      icon: Atom,
+      label: "Arlo",
+      path: "/arlo",
+      isSpecial: true
     },
     {
       icon: Settings,
@@ -59,7 +57,7 @@ const MobileNav = () => {
               <motion.div 
                 className={cn(
                   "flex flex-col items-center justify-center p-2 rounded-xl transition-colors min-h-12 min-w-12",
-                  item.isCenter 
+                  item.isSpecial
                     ? isActive 
                       ? "bg-gradient-to-br from-blue-500 to-purple-600 text-white scale-110 dark:from-blue-600 dark:to-purple-700" 
                       : "bg-gradient-to-br from-blue-500 to-purple-600 text-white dark:from-blue-600 dark:to-purple-700"
@@ -71,10 +69,10 @@ const MobileNav = () => {
                 transition={{ duration: 0.1 }}
               >
                 <item.icon 
-                  size={item.isCenter ? 28 : 24} 
+                  size={item.isSpecial ? 28 : 24} 
                   className={cn(
                     "transition-colors",
-                    item.isCenter 
+                    item.isSpecial
                       ? "text-white" 
                       : isActive 
                         ? "text-primary dark:text-primary" 
@@ -83,7 +81,7 @@ const MobileNav = () => {
                 />
                 <span className={cn(
                   "text-xs mt-1 font-medium transition-colors",
-                  item.isCenter 
+                  item.isSpecial
                     ? "text-white" 
                     : isActive 
                       ? "text-primary dark:text-primary" 

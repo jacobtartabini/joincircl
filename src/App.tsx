@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -74,8 +73,8 @@ function App() {
                   <Route path="/circles" element={<Circles />} />
                   <Route path="/contact/:id" element={<RedesignedContactDetail />} />
                   <Route path="/keystones" element={<Keystones />} />
-                  <Route path="/notifications" element={<Notifications />} />
                   <Route path="/arlo" element={<Arlo />} />
+                  <Route path="/notifications" element={<Notifications />} />
                   
                   {/* Settings and management */}
                   <Route path="/settings" element={<Settings />} />

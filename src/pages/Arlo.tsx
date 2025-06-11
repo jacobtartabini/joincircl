@@ -1,16 +1,18 @@
 
 import { useState, useRef, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Brain, MessageCircle } from "lucide-react";
 import { useContacts } from "@/hooks/use-contacts";
-import { useChatHistory } from "@/hooks/use-chat-history";
+import { useConversations } from "@/hooks/use-conversations";
 import { PureMultimodalInput } from "@/components/ui/multimodal-ai-chat-input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
+import ConversationSidebar from "@/components/ai/ConversationSidebar";
+import ConversationStarters from "@/components/ai/ConversationStarters";
 
 interface Attachment {
   url: string;
@@ -21,9 +23,20 @@ interface Attachment {
 
 export default function Arlo() {
   const { contacts } = useContacts();
-  const { messages, addMessage } = useChatHistory();
+  const {
+    conversations,
+    activeConversation,
+    activeConversationId,
+    setActiveConversationId,
+    createNewConversation,
+    deleteConversation,
+    renameConversation,
+    addMessage
+  } = useConversations();
+  
   const [isLoading, setIsLoading] = useState(false);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [inputValue, setInputValue] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
@@ -33,17 +46,25 @@ export default function Arlo() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [activeConversation?.messages]);
+
+  // Create initial conversation if none exist
+  useEffect(() => {
+    if (conversations.length === 0) {
+      createNewConversation();
+    }
+  }, []);
 
   const handleSendMessage = async ({ input, attachments: messageAttachments }: { input: string; attachments: Attachment[] }) => {
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading || !activeConversationId) return;
 
     const userMessageContent = input;
-    addMessage({
+    addMessage(activeConversationId, {
       role: 'user',
       content: userMessageContent
     });
 
+    setInputValue("");
     setIsLoading(true);
 
     try {
@@ -94,14 +115,14 @@ export default function Arlo() {
       
       const aiResponse = data?.response || "**How can I help?** Ask me about:\n\n• Your relationship network\n• Networking strategies\n• Follow-up timing\n• Communication best practices";
       
-      addMessage({
+      addMessage(activeConversationId, {
         role: 'assistant',
         content: aiResponse
       });
 
     } catch (error) {
       console.error('Error getting AI response:', error);
-      addMessage({
+      addMessage(activeConversationId, {
         role: 'assistant',
         content: "**Sorry!** I'm having trouble right now. Please try asking about:\n\n• Specific contacts or relationships\n• Networking strategies\n• Follow-up timing\n• Communication tips"
       });
@@ -115,6 +136,10 @@ export default function Arlo() {
     setIsLoading(false);
   };
 
+  const handlePromptSelect = (prompt: string) => {
+    setInputValue(prompt);
+  };
+
   const formatMessage = (content: string) => {
     const sections = content.split('\n\n');
     return sections.map((section, index) => {
@@ -124,7 +149,7 @@ export default function Arlo() {
           <div key={index} className="mb-4">
             {parts.map((part, partIndex) => 
               partIndex % 2 === 1 ? (
-                <strong key={partIndex} className="text-gray-900 font-semibold text-base">{part}</strong>
+                <strong key={partIndex} className="text-gray-900 dark:text-white font-semibold text-base">{part}</strong>
               ) : (
                 <span key={partIndex}>{part}</span>
               )
@@ -142,68 +167,32 @@ export default function Arlo() {
                 return (
                   <div key={lineIndex} className="flex items-start gap-3 mb-2">
                     <span className="text-blue-500 mt-1.5 text-sm">•</span>
-                    <span className="text-gray-700 leading-relaxed">{line.replace(/^[•-]\s*/, '')}</span>
+                    <span className="text-gray-700 dark:text-gray-300 leading-relaxed">{line.replace(/^[•-]\s*/, '')}</span>
                   </div>
                 );
               }
-              return <div key={lineIndex} className="text-gray-700 leading-relaxed mb-2">{line}</div>;
+              return <div key={lineIndex} className="text-gray-700 dark:text-gray-300 leading-relaxed mb-2">{line}</div>;
             })}
           </div>
         );
       }
       
-      return <div key={index} className="mb-4 text-gray-700 leading-relaxed">{section}</div>;
+      return <div key={index} className="mb-4 text-gray-700 dark:text-gray-300 leading-relaxed">{section}</div>;
     });
   };
 
-  const MobileChatBubble = ({ message, isUser }: { message: any; isUser: boolean }) => (
-    <motion.div
-      initial={{ opacity: 0, y: 20, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
-      className={cn(
-        "flex mb-4",
-        isUser ? "justify-end" : "justify-start"
-      )}
-    >
-      <div
-        className={cn(
-          "max-w-[85%] rounded-3xl px-5 py-3 relative group",
-          isUser
-            ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg"
-            : "bg-white border border-gray-100 text-gray-900 shadow-sm"
-        )}
-      >
-        {isUser ? (
-          <p className="text-base leading-relaxed">{message.content}</p>
-        ) : (
-          <div className="prose prose-sm max-w-none text-gray-900">
-            {formatMessage(message.content)}
-          </div>
-        )}
-        
-        <div className={cn(
-          "text-xs mt-2 opacity-70",
-          isUser ? "text-white/70" : "text-gray-500"
-        )}>
-          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-        </div>
-      </div>
-    </motion.div>
-  );
-
   if (isMobile) {
     return (
-      <div className="h-full flex flex-col bg-gradient-to-br from-gray-50 to-blue-50/20">
+      <div className="h-full flex flex-col bg-gradient-to-br from-gray-50 to-blue-50/20 dark:from-gray-900 dark:to-blue-900/20">
         {/* Mobile Header */}
-        <div className="flex-shrink-0 bg-white/80 backdrop-blur-sm border-b border-gray-100 p-6 pt-8">
+        <div className="flex-shrink-0 bg-white/80 dark:bg-black/80 backdrop-blur-sm border-b border-white/20 dark:border-white/10 p-6 pt-8">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
               <Brain className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Arlo</h1>
-              <p className="text-sm text-gray-600">Your relationship assistant</p>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Arlo</h1>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Your relationship assistant</p>
             </div>
           </div>
         </div>
@@ -212,30 +201,42 @@ export default function Arlo() {
         <div className="flex-1 min-h-0">
           <ScrollArea className="h-full">
             <div className="p-6 pb-24">
-              {messages.length === 0 ? (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="text-center py-16"
-                >
-                  <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-purple-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                    <MessageCircle className="h-10 w-10 text-blue-500" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    Hi! I'm Arlo 👋
-                  </h3>
-                  <p className="text-gray-600 max-w-sm mx-auto leading-relaxed">
-                    I'm here to help you manage relationships and grow your network. What would you like to explore?
-                  </p>
-                </motion.div>
+              {!activeConversation || activeConversation.messages.length <= 1 ? (
+                <ConversationStarters onSelectPrompt={handlePromptSelect} />
               ) : (
                 <AnimatePresence>
-                  {messages.map((message) => (
-                    <MobileChatBubble
+                  {activeConversation.messages.slice(1).map((message) => (
+                    <motion.div
                       key={message.id}
-                      message={message}
-                      isUser={message.role === 'user'}
-                    />
+                      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{ duration: 0.3, ease: "easeOut" }}
+                      className={cn("flex mb-4", message.role === 'user' ? "justify-end" : "justify-start")}
+                    >
+                      <div
+                        className={cn(
+                          "max-w-[85%] rounded-3xl px-5 py-3 relative group",
+                          message.role === 'user'
+                            ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg"
+                            : "glass-card text-gray-900 dark:text-white"
+                        )}
+                      >
+                        {message.role === 'user' ? (
+                          <p className="text-base leading-relaxed">{message.content}</p>
+                        ) : (
+                          <div className="prose prose-sm max-w-none">
+                            {formatMessage(message.content)}
+                          </div>
+                        )}
+                        
+                        <div className={cn(
+                          "text-xs mt-2 opacity-70",
+                          message.role === 'user' ? "text-white/70" : "text-gray-500 dark:text-gray-400"
+                        )}>
+                          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </div>
+                    </motion.div>
                   ))}
                 </AnimatePresence>
               )}
@@ -246,10 +247,10 @@ export default function Arlo() {
         </div>
 
         {/* Fixed Input Area */}
-        <div className="flex-shrink-0 bg-white/90 backdrop-blur-sm border-t border-gray-100 p-6 pb-8">
+        <div className="flex-shrink-0 bg-white/90 dark:bg-black/90 backdrop-blur-sm border-t border-white/20 dark:border-white/10 p-6 pb-8">
           <PureMultimodalInput
-            chatId="arlo-mobile"
-            messages={messages}
+            chatId={`arlo-mobile-${activeConversationId}`}
+            messages={activeConversation?.messages || []}
             attachments={attachments}
             setAttachments={setAttachments}
             onSendMessage={handleSendMessage}
@@ -257,6 +258,8 @@ export default function Arlo() {
             isGenerating={isLoading}
             canSend={true}
             selectedVisibilityType="private"
+            value={inputValue}
+            onChange={setInputValue}
           />
         </div>
       </div>
@@ -264,94 +267,100 @@ export default function Arlo() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30">
-      <div className="max-w-4xl mx-auto p-6 h-screen flex flex-col">
+    <div className="h-screen flex bg-gradient-to-br from-gray-50 to-blue-50/30 dark:from-gray-900 dark:to-blue-900/30">
+      {/* Sidebar */}
+      <ConversationSidebar
+        conversations={conversations}
+        activeConversationId={activeConversationId}
+        onSelectConversation={setActiveConversationId}
+        onCreateConversation={createNewConversation}
+        onDeleteConversation={deleteConversation}
+        onRenameConversation={renameConversation}
+      />
+
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col min-h-0">
         {/* Header */}
-        <div className="text-center py-8 flex-shrink-0">
-          <div className="flex items-center justify-center gap-4 mb-6">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-              <Brain className="h-8 w-8 text-white" />
+        <div className="flex-shrink-0 bg-white/60 dark:bg-black/20 backdrop-blur-sm border-b border-white/20 dark:border-white/10 p-6">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+              <Brain className="h-5 w-5 text-white" />
             </div>
-            <div className="text-left">
-              <h1 className="text-3xl font-bold text-gray-900">Arlo</h1>
-              <p className="text-lg text-gray-600">Your intelligent relationship companion</p>
+            <div>
+              <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
+                {activeConversation?.title || 'Arlo'}
+              </h1>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Your intelligent relationship companion</p>
             </div>
           </div>
         </div>
 
-        {/* Main Chat Interface */}
-        <div className="flex-1 flex flex-col min-h-0">
-          <Card className="flex-1 border-0 shadow-lg bg-white/90 backdrop-blur-sm flex flex-col min-h-0">
-            <CardContent className="flex-1 flex flex-col p-0 min-h-0">
-              {/* Scrollable Messages Area */}
-              <div className="flex-1 min-h-0 p-6">
-                <ScrollArea className="h-full">
-                  <div className="space-y-6 pr-4">
-                    {messages.length === 0 && (
-                      <div className="text-center py-12">
-                        <MessageCircle className="h-16 w-16 text-blue-300 mx-auto mb-4" />
-                        <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                          Welcome to Arlo
-                        </h3>
-                        <p className="text-gray-600 max-w-md mx-auto leading-relaxed">
-                          I'm here to help you manage relationships, plan networking activities, 
-                          and make the most of your connections. What would you like to explore?
-                        </p>
-                      </div>
-                    )}
-                    
-                    {messages.map((message) => (
+        {/* Messages Area */}
+        <div className="flex-1 min-h-0 relative">
+          <ScrollArea className="h-full">
+            <div className="max-w-4xl mx-auto">
+              {!activeConversation || activeConversation.messages.length <= 1 ? (
+                <ConversationStarters onSelectPrompt={handlePromptSelect} />
+              ) : (
+                <div className="p-6 space-y-6">
+                  {activeConversation.messages.slice(1).map((message) => (
+                    <motion.div
+                      key={message.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className={cn("flex", message.role === 'user' ? 'justify-end' : 'justify-start')}
+                    >
                       <div
-                        key={message.id}
                         className={cn(
-                          "flex",
-                          message.role === 'user' ? 'justify-end' : 'justify-start'
+                          "max-w-[80%] rounded-2xl p-4 relative",
+                          message.role === 'user'
+                            ? 'bg-blue-500 text-white'
+                            : 'glass-card text-gray-900 dark:text-white'
                         )}
                       >
-                        <div
-                          className={cn(
-                            "max-w-[85%] rounded-2xl p-4 relative group",
-                            message.role === 'user'
-                              ? 'bg-blue-500 text-white'
-                              : 'bg-gray-50 border border-gray-200'
-                          )}
-                        >
-                          {message.role === 'user' ? (
-                            <p className="text-sm leading-relaxed">{message.content}</p>
-                          ) : (
-                            <div className="prose prose-sm max-w-none">
-                              {formatMessage(message.content)}
-                            </div>
-                          )}
-                          
-                          <div className="text-xs opacity-70 mt-3">
-                            {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {message.role === 'user' ? (
+                          <p className="leading-relaxed">{message.content}</p>
+                        ) : (
+                          <div className="prose prose-sm max-w-none">
+                            {formatMessage(message.content)}
                           </div>
+                        )}
+                        
+                        <div className={cn(
+                          "text-xs mt-3 opacity-70",
+                          message.role === 'user' ? "text-white/70" : "text-gray-500 dark:text-gray-400"
+                        )}>
+                          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </div>
                       </div>
-                    ))}
-                    
-                    <div ref={messagesEndRef} />
-                  </div>
-                </ScrollArea>
-              </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+              
+              <div ref={messagesEndRef} />
+            </div>
+          </ScrollArea>
+        </div>
 
-              {/* Fixed Input Area */}
-              <div className="flex-shrink-0 p-6 border-t border-gray-100 bg-white rounded-b-lg">
-                <PureMultimodalInput
-                  chatId="arlo-desktop"
-                  messages={messages}
-                  attachments={attachments}
-                  setAttachments={setAttachments}
-                  onSendMessage={handleSendMessage}
-                  onStopGenerating={handleStopGenerating}
-                  isGenerating={isLoading}
-                  canSend={true}
-                  selectedVisibilityType="private"
-                />
-              </div>
-            </CardContent>
-          </Card>
+        {/* Fixed Input Area */}
+        <div className="flex-shrink-0 bg-white/80 dark:bg-black/20 backdrop-blur-sm border-t border-white/20 dark:border-white/10 p-6">
+          <div className="max-w-4xl mx-auto">
+            <PureMultimodalInput
+              chatId={`arlo-desktop-${activeConversationId}`}
+              messages={activeConversation?.messages || []}
+              attachments={attachments}
+              setAttachments={setAttachments}
+              onSendMessage={handleSendMessage}
+              onStopGenerating={handleStopGenerating}
+              isGenerating={isLoading}
+              canSend={true}
+              selectedVisibilityType="private"
+              value={inputValue}
+              onChange={setInputValue}
+            />
+          </div>
         </div>
       </div>
     </div>
