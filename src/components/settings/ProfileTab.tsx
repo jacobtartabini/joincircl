@@ -191,7 +191,7 @@ const ProfileTab = () => {
 
       {/* Save Button */}
       <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={saving} className="bg-blue-600 hover:bg-blue-700 px-8 rounded-full">
+        <Button onClick={handleSave} disabled={saving} className="px-8 rounded-full bg-[#30a2ed]">
           {saving ? <>
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
               Saving...
