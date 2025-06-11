@@ -12,7 +12,6 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '
 import ContactForm from '../contact/ContactForm';
 import KeystoneForm from '../keystone/KeystoneForm';
 import EnhancedNetworkRecommendations from '../home/EnhancedNetworkRecommendations';
-
 const ModernHomeContent: React.FC = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -23,7 +22,6 @@ const ModernHomeContent: React.FC = () => {
   } = useContacts();
   const [isAddContactDialogOpen, setIsAddContactDialogOpen] = useState(false);
   const [isAddKeystoneDialogOpen, setIsAddKeystoneDialogOpen] = useState(false);
-
   const handleAddContact = () => {
     setIsAddContactDialogOpen(true);
   };
@@ -55,19 +53,13 @@ const ModernHomeContent: React.FC = () => {
     color: "text-orange-600 dark:text-orange-400",
     bgColor: "bg-orange-50/50 dark:bg-orange-900/20"
   }];
-
   const contactFormContent = <ContactForm onSuccess={handleContactFormSuccess} onCancel={() => setIsAddContactDialogOpen(false)} />;
   const keystoneFormContent = <KeystoneForm onSuccess={handleKeystoneFormSuccess} onCancel={() => setIsAddKeystoneDialogOpen(false)} />;
-
   return <div className="min-h-screen refined-web-theme">
       <div className="max-w-7xl mx-auto p-6 space-y-8">
         {/* Header Section */}
         <div className="flex flex-col space-y-2">
-          <GradientText 
-            colors={["#0daeec", "#9c40ff", "#0daeec"]} 
-            animationSpeed={4}
-            className="text-3xl font-extrabold"
-          >
+          <GradientText colors={["#0daeec", "#9c40ff", "#0daeec"]} animationSpeed={4} className="text-3xl font-extrabold">
             Welcome back
           </GradientText>
           <p className="text-muted-foreground text-lg font-normal">Let's strengthen your connections today</p>
@@ -75,11 +67,11 @@ const ModernHomeContent: React.FC = () => {
 
         {/* Quick Actions */}
         <div className="flex gap-3">
-          <Button onClick={handleAddContact} className="px-6 py-2 text-white bg-gradient-to-r from-[#0daeec]/90 to-[#0daeec]/70 hover:from-[#0daeec] hover:to-[#0daeec]/90 border-[#0daeec]/30">
+          <Button onClick={handleAddContact} className="px-6 py-2 text-white bg-gradient-to-r from-[#0daeec]/90 to-[#0daeec]/70 hover:from-[#0daeec] hover:to-[#0daeec]/90 border-[#0daeec]/30 rounded-full">
             <Plus className="h-4 w-4 mr-2" />
             Add Contact
           </Button>
-          <Button onClick={handleAddKeystone} variant="outline" className="px-6 py-2">
+          <Button onClick={handleAddKeystone} variant="outline" className="px-6 py-2 rounded-full">
             <Calendar className="h-4 w-4 mr-2" />
             Add Event
           </Button>
@@ -183,5 +175,4 @@ const ModernHomeContent: React.FC = () => {
         </>}
     </div>;
 };
-
 export default ModernHomeContent;
