@@ -150,7 +150,7 @@ export default function MainLayout({
       <header className="fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-200">
         <div className="flex items-center justify-between px-6 py-3">
           <Link to="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-circl-blue rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#30a2ed]">
               <span className="text-white font-bold"></span>
             </div>
             <span className="font-semibold text-xl text-gray-900">Circl</span>
