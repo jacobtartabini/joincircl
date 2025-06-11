@@ -39,7 +39,7 @@ const EmailIntegrationSection = ({
                   Connected
                 </Badge>}
             </div>
-            <Button variant={isGmailConnected ? "outline" : "default"} size="sm" onClick={onConnectGmail} className="rounded-full">
+            <Button variant={isGmailConnected ? "outline" : "default"} size="sm" onClick={onConnectGmail} className="rounded-full bg-[#30a2ed]">
               {isGmailConnected ? "Reconnect" : "Connect Gmail"}
             </Button>
           </div>
