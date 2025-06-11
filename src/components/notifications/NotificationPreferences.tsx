@@ -44,21 +44,21 @@ const NotificationPreferences = () => {
               <Label htmlFor="push-new-contacts" className="flex-1">
                 New contacts added
               </Label>
-              <Switch id="push-new-contacts" checked={preferences.push.newContacts} onCheckedChange={() => togglePushNotification('newContacts')} />
+              <Switch id="push-new-contacts" checked={preferences.push.newContacts} onCheckedChange={() => togglePushNotification('newContacts')} className="bg-[#30a2ed]" />
             </div>
             
             <div className="flex items-center justify-between">
               <Label htmlFor="push-keystone-reminders" className="flex-1">
                 Keystone reminders
               </Label>
-              <Switch id="push-keystone-reminders" checked={preferences.push.keystoneReminders} onCheckedChange={() => togglePushNotification('keystoneReminders')} />
+              <Switch id="push-keystone-reminders" checked={preferences.push.keystoneReminders} onCheckedChange={() => togglePushNotification('keystoneReminders')} className="bg-[#30a2ed]" />
             </div>
             
             <div className="flex items-center justify-between">
               <Label htmlFor="push-system-updates" className="flex-1">
                 System updates and announcements
               </Label>
-              <Switch id="push-system-updates" checked={preferences.push.systemUpdates} onCheckedChange={() => togglePushNotification('systemUpdates')} />
+              <Switch id="push-system-updates" checked={preferences.push.systemUpdates} onCheckedChange={() => togglePushNotification('systemUpdates')} className="bg-[#30a2ed] bg-[inherent]" />
             </div>
             
             <div className="mt-3">
@@ -81,14 +81,14 @@ const NotificationPreferences = () => {
               <Label htmlFor="email-weekly-summary" className="flex-1">
                 Weekly activity summary
               </Label>
-              <Switch id="email-weekly-summary" checked={preferences.email.weeklySummary} onCheckedChange={() => toggleEmailNotification('weeklySummary')} />
+              <Switch id="email-weekly-summary" checked={preferences.email.weeklySummary} onCheckedChange={() => toggleEmailNotification('weeklySummary')} className="bg-[#30a2ed]" />
             </div>
             
             <div className="flex items-center justify-between">
               <Label htmlFor="email-important-keystones" className="flex-1">
                 Important keystone reminders
               </Label>
-              <Switch id="email-important-keystones" checked={preferences.email.importantKeystones} onCheckedChange={() => toggleEmailNotification('importantKeystones')} />
+              <Switch id="email-important-keystones" checked={preferences.email.importantKeystones} onCheckedChange={() => toggleEmailNotification('importantKeystones')} className="bg-[#30a2ed]" />
             </div>
             
             <div className="flex items-center justify-between">

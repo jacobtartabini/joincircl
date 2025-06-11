@@ -80,7 +80,7 @@ const PreferencesTab = () => {
           <p className="text-sm">
             Connect your calendar to keep track of your connections and important events.
           </p>
-          <Button onClick={() => setIsCalendarDialogOpen(true)} className="rounded-full">
+          <Button onClick={() => setIsCalendarDialogOpen(true)} className="rounded-full bg-[transp#30a2ed_arent] bg-[#30a2ed]">
             Connect Calendar
           </Button>
         </CardContent>
@@ -101,7 +101,7 @@ const PreferencesTab = () => {
           <p className="text-sm">
             Connect your LinkedIn account to automatically import your professional connections and keep your network updated.
           </p>
-          <Button onClick={handleConnectLinkedIn} disabled={isLinkedInConnected} className="rounded-full">
+          <Button onClick={handleConnectLinkedIn} disabled={isLinkedInConnected} className="rounded-full bg-[#30a2ed]">
             {isLinkedInConnected ? "LinkedIn Connected" : "Connect LinkedIn"}
           </Button>
           
@@ -126,7 +126,7 @@ const PreferencesTab = () => {
           <p className="text-sm">
             Import contacts from your phone to easily add them to your circles.
           </p>
-          <Button onClick={handleSyncPhoneContacts} disabled={isPhoneContactsSynced} className="rounded-full">
+          <Button onClick={handleSyncPhoneContacts} disabled={isPhoneContactsSynced} className="rounded-full bg-[#30a2ed]">
             {isPhoneContactsSynced ? "Contacts Synced" : "Sync Phone Contacts"}
           </Button>
           
