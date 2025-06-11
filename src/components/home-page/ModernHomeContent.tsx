@@ -1,9 +1,9 @@
-
 import React from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useContacts } from '@/hooks/use-contacts';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
+import { GradientText } from '../ui/gradient-text';
 import { ArrowRight, Plus, Users, Brain, Calendar, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
@@ -63,7 +63,13 @@ const ModernHomeContent: React.FC = () => {
       <div className="max-w-7xl mx-auto p-6 space-y-8">
         {/* Header Section */}
         <div className="flex flex-col space-y-2">
-          <h1 className="text-3xl text-foreground font-extrabold gradient-text">Welcome back</h1>
+          <GradientText 
+            colors={["#0daeec", "#9c40ff", "#0daeec"]} 
+            animationSpeed={4}
+            className="text-3xl font-extrabold"
+          >
+            Welcome back
+          </GradientText>
           <p className="text-muted-foreground text-lg font-normal">Let's strengthen your connections today</p>
         </div>
 
