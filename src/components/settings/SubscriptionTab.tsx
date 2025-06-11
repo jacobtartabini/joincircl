@@ -142,7 +142,7 @@ const SubscriptionTab = () => {
                     </li>)}
                 </ul>
 
-                <Button variant={subscription?.plan_type === key ? "secondary" : "default"} disabled={subscription?.plan_type === key} className="w-full rounded-full py-3 text-base font-medium" size="lg">
+                <Button variant={subscription?.plan_type === key ? "secondary" : "default"} disabled={subscription?.plan_type === key} size="lg" className="w-full rounded-full py-3 text-base font-medium bg-[#30a2ed]">
                   {subscription?.plan_type === key ? 'Current Plan' : `Upgrade to ${plan.name}`}
                 </Button>
               </div>)}
