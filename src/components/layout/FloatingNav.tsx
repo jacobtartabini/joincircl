@@ -1,5 +1,5 @@
 
-import { Home, Circle, Briefcase, Settings } from "lucide-react";
+import { Home, Circle, Briefcase, Settings, Atom } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 
@@ -29,6 +29,11 @@ export default function FloatingNav() {
       title: "Circles",
       icon: Circle,
       path: "/circles"
+    },
+    {
+      title: "Arlo",
+      icon: Atom,
+      path: "/arlo"
     },
     {
       title: "Career",

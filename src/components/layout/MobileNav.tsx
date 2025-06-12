@@ -1,5 +1,5 @@
 
-import { Home, Circle, Calendar, Settings, Briefcase } from "lucide-react";
+import { Home, Circle, Calendar, Settings, Briefcase, Atom } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -18,6 +18,11 @@ const MobileNav = () => {
       icon: Circle,
       label: "Circles",
       path: "/circles"
+    },
+    {
+      icon: Atom,
+      label: "Arlo",
+      path: "/arlo"
     },
     {
       icon: Briefcase,
