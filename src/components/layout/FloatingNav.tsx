@@ -52,7 +52,7 @@ export default function FloatingNav() {
 
   useEffect(() => {
     const currentPath = location.pathname;
-    const tabIndex = tabs.findIndex(tab => 'path' in tab && (currentPath === tab.path || tab.path !== "/" && currentPath.startsWith(tab.path)));
+    const tabIndex = tabs.findIndex(tab => 'path' in tab && (currentPath === tab.path || (tab.path !== "/" && currentPath.startsWith(tab.path))));
     setSelectedTab(tabIndex >= 0 ? tabIndex : null);
   }, [location.pathname]);
 
