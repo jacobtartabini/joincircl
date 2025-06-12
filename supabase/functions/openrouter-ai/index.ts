@@ -2,7 +2,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const openRouterApiKey = Deno.env.get('OPENROUTER_API_KEY');
+const togetherApiKey = Deno.env.get('TOGETHER_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -23,53 +23,62 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, model = 'mistralai/mistral-7b-instruct', maxTokens = 500, temperature = 0.7, systemPrompt }: AIRequest = await req.json();
+    const { prompt, maxTokens = 200, temperature = 0.7, systemPrompt }: AIRequest = await req.json();
 
-    if (!openRouterApiKey) {
-      throw new Error('OpenRouter API key not configured');
+    if (!togetherApiKey) {
+      throw new Error('Together AI API key not configured');
     }
 
-    const messages = [];
+    // Combine system prompt and user prompt for Together AI
+    let fullPrompt = prompt;
     if (systemPrompt) {
-      messages.push({ role: 'system', content: systemPrompt });
+      fullPrompt = `${systemPrompt}\n\nUser: ${prompt}\n\nAssistant:`;
     }
-    messages.push({ role: 'user', content: prompt });
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const response = await fetch('https://api.together.xyz/inference', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openRouterApiKey}`,
+        'Authorization': `Bearer ${togetherApiKey}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://circl.lovable.app',
-        'X-Title': 'Circl Relationship Assistant',
       },
       body: JSON.stringify({
-        model,
-        messages,
+        model: 'mistralai/Mixtral-8x7B-Instruct-v0.1',
+        prompt: fullPrompt,
         max_tokens: maxTokens,
-        temperature,
+        temperature: temperature,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`OpenRouter API error: ${response.status} - ${errorText}`);
+      console.error('Together AI API error:', response.status, errorText);
+      throw new Error(`Together AI API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
-    const generatedText = data.choices[0]?.message?.content || 'No response generated';
+    
+    // Together AI returns the response in a different format than OpenRouter
+    const generatedText = data.output?.choices?.[0]?.text || data.choices?.[0]?.text || data.output || 'No response generated';
 
     return new Response(JSON.stringify({ 
-      response: generatedText,
-      model: data.model,
-      usage: data.usage 
+      response: generatedText.trim(),
+      model: 'mistralai/Mixtral-8x7B-Instruct-v0.1',
+      usage: data.usage || null
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Error in openrouter-ai function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
+    console.error('Error in together-ai function:', error);
+    
+    // Provide graceful fallback messaging
+    const fallbackMessage = "I'm having trouble connecting right now. Please try asking about:\n\n• Your relationship network\n• Networking strategies\n• Follow-up timing\n• Communication best practices";
+    
+    return new Response(JSON.stringify({ 
+      response: fallbackMessage,
+      error: error.message,
+      model: 'mistralai/Mixtral-8x7B-Instruct-v0.1'
+    }), {
+      status: 200, // Return 200 with fallback content instead of error status
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }

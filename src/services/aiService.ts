@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Contact, Interaction } from "@/types/contact";
 
@@ -6,10 +5,11 @@ export interface AIResponse {
   response: string;
   model: string;
   usage?: {
-    prompt_tokens: number;
-    completion_tokens: number;
-    total_tokens: number;
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    total_tokens?: number;
   };
+  error?: string;
 }
 
 export interface ConnectionSuggestion {
@@ -28,13 +28,19 @@ export interface MessageTemplate {
 }
 
 class AIService {
-  private async callAI(prompt: string, systemPrompt?: string, model = 'mistralai/mistral-7b-instruct'): Promise<AIResponse> {
+  private async callAI(prompt: string, systemPrompt?: string, model = 'mistralai/Mixtral-8x7B-Instruct-v0.1'): Promise<AIResponse> {
     const { data, error } = await supabase.functions.invoke('openrouter-ai', {
-      body: { prompt, systemPrompt, model }
+      body: { prompt, systemPrompt, model, maxTokens: 200, temperature: 0.7 }
     });
 
     if (error) {
-      throw new Error(`AI service error: ${error.message}`);
+      console.error('AI service error:', error);
+      // Return fallback response instead of throwing
+      return {
+        response: "I'm having trouble right now. Please try asking about your network, relationships, or networking strategies.",
+        model: 'mistralai/Mixtral-8x7B-Instruct-v0.1',
+        error: error.message
+      };
     }
 
     return data;
