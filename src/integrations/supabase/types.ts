@@ -50,6 +50,102 @@ export type Database = {
           },
         ]
       }
+      career_documents: {
+        Row: {
+          contact_id: string | null
+          created_at: string
+          document_name: string
+          document_type: string
+          file_size: number | null
+          file_url: string | null
+          id: string
+          job_application_id: string | null
+          storage_path: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          contact_id?: string | null
+          created_at?: string
+          document_name: string
+          document_type: string
+          file_size?: number | null
+          file_url?: string | null
+          id?: string
+          job_application_id?: string | null
+          storage_path?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          contact_id?: string | null
+          created_at?: string
+          document_name?: string
+          document_type?: string
+          file_size?: number | null
+          file_url?: string | null
+          id?: string
+          job_application_id?: string | null
+          storage_path?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "career_documents_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "career_documents_job_application_id_fkey"
+            columns: ["job_application_id"]
+            isOneToOne: false
+            referencedRelation: "job_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      career_events: {
+        Row: {
+          contacts_met: number | null
+          created_at: string
+          event_date: string
+          event_name: string
+          event_type: string
+          id: string
+          location: string | null
+          notes: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          contacts_met?: number | null
+          created_at?: string
+          event_date: string
+          event_name: string
+          event_type: string
+          id?: string
+          location?: string | null
+          notes?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          contacts_met?: number | null
+          created_at?: string
+          event_date?: string
+          event_name?: string
+          event_type?: string
+          id?: string
+          location?: string | null
+          notes?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       contact_media: {
         Row: {
           contact_id: string
@@ -95,6 +191,9 @@ export type Database = {
         Row: {
           avatar_url: string | null
           birthday: string | null
+          career_event_id: string | null
+          career_priority: boolean | null
+          career_tags: string[] | null
           circle: string
           company_name: string | null
           created_at: string | null
@@ -116,6 +215,7 @@ export type Database = {
           name: string
           notes: string | null
           personal_email: string | null
+          referral_potential: string | null
           tags: string[] | null
           twitter: string | null
           university: string | null
@@ -127,6 +227,9 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           birthday?: string | null
+          career_event_id?: string | null
+          career_priority?: boolean | null
+          career_tags?: string[] | null
           circle?: string
           company_name?: string | null
           created_at?: string | null
@@ -148,6 +251,7 @@ export type Database = {
           name: string
           notes?: string | null
           personal_email?: string | null
+          referral_potential?: string | null
           tags?: string[] | null
           twitter?: string | null
           university?: string | null
@@ -159,6 +263,9 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           birthday?: string | null
+          career_event_id?: string | null
+          career_priority?: boolean | null
+          career_tags?: string[] | null
           circle?: string
           company_name?: string | null
           created_at?: string | null
@@ -180,6 +287,7 @@ export type Database = {
           name?: string
           notes?: string | null
           personal_email?: string | null
+          referral_potential?: string | null
           tags?: string[] | null
           twitter?: string | null
           university?: string | null
@@ -189,6 +297,13 @@ export type Database = {
           work_address?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "contacts_career_event_id_fkey"
+            columns: ["career_event_id"]
+            isOneToOne: false
+            referencedRelation: "career_events"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "contacts_user_id_fkey"
             columns: ["user_id"]
@@ -302,6 +417,125 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      interview_sessions: {
+        Row: {
+          arlo_feedback: Json
+          confidence_score: number | null
+          contact_id: string | null
+          created_at: string
+          duration_minutes: number | null
+          id: string
+          job_application_id: string | null
+          questions: Json
+          responses: Json
+          session_title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          arlo_feedback?: Json
+          confidence_score?: number | null
+          contact_id?: string | null
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          job_application_id?: string | null
+          questions?: Json
+          responses?: Json
+          session_title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          arlo_feedback?: Json
+          confidence_score?: number | null
+          contact_id?: string | null
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          job_application_id?: string | null
+          questions?: Json
+          responses?: Json
+          session_title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interview_sessions_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interview_sessions_job_application_id_fkey"
+            columns: ["job_application_id"]
+            isOneToOne: false
+            referencedRelation: "job_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_applications: {
+        Row: {
+          applied_date: string | null
+          company_name: string
+          contact_id: string | null
+          created_at: string
+          follow_up_date: string | null
+          id: string
+          interview_date: string | null
+          job_title: string
+          job_url: string | null
+          notes: string | null
+          salary_range: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          applied_date?: string | null
+          company_name: string
+          contact_id?: string | null
+          created_at?: string
+          follow_up_date?: string | null
+          id?: string
+          interview_date?: string | null
+          job_title: string
+          job_url?: string | null
+          notes?: string | null
+          salary_range?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          applied_date?: string | null
+          company_name?: string
+          contact_id?: string | null
+          created_at?: string
+          follow_up_date?: string | null
+          id?: string
+          interview_date?: string | null
+          job_title?: string
+          job_url?: string | null
+          notes?: string | null
+          salary_range?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_applications_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
         ]

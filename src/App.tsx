@@ -32,6 +32,7 @@ import SecurityGuide from "@/pages/SecurityGuide";
 import Duplicates from "@/pages/Duplicates";
 import Contact from "@/pages/Contact";
 import Arlo from "@/pages/Arlo";
+import CareerHub from "@/pages/CareerHub";
 
 // User onboarding
 import { UserOnboarding } from "./components/UserOnboarding";
@@ -89,6 +90,7 @@ function App() {
                   
                   {/* PWA functionality */}
                   <Route path="/share-target" element={<ShareTarget />} />
+                  <Route path="/career" element={<CareerHub />} />
                 </Route>
                 
                 <Route path="*" element={<NotFound />} />
