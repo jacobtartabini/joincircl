@@ -1,3 +1,4 @@
+
 export interface Contact {
   id: string;
   name: string;
@@ -30,6 +31,11 @@ export interface Contact {
   created_at?: string;
   updated_at?: string;
   connection_strength?: ConnectionStrength;
+  // Career-specific fields
+  career_priority?: boolean;
+  career_tags?: string[];
+  referral_potential?: string;
+  career_event_id?: string;
 }
 
 export interface Interaction {

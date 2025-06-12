@@ -247,7 +247,7 @@ export default function CareerContactsView() {
 
       {careerContacts.length === 0 && (
         <Card className="p-12 text-center glass-card">
-          <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
             No Career Contacts Yet
           </h3>
