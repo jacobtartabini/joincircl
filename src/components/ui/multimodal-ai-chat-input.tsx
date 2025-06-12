@@ -402,6 +402,8 @@ interface MultimodalInputProps {
   canSend: boolean;
   className?: string;
   selectedVisibilityType: VisibilityType;
+  value?: string;
+  onChange?: Dispatch<SetStateAction<string>>;
 }
 
 function PureMultimodalInput({
@@ -415,12 +417,18 @@ function PureMultimodalInput({
   canSend,
   className,
   selectedVisibilityType,
+  value: externalValue,
+  onChange: externalOnChange,
 }: MultimodalInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [input, setInput] = useState('');
+  const [internalInput, setInternalInput] = useState('');
   const [uploadQueue, setUploadQueue] = useState<Array<string>>([]);
+
+  // Use external value/onChange if provided, otherwise use internal state
+  const input = externalValue !== undefined ? externalValue : internalInput;
+  const setInput = externalOnChange || setInternalInput;
 
   const adjustHeight = () => {
     const textarea = textareaRef.current;
@@ -562,6 +570,7 @@ function PureMultimodalInput({
     attachments,
     onSendMessage,
     setAttachments,
+    setInput,
     textareaRef,
     resetHeight,
   ]);
