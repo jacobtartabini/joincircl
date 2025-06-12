@@ -42,7 +42,7 @@ export default function ConversationSidebar({
   return <div className="w-80 bg-white/80 dark:bg-black/20 border-r border-white/20 dark:border-white/10 backdrop-blur-lg flex flex-col h-full">
       {/* Header */}
       <div className="p-4 border-b border-white/20 dark:border-white/10">
-        <Button onClick={onCreateConversation} className="w-full justify-start gap-2 glass-button rounded-full bg-[#33bb00] bg-[inherent]">
+        <Button onClick={onCreateConversation} className="w-full justify-start gap-2 glass-button rounded-full bg-[inherent] bg-[#30a2ed]">
           <Plus className="h-4 w-4" />
           New Conversation
         </Button>
