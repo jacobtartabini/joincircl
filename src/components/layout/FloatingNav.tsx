@@ -1,5 +1,5 @@
 
-import { Home, Users, Target, Settings, Atom } from "lucide-react";
+import { Home, Circle, Briefcase, Settings } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 
@@ -7,7 +7,6 @@ interface NavTab {
   title: string;
   icon: typeof Home;
   path: string;
-  isSpecial?: boolean;
 }
 
 interface NavSeparator {
@@ -28,19 +27,13 @@ export default function FloatingNav() {
     },
     {
       title: "Circles",
-      icon: Users,
+      icon: Circle,
       path: "/circles"
     },
     {
-      title: "Keystones",
-      icon: Target,
-      path: "/keystones"
-    },
-    {
-      title: "Arlo",
-      icon: Atom,
-      path: "/arlo",
-      isSpecial: true
+      title: "Career",
+      icon: Briefcase,
+      path: "/career"
     },
     {
       type: "separator" as const
@@ -93,12 +86,8 @@ export default function FloatingNav() {
               to={navTab.path} 
               className={`relative flex items-center rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ${
                 isSelected 
-                  ? navTab.isSpecial
-                    ? "bg-gradient-to-br from-blue-500 to-purple-600 text-white gap-2 shadow-md scale-105"
-                    : "bg-white/30 dark:bg-white/20 text-primary gap-2 shadow-md"
-                  : navTab.isSpecial
-                    ? "bg-gradient-to-br from-blue-500/80 to-purple-600/80 text-white/90 hover:from-blue-500 hover:to-purple-600 hover:text-white gap-0"
-                    : "text-muted-foreground hover:bg-white/20 dark:hover:bg-white/10 hover:text-foreground gap-0"
+                  ? "bg-white/30 dark:bg-white/20 text-primary gap-2 shadow-md"
+                  : "text-muted-foreground hover:bg-white/20 dark:hover:bg-white/10 hover:text-foreground gap-0"
               }`} 
               onClick={() => handleTabChange(index)}
             >

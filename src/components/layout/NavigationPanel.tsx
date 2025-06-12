@@ -1,4 +1,4 @@
-import { Search, Home, Circle, Calendar, Settings, Plus, Pin, Tag } from "lucide-react";
+import { Search, Home, Circle, Calendar, Settings, Plus, Pin, Tag, Briefcase } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -45,7 +45,7 @@ export function NavigationPanel() {
   const navItems = [
     { icon: Home, label: "Home", path: "/" },
     { icon: Circle, label: "Circles", path: "/circles" },
-    { icon: Calendar, label: "Keystones", path: "/keystones" },
+    { icon: Briefcase, label: "Career", path: "/career" },
     { icon: Settings, label: "Settings", path: "/settings" },
   ];
 

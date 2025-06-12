@@ -1,5 +1,5 @@
 
-import { Home, Circle, Calendar, Settings } from "lucide-react";
+import { Home, Circle, Settings, Briefcase } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useNotifications } from "@/hooks/use-notifications";
 
@@ -11,7 +11,7 @@ const DesktopNav = () => {
   const navItems = [
     { icon: Home, label: "Home", path: "/" },
     { icon: Circle, label: "Circles", path: "/circles" },
-    { icon: Calendar, label: "Keystones", path: "/keystones" },
+    { icon: Briefcase, label: "Career", path: "/career" },
     { icon: Settings, label: "Settings", path: "/settings" },
   ];
 

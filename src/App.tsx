@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -22,7 +23,6 @@ import { AuthErrorBoundary } from "@/components/auth/AuthErrorBoundary";
 
 // Special pages
 import Settings from "@/pages/Settings";
-import Keystones from "@/pages/Keystones";
 import Notifications from "@/pages/Notifications";
 import Help from "@/pages/Help";
 import Bugs from "@/pages/Bugs";
@@ -73,7 +73,6 @@ function App() {
                   {/* Core application routes - using the mobile-aware Circles component */}
                   <Route path="/circles" element={<Circles />} />
                   <Route path="/contact/:id" element={<RedesignedContactDetail />} />
-                  <Route path="/keystones" element={<Keystones />} />
                   <Route path="/arlo" element={<Arlo />} />
                   <Route path="/notifications" element={<Notifications />} />
                   
