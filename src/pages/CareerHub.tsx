@@ -179,12 +179,12 @@ export default function CareerHub() {
             </Button>
           </nav>
 
-          <Card className="p-4 glass-card rounded-2xl">
+          <Card className="p-4 glass-card">
             <div className="flex items-center gap-2 mb-3">
               <MessageSquare className="h-4 w-4 text-blue-500" />
               <span className="font-medium text-foreground">Arlo Says</span>
             </div>
-            <div className="glass-card bg-blue-50/50 dark:bg-blue-900/20 p-3 rounded-2xl">
+            <div className="glass-card bg-blue-50/50 dark:bg-blue-900/20 rounded-xl p-3">
               <p className="text-sm text-foreground mb-3">
                 {stats.careerContacts === 0 ? "Ready to boost your career? Start by adding some professional contacts!" : "Great job staying active! You're building a strong professional network."}
               </p>
@@ -210,7 +210,7 @@ export default function CareerHub() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Card className="p-6 glass-card rounded-2xl">
+                <Card className="p-6 glass-card">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-xl flex items-center justify-center">
                       <Users className="h-5 w-5 text-blue-500" />
@@ -225,7 +225,7 @@ export default function CareerHub() {
                   </p>
                 </Card>
 
-                <Card className="p-6 glass-card rounded-2xl">
+                <Card className="p-6 glass-card">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 bg-green-100 dark:bg-green-900/20 rounded-xl flex items-center justify-center">
                       <Target className="h-5 w-5 text-green-500" />
@@ -240,7 +240,7 @@ export default function CareerHub() {
                   </p>
                 </Card>
 
-                <Card className="p-6 glass-card rounded-2xl">
+                <Card className="p-6 glass-card">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/20 rounded-xl flex items-center justify-center">
                       <Calendar className="h-5 w-5 text-purple-500" />
@@ -255,7 +255,7 @@ export default function CareerHub() {
                   </p>
                 </Card>
 
-                <Card className="p-6 glass-card rounded-2xl">
+                <Card className="p-6 glass-card">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/20 rounded-xl flex items-center justify-center">
                       <FileText className="h-5 w-5 text-orange-500" />
@@ -272,7 +272,7 @@ export default function CareerHub() {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card className="p-6 glass-card rounded-2xl">
+                <Card className="p-6 glass-card">
                   <h3 className="font-semibold text-foreground mb-4">Recent Activity</h3>
                   {recentActivity.length === 0 ? <div className="text-center py-8">
                       <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
@@ -288,13 +288,13 @@ export default function CareerHub() {
                     </div>}
                 </Card>
 
-                <Card className="p-6 glass-card rounded-2xl">
+                <Card className="p-6 glass-card">
                   <div className="flex items-center gap-2 mb-4">
                     <MessageSquare className="h-5 w-5 text-blue-500" />
                     <h3 className="font-semibold text-foreground">Arlo's Insights</h3>
                   </div>
                   <div className="space-y-4">
-                    <div className="glass-card bg-blue-50/50 dark:bg-blue-900/20 p-4 rounded-2xl">
+                    <div className="glass-card bg-blue-50/50 dark:bg-blue-900/20 rounded-xl p-4">
                       <p className="text-sm text-foreground mb-2">
                         {stats.careerContacts === 0 ? "💡 Start by adding 3-5 professional contacts. This will help you track your network and get personalized advice." : "💡 Consider reaching out to contacts you haven't spoken to recently. Maintaining relationships is key to career success."}
                       </p>
@@ -302,7 +302,7 @@ export default function CareerHub() {
                         {stats.careerContacts === 0 ? "Add Contacts" : "Send Message"}
                       </Button>
                     </div>
-                    <div className="glass-card bg-green-50/50 dark:bg-green-900/20 p-4 rounded-2xl">
+                    <div className="glass-card bg-green-50/50 dark:bg-green-900/20 rounded-xl p-4">
                       <p className="text-sm text-foreground mb-2">
                         {stats.activeApplications === 0 ? "🎯 Ready to apply for roles? Upload your resume first, then start tracking applications." : "🎯 Great job staying organized with your applications! Don't forget to follow up."}
                       </p>
