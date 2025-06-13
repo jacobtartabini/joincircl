@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,14 +6,38 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Users, Building, Mail, Phone } from "lucide-react";
 import { useContacts } from "@/hooks/use-contacts";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AddContactDialog } from "./dialogs/AddContactDialog";
+import { useToast } from "@/hooks/use-toast";
+
 export default function CareerContactsView() {
-  const {
-    contacts
-  } = useContacts();
+  const { contacts, addContact } = useContacts();
   const [showAddForm, setShowAddForm] = useState(false);
+  const { toast } = useToast();
 
   // Filter contacts that are career-related
   const careerContacts = contacts.filter(contact => contact.career_priority === true || contact.career_tags?.length > 0);
+
+  const handleAddContact = async (contactData: any) => {
+    try {
+      await addContact({
+        ...contactData,
+        circle: 'outer',
+        user_id: '' // This will be set by the hook
+      });
+      setShowAddForm(false);
+      toast({
+        title: "Contact Added",
+        description: "Career contact has been successfully added.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add contact. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-foreground">Career Contacts</h3>
@@ -70,5 +95,11 @@ export default function CareerContactsView() {
               </div>
             </Card>)}
         </div>}
+
+      <AddContactDialog 
+        isOpen={showAddForm} 
+        onOpenChange={setShowAddForm}
+        onAdd={handleAddContact}
+      />
     </div>;
 }

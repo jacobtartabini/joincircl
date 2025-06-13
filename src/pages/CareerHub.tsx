@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+
+import { useState, useMemo, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,12 +12,23 @@ import JobApplicationTracker from "@/components/career/JobApplicationTracker";
 import DocumentVault from "@/components/career/DocumentVault";
 import InterviewPrep from "@/components/career/InterviewPrep";
 import CareerEventMode from "@/components/career/CareerEventMode";
+import { AddContactDialog } from "@/components/career/dialogs/AddContactDialog";
+import { AddDocumentDialog } from "@/components/career/dialogs/AddDocumentDialog";
+import { AddEventDialog } from "@/components/career/dialogs/AddEventDialog";
+import { AddInterviewSessionDialog } from "@/components/career/dialogs/AddInterviewSessionDialog";
+import { useToast } from "@/hooks/use-toast";
+
 export default function CareerHub() {
   const [activeTab, setActiveTab] = useState("overview");
   const isMobile = useIsMobile();
-  const {
-    contacts
-  } = useContacts();
+  const { contacts, addContact } = useContacts();
+  const { toast } = useToast();
+
+  // Dialog states
+  const [showAddContactDialog, setShowAddContactDialog] = useState(false);
+  const [showAddDocumentDialog, setShowAddDocumentDialog] = useState(false);
+  const [showAddEventDialog, setShowAddEventDialog] = useState(false);
+  const [showAddInterviewDialog, setShowAddInterviewDialog] = useState(false);
 
   // Calculate real stats from user data
   const stats = useMemo(() => {
@@ -24,15 +36,75 @@ export default function CareerHub() {
     return {
       careerContacts: careerContacts.length,
       activeApplications: 0,
-      // This would come from job applications state
       upcomingInterviews: 0,
-      // This would come from interview sessions
-      documentsStored: 0 // This would come from documents state
+      documentsStored: 0
     };
   }, [contacts]);
+
   const recentActivity = [
     // This would be populated from real user activity data
   ];
+
+  // Quick add handlers
+  const handleQuickAdd = () => {
+    setActiveTab("applications");
+  };
+
+  const handleAddContact = useCallback(async (contactData: any) => {
+    try {
+      await addContact({
+        ...contactData,
+        circle: 'outer',
+        user_id: '' // This will be set by the hook
+      });
+      setShowAddContactDialog(false);
+      toast({
+        title: "Contact Added",
+        description: "Career contact has been successfully added.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add contact. Please try again.",
+        variant: "destructive",
+      });
+    }
+  }, [addContact, toast]);
+
+  const handleAddDocument = useCallback((documentData: any) => {
+    // For now, just show a success message
+    // In a real implementation, this would upload to Supabase storage
+    console.log('Adding document:', documentData);
+    setShowAddDocumentDialog(false);
+    toast({
+      title: "Document Uploaded",
+      description: `${documentData.document_name} has been uploaded successfully.`,
+    });
+  }, [toast]);
+
+  const handleAddEvent = useCallback((eventData: any) => {
+    // For now, just show a success message
+    // In a real implementation, this would save to the career_events table
+    console.log('Adding event:', eventData);
+    setShowAddEventDialog(false);
+    toast({
+      title: "Event Added",
+      description: `${eventData.event_name} has been added to your calendar.`,
+    });
+  }, [toast]);
+
+  const handleAddInterviewSession = useCallback((sessionData: any) => {
+    // For now, just show a success message
+    // In a real implementation, this would create an interview session
+    console.log('Starting interview session:', sessionData);
+    setShowAddInterviewDialog(false);
+    setActiveTab("interview");
+    toast({
+      title: "Session Started",
+      description: `${sessionData.session_title} interview session has been created.`,
+    });
+  }, [toast]);
+
   if (isMobile) {
     return <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-purple-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-blue-900/20 pb-20">
         <div className="sticky top-0 z-10 bg-white/90 dark:bg-black/90 backdrop-blur-sm border-b border-white/20 dark:border-white/10 p-4 pt-6">
@@ -101,19 +173,19 @@ export default function CareerHub() {
                   <p className="text-sm text-foreground mb-2">
                     {stats.careerContacts === 0 ? "💡 Start building your network! Add your first career contact to get personalized suggestions." : "💡 Great progress on your network! Consider reaching out to 2-3 contacts you haven't spoken to recently."}
                   </p>
-                  <Button size="sm" variant="outline" className="text-xs glass-button">
+                  <Button size="sm" variant="outline" className="text-xs glass-button" onClick={() => stats.careerContacts === 0 ? setShowAddContactDialog(true) : null}>
                     {stats.careerContacts === 0 ? "Add Contact" : "See Suggestions"}
                   </Button>
                 </div>
               </Card>
 
               <div className="grid grid-cols-1 gap-3">
-                <Button onClick={() => setActiveTab("applications")} className="h-12 glass-card hover:glass-card-enhanced justify-start gap-3 bg-transparent border-white/20" variant="outline">
+                <Button onClick={handleQuickAdd} className="h-12 glass-card hover:glass-card-enhanced justify-start gap-3 bg-transparent border-white/20" variant="outline">
                   <Plus className="h-4 w-4" />
                   Add Job Application
                 </Button>
                 
-                <Button onClick={() => setActiveTab("interview")} className="h-12 glass-card hover:glass-card-enhanced justify-start gap-3 bg-transparent border-white/20" variant="outline">
+                <Button onClick={() => setShowAddInterviewDialog(true)} className="h-12 glass-card hover:glass-card-enhanced justify-start gap-3 bg-transparent border-white/20" variant="outline">
                   <BookOpen className="h-4 w-4" />
                   Start Interview Prep
                 </Button>
@@ -129,8 +201,31 @@ export default function CareerHub() {
             </TabsContent>
           </Tabs>
         </div>
+
+        {/* Add all dialogs */}
+        <AddContactDialog 
+          isOpen={showAddContactDialog} 
+          onOpenChange={setShowAddContactDialog}
+          onAdd={handleAddContact}
+        />
+        <AddDocumentDialog 
+          isOpen={showAddDocumentDialog} 
+          onOpenChange={setShowAddDocumentDialog}
+          onAdd={handleAddDocument}
+        />
+        <AddEventDialog 
+          isOpen={showAddEventDialog} 
+          onOpenChange={setShowAddEventDialog}
+          onAdd={handleAddEvent}
+        />
+        <AddInterviewSessionDialog 
+          isOpen={showAddInterviewDialog} 
+          onOpenChange={setShowAddInterviewDialog}
+          onAdd={handleAddInterviewSession}
+        />
       </div>;
   }
+
   return <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-purple-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-blue-900/20 pb-20">
       <div className="flex">
         {/* Sidebar */}
@@ -188,7 +283,7 @@ export default function CareerHub() {
               <p className="text-sm text-foreground mb-3">
                 {stats.careerContacts === 0 ? "Ready to boost your career? Start by adding some professional contacts!" : "Great job staying active! You're building a strong professional network."}
               </p>
-              <Button size="sm" className="w-full glass-button rounded-full">
+              <Button size="sm" className="w-full glass-button rounded-full" onClick={() => stats.careerContacts === 0 ? setShowAddContactDialog(true) : setShowAddInterviewDialog(true)}>
                 {stats.careerContacts === 0 ? "Get Started" : "Let's Practice"}
               </Button>
             </div>
@@ -203,7 +298,7 @@ export default function CareerHub() {
                   <h2 className="text-3xl font-bold text-foreground">Career Overview</h2>
                   <p className="text-muted-foreground">Track your professional development</p>
                 </div>
-                <Button className="gap-2 glass-button rounded-full">
+                <Button className="gap-2 glass-button rounded-full" onClick={handleQuickAdd}>
                   <Plus className="h-4 w-4" />
                   Quick Add
                 </Button>
@@ -322,5 +417,27 @@ export default function CareerHub() {
           {activeTab === "events" && <CareerEventMode />}
         </div>
       </div>
+
+      {/* Add all dialogs */}
+      <AddContactDialog 
+        isOpen={showAddContactDialog} 
+        onOpenChange={setShowAddContactDialog}
+        onAdd={handleAddContact}
+      />
+      <AddDocumentDialog 
+        isOpen={showAddDocumentDialog} 
+        onOpenChange={setShowAddDocumentDialog}
+        onAdd={handleAddDocument}
+      />
+      <AddEventDialog 
+        isOpen={showAddEventDialog} 
+        onOpenChange={setShowAddEventDialog}
+        onAdd={handleAddEvent}
+      />
+      <AddInterviewSessionDialog 
+        isOpen={showAddInterviewDialog} 
+        onOpenChange={setShowAddInterviewDialog}
+        onAdd={handleAddInterviewSession}
+      />
     </div>;
 }

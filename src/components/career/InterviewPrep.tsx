@@ -3,6 +3,9 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Play, BookOpen, Clock, Target, TrendingUp } from "lucide-react";
+import { AddInterviewSessionDialog } from "./dialogs/AddInterviewSessionDialog";
+import { useToast } from "@/hooks/use-toast";
+
 interface InterviewSession {
   id: string;
   session_title: string;
@@ -14,15 +17,48 @@ interface InterviewSession {
     category: string;
   }>;
 }
+
 export default function InterviewPrep() {
   const [sessions, setSessions] = useState<InterviewSession[]>([]);
   const [showNewSessionDialog, setShowNewSessionDialog] = useState(false);
+  const { toast } = useToast();
+
+  const handleAddSession = (sessionData: any) => {
+    const newSession: InterviewSession = {
+      id: Date.now().toString(),
+      session_title: sessionData.session_title,
+      duration_minutes: sessionData.duration_minutes,
+      created_at: new Date().toISOString(),
+      questions: [] // This would be populated based on session type
+    };
+    
+    setSessions(prev => [newSession, ...prev]);
+    setShowNewSessionDialog(false);
+    
+    toast({
+      title: "Session Started",
+      description: `${sessionData.session_title} interview session has been created.`,
+    });
+  };
+
+  const handleQuickStart = (type: string) => {
+    const sessionTitle = `Quick ${type} Session`;
+    const duration = type === 'Common Questions' ? 15 : type === 'Behavioral Questions' ? 20 : 25;
+    
+    handleAddSession({
+      session_title: sessionTitle,
+      session_type: type.toLowerCase().replace(' ', '_'),
+      duration_minutes: duration
+    });
+  };
+
   const getConfidenceColor = (score?: number) => {
     if (!score) return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
     if (score >= 80) return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
     if (score >= 60) return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
     return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
   };
+
   const quickPrepOptions = [{
     title: "Common Questions",
     description: "Practice standard interview questions",
@@ -39,6 +75,7 @@ export default function InterviewPrep() {
     icon: TrendingUp,
     duration: "25 min"
   }];
+
   return <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-foreground">Interview Prep</h3>
@@ -51,8 +88,8 @@ export default function InterviewPrep() {
       {/* Quick Start Options */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {quickPrepOptions.map((option, index) => {
-        const Icon = option.icon;
-        return <Card key={index} className="p-4 glass-card hover:glass-card-enhanced transition-all duration-200 cursor-pointer rounded-2xl">
+          const Icon = option.icon;
+          return <Card key={index} className="p-4 glass-card hover:glass-card-enhanced transition-all duration-200 cursor-pointer rounded-2xl" onClick={() => handleQuickStart(option.title)}>
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                   <Icon className="h-5 w-5 text-primary" />
@@ -73,7 +110,7 @@ export default function InterviewPrep() {
                 </div>
               </div>
             </Card>;
-      })}
+        })}
       </div>
 
       {/* Previous Sessions */}
@@ -115,5 +152,11 @@ export default function InterviewPrep() {
               </Card>)}
           </div>}
       </div>
+
+      <AddInterviewSessionDialog 
+        isOpen={showNewSessionDialog} 
+        onOpenChange={setShowNewSessionDialog}
+        onAdd={handleAddSession}
+      />
     </div>;
 }

@@ -3,6 +3,9 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Calendar, MapPin, Users, Edit, Trash2 } from "lucide-react";
+import { AddEventDialog } from "./dialogs/AddEventDialog";
+import { useToast } from "@/hooks/use-toast";
+
 interface CareerEvent {
   id: string;
   event_name: string;
@@ -12,9 +15,32 @@ interface CareerEvent {
   contacts_met: number;
   notes?: string;
 }
+
 export default function CareerEventMode() {
   const [events, setEvents] = useState<CareerEvent[]>([]);
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const { toast } = useToast();
+
+  const handleAddEvent = (eventData: any) => {
+    const newEvent: CareerEvent = {
+      id: Date.now().toString(),
+      event_name: eventData.event_name,
+      event_type: eventData.event_type,
+      event_date: eventData.event_date,
+      location: eventData.location,
+      contacts_met: eventData.contacts_met,
+      notes: eventData.notes
+    };
+    
+    setEvents(prev => [newEvent, ...prev]);
+    setShowAddDialog(false);
+    
+    toast({
+      title: "Event Added",
+      description: `${eventData.event_name} has been added to your calendar.`,
+    });
+  };
+
   const getEventTypeColor = (type: string) => {
     switch (type.toLowerCase()) {
       case 'career fair':
@@ -29,6 +55,7 @@ export default function CareerEventMode() {
         return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
     }
   };
+
   return <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-foreground">Career Events</h3>
@@ -93,5 +120,10 @@ export default function CareerEventMode() {
               </div>
             </Card>)}
         </div>}
+      <AddEventDialog 
+        isOpen={showAddDialog} 
+        onOpenChange={setShowAddDialog}
+        onAdd={handleAddEvent}
+      />
     </div>;
 }

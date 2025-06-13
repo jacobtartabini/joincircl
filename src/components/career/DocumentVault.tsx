@@ -3,6 +3,9 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, FileText, Download, Edit, Trash2, Upload } from "lucide-react";
+import { AddDocumentDialog } from "./dialogs/AddDocumentDialog";
+import { useToast } from "@/hooks/use-toast";
+
 interface Document {
   id: string;
   document_name: string;
@@ -10,9 +13,30 @@ interface Document {
   file_size?: number;
   created_at: string;
 }
+
 export default function DocumentVault() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const { toast } = useToast();
+
+  const handleAddDocument = (documentData: any) => {
+    const newDocument: Document = {
+      id: Date.now().toString(),
+      document_name: documentData.document_name,
+      document_type: documentData.document_type,
+      file_size: documentData.file?.size,
+      created_at: new Date().toISOString()
+    };
+    
+    setDocuments(prev => [newDocument, ...prev]);
+    setShowUploadDialog(false);
+    
+    toast({
+      title: "Document Uploaded",
+      description: `${documentData.document_name} has been uploaded successfully.`,
+    });
+  };
+
   const getDocumentIcon = (type: Document['document_type']) => {
     return <FileText className="h-4 w-4" />;
   };
@@ -37,6 +61,7 @@ export default function DocumentVault() {
     if (mb >= 1) return `${mb.toFixed(1)} MB`;
     return `${kb.toFixed(1)} KB`;
   };
+
   return <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-foreground">Document Vault</h3>
@@ -90,5 +115,11 @@ export default function DocumentVault() {
               </div>
             </Card>)}
         </div>}
+
+      <AddDocumentDialog 
+        isOpen={showUploadDialog} 
+        onOpenChange={setShowUploadDialog}
+        onAdd={handleAddDocument}
+      />
     </div>;
 }
