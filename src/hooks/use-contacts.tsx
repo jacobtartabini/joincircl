@@ -37,6 +37,23 @@ export const useContacts = () => {
     }
   };
 
+  const addContact = async (contactData: Omit<Contact, 'id' | 'created_at' | 'updated_at'>) => {
+    try {
+      const newContact = await contactService.createContact(contactData);
+      setContacts(prev => [newContact, ...prev]);
+      calculateFollowUpStats([newContact, ...contacts]);
+      return newContact;
+    } catch (error) {
+      console.error("Error adding contact:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add contact. Please try again.",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
   const calculateFollowUpStats = (contactsData: Contact[]) => {
     // Calculate number of follow-ups due
     const followUpsDue = contactsData.filter(contact => {
@@ -103,6 +120,7 @@ export const useContacts = () => {
     followUpStats,
     getContactDistribution,
     getRecentContacts,
-    fetchContacts
+    fetchContacts,
+    addContact
   };
 };
