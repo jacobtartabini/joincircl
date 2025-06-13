@@ -84,16 +84,37 @@ export function useConversations() {
 
       if (error) throw error;
 
-      const parsedConversations = (data || []).map((conv: ConversationData) => ({
-        id: conv.id,
-        title: conv.title,
-        messages: conv.messages.map((msg: SerializableChatMessage) => ({
-          ...msg,
-          timestamp: new Date(msg.timestamp)
-        })),
-        createdAt: new Date(conv.created_at),
-        updatedAt: new Date(conv.updated_at)
-      }));
+      // Type assertion and safe parsing of messages
+      const parsedConversations = (data || []).map((conv: any) => {
+        let messages: ChatMessage[] = [];
+        
+        try {
+          // Handle both array and string JSON formats
+          const messagesData = typeof conv.messages === 'string' 
+            ? JSON.parse(conv.messages) 
+            : conv.messages;
+          
+          if (Array.isArray(messagesData)) {
+            messages = messagesData.map((msg: any) => ({
+              id: msg.id,
+              role: msg.role,
+              content: msg.content,
+              timestamp: new Date(msg.timestamp)
+            }));
+          }
+        } catch (e) {
+          console.error('Error parsing messages:', e);
+          messages = [];
+        }
+
+        return {
+          id: conv.id,
+          title: conv.title,
+          messages,
+          createdAt: new Date(conv.created_at),
+          updatedAt: new Date(conv.updated_at)
+        };
+      });
 
       setConversations(parsedConversations);
 
@@ -140,7 +161,7 @@ export function useConversations() {
 
     try {
       // Convert messages to serializable format
-      const serializableMessages: SerializableChatMessage[] = conversation.messages.map(msg => ({
+      const serializableMessages = conversation.messages.map(msg => ({
         id: msg.id,
         role: msg.role,
         content: msg.content,
@@ -153,7 +174,7 @@ export function useConversations() {
           id: conversation.id,
           user_id: user.id,
           title: conversation.title,
-          messages: serializableMessages,
+          messages: JSON.stringify(serializableMessages),
           created_at: conversation.createdAt.toISOString(),
           updated_at: conversation.updatedAt.toISOString()
         });
