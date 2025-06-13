@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCirclesState } from "./hooks/useCirclesState";
 import { CirclesList } from "@/components/circles/CirclesList";
 import { CirclesFilter } from "@/components/circles/CirclesFilter";
-import { EnhancedContactDetail } from "@/components/contact/EnhancedContactDetail";
+import { ContactDetailTabs } from "@/components/contact/ContactDetailTabs";
 import { SyncContactsButton } from "@/components/circles/SyncContactsButton";
 import { Contact } from "@/types/contact";
 import { AddContactDialog } from "./dialogs/AddContactDialog";
@@ -324,7 +324,7 @@ export default function RedesignedCircles() {
           {/* Contact Details Panel - Only show when contact is selected */}
           {selectedContact && (
             <div className="w-96 flex-shrink-0 bg-card dark:bg-card shadow-sm border-l border-border dark:border-border overflow-hidden">
-              <EnhancedContactDetail 
+              <ContactDetailTabs 
                 contact={selectedContact} 
                 interactions={selectedContactInteractions} 
                 onEdit={handleEditContact} 

@@ -68,8 +68,7 @@ export function useConversations() {
     if (!user) return;
 
     try {
-      // Use type casting to work around TypeScript issues until types are regenerated
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('conversations')
         .select('*')
         .eq('user_id', user.id)
@@ -132,8 +131,7 @@ export function useConversations() {
     if (!user) return;
 
     try {
-      // Use type casting to work around TypeScript issues
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('conversations')
         .upsert({
           id: conversation.id,
@@ -145,6 +143,9 @@ export function useConversations() {
         });
 
       if (error) throw error;
+      
+      // Reload conversations to ensure sync
+      await loadConversations();
     } catch (error) {
       console.error('Error saving conversation to Supabase:', error);
       // Fallback to localStorage
@@ -182,8 +183,7 @@ export function useConversations() {
     if (!user) return;
 
     try {
-      // Use type casting to work around TypeScript issues
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('conversations')
         .delete()
         .eq('id', conversationId)
