@@ -18,11 +18,19 @@ interface ChatMessage {
   timestamp: Date;
 }
 
+// Type for serializable message data that can be stored in JSON
+interface SerializableChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string; // ISO string for JSON compatibility
+}
+
 interface ConversationData {
   id: string;
   user_id: string;
   title: string;
-  messages: any[];
+  messages: SerializableChatMessage[];
   created_at: string;
   updated_at: string;
 }
@@ -79,7 +87,7 @@ export function useConversations() {
       const parsedConversations = (data || []).map((conv: ConversationData) => ({
         id: conv.id,
         title: conv.title,
-        messages: conv.messages.map((msg: any) => ({
+        messages: conv.messages.map((msg: SerializableChatMessage) => ({
           ...msg,
           timestamp: new Date(msg.timestamp)
         })),
@@ -131,13 +139,21 @@ export function useConversations() {
     if (!user) return;
 
     try {
+      // Convert messages to serializable format
+      const serializableMessages: SerializableChatMessage[] = conversation.messages.map(msg => ({
+        id: msg.id,
+        role: msg.role,
+        content: msg.content,
+        timestamp: msg.timestamp.toISOString()
+      }));
+
       const { error } = await supabase
         .from('conversations')
         .upsert({
           id: conversation.id,
           user_id: user.id,
           title: conversation.title,
-          messages: conversation.messages,
+          messages: serializableMessages,
           created_at: conversation.createdAt.toISOString(),
           updated_at: conversation.updatedAt.toISOString()
         });
