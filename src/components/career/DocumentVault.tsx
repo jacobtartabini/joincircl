@@ -1,10 +1,8 @@
-
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, FileText, Download, Edit, Trash2, Upload } from "lucide-react";
-
 interface Document {
   id: string;
   document_name: string;
@@ -12,25 +10,26 @@ interface Document {
   file_size?: number;
   created_at: string;
 }
-
 export default function DocumentVault() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [showUploadDialog, setShowUploadDialog] = useState(false);
-
   const getDocumentIcon = (type: Document['document_type']) => {
     return <FileText className="h-4 w-4" />;
   };
-
   const getDocumentTypeColor = (type: Document['document_type']) => {
     switch (type) {
-      case 'resume': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
-      case 'cover_letter': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-      case 'portfolio': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300';
-      case 'reference': return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
+      case 'resume':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+      case 'cover_letter':
+        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+      case 'portfolio':
+        return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300';
+      case 'reference':
+        return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
     }
   };
-
   const formatFileSize = (bytes?: number) => {
     if (!bytes) return '';
     const kb = bytes / 1024;
@@ -38,36 +37,26 @@ export default function DocumentVault() {
     if (mb >= 1) return `${mb.toFixed(1)} MB`;
     return `${kb.toFixed(1)} KB`;
   };
-
-  return (
-    <div className="space-y-4">
+  return <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-foreground">Document Vault</h3>
-        <Button 
-          onClick={() => setShowUploadDialog(true)}
-          className="gap-2 glass-button"
-          size="sm"
-        >
+        <Button onClick={() => setShowUploadDialog(true)} size="sm" className="gap-2 glass-button rounded-full">
           <Plus className="h-4 w-4" />
           Upload Document
         </Button>
       </div>
 
-      {documents.length === 0 ? (
-        <Card className="p-8 text-center glass-card">
+      {documents.length === 0 ? <Card className="p-8 text-center glass-card rounded-2xl">
           <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <h4 className="font-medium text-foreground mb-2">No Documents Yet</h4>
           <p className="text-sm text-muted-foreground mb-4">
             Upload your resume, cover letters, and other career documents
           </p>
-          <Button onClick={() => setShowUploadDialog(true)} className="glass-button">
+          <Button onClick={() => setShowUploadDialog(true)} className="glass-button rounded-full">
             Upload Your First Document
           </Button>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 gap-3">
-          {documents.map((doc) => (
-            <Card key={doc.id} className="p-4 glass-card hover:glass-card-enhanced transition-all duration-200">
+        </Card> : <div className="grid grid-cols-1 gap-3">
+          {documents.map(doc => <Card key={doc.id} className="p-4 glass-card hover:glass-card-enhanced transition-all duration-200">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -80,11 +69,9 @@ export default function DocumentVault() {
                       <Badge className={getDocumentTypeColor(doc.document_type)}>
                         {doc.document_type.replace('_', ' ')}
                       </Badge>
-                      {doc.file_size && (
-                        <span className="text-xs text-muted-foreground">
+                      {doc.file_size && <span className="text-xs text-muted-foreground">
                           {formatFileSize(doc.file_size)}
-                        </span>
-                      )}
+                        </span>}
                     </div>
                   </div>
                 </div>
@@ -101,10 +88,7 @@ export default function DocumentVault() {
                   </Button>
                 </div>
               </div>
-            </Card>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+            </Card>)}
+        </div>}
+    </div>;
 }
