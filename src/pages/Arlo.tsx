@@ -50,13 +50,6 @@ export default function Arlo() {
     scrollToBottom();
   }, [activeConversation?.messages]);
 
-  // Only create initial conversation when user sends first message
-  useEffect(() => {
-    if (conversations.length === 0 && !hasStartedConversation) {
-      // Don't create conversation automatically
-    }
-  }, []);
-
   const handleSendMessage = async ({
     input,
     attachments: messageAttachments

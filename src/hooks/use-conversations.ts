@@ -18,15 +18,6 @@ interface ChatMessage {
   timestamp: Date;
 }
 
-interface ConversationData {
-  id: string;
-  user_id: string;
-  title: string;
-  messages: any[];
-  created_at: string;
-  updated_at: string;
-}
-
 export function useConversations() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
@@ -68,8 +59,7 @@ export function useConversations() {
     if (!user) return;
 
     try {
-      // Use type casting to work around TypeScript issues until types are regenerated
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('conversations')
         .select('*')
         .eq('user_id', user.id)
@@ -77,13 +67,13 @@ export function useConversations() {
 
       if (error) throw error;
 
-      const parsedConversations = (data || []).map((conv: ConversationData) => ({
+      const parsedConversations = (data || []).map((conv: any) => ({
         id: conv.id,
         title: conv.title,
-        messages: conv.messages.map((msg: any) => ({
+        messages: Array.isArray(conv.messages) ? conv.messages.map((msg: any) => ({
           ...msg,
           timestamp: new Date(msg.timestamp)
-        })),
+        })) : [],
         createdAt: new Date(conv.created_at),
         updatedAt: new Date(conv.updated_at)
       }));
@@ -132,14 +122,18 @@ export function useConversations() {
     if (!user) return;
 
     try {
-      // Use type casting to work around TypeScript issues
-      const { error } = await (supabase as any)
+      const messagesWithStringTimestamps = conversation.messages.map(msg => ({
+        ...msg,
+        timestamp: msg.timestamp.toISOString()
+      }));
+
+      const { error } = await supabase
         .from('conversations')
         .upsert({
           id: conversation.id,
           user_id: user.id,
           title: conversation.title,
-          messages: conversation.messages,
+          messages: messagesWithStringTimestamps,
           created_at: conversation.createdAt.toISOString(),
           updated_at: conversation.updatedAt.toISOString()
         });
@@ -182,8 +176,7 @@ export function useConversations() {
     if (!user) return;
 
     try {
-      // Use type casting to work around TypeScript issues
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('conversations')
         .delete()
         .eq('id', conversationId)
