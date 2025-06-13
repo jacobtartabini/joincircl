@@ -18,19 +18,11 @@ interface ChatMessage {
   timestamp: Date;
 }
 
-// Type for serializable message data that can be stored in JSON
-interface SerializableChatMessage {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: string; // ISO string for JSON compatibility
-}
-
 interface ConversationData {
   id: string;
   user_id: string;
   title: string;
-  messages: SerializableChatMessage[];
+  messages: any[];
   created_at: string;
   updated_at: string;
 }
@@ -76,7 +68,8 @@ export function useConversations() {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+      // Use type casting to work around TypeScript issues until types are regenerated
+      const { data, error } = await (supabase as any)
         .from('conversations')
         .select('*')
         .eq('user_id', user.id)
@@ -84,37 +77,16 @@ export function useConversations() {
 
       if (error) throw error;
 
-      // Type assertion and safe parsing of messages
-      const parsedConversations = (data || []).map((conv: any) => {
-        let messages: ChatMessage[] = [];
-        
-        try {
-          // Handle both array and string JSON formats
-          const messagesData = typeof conv.messages === 'string' 
-            ? JSON.parse(conv.messages) 
-            : conv.messages;
-          
-          if (Array.isArray(messagesData)) {
-            messages = messagesData.map((msg: any) => ({
-              id: msg.id,
-              role: msg.role,
-              content: msg.content,
-              timestamp: new Date(msg.timestamp)
-            }));
-          }
-        } catch (e) {
-          console.error('Error parsing messages:', e);
-          messages = [];
-        }
-
-        return {
-          id: conv.id,
-          title: conv.title,
-          messages,
-          createdAt: new Date(conv.created_at),
-          updatedAt: new Date(conv.updated_at)
-        };
-      });
+      const parsedConversations = (data || []).map((conv: ConversationData) => ({
+        id: conv.id,
+        title: conv.title,
+        messages: conv.messages.map((msg: any) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp)
+        })),
+        createdAt: new Date(conv.created_at),
+        updatedAt: new Date(conv.updated_at)
+      }));
 
       setConversations(parsedConversations);
 
@@ -160,29 +132,19 @@ export function useConversations() {
     if (!user) return;
 
     try {
-      // Convert messages to serializable format
-      const serializableMessages = conversation.messages.map(msg => ({
-        id: msg.id,
-        role: msg.role,
-        content: msg.content,
-        timestamp: msg.timestamp.toISOString()
-      }));
-
-      const { error } = await supabase
+      // Use type casting to work around TypeScript issues
+      const { error } = await (supabase as any)
         .from('conversations')
         .upsert({
           id: conversation.id,
           user_id: user.id,
           title: conversation.title,
-          messages: JSON.stringify(serializableMessages),
+          messages: conversation.messages,
           created_at: conversation.createdAt.toISOString(),
           updated_at: conversation.updatedAt.toISOString()
         });
 
       if (error) throw error;
-      
-      // Reload conversations to ensure sync
-      await loadConversations();
     } catch (error) {
       console.error('Error saving conversation to Supabase:', error);
       // Fallback to localStorage
@@ -220,7 +182,8 @@ export function useConversations() {
     if (!user) return;
 
     try {
-      const { error } = await supabase
+      // Use type casting to work around TypeScript issues
+      const { error } = await (supabase as any)
         .from('conversations')
         .delete()
         .eq('id', conversationId)
