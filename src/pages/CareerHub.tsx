@@ -210,7 +210,7 @@ export default function CareerHub() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Card className="p-6 glass-card">
+                <Card className="p-6 glass-card rounded-2xl">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-xl flex items-center justify-center">
                       <Users className="h-5 w-5 text-blue-500" />
@@ -225,7 +225,7 @@ export default function CareerHub() {
                   </p>
                 </Card>
 
-                <Card className="p-6 glass-card">
+                <Card className="p-6 glass-card rounded-2xl">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 bg-green-100 dark:bg-green-900/20 rounded-xl flex items-center justify-center">
                       <Target className="h-5 w-5 text-green-500" />
@@ -240,7 +240,7 @@ export default function CareerHub() {
                   </p>
                 </Card>
 
-                <Card className="p-6 glass-card">
+                <Card className="p-6 glass-card rounded-2xl">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/20 rounded-xl flex items-center justify-center">
                       <Calendar className="h-5 w-5 text-purple-500" />
@@ -255,7 +255,7 @@ export default function CareerHub() {
                   </p>
                 </Card>
 
-                <Card className="p-6 glass-card">
+                <Card className="p-6 glass-card rounded-2xl">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/20 rounded-xl flex items-center justify-center">
                       <FileText className="h-5 w-5 text-orange-500" />
@@ -272,7 +272,7 @@ export default function CareerHub() {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card className="p-6 glass-card">
+                <Card className="p-6 glass-card rounded-2xl">
                   <h3 className="font-semibold text-foreground mb-4">Recent Activity</h3>
                   {recentActivity.length === 0 ? <div className="text-center py-8">
                       <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
@@ -288,7 +288,7 @@ export default function CareerHub() {
                     </div>}
                 </Card>
 
-                <Card className="p-6 glass-card">
+                <Card className="p-6 glass-card rounded-2xl">
                   <div className="flex items-center gap-2 mb-4">
                     <MessageSquare className="h-5 w-5 text-blue-500" />
                     <h3 className="font-semibold text-foreground">Arlo's Insights</h3>
