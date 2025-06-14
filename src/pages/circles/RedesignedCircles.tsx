@@ -217,6 +217,7 @@ export default function RedesignedCircles() {
                 onSort={setSortBy} 
                 onFilter={handleFilterChange} 
                 activeTagFilter={tagFilter} 
+                refetchContacts={fetchContacts}
               />
               <div className="mt-3 flex justify-end">
                 <SyncContactsButton onContactsImported={fetchContacts} />
@@ -325,6 +326,7 @@ export default function RedesignedCircles() {
                       onSort={setSortBy} 
                       onFilter={handleFilterChange} 
                       activeTagFilter={tagFilter} 
+                      refetchContacts={fetchContacts}
                     />
                   </div>
                   <SyncContactsButton onContactsImported={fetchContacts} />

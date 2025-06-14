@@ -1,9 +1,11 @@
+
 import { Contact } from "@/types/contact";
 import { CircleCard } from "./CircleCard";
 import { CircleCardSkeleton } from "./CircleCardSkeleton";
-import { Users } from "lucide-react";
+import { Users, FileUp } from "lucide-react";
 import ImportContactsDialog from "./ImportContactsDialog";
 import { useState } from "react";
+import { Button } from "@/components/ui/button"; // Added import
 
 interface CirclesListProps {
   contacts: Contact[];
