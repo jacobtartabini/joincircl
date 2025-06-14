@@ -208,7 +208,7 @@ export function useConversations() {
     const updatedConversations = [newConversation, ...conversations];
     setConversations(updatedConversations);
     setActiveConversationId(newConversation.id);
-    saveToSupabase(newConversation, updatedConversations); // <-- FIXED
+    saveToSupabase(newConversation, updatedConversations); // <-- pass both arguments
 
     logDebug('New conversation created and saved', { conversationId });
     return newConversation.id;
@@ -255,7 +255,7 @@ export function useConversations() {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    saveToSupabase(fallbackConversation, updatedConversations); // <-- FIXED
+    saveToSupabase(fallbackConversation, updatedConversations); // <-- pass both arguments
   };
 
   const renameConversation = (conversationId: string, newTitle: string) => {
@@ -274,7 +274,7 @@ export function useConversations() {
     setConversations(updatedConversations);
 
     if (conversationToUpdate) {
-      saveToSupabase(conversationToUpdate, updatedConversations); // <-- FIXED
+      saveToSupabase(conversationToUpdate, updatedConversations); // <-- pass both arguments
     }
   };
 
@@ -323,7 +323,7 @@ export function useConversations() {
     setConversations(updatedConversations);
 
     if (conversationToUpdate) {
-      saveToSupabase(conversationToUpdate, updatedConversations); // <-- FIXED
+      saveToSupabase(conversationToUpdate, updatedConversations); // <-- pass both arguments
     }
 
     return messageId;

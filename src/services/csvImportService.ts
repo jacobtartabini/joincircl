@@ -1,4 +1,3 @@
-
 import { Contact } from "@/types/contact";
 import { CONTACT_FIELD_DEFS, validateField, parseField } from "./csvFieldDefs";
 
@@ -28,7 +27,7 @@ export function validateCSVContacts(
       if (h.required && (!value || value === "")) {
         errors.push({ row: i + 2, reason: `${h.label} is required.` });
       }
-      if (value && !validateField(value, h.type)) {
+      if (value && !validateField(value, h.type as any)) {
         errors.push({ row: i + 2, reason: `Invalid value for ${h.label}: ${value}` });
       }
     }
@@ -64,4 +63,3 @@ export function parseContactFromRow(row: any, headerMap: { [target: string]: str
   }
   return obj as Partial<Contact>;
 }
-
