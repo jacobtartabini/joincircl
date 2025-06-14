@@ -127,7 +127,6 @@ export function useConversations() {
     }
   };
 
-  // -- FIX saveToSupabase calls: ALWAYS use (conversation, conversationList) signature everywhere! --
   const saveToSupabase = async (
     conversation: Conversation,
     conversationList: Conversation[]
@@ -209,7 +208,7 @@ export function useConversations() {
     const updatedConversations = [newConversation, ...conversations];
     setConversations(updatedConversations);
     setActiveConversationId(newConversation.id);
-    saveToSupabase(newConversation, updatedConversations); // FIXED: Ensure two arguments are passed
+    saveToSupabase(newConversation, updatedConversations); // always pass both arguments
 
     logDebug('New conversation created and saved', { conversationId });
     return newConversation.id;
@@ -248,17 +247,15 @@ export function useConversations() {
       logDebug('Switching active conversation', { newActiveId });
       setActiveConversationId(newActiveId);
     }
-    // Make sure to save deletions with two args
-    saveToSupabase(
-      updatedConversations[0] ?? {
-        id: '',
-        title: '',
-        messages: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      updatedConversations
-    );
+    // Always pass both arguments even if one may be dummy
+    const fallbackConversation: Conversation = updatedConversations[0] ?? {
+      id: '',
+      title: '',
+      messages: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    saveToSupabase(fallbackConversation, updatedConversations);
   };
 
   const renameConversation = (conversationId: string, newTitle: string) => {
@@ -277,7 +274,7 @@ export function useConversations() {
     setConversations(updatedConversations);
 
     if (conversationToUpdate) {
-      saveToSupabase(conversationToUpdate, updatedConversations); // FIXED: Ensure two arguments are passed
+      saveToSupabase(conversationToUpdate, updatedConversations); // always pass both arguments
     }
   };
 
@@ -326,7 +323,7 @@ export function useConversations() {
     setConversations(updatedConversations);
 
     if (conversationToUpdate) {
-      saveToSupabase(conversationToUpdate, updatedConversations); // FIXED: Ensure two arguments are passed
+      saveToSupabase(conversationToUpdate, updatedConversations); // always pass both arguments
     }
 
     return messageId;
