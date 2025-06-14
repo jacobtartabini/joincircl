@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -5,7 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Plus, MessageSquare, MoreHorizontal, Edit2, Trash2, Check, X } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { Conversation } from "@/hooks/use-conversations";
+import { Conversation } from "@/hooks/conversationTypes";
 interface ConversationSidebarProps {
   conversations: Conversation[];
   activeConversationId: string | null;

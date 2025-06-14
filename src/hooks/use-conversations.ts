@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -249,6 +248,17 @@ export function useConversations() {
       logDebug('Switching active conversation', { newActiveId });
       setActiveConversationId(newActiveId);
     }
+    // Make sure to save deletions with two args
+    saveToSupabase(
+      updatedConversations[0] ?? {
+        id: '',
+        title: '',
+        messages: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      updatedConversations
+    );
   };
 
   const renameConversation = (conversationId: string, newTitle: string) => {
@@ -267,7 +277,7 @@ export function useConversations() {
     setConversations(updatedConversations);
 
     if (conversationToUpdate) {
-      saveToSupabase(conversationToUpdate, updatedConversations); // <-- FIX: always 2 args
+      saveToSupabase(conversationToUpdate, updatedConversations);
     }
   };
 
@@ -316,7 +326,7 @@ export function useConversations() {
     setConversations(updatedConversations);
 
     if (conversationToUpdate) {
-      saveToSupabase(conversationToUpdate, updatedConversations); // <-- FIX: always 2 args
+      saveToSupabase(conversationToUpdate, updatedConversations);
     }
 
     return messageId;
