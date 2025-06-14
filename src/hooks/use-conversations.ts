@@ -255,7 +255,7 @@ export function useConversations() {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    saveToSupabase(fallbackConversation, updatedConversations);
+    saveToSupabase(fallbackConversation, updatedConversations); // always pass both arguments
   };
 
   const renameConversation = (conversationId: string, newTitle: string) => {
