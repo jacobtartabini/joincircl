@@ -23,7 +23,6 @@ export function useConversations() {
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
 
-  // Enhanced logging function
   const logDebug = (message: string, data?: any) => {
     console.log(`[useConversations] ${message}`, data || '');
   };
@@ -32,7 +31,6 @@ export function useConversations() {
     console.error(`[useConversations] ${message}`, error);
   };
 
-  // Load conversations from Supabase on mount
   useEffect(() => {
     if (user) {
       logDebug('User authenticated, loading conversations', { userId: user.id });
@@ -45,7 +43,6 @@ export function useConversations() {
     }
   }, [user]);
 
-  // Subscribe to real-time updates
   useEffect(() => {
     if (!user) return;
 
@@ -111,7 +108,6 @@ export function useConversations() {
 
       setConversations(parsedConversations);
 
-      // Set active conversation to the most recent one if none is set
       if (parsedConversations.length > 0 && !activeConversationId) {
         logDebug('Setting active conversation to most recent', { conversationId: parsedConversations[0].id });
         setActiveConversationId(parsedConversations[0].id);
@@ -120,7 +116,6 @@ export function useConversations() {
       logDebug('Conversations loaded and parsed successfully', { count: parsedConversations.length });
     } catch (error) {
       logError('Failed to load conversations from Supabase, falling back to localStorage', error);
-      // Fallback to localStorage if Supabase fails
       loadFromLocalStorage();
     } finally {
       setIsLoading(false);
@@ -148,7 +143,7 @@ export function useConversations() {
             timestamp: new Date(msg.timestamp)
           }))
         }));
-        
+
         logDebug('Successfully loaded conversations from localStorage', { count: conversationsWithDates.length });
         setConversations(conversationsWithDates);
 
@@ -163,17 +158,14 @@ export function useConversations() {
     }
   };
 
-  // Update saveToSupabase to expect two arguments if needed, or fix the calls!
-  // Let's assume the signature is: saveToSupabase(conversation: Conversation, allConversations: Conversation[])
-
   const saveToSupabase = async (conversation: Conversation, conversationList: Conversation[] = conversations) => {
     if (!user) {
       logError('Cannot save to Supabase: no user authenticated', { conversationId: conversation.id });
       return;
     }
     try {
-      logDebug('Saving conversation to Supabase', { 
-        conversationId: conversation.id, 
+      logDebug('Saving conversation to Supabase', {
+        conversationId: conversation.id,
         userId: user.id,
         messageCount: conversation.messages.length,
         title: conversation.title
@@ -202,19 +194,16 @@ export function useConversations() {
       logDebug('Successfully saved conversation to Supabase', { data });
     } catch (error) {
       logError('Failed to save conversation to Supabase, falling back to localStorage', error);
-      // Fallback to localStorage
       saveToLocalStorage(conversationList);
     }
   };
 
-  // Fix all call sites to provide two arguments:
-
   const saveToLocalStorage = (conversationList: Conversation[] = conversations) => {
     if (user && conversationList.length > 0) {
       try {
-        logDebug('Saving conversations to localStorage', { 
-          userId: user.id, 
-          count: conversationList.length 
+        logDebug('Saving conversations to localStorage', {
+          userId: user.id,
+          count: conversationList.length
         });
         localStorage.setItem(`arlo-conversations-${user.id}`, JSON.stringify(conversationList));
         logDebug('Successfully saved to localStorage');
@@ -246,14 +235,11 @@ export function useConversations() {
     setConversations(prev => {
       const updated = [newConversation, ...prev];
       logDebug('Updated conversations list', { totalCount: updated.length });
+      saveToSupabase(newConversation, updated); // ✅ FIXED
       return updated;
     });
-    
+
     setActiveConversationId(newConversation.id);
-    
-    // Save immediately with the new conversation
-    saveToSupabase(newConversation, conversations);
-    
     logDebug('New conversation created and saved', { conversationId });
     return newConversation.id;
   };
@@ -285,7 +271,6 @@ export function useConversations() {
 
     setConversations(prev => prev.filter(conv => conv.id !== conversationId));
 
-    // If we deleted the active conversation, switch to another one
     if (activeConversationId === conversationId) {
       const remaining = conversations.filter(conv => conv.id !== conversationId);
       const newActiveId = remaining.length > 0 ? remaining[0].id : null;
@@ -300,7 +285,7 @@ export function useConversations() {
     setConversations(prev => prev.map(conv => {
       if (conv.id === conversationId) {
         const updatedConv = { ...conv, title: newTitle, updatedAt: new Date() };
-        saveToSupabase(updatedConv, prev);
+        saveToSupabase(updatedConv, prev); // ✅ FIXED
         return updatedConv;
       }
       return conv;
@@ -314,9 +299,9 @@ export function useConversations() {
     }
 
     const messageId = crypto.randomUUID();
-    logDebug('Adding message to conversation', { 
-      conversationId, 
-      messageId, 
+    logDebug('Adding message to conversation', {
+      conversationId,
+      messageId,
       role: message.role,
       contentLength: message.content.length
     });
@@ -335,17 +320,15 @@ export function useConversations() {
           updatedAt: new Date()
         };
 
-        // Auto-update title based on first user message
         if (message.role === 'user' && conv.title === 'New Conversation') {
-          const title = message.content.length > 50 
+          const title = message.content.length > 50
             ? message.content.substring(0, 47) + '...'
             : message.content;
           updatedConv.title = title;
           logDebug('Auto-updating conversation title', { conversationId, newTitle: title });
         }
 
-        // Save immediately after updating
-        saveToSupabase(updatedConv, prev);
+        saveToSupabase(updatedConv, prev); // ✅ FIXED
         return updatedConv;
       }
       return conv;
@@ -354,7 +337,6 @@ export function useConversations() {
     return messageId;
   };
 
-  // Manual refresh function for debugging
   const refreshConversations = () => {
     logDebug('Manual refresh triggered');
     loadConversations();
@@ -372,6 +354,6 @@ export function useConversations() {
     deleteConversation,
     renameConversation,
     addMessage,
-    refreshConversations // Export for debugging
+    refreshConversations
   };
 }
