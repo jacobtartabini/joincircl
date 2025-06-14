@@ -140,41 +140,8 @@ interface SuggestedActionsProps {
 function PureSuggestedActions({
   onSelectAction
 }: SuggestedActionsProps) {
-  const suggestedActions = [{
-    title: 'Who should I',
-    label: 'reach out to this week?',
-    action: 'Who should I reach out to this week?'
-  }, {
-    title: 'Help me reconnect',
-    label: 'with old contacts',
-    action: 'Help me reconnect with old contacts'
-  }, {
-    title: 'What are networking',
-    label: 'strategies for this week?',
-    action: 'What are networking strategies for this week?'
-  }, {
-    title: 'How can I strengthen',
-    label: 'my inner circle?',
-    action: 'How can I strengthen my inner circle?'
-  }];
-  
-  return (
-    <div className="grid grid-cols-2 gap-3 p-4">
-      {suggestedActions.map((suggestion, index) => (
-        <Button
-          key={index}
-          variant="outline"
-          className="h-auto p-4 text-left justify-start"
-          onClick={() => onSelectAction(suggestion.action)}
-        >
-          <div className="text-sm">
-            <div className="font-medium text-foreground">{suggestion.title}</div>
-            <div className="text-muted-foreground">{suggestion.label}</div>
-          </div>
-        </Button>
-      ))}
-    </div>
-  );
+  // Component removed - return null to prevent rendering
+  return null;
 }
 const SuggestedActions = memo(PureSuggestedActions, (prevProps, nextProps) => {
   if (prevProps.chatId !== nextProps.chatId) return false;
