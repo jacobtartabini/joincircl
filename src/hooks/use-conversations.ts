@@ -232,7 +232,7 @@ export function useConversations() {
       createdAt: new Date(),
       updatedAt: new Date()
     };
-
+    
     const updatedConversations = [newConversation, ...conversations];
     setConversations(updatedConversations);
     setActiveConversationId(newConversation.id);
