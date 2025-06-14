@@ -1,21 +1,9 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-
-export interface Conversation {
-  id: string;
-  title: string;
-  messages: ChatMessage[];
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface ChatMessage {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
-}
+import { Conversation, ChatMessage } from './conversationTypes';
+import { parseConversation, parseLocalConversation } from './conversationHelpers';
 
 export function useConversations() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -45,7 +33,6 @@ export function useConversations() {
 
   useEffect(() => {
     if (!user) return;
-
     logDebug('Setting up real-time subscription', { userId: user.id });
 
     const channel = supabase
@@ -95,16 +82,7 @@ export function useConversations() {
 
       logDebug('Successfully loaded conversations from Supabase', { count: data?.length || 0, data });
 
-      const parsedConversations = (data || []).map((conv: any) => ({
-        id: conv.id,
-        title: conv.title,
-        messages: Array.isArray(conv.messages) ? conv.messages.map((msg: any) => ({
-          ...msg,
-          timestamp: new Date(msg.timestamp)
-        })) : [],
-        createdAt: new Date(conv.created_at),
-        updatedAt: new Date(conv.updated_at)
-      }));
+      const parsedConversations: Conversation[] = (data || []).map(parseConversation);
 
       setConversations(parsedConversations);
 
@@ -134,15 +112,7 @@ export function useConversations() {
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        const conversationsWithDates = parsed.map((conv: any) => ({
-          ...conv,
-          createdAt: new Date(conv.createdAt),
-          updatedAt: new Date(conv.updatedAt),
-          messages: conv.messages.map((msg: any) => ({
-            ...msg,
-            timestamp: new Date(msg.timestamp)
-          }))
-        }));
+        const conversationsWithDates = parsed.map(parseLocalConversation);
 
         logDebug('Successfully loaded conversations from localStorage', { count: conversationsWithDates.length });
         setConversations(conversationsWithDates);
@@ -158,7 +128,11 @@ export function useConversations() {
     }
   };
 
-  const saveToSupabase = async (conversation: Conversation, conversationList: Conversation[]) => {
+  // -- FIX saveToSupabase calls: ALWAYS use (conversation, conversationList) signature everywhere! --
+  const saveToSupabase = async (
+    conversation: Conversation,
+    conversationList: Conversation[]
+  ) => {
     if (!user) {
       logError('Cannot save to Supabase: no user authenticated', { conversationId: conversation.id });
       return;
@@ -232,7 +206,7 @@ export function useConversations() {
       createdAt: new Date(),
       updatedAt: new Date()
     };
-    
+
     const updatedConversations = [newConversation, ...conversations];
     setConversations(updatedConversations);
     setActiveConversationId(newConversation.id);
@@ -293,7 +267,7 @@ export function useConversations() {
     setConversations(updatedConversations);
 
     if (conversationToUpdate) {
-      saveToSupabase(conversationToUpdate, updatedConversations);
+      saveToSupabase(conversationToUpdate, updatedConversations); // <-- FIX: always 2 args
     }
   };
 
@@ -342,7 +316,7 @@ export function useConversations() {
     setConversations(updatedConversations);
 
     if (conversationToUpdate) {
-      saveToSupabase(conversationToUpdate, updatedConversations);
+      saveToSupabase(conversationToUpdate, updatedConversations); // <-- FIX: always 2 args
     }
 
     return messageId;
