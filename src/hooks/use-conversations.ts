@@ -232,14 +232,12 @@ export function useConversations() {
       createdAt: new Date(),
       updatedAt: new Date()
     };
-    setConversations(prev => {
-      const updated = [newConversation, ...prev];
-      logDebug('Updated conversations list', { totalCount: updated.length });
-      saveToSupabase(newConversation, updated); // ✅ FIXED
-      return updated;
-    });
-
+    
+    const updatedConversations = [newConversation, ...conversations];
+    setConversations(updatedConversations);
     setActiveConversationId(newConversation.id);
+    saveToSupabase(newConversation, updatedConversations);
+
     logDebug('New conversation created and saved', { conversationId });
     return newConversation.id;
   };
@@ -282,14 +280,21 @@ export function useConversations() {
   const renameConversation = (conversationId: string, newTitle: string) => {
     logDebug('Renaming conversation', { conversationId, newTitle });
 
-    setConversations(prev => prev.map(conv => {
+    let conversationToUpdate: Conversation | null = null;
+    const updatedConversations = conversations.map(conv => {
       if (conv.id === conversationId) {
         const updatedConv = { ...conv, title: newTitle, updatedAt: new Date() };
-        saveToSupabase(updatedConv, prev); // ✅ FIXED
+        conversationToUpdate = updatedConv;
         return updatedConv;
       }
       return conv;
-    }));
+    });
+
+    setConversations(updatedConversations);
+
+    if (conversationToUpdate) {
+      saveToSupabase(conversationToUpdate, updatedConversations);
+    }
   };
 
   const addMessage = (conversationId: string, message: Omit<ChatMessage, 'id' | 'timestamp'>) => {
@@ -312,7 +317,8 @@ export function useConversations() {
       timestamp: new Date()
     };
 
-    setConversations(prev => prev.map(conv => {
+    let conversationToUpdate: Conversation | null = null;
+    const updatedConversations = conversations.map(conv => {
       if (conv.id === conversationId) {
         const updatedConv = {
           ...conv,
@@ -327,12 +333,17 @@ export function useConversations() {
           updatedConv.title = title;
           logDebug('Auto-updating conversation title', { conversationId, newTitle: title });
         }
-
-        saveToSupabase(updatedConv, prev); // ✅ FIXED
+        conversationToUpdate = updatedConv;
         return updatedConv;
       }
       return conv;
-    }));
+    });
+
+    setConversations(updatedConversations);
+
+    if (conversationToUpdate) {
+      saveToSupabase(conversationToUpdate, updatedConversations);
+    }
 
     return messageId;
   };
