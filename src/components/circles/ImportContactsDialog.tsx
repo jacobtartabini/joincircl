@@ -3,24 +3,26 @@ import React, { useRef, useState } from "react";
 import Papa from "papaparse";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, FileUp, CheckCircle, ChevronDown, Trash2, Upload } from "lucide-react";
+import { ChevronRight, FileUp, CheckCircle, ChevronDown, Trash2, Upload, Info } from "lucide-react";
 import { Contact } from "@/types/contact";
-import { validateCSVContacts, detectHeaders } from "@/services/csvImportService";
+import { validateCSVContacts, detectHeaders, getKeyByLabel, parseContactFromRow } from "@/services/csvImportService";
+import { CONTACT_FIELD_DEFS, getExample } from "@/services/csvFieldDefs";
 import { toast } from "sonner";
 import { GlassModal } from "@/components/ui/GlassModal";
 import styles from "@/components/ui/glass.module.css";
 
-const SAMPLE_CSV = `Name,Email,Phone,Company,Job Title
-Jane Doe,jane@email.com,111-222-3333,ACME Inc,Engineer
-John Smith,john@email.com,222-333-4444,Company B,Director
-`;
-const CSV_HEADERS = [
-  { label: "Name", required: true, keys: ["name", "full name"] },
-  { label: "Email", required: true, keys: ["email", "e-mail"] },
-  { label: "Phone", required: false, keys: ["phone", "mobile", "mobile_phone"] },
-  { label: "Company", required: false, keys: ["company", "company_name"] },
-  { label: "Job Title", required: false, keys: ["job_title", "title"] }
-];
+// Multi-template sample CSVs
+const makeSampleCSV = (fields: string[]): string => {
+  const rows = [
+    fields.join(","),
+    fields.map(f => getExample(CONTACT_FIELD_DEFS.find(fd => fd.label === f)?.type as any)).join(","),
+    fields.map(f => getExample(CONTACT_FIELD_DEFS.find(fd => fd.label === f)?.type as any)).join(","),
+  ];
+  return rows.join("\n");
+};
+
+const BASIC_FIELDS = ["Name", "Email", "Phone", "Company", "Job Title"];
+const COMPREHENSIVE_FIELDS = CONTACT_FIELD_DEFS.filter(f => f.key !== "user_id").map(f => f.label);
 
 interface ImportContactsDialogProps {
   open: boolean;
@@ -75,7 +77,6 @@ export default function ImportContactsDialog({
           resetAll();
           return;
         }
-        // Remove blank rows
         const filtered = data.filter((row: any) =>
           Object.values(row).some((v) => v && `${v}`.trim() !== "")
         );
@@ -100,18 +101,15 @@ export default function ImportContactsDialog({
       setValidationErr("No data to import.");
       return;
     }
-    const contacts: Partial<Contact>[] = fileData.map((row) => {
-      const get = (target: string) => row[headerMap[target]]?.toString()?.trim() ?? "";
-      return {
-        name: get("Name"),
-        personal_email: get("Email"),
-        mobile_phone: get("Phone"),
-        company_name: get("Company"),
-        job_title: get("Job Title"),
-      };
-    });
-    // Client-side validation
-    const { validContacts, errors } = validateCSVContacts(contacts, CSV_HEADERS);
+
+    // Build contact objects based on mapping
+    const contacts: Partial<Contact>[] = fileData.map((row) =>
+      parseContactFromRow(row, headerMap)
+    );
+
+    // Client-side validation using dynamic headers (all fields)
+    const { validContacts, errors } = validateCSVContacts(contacts, CONTACT_FIELD_DEFS);
+
     if (errors.length > 0) {
       setValidationErr(
         `Please fix errors before import:\n` +
@@ -122,6 +120,7 @@ export default function ImportContactsDialog({
     setLoading(true);
     setValidationErr(null);
     setImportResult(null);
+
     try {
       const resp = await fetch("/api/contacts/import", {
         method: "POST",
@@ -181,19 +180,34 @@ export default function ImportContactsDialog({
             }}
           />
         </div>
-        <div className="mt-5 flex items-center gap-4">
+        <div className="mt-5 flex flex-wrap items-center gap-3">
           <Button variant="secondary" size="sm" onClick={() => {
-            const blob = new Blob([SAMPLE_CSV], { type: "text/csv" });
+            const blob = new Blob([makeSampleCSV(BASIC_FIELDS)], { type: "text/csv" });
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
-            a.download = "sample-contacts.csv";
+            a.download = "sample-basic-contacts.csv";
             a.click();
             URL.revokeObjectURL(url);
           }}>
             <Upload className="w-4 h-4 mr-1" />
-            Download Sample CSV
+            Download Basic Sample CSV
           </Button>
+          <Button variant="secondary" size="sm" onClick={() => {
+            const blob = new Blob([makeSampleCSV(COMPREHENSIVE_FIELDS)], { type: "text/csv" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "sample-complete-contacts.csv";
+            a.click();
+            URL.revokeObjectURL(url);
+          }}>
+            <Upload className="w-4 h-4 mr-1" />
+            Download Complete CSV
+          </Button>
+          <span className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Info className="w-4 h-4" /> Use "Complete" for advanced/array fields!
+          </span>
         </div>
         {validationErr &&
           <div className="text-red-700 mt-6 bg-red-50 border border-red-200 rounded-md p-3 text-xs">{validationErr}</div>
@@ -205,33 +219,43 @@ export default function ImportContactsDialog({
   // --- Mapping Section
   function ColumnMappingSection() {
     const uploadedHeaders = fileData.length > 0 && Object.keys(fileData[0]);
+    const groups = Array.from(new Set(CONTACT_FIELD_DEFS.map(f => f.group)));
+
     return (
-      <>
+      <div>
         <div className={`${styles["glass-mapping"]} mb-6`}>
           <div className="font-semibold text-lg mb-2 flex items-center">
             Map your CSV columns
             <span className="ml-auto text-xs text-gray-500">{fileName}</span>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {CSV_HEADERS.map(field =>
-              <div key={field.label} className="flex flex-col">
-                <span className="text-sm font-medium mb-1 flex items-center">
-                  {field.label}
-                  {field.required && <span className="ml-1 text-red-500">*</span>}
-                </span>
-                <select
-                  className="rounded-lg border border-gray-200 px-2 py-2 bg-white bg-opacity-70 focus:ring-2 focus:ring-blue-300"
-                  value={headerMap[field.label] || ""}
-                  onChange={e => updateMapping(field.label, e.target.value)}
-                >
-                  <option value="">Unmapped</option>
-                  {uploadedHeaders && uploadedHeaders.map(h =>
-                    <option key={h} value={h}>{h}</option>
-                  )}
-                </select>
+          {/* Grouped mapping grid */}
+          {groups.map(group => (
+            <div key={group} className="mb-4">
+              <div className="text-xs uppercase tracking-wide font-semibold text-blue-400 mb-2">{group} Fields</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {CONTACT_FIELD_DEFS.filter(f => f.group === group && f.key !== "user_id").map(field =>
+                  <div key={field.label} className="flex flex-col">
+                    <span className="text-sm font-medium mb-1 flex items-center">
+                      {field.label}
+                      {field.required && <span className="ml-1 text-red-500">*</span>}
+                      <span className="ml-1 text-gray-400 text-xs">({field.key})</span>
+                    </span>
+                    <select
+                      className="rounded-lg border border-gray-200 px-2 py-2 bg-white bg-opacity-70 focus:ring-2 focus:ring-blue-300"
+                      value={headerMap[field.label] || ""}
+                      onChange={e => updateMapping(field.label, e.target.value)}
+                    >
+                      <option value="">Unmapped</option>
+                      {uploadedHeaders && uploadedHeaders.map((h: string) =>
+                        <option key={h} value={h}>{h}</option>
+                      )}
+                    </select>
+                    <span className="text-xs text-gray-400 mt-1">e.g. <span className="italic">{getExample(field.type)}</span></span>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </div>
+          ))}
         </div>
         <div>
           <span className="font-medium text-md">Preview ({previewRows.length} of {fileData.length} rows)</span>
@@ -239,7 +263,7 @@ export default function ImportContactsDialog({
             <table className="w-full text-xs">
               <thead className="bg-blue-50 sticky top-0 z-0">
                 <tr>
-                  {CSV_HEADERS.map(({ label }) =>
+                  {CONTACT_FIELD_DEFS.filter(f => f.key !== "user_id").map(({ label }) =>
                     <th key={label} className="p-2 font-semibold">{label}</th>
                   )}
                 </tr>
@@ -247,9 +271,9 @@ export default function ImportContactsDialog({
               <tbody>
                 {previewRows.map((row, i) =>
                   <tr key={i} className="border-b last:border-0">
-                    {CSV_HEADERS.map(({ label }) =>
-                      <td key={label} className="p-2 truncate max-w-xs">
-                        {row[headerMap[label]] || ""}
+                    {CONTACT_FIELD_DEFS.filter(f => f.key !== "user_id").map((field) =>
+                      <td key={field.label} className="p-2 truncate max-w-xs">
+                        {row[headerMap[field.label]] || ""}
                       </td>
                     )}
                   </tr>
@@ -261,14 +285,14 @@ export default function ImportContactsDialog({
         {validationErr &&
           <div className="text-red-700 mt-5 bg-red-50 border border-red-200 rounded-md p-3 text-xs whitespace-pre-line">{validationErr}</div>
         }
-      </>
+      </div>
     );
   }
 
   // --- Confirm/Results Section
   function ConfirmImportSection() {
     return (
-      <>
+      <div>
         {importResult ?
           <div className="mb-4 p-4 rounded-xl bg-green-50 border border-green-200">
             <div className="font-medium text-green-700 text-sm flex items-center">
@@ -312,15 +336,15 @@ export default function ImportContactsDialog({
             Close
           </Button>
         </div>
-      </>
+      </div>
     );
   }
 
   // --- Main wizard content
   const currentStepContent = [
-    <FileUploadSection key="u"/>,
-    <ColumnMappingSection key="m"/>,
-    <ConfirmImportSection key="c"/>
+    <FileUploadSection key="u" />,
+    <ColumnMappingSection key="m" />,
+    <ConfirmImportSection key="c" />
   ][step];
 
   // Title for each step
@@ -382,3 +406,5 @@ export default function ImportContactsDialog({
     </GlassModal>
   );
 }
+
+// File can be further split if grows too large.

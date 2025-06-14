@@ -1,48 +1,43 @@
 
 import { Contact } from "@/types/contact";
+import { CONTACT_FIELD_DEFS, validateField, parseField } from "./csvFieldDefs";
 
 // Map CSV columns to standardized keys (Name, Email, Phone, etc)
 export function detectHeaders(fields: string[]): { [target: string]: string } {
   const mapping: { [target: string]: string } = {};
-  const targets = [
-    { label: "Name", keys: ["name", "full name"] },
-    { label: "Email", keys: ["email", "e-mail"] },
-    { label: "Phone", keys: ["phone", "mobile", "mobile_phone"] },
-    { label: "Company", keys: ["company", "company_name"] },
-    { label: "Job Title", keys: ["job_title", "title"] },
-  ];
-  for (const t of targets) {
-    const match = fields.find(f =>
-      t.keys.some(k => k.toLowerCase() === f.trim().toLowerCase())
-    );
-    if (match) mapping[t.label] = match;
+  for (const def of CONTACT_FIELD_DEFS) {
+    const match = fields.find(f => def.keys.some(k => k.toLowerCase() === f.trim().toLowerCase()));
+    if (match) mapping[def.label] = match;
   }
   return mapping;
 }
 
-// Basic client-side validation
+// Client-side validation of imported data per field type
 export function validateCSVContacts(
   contacts: Partial<Contact>[],
-  headers: { label: string; required: boolean }[]
+  headers: { label: string; required?: boolean; key: string; type: string; }[]
 ) {
   const validContacts: Partial<Contact>[] = [];
   const errors: { row: number; reason: string }[] = [];
   const emailSet = new Set<string>();
+
   for (let i = 0; i < contacts.length; i++) {
     const c = contacts[i];
-    // Check required
     for (const h of headers) {
-      if (h.required && !c[getKeyByLabel(h.label)]) {
-        errors.push({ row: i + 2, reason: `${h.label} is required.` }); // +2 for CSV row # (header = row 1)
+      const value = c[h.key as keyof Contact] as any as string;
+      if (h.required && (!value || value === "")) {
+        errors.push({ row: i + 2, reason: `${h.label} is required.` });
+      }
+      if (value && !validateField(value, h.type)) {
+        errors.push({ row: i + 2, reason: `Invalid value for ${h.label}: ${value}` });
       }
     }
-    // Email format
+    // Email: format + duplicates
     if (c.personal_email && !/^[^@]+@[^@]+\.[^@]+$/.test(c.personal_email)) {
       errors.push({ row: i + 2, reason: `Invalid email format: ${c.personal_email}` });
     }
-    // Duplicates in upload set
     if (c.personal_email) {
-      const key = c.personal_email.toLowerCase();
+      const key = (c.personal_email as string).toLowerCase();
       if (emailSet.has(key)) {
         errors.push({ row: i + 2, reason: `Duplicate email: ${c.personal_email}` });
       }
@@ -53,13 +48,20 @@ export function validateCSVContacts(
   return { validContacts, errors };
 }
 
-function getKeyByLabel(label: string) {
-  switch (label) {
-    case "Name": return "name";
-    case "Email": return "personal_email";
-    case "Phone": return "mobile_phone";
-    case "Company": return "company_name";
-    case "Job Title": return "job_title";
-    default: return label.toLowerCase().replace(/ /g, "_");
-  }
+// Extract key for field by label (uses field defs)
+export function getKeyByLabel(label: string): string {
+  const def = CONTACT_FIELD_DEFS.find(f => f.label === label);
+  return def ? def.key : label.toLowerCase().replace(/ /g, "_");
 }
+
+// Generate Contact object from a csv row + mapping
+export function parseContactFromRow(row: any, headerMap: { [target: string]: string }) {
+  const obj: any = {};
+  for (const f of CONTACT_FIELD_DEFS) {
+    if (headerMap[f.label] && row[headerMap[f.label]] !== undefined) {
+      obj[f.key] = parseField(row[headerMap[f.label]], f.type);
+    }
+  }
+  return obj as Partial<Contact>;
+}
+
