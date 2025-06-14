@@ -1,4 +1,3 @@
-
 import React, { useRef, useState } from "react";
 import Papa from "papaparse";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +9,8 @@ import { CONTACT_FIELD_DEFS, getExample } from "@/services/csvFieldDefs";
 import { toast } from "sonner";
 import { GlassModal } from "@/components/ui/GlassModal";
 import styles from "@/components/ui/glass.module.css";
+import { CSVMappingGroup } from "./CSVMappingGroup";
+import { CSVPreviewTable } from "./CSVPreviewTable";
 
 // Multi-template sample CSVs
 const makeSampleCSV = (fields: string[]): string => {
@@ -221,66 +222,44 @@ export default function ImportContactsDialog({
     const uploadedHeaders = fileData.length > 0 && Object.keys(fileData[0]);
     const groups = Array.from(new Set(CONTACT_FIELD_DEFS.map(f => f.group)));
 
+    // State: expand/collapse all groups
+    const [allOpen, setAllOpen] = useState<string | null>(null);
+
     return (
       <div>
-        <div className={`${styles["glass-mapping"]} mb-6`}>
-          <div className="font-semibold text-lg mb-2 flex items-center">
+        <div className={`${styles["glass-mapping"]} mb-4`}>
+          <div className="font-semibold text-base mb-1 flex items-center gap-2">
             Map your CSV columns
-            <span className="ml-auto text-xs text-gray-500">{fileName}</span>
+            <span className="ml-auto whitespace-nowrap text-xs text-gray-500">{fileName}</span>
           </div>
-          {/* Grouped mapping grid */}
-          {groups.map(group => (
-            <div key={group} className="mb-4">
-              <div className="text-xs uppercase tracking-wide font-semibold text-blue-400 mb-2">{group} Fields</div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {CONTACT_FIELD_DEFS.filter(f => f.group === group && f.key !== "user_id").map(field =>
-                  <div key={field.label} className="flex flex-col">
-                    <span className="text-sm font-medium mb-1 flex items-center">
-                      {field.label}
-                      {field.required && <span className="ml-1 text-red-500">*</span>}
-                      <span className="ml-1 text-gray-400 text-xs">({field.key})</span>
-                    </span>
-                    <select
-                      className="rounded-lg border border-gray-200 px-2 py-2 bg-white bg-opacity-70 focus:ring-2 focus:ring-blue-300"
-                      value={headerMap[field.label] || ""}
-                      onChange={e => updateMapping(field.label, e.target.value)}
-                    >
-                      <option value="">Unmapped</option>
-                      {uploadedHeaders && uploadedHeaders.map((h: string) =>
-                        <option key={h} value={h}>{h}</option>
-                      )}
-                    </select>
-                    <span className="text-xs text-gray-400 mt-1">e.g. <span className="italic">{getExample(field.type)}</span></span>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
+          {/* Expand/collapse controls */}
+          <div className="flex items-center gap-2 mb-2">
+            <button
+              type="button"
+              className="text-xs text-blue-500 hover:underline"
+              onClick={() => setAllOpen("all")}
+            >Expand all</button>
+            <button
+              type="button"
+              className="text-xs text-blue-500 hover:underline"
+              onClick={() => setAllOpen("none")}
+            >Collapse all</button>
+          </div>
+          {/* Collapsible Mapping Groups */}
+          {groups.map(group =>
+            <CSVMappingGroup
+              key={group}
+              group={group}
+              headerMap={headerMap}
+              uploadedHeaders={uploadedHeaders || []}
+              updateMapping={updateMapping}
+              defaultOpen={allOpen === "all" || (allOpen === null && group === "Basic")}
+            />
+          )}
         </div>
         <div>
-          <span className="font-medium text-md">Preview ({previewRows.length} of {fileData.length} rows)</span>
-          <div className="overflow-x-auto rounded-lg border bg-white bg-opacity-70 mt-2 max-h-[260px]">
-            <table className="w-full text-xs">
-              <thead className="bg-blue-50 sticky top-0 z-0">
-                <tr>
-                  {CONTACT_FIELD_DEFS.filter(f => f.key !== "user_id").map(({ label }) =>
-                    <th key={label} className="p-2 font-semibold">{label}</th>
-                  )}
-                </tr>
-              </thead>
-              <tbody>
-                {previewRows.map((row, i) =>
-                  <tr key={i} className="border-b last:border-0">
-                    {CONTACT_FIELD_DEFS.filter(f => f.key !== "user_id").map((field) =>
-                      <td key={field.label} className="p-2 truncate max-w-xs">
-                        {row[headerMap[field.label]] || ""}
-                      </td>
-                    )}
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+          <span className="font-medium text-sm">Preview ({previewRows.length} of {fileData.length} rows)</span>
+          <CSVPreviewTable previewRows={previewRows} fileData={fileData} headerMap={headerMap} />
         </div>
         {validationErr &&
           <div className="text-red-700 mt-5 bg-red-50 border border-red-200 rounded-md p-3 text-xs whitespace-pre-line">{validationErr}</div>
@@ -350,24 +329,24 @@ export default function ImportContactsDialog({
   // Title for each step
   const stepTitles = ["Upload CSV", "Map Columns & Preview", "Import & Results"];
 
-  // Stepper display
+  // Stepper display (slimmer)
   function Stepper() {
     const steps = stepTitles;
     return (
-      <div className="flex items-center justify-center gap-5 mb-8">
+      <div className="flex items-center justify-center gap-3 mb-4 mt-1">
         {stepTitles.map((title, idx) => (
           <React.Fragment key={title}>
             <div className="flex items-center gap-2">
               <div
-                className={`w-7 h-7 rounded-full flex items-center justify-center font-bold ${
+                className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm ${
                   idx <= step ? "bg-blue-500 text-white" : "bg-gray-300 text-gray-600"
                 }`}
               >
                 {idx + 1}
               </div>
-              <span className="text-xs font-medium">{title}</span>
+              <span className="text-[11px] font-medium">{title}</span>
             </div>
-            {idx < stepTitles.length - 1 && <ChevronRight className="w-5 h-5 text-gray-300" />}
+            {idx < stepTitles.length - 1 && <ChevronRight className="w-4 h-4 text-gray-300" />}
           </React.Fragment>
         ))}
       </div>
@@ -389,24 +368,19 @@ export default function ImportContactsDialog({
       <div
         className="
           flex flex-col
-          min-h-[60vh] max-h-[90vh]
-          sm:min-h-[32rem] sm:max-h-[44rem]
+          min-h-[clamp(350px,60vh,680px)] max-h-[90vh]
           w-full
           overflow-hidden
-          p-2 sm:p-4 md:p-6
+          p-2 sm:p-3 md:p-4
         "
-        style={{
-          // fallback for legacy browsers
-          minHeight: "60vh",
-          maxHeight: "90vh",
-        }}
+        style={{ minHeight: "clamp(350px,60vh,680px)", maxHeight: "90vh" }}
       >
         <Stepper />
         {/* Responsive content section */}
         <div className="flex-1 min-h-0 max-h-full overflow-auto rounded-lg">
           {currentStepContent}
         </div>
-        <div className="flex gap-4 mt-8 flex-wrap">
+        <div className="flex gap-3 mt-7 flex-wrap items-center justify-end">
           {step > 0 && step < 2 &&
             <Button variant="outline" onClick={() => setStep(step - 1)}>
               Back
