@@ -164,10 +164,6 @@ export function useConversations() {
     }
   };
 
-  const generateUUID = () => {
-    return crypto.randomUUID();
-  };
-
   const saveToSupabase = async (conversation: Conversation) => {
     if (!user) {
       logError('Cannot save to Supabase: no user authenticated', { conversationId: conversation.id });
@@ -237,14 +233,14 @@ export function useConversations() {
       return null;
     }
 
-    const conversationId = generateUUID();
+    const conversationId = crypto.randomUUID();
     logDebug('Creating new conversation', { conversationId, userId: user.id });
 
     const newConversation: Conversation = {
       id: conversationId,
       title: 'New Conversation',
       messages: [{
-        id: generateUUID(),
+        id: crypto.randomUUID(),
         role: 'assistant',
         content: "Hi! I'm Arlo, your relationship assistant. How can I help you today?",
         timestamp: new Date()
@@ -323,7 +319,7 @@ export function useConversations() {
       return null;
     }
 
-    const messageId = generateUUID();
+    const messageId = crypto.randomUUID();
     logDebug('Adding message to conversation', { 
       conversationId, 
       messageId, 
