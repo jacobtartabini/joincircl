@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -267,11 +268,11 @@ export function useConversations() {
       logError('Failed to delete conversation from Supabase', error);
     }
 
-    setConversations(prev => prev.filter(conv => conv.id !== conversationId));
+    const updatedConversations = conversations.filter(conv => conv.id !== conversationId);
+    setConversations(updatedConversations);
 
     if (activeConversationId === conversationId) {
-      const remaining = conversations.filter(conv => conv.id !== conversationId);
-      const newActiveId = remaining.length > 0 ? remaining[0].id : null;
+      const newActiveId = updatedConversations.length > 0 ? updatedConversations[0].id : null;
       logDebug('Switching active conversation', { newActiveId });
       setActiveConversationId(newActiveId);
     }
