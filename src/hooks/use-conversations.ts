@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -257,7 +256,7 @@ export function useConversations() {
     
     setActiveConversationId(newConversation.id);
     
-    // Save immediately
+    // Save immediately with the new conversation
     saveToSupabase(newConversation);
     
     logDebug('New conversation created and saved', { conversationId });
