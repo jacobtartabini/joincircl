@@ -163,12 +163,14 @@ export function useConversations() {
     }
   };
 
-  const saveToSupabase = async (conversation: Conversation) => {
+  // Update saveToSupabase to expect two arguments if needed, or fix the calls!
+  // Let's assume the signature is: saveToSupabase(conversation: Conversation, allConversations: Conversation[])
+
+  const saveToSupabase = async (conversation: Conversation, conversationList: Conversation[] = conversations) => {
     if (!user) {
       logError('Cannot save to Supabase: no user authenticated', { conversationId: conversation.id });
       return;
     }
-
     try {
       logDebug('Saving conversation to Supabase', { 
         conversationId: conversation.id, 
@@ -176,12 +178,10 @@ export function useConversations() {
         messageCount: conversation.messages.length,
         title: conversation.title
       });
-
       const messagesWithStringTimestamps = conversation.messages.map(msg => ({
         ...msg,
         timestamp: msg.timestamp.toISOString()
       }));
-
       const conversationData = {
         id: conversation.id,
         user_id: user.id,
@@ -190,35 +190,33 @@ export function useConversations() {
         created_at: conversation.createdAt.toISOString(),
         updated_at: conversation.updatedAt.toISOString()
       };
-
       logDebug('Conversation data prepared for Supabase', conversationData);
-
       const { error, data } = await supabase
         .from('conversations')
         .upsert(conversationData)
         .select();
-
       if (error) {
         logError('Supabase upsert error', error);
         throw error;
       }
-
       logDebug('Successfully saved conversation to Supabase', { data });
     } catch (error) {
       logError('Failed to save conversation to Supabase, falling back to localStorage', error);
       // Fallback to localStorage
-      saveToLocalStorage();
+      saveToLocalStorage(conversationList);
     }
   };
 
-  const saveToLocalStorage = () => {
-    if (user && conversations.length > 0) {
+  // Fix all call sites to provide two arguments:
+
+  const saveToLocalStorage = (conversationList: Conversation[] = conversations) => {
+    if (user && conversationList.length > 0) {
       try {
         logDebug('Saving conversations to localStorage', { 
           userId: user.id, 
-          count: conversations.length 
+          count: conversationList.length 
         });
-        localStorage.setItem(`arlo-conversations-${user.id}`, JSON.stringify(conversations));
+        localStorage.setItem(`arlo-conversations-${user.id}`, JSON.stringify(conversationList));
         logDebug('Successfully saved to localStorage');
       } catch (error) {
         logError('Failed to save to localStorage', error);
@@ -231,10 +229,8 @@ export function useConversations() {
       logError('Cannot create conversation: no user authenticated');
       return null;
     }
-
     const conversationId = crypto.randomUUID();
     logDebug('Creating new conversation', { conversationId, userId: user.id });
-
     const newConversation: Conversation = {
       id: conversationId,
       title: 'New Conversation',
@@ -247,7 +243,6 @@ export function useConversations() {
       createdAt: new Date(),
       updatedAt: new Date()
     };
-
     setConversations(prev => {
       const updated = [newConversation, ...prev];
       logDebug('Updated conversations list', { totalCount: updated.length });
@@ -257,7 +252,7 @@ export function useConversations() {
     setActiveConversationId(newConversation.id);
     
     // Save immediately with the new conversation
-    saveToSupabase(newConversation);
+    saveToSupabase(newConversation, conversations);
     
     logDebug('New conversation created and saved', { conversationId });
     return newConversation.id;
@@ -305,7 +300,7 @@ export function useConversations() {
     setConversations(prev => prev.map(conv => {
       if (conv.id === conversationId) {
         const updatedConv = { ...conv, title: newTitle, updatedAt: new Date() };
-        saveToSupabase(updatedConv);
+        saveToSupabase(updatedConv, prev);
         return updatedConv;
       }
       return conv;
@@ -350,7 +345,7 @@ export function useConversations() {
         }
 
         // Save immediately after updating
-        saveToSupabase(updatedConv);
+        saveToSupabase(updatedConv, prev);
         return updatedConv;
       }
       return conv;
