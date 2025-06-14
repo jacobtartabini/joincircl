@@ -355,35 +355,58 @@ export default function ImportContactsDialog({
     const steps = stepTitles;
     return (
       <div className="flex items-center justify-center gap-5 mb-8">
-        {steps.map((title, idx) => (
+        {stepTitles.map((title, idx) => (
           <React.Fragment key={title}>
-            <div className={`flex items-center gap-2`}>
+            <div className="flex items-center gap-2">
               <div
-                className={`w-7 h-7 rounded-full flex items-center justify-center font-bold ${idx <= step ? "bg-blue-500 text-white" : "bg-gray-300 text-gray-600"}`}
-              >{idx + 1}</div>
+                className={`w-7 h-7 rounded-full flex items-center justify-center font-bold ${
+                  idx <= step ? "bg-blue-500 text-white" : "bg-gray-300 text-gray-600"
+                }`}
+              >
+                {idx + 1}
+              </div>
               <span className="text-xs font-medium">{title}</span>
             </div>
-            {idx < steps.length - 1 && <ChevronRight className="w-5 h-5 text-gray-300" />}
+            {idx < stepTitles.length - 1 && <ChevronRight className="w-5 h-5 text-gray-300" />}
           </React.Fragment>
         ))}
       </div>
     );
   }
 
-  // Dialog with glassmorphism and responsive layout
+  // Responsive dialog content wrapper
+  // - On small screens: max-w-full, modal nearly full-screen, content scrolls
+  // - On desktop: max-w-4xl, modal fits content, content has max-h
   return (
     <GlassModal
       open={open}
       onOpenChange={o => { onOpenChange(o); if (!o) resetAll(); }}
       title="Import Contacts from CSV"
-      maxWidth="max-w-4xl"
+      // Responsively control width
+      maxWidth="w-full max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl"
     >
-      <div className="min-h-[350px] max-h-[75vh] sm:max-h-[620px] overflow-y-auto">
+      {/* Responsive modal body: use flex-col and responsive padding, ensure content scrolls not modal */}
+      <div
+        className="
+          flex flex-col
+          min-h-[60vh] max-h-[90vh]
+          sm:min-h-[32rem] sm:max-h-[44rem]
+          w-full
+          overflow-hidden
+          p-2 sm:p-4 md:p-6
+        "
+        style={{
+          // fallback for legacy browsers
+          minHeight: "60vh",
+          maxHeight: "90vh",
+        }}
+      >
         <Stepper />
-        <div>
+        {/* Responsive content section */}
+        <div className="flex-1 min-h-0 max-h-full overflow-auto rounded-lg">
           {currentStepContent}
         </div>
-        <div className="flex gap-4 mt-8">
+        <div className="flex gap-4 mt-8 flex-wrap">
           {step > 0 && step < 2 &&
             <Button variant="outline" onClick={() => setStep(step - 1)}>
               Back
