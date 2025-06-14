@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -159,7 +158,7 @@ export function useConversations() {
     }
   };
 
-  const saveToSupabase = async (conversation: Conversation, conversationList: Conversation[] = conversations) => {
+  const saveToSupabase = async (conversation: Conversation, conversationList: Conversation[]) => {
     if (!user) {
       logError('Cannot save to Supabase: no user authenticated', { conversationId: conversation.id });
       return;
@@ -233,7 +232,7 @@ export function useConversations() {
       createdAt: new Date(),
       updatedAt: new Date()
     };
-    
+
     const updatedConversations = [newConversation, ...conversations];
     setConversations(updatedConversations);
     setActiveConversationId(newConversation.id);
