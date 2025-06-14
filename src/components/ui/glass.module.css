@@ -1,0 +1,52 @@
+
+.glass {
+  background: rgba(255,255,255,0.75);
+  border-radius: 2rem;
+  box-shadow: 0 6px 32px 0 rgba(30, 144, 255, 0.12), 0 1.5px 5.5px 0 rgba(0,0,0,0.05);
+  backdrop-filter: blur(18px) saturate(170%);
+  -webkit-backdrop-filter: blur(18px) saturate(170%);
+  border: 1px solid rgba(180,218,255,0.24);
+}
+
+.glass-btn {
+  background: rgba(48,162,237,0.16);
+  border: 1px solid #30A2ED22;
+  color: #1861a0;
+  backdrop-filter: blur(5px);
+  border-radius: 1.5rem;
+  padding: 0.75rem 2rem;
+  font-weight: 600;
+  transition: background 0.08s, color 0.08s;
+}
+
+.glass-btn:hover {
+  background: rgba(48,162,237,0.23);
+  color: #145187;
+}
+
+.glass-upload {
+  background: rgba(255,255,255,0.68);
+  border: 1.5px dashed #30a2ed66;
+  border-radius: 1.25rem;
+  min-height: 140px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.13s;
+  box-shadow: 0 1.5px 12px 0 rgba(48,162,237,0.04);
+}
+
+.glass-upload.dragging {
+  background: rgba(48,162,237,0.08);
+  border-color: #30A2ED;
+}
+  
+.glass-mapping {
+  background: rgba(255,255,255,0.62);
+  border-radius: 1rem;
+  box-shadow: 0 1.5px 8px 0 rgba(48,162,237,0.07);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
