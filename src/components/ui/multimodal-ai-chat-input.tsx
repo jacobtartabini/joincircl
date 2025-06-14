@@ -157,7 +157,24 @@ function PureSuggestedActions({
     label: 'my inner circle?',
     action: 'How can I strengthen my inner circle?'
   }];
-  return;
+  
+  return (
+    <div className="grid grid-cols-2 gap-3 p-4">
+      {suggestedActions.map((suggestion, index) => (
+        <Button
+          key={index}
+          variant="outline"
+          className="h-auto p-4 text-left justify-start"
+          onClick={() => onSelectAction(suggestion.action)}
+        >
+          <div className="text-sm">
+            <div className="font-medium text-foreground">{suggestion.title}</div>
+            <div className="text-muted-foreground">{suggestion.label}</div>
+          </div>
+        </Button>
+      ))}
+    </div>
+  );
 }
 const SuggestedActions = memo(PureSuggestedActions, (prevProps, nextProps) => {
   if (prevProps.chatId !== nextProps.chatId) return false;
