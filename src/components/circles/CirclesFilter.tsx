@@ -1,8 +1,12 @@
-import { Search, Plus, SlidersHorizontal } from "lucide-react";
+
+import { Search, Plus, SlidersHorizontal, FileUp } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import React, { useState } from "react";
+import ImportContactsDialog from "./ImportContactsDialog";
+
 interface CirclesFilterProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
@@ -10,6 +14,7 @@ interface CirclesFilterProps {
   onSort: (sortBy: string) => void;
   onFilter: (filter: string | null) => void;
   activeTagFilter?: string | null;
+  refetchContacts: () => void;
 }
 export function CirclesFilter({
   searchQuery,
@@ -17,8 +22,10 @@ export function CirclesFilter({
   onAddContact,
   onSort,
   onFilter,
-  activeTagFilter
+  activeTagFilter,
+  refetchContacts
 }: CirclesFilterProps) {
+  const [importOpen, setImportOpen] = useState(false);
   return <div className="flex items-center gap-3">
       {/* Search - Takes most space */}
       <div className="relative flex-1">
@@ -66,10 +73,17 @@ export function CirclesFilter({
         </DropdownMenuContent>
       </DropdownMenu>
 
+      {/* Import Contacts Button */}
+      <Button variant="outline" size="sm" aria-label="Import Contacts" className="h-10 px-4 flex items-center gap-2 rounded-full" onClick={() => setImportOpen(true)}>
+        <FileUp className="h-4 w-4" />
+        <span className="text-sm font-medium">Import</span>
+      </Button>
       {/* Add Contact Button */}
       <Button onClick={onAddContact} size="sm" aria-label="Add new contact" className="h-10 px-4 text-white transition-colors rounded-full bg-[#30a2ed]">
         <Plus className="h-4 w-4 mr-2" />
         <span className="text-sm font-medium">Add</span>
       </Button>
+      {/* Dialog */}
+      <ImportContactsDialog open={importOpen} onOpenChange={setImportOpen} onImportSuccess={() => {}} refetchContacts={refetchContacts} />
     </div>;
 }

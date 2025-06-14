@@ -1,8 +1,9 @@
-
 import { Contact } from "@/types/contact";
 import { CircleCard } from "./CircleCard";
 import { CircleCardSkeleton } from "./CircleCardSkeleton";
 import { Users } from "lucide-react";
+import ImportContactsDialog from "./ImportContactsDialog";
+import { useState } from "react";
 
 interface CirclesListProps {
   contacts: Contact[];
@@ -17,6 +18,8 @@ export function CirclesList({
   onSelectContact,
   selectedContactId
 }: CirclesListProps) {
+  const [importOpen, setImportOpen] = useState(false);
+
   if (isLoading) {
     return (
       <div className="space-y-3">
@@ -37,6 +40,12 @@ export function CirclesList({
         <p className="text-gray-600 text-center max-w-sm leading-relaxed">
           Add your first contact to get started building your network.
         </p>
+        {/* Import contacts CTA */}
+        <Button onClick={() => setImportOpen(true)} className="mt-6 bg-[#30a2ed] text-white rounded-full flex gap-2 items-center px-6 py-3">
+          <FileUp className="w-5 h-5" />
+          Import Contacts
+        </Button>
+        <ImportContactsDialog open={importOpen} onOpenChange={setImportOpen} onImportSuccess={() => {}} refetchContacts={() => {}} />
       </div>
     );
   }
