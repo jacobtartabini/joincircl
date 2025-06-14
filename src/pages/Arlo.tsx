@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Brain, MessageCircle } from "lucide-react";
+import { Brain, MessageCircle, RefreshCw } from "lucide-react";
 import { useContacts } from "@/hooks/use-contacts";
 import { useConversations } from "@/hooks/use-conversations";
 import { PureMultimodalInput } from "@/components/ui/multimodal-ai-chat-input";
@@ -12,40 +12,46 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
 import ConversationSidebar from "@/components/ai/ConversationSidebar";
 import ConversationStarters from "@/components/ai/ConversationStarters";
+
 interface Attachment {
   url: string;
   name: string;
   contentType: string;
   size: number;
 }
+
 export default function Arlo() {
-  const {
-    contacts
-  } = useContacts();
+  const { contacts } = useContacts();
   const {
     conversations,
     activeConversation,
     activeConversationId,
+    isLoading: conversationsLoading,
     setActiveConversationId,
     createNewConversation,
     deleteConversation,
     renameConversation,
-    addMessage
+    addMessage,
+    refreshConversations
   } = useConversations();
+  
   const [isLoading, setIsLoading] = useState(false);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [hasStartedConversation, setHasStartedConversation] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({
       behavior: "smooth"
     });
   };
+
   useEffect(() => {
     scrollToBottom();
   }, [activeConversation?.messages]);
+
   const handleSendMessage = async ({
     input,
     attachments: messageAttachments
@@ -55,24 +61,44 @@ export default function Arlo() {
   }) => {
     if (!input.trim() || isLoading) return;
 
+    console.log('[Arlo] Sending message', { input, hasActiveConversation: !!activeConversationId });
+
     // Create conversation if this is the first message
     let conversationId = activeConversationId;
     if (!conversationId || conversations.length === 0) {
+      console.log('[Arlo] Creating new conversation');
       conversationId = createNewConversation();
       setHasStartedConversation(true);
     }
-    if (!conversationId) return;
+    
+    if (!conversationId) {
+      console.error('[Arlo] Failed to create or get conversation ID');
+      toast.error("Failed to create conversation");
+      return;
+    }
+
     const userMessageContent = input;
-    addMessage(conversationId, {
+    console.log('[Arlo] Adding user message to conversation', { conversationId });
+    
+    const messageId = addMessage(conversationId, {
       role: 'user',
       content: userMessageContent
     });
+
+    if (!messageId) {
+      console.error('[Arlo] Failed to add user message');
+      toast.error("Failed to send message");
+      return;
+    }
+
     setInputValue("");
     setIsLoading(true);
+
     try {
       const networkSummary = `Network: ${contacts.length} contacts (${contacts.filter(c => c.circle === 'inner').length} inner, ${contacts.filter(c => c.circle === 'middle').length} middle, ${contacts.filter(c => c.circle === 'outer').length} outer)`;
       const recentContacts = contacts.slice(0, 5);
       const contactContext = recentContacts.length > 0 ? `Recent contacts: ${recentContacts.map(c => `${c.name} (${c.circle}${c.last_contact ? `, last: ${new Date(c.last_contact).toLocaleDateString()}` : ''})`).join(', ')}` : 'No contacts yet';
+
       const systemPrompt = `You're Arlo, Circl's relationship advisor. Provide helpful, structured responses.
 
       **Formatting Guidelines:**
@@ -94,10 +120,10 @@ export default function Arlo() {
 
       ${networkSummary}
       ${contactContext}`;
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke('openrouter-ai', {
+
+      console.log('[Arlo] Calling AI service');
+
+      const { data, error } = await supabase.functions.invoke('openrouter-ai', {
         body: {
           prompt: userMessageContent,
           systemPrompt: systemPrompt,
@@ -106,31 +132,50 @@ export default function Arlo() {
           temperature: 0.7
         }
       });
+
       if (error) {
+        console.error('[Arlo] AI service error', error);
         throw new Error(`AI service error: ${error.message}`);
       }
+
       const aiResponse = data?.response || "**How can I help?** Ask me about:\n\n• Your relationship network\n• Networking strategies\n• Follow-up timing\n• Communication best practices";
-      addMessage(conversationId, {
+
+      console.log('[Arlo] Adding AI response to conversation');
+      
+      const aiMessageId = addMessage(conversationId, {
         role: 'assistant',
         content: aiResponse
       });
+
+      if (!aiMessageId) {
+        console.error('[Arlo] Failed to add AI message');
+        toast.error("Failed to save AI response");
+      }
+
     } catch (error) {
-      console.error('Error getting AI response:', error);
+      console.error('[Arlo] Error getting AI response:', error);
+      
+      const errorMessage = "**Sorry!** I'm having trouble right now. Please try asking about:\n\n• Specific contacts or relationships\n• Networking strategies\n• Follow-up timing\n• Communication tips";
+      
       addMessage(conversationId, {
         role: 'assistant',
-        content: "**Sorry!** I'm having trouble right now. Please try asking about:\n\n• Specific contacts or relationships\n• Networking strategies\n• Follow-up timing\n• Communication tips"
+        content: errorMessage
       });
+      
       toast.error("Arlo is temporarily unavailable");
     } finally {
       setIsLoading(false);
     }
   };
+
   const handleStopGenerating = () => {
     setIsLoading(false);
   };
+
   const handlePromptSelect = (prompt: string) => {
     setInputValue(prompt);
   };
+
   const formatMessage = (content: string) => {
     const sections = content.split('\n\n');
     return sections.map((section, index) => {
@@ -165,6 +210,21 @@ export default function Arlo() {
         </div>;
     });
   };
+
+  // Show loading state while conversations are loading
+  if (conversationsLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50/20 dark:from-gray-900 dark:to-blue-900/20">
+        <div className="text-center">
+          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg mb-4 mx-auto">
+            <Brain className="h-6 w-6 text-white" />
+          </div>
+          <p className="text-gray-600 dark:text-gray-400">Loading your conversations...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (isMobile) {
     return <div className="h-full flex flex-col bg-gradient-to-br from-gray-50 to-blue-50/20 dark:from-gray-900 dark:to-blue-900/20 pb-20">
         {/* Mobile Header */}
@@ -173,10 +233,17 @@ export default function Arlo() {
             <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
               <Brain className="h-6 w-6 text-white" />
             </div>
-            <div>
+            <div className="flex-1">
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Arlo</h1>
               <p className="text-sm text-gray-600 dark:text-gray-400">Your relationship assistant</p>
             </div>
+            <button
+              onClick={refreshConversations}
+              className="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+              title="Refresh conversations"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </button>
           </div>
         </div>
 
@@ -223,6 +290,7 @@ export default function Arlo() {
         </div>
       </div>;
   }
+
   return <div className="h-screen flex bg-gradient-to-br from-gray-50 to-blue-50/30 dark:from-gray-900 dark:to-blue-900/30 pb-20">
       {/* Sidebar */}
       <ConversationSidebar conversations={conversations} activeConversationId={activeConversationId} onSelectConversation={setActiveConversationId} onCreateConversation={() => {
@@ -233,9 +301,6 @@ export default function Arlo() {
 
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col min-h-0">
-        {/* Header */}
-        
-
         {/* Messages Area */}
         <div className="flex-1 min-h-0 relative">
           <ScrollArea className="h-full">
@@ -272,8 +337,17 @@ export default function Arlo() {
 
         {/* Fixed Input Area */}
         <div className="fixed bottom-20 left-80 right-0 bg-white/80 dark:bg-black/20 backdrop-blur-sm border-t border-white/20 dark:border-white/10 p-6">
-          <div className="max-w-4xl mx-auto">
-            <PureMultimodalInput chatId={`arlo-desktop-${activeConversationId || 'new'}`} messages={activeConversation?.messages || []} attachments={attachments} setAttachments={setAttachments} onSendMessage={handleSendMessage} onStopGenerating={handleStopGenerating} isGenerating={isLoading} canSend={true} selectedVisibilityType="private" value={inputValue} onChange={setInputValue} />
+          <div className="max-w-4xl mx-auto flex items-center gap-4">
+            <button
+              onClick={refreshConversations}
+              className="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+              title="Refresh conversations"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </button>
+            <div className="flex-1">
+              <PureMultimodalInput chatId={`arlo-desktop-${activeConversationId || 'new'}`} messages={activeConversation?.messages || []} attachments={attachments} setAttachments={setAttachments} onSendMessage={handleSendMessage} onStopGenerating={handleStopGenerating} isGenerating={isLoading} canSend={true} selectedVisibilityType="private" value={inputValue} onChange={setInputValue} />
+            </div>
           </div>
         </div>
       </div>

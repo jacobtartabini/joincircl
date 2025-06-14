@@ -21,18 +21,36 @@ interface ChatMessage {
 export function useConversations() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
+
+  // Enhanced logging function
+  const logDebug = (message: string, data?: any) => {
+    console.log(`[useConversations] ${message}`, data || '');
+  };
+
+  const logError = (message: string, error: any) => {
+    console.error(`[useConversations] ${message}`, error);
+  };
 
   // Load conversations from Supabase on mount
   useEffect(() => {
     if (user) {
+      logDebug('User authenticated, loading conversations', { userId: user.id });
       loadConversations();
+    } else {
+      logDebug('No user authenticated, clearing conversations');
+      setConversations([]);
+      setActiveConversationId(null);
+      setIsLoading(false);
     }
   }, [user]);
 
   // Subscribe to real-time updates
   useEffect(() => {
     if (!user) return;
+
+    logDebug('Setting up real-time subscription', { userId: user.id });
 
     const channel = supabase
       .channel('conversations-changes')
@@ -44,28 +62,42 @@ export function useConversations() {
           table: 'conversations',
           filter: `user_id=eq.${user.id}`
         },
-        () => {
+        (payload) => {
+          logDebug('Real-time update received', payload);
           loadConversations();
         }
       )
       .subscribe();
 
     return () => {
+      logDebug('Cleaning up real-time subscription');
       supabase.removeChannel(channel);
     };
   }, [user]);
 
   const loadConversations = async () => {
-    if (!user) return;
+    if (!user) {
+      logDebug('Cannot load conversations: no user');
+      setIsLoading(false);
+      return;
+    }
 
     try {
+      logDebug('Starting to load conversations from Supabase', { userId: user.id });
+      setIsLoading(true);
+
       const { data, error } = await supabase
         .from('conversations')
         .select('*')
         .eq('user_id', user.id)
         .order('updated_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        logError('Supabase error loading conversations', error);
+        throw error;
+      }
+
+      logDebug('Successfully loaded conversations from Supabase', { count: data?.length || 0, data });
 
       const parsedConversations = (data || []).map((conv: any) => ({
         id: conv.id,
@@ -82,17 +114,27 @@ export function useConversations() {
 
       // Set active conversation to the most recent one if none is set
       if (parsedConversations.length > 0 && !activeConversationId) {
+        logDebug('Setting active conversation to most recent', { conversationId: parsedConversations[0].id });
         setActiveConversationId(parsedConversations[0].id);
       }
+
+      logDebug('Conversations loaded and parsed successfully', { count: parsedConversations.length });
     } catch (error) {
-      console.error('Error loading conversations:', error);
+      logError('Failed to load conversations from Supabase, falling back to localStorage', error);
       // Fallback to localStorage if Supabase fails
       loadFromLocalStorage();
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const loadFromLocalStorage = () => {
-    if (!user) return;
+    if (!user) {
+      logDebug('Cannot load from localStorage: no user');
+      return;
+    }
+
+    logDebug('Loading conversations from localStorage', { userId: user.id });
 
     const stored = localStorage.getItem(`arlo-conversations-${user.id}`);
     if (stored) {
@@ -107,40 +149,72 @@ export function useConversations() {
             timestamp: new Date(msg.timestamp)
           }))
         }));
+        
+        logDebug('Successfully loaded conversations from localStorage', { count: conversationsWithDates.length });
         setConversations(conversationsWithDates);
 
         if (conversationsWithDates.length > 0) {
           setActiveConversationId(conversationsWithDates[0].id);
         }
       } catch (error) {
-        console.error('Error loading conversations from localStorage:', error);
+        logError('Error parsing conversations from localStorage', error);
       }
+    } else {
+      logDebug('No conversations found in localStorage');
     }
   };
 
+  const generateUUID = () => {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0;
+      const v = c == 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  };
+
   const saveToSupabase = async (conversation: Conversation) => {
-    if (!user) return;
+    if (!user) {
+      logError('Cannot save to Supabase: no user authenticated', { conversationId: conversation.id });
+      return;
+    }
 
     try {
+      logDebug('Saving conversation to Supabase', { 
+        conversationId: conversation.id, 
+        userId: user.id,
+        messageCount: conversation.messages.length,
+        title: conversation.title
+      });
+
       const messagesWithStringTimestamps = conversation.messages.map(msg => ({
         ...msg,
         timestamp: msg.timestamp.toISOString()
       }));
 
-      const { error } = await supabase
-        .from('conversations')
-        .upsert({
-          id: conversation.id,
-          user_id: user.id,
-          title: conversation.title,
-          messages: messagesWithStringTimestamps,
-          created_at: conversation.createdAt.toISOString(),
-          updated_at: conversation.updatedAt.toISOString()
-        });
+      const conversationData = {
+        id: conversation.id,
+        user_id: user.id,
+        title: conversation.title,
+        messages: messagesWithStringTimestamps,
+        created_at: conversation.createdAt.toISOString(),
+        updated_at: conversation.updatedAt.toISOString()
+      };
 
-      if (error) throw error;
+      logDebug('Conversation data prepared for Supabase', conversationData);
+
+      const { error, data } = await supabase
+        .from('conversations')
+        .upsert(conversationData)
+        .select();
+
+      if (error) {
+        logError('Supabase upsert error', error);
+        throw error;
+      }
+
+      logDebug('Successfully saved conversation to Supabase', { data });
     } catch (error) {
-      console.error('Error saving conversation to Supabase:', error);
+      logError('Failed to save conversation to Supabase, falling back to localStorage', error);
       // Fallback to localStorage
       saveToLocalStorage();
     }
@@ -148,16 +222,33 @@ export function useConversations() {
 
   const saveToLocalStorage = () => {
     if (user && conversations.length > 0) {
-      localStorage.setItem(`arlo-conversations-${user.id}`, JSON.stringify(conversations));
+      try {
+        logDebug('Saving conversations to localStorage', { 
+          userId: user.id, 
+          count: conversations.length 
+        });
+        localStorage.setItem(`arlo-conversations-${user.id}`, JSON.stringify(conversations));
+        logDebug('Successfully saved to localStorage');
+      } catch (error) {
+        logError('Failed to save to localStorage', error);
+      }
     }
   };
 
   const createNewConversation = () => {
+    if (!user) {
+      logError('Cannot create conversation: no user authenticated');
+      return null;
+    }
+
+    const conversationId = generateUUID();
+    logDebug('Creating new conversation', { conversationId, userId: user.id });
+
     const newConversation: Conversation = {
-      id: Date.now().toString(),
+      id: conversationId,
       title: 'New Conversation',
       messages: [{
-        id: 'welcome',
+        id: generateUUID(),
         role: 'assistant',
         content: "Hi! I'm Arlo, your relationship assistant. How can I help you today?",
         timestamp: new Date()
@@ -166,14 +257,28 @@ export function useConversations() {
       updatedAt: new Date()
     };
 
-    setConversations(prev => [newConversation, ...prev]);
+    setConversations(prev => {
+      const updated = [newConversation, ...prev];
+      logDebug('Updated conversations list', { totalCount: updated.length });
+      return updated;
+    });
+    
     setActiveConversationId(newConversation.id);
+    
+    // Save immediately
     saveToSupabase(newConversation);
+    
+    logDebug('New conversation created and saved', { conversationId });
     return newConversation.id;
   };
 
   const deleteConversation = async (conversationId: string) => {
-    if (!user) return;
+    if (!user) {
+      logError('Cannot delete conversation: no user authenticated');
+      return;
+    }
+
+    logDebug('Deleting conversation', { conversationId, userId: user.id });
 
     try {
       const { error } = await supabase
@@ -182,9 +287,14 @@ export function useConversations() {
         .eq('id', conversationId)
         .eq('user_id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        logError('Supabase delete error', error);
+        throw error;
+      }
+
+      logDebug('Successfully deleted conversation from Supabase');
     } catch (error) {
-      console.error('Error deleting conversation from Supabase:', error);
+      logError('Failed to delete conversation from Supabase', error);
     }
 
     setConversations(prev => prev.filter(conv => conv.id !== conversationId));
@@ -192,11 +302,15 @@ export function useConversations() {
     // If we deleted the active conversation, switch to another one
     if (activeConversationId === conversationId) {
       const remaining = conversations.filter(conv => conv.id !== conversationId);
-      setActiveConversationId(remaining.length > 0 ? remaining[0].id : null);
+      const newActiveId = remaining.length > 0 ? remaining[0].id : null;
+      logDebug('Switching active conversation', { newActiveId });
+      setActiveConversationId(newActiveId);
     }
   };
 
   const renameConversation = (conversationId: string, newTitle: string) => {
+    logDebug('Renaming conversation', { conversationId, newTitle });
+
     setConversations(prev => prev.map(conv => {
       if (conv.id === conversationId) {
         const updatedConv = { ...conv, title: newTitle, updatedAt: new Date() };
@@ -208,9 +322,22 @@ export function useConversations() {
   };
 
   const addMessage = (conversationId: string, message: Omit<ChatMessage, 'id' | 'timestamp'>) => {
+    if (!user) {
+      logError('Cannot add message: no user authenticated');
+      return null;
+    }
+
+    const messageId = generateUUID();
+    logDebug('Adding message to conversation', { 
+      conversationId, 
+      messageId, 
+      role: message.role,
+      contentLength: message.content.length
+    });
+
     const newMessage: ChatMessage = {
       ...message,
-      id: Date.now().toString(),
+      id: messageId,
       timestamp: new Date()
     };
 
@@ -228,15 +355,23 @@ export function useConversations() {
             ? message.content.substring(0, 47) + '...'
             : message.content;
           updatedConv.title = title;
+          logDebug('Auto-updating conversation title', { conversationId, newTitle: title });
         }
 
+        // Save immediately after updating
         saveToSupabase(updatedConv);
         return updatedConv;
       }
       return conv;
     }));
 
-    return newMessage.id;
+    return messageId;
+  };
+
+  // Manual refresh function for debugging
+  const refreshConversations = () => {
+    logDebug('Manual refresh triggered');
+    loadConversations();
   };
 
   const activeConversation = conversations.find(conv => conv.id === activeConversationId);
@@ -245,10 +380,12 @@ export function useConversations() {
     conversations,
     activeConversation,
     activeConversationId,
+    isLoading,
     setActiveConversationId,
     createNewConversation,
     deleteConversation,
     renameConversation,
-    addMessage
+    addMessage,
+    refreshConversations // Export for debugging
   };
 }
