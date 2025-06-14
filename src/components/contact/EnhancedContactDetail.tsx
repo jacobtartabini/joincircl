@@ -1,22 +1,31 @@
+
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
+import { Contact, Interaction } from "@/types/contact";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Edit, Trash2, Eye, MapPin, Building, Briefcase, Mail, Phone, Globe, Linkedin, Facebook, Clock, Calendar } from "lucide-react";
-import { Contact } from "@/types/contact";
-import { cn } from "@/lib/utils";
-interface Interaction {
-  id: string;
-  user_id: string;
-  contact_id: string;
-  type: string;
-  notes: string;
-  date: string;
-  created_at: string;
-}
+import { Separator } from "@/components/ui/separator";
+import { 
+  MoreHorizontal, 
+  Phone, 
+  Mail, 
+  MapPin, 
+  Edit, 
+  Trash, 
+  MessageSquare, 
+  Calendar,
+  Coffee,
+  Hash,
+  User,
+  Building,
+  ExternalLink,
+  X
+} from "lucide-react";
+import { formatDistanceToNow, format } from "date-fns";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { motion, AnimatePresence } from "framer-motion";
+
 interface EnhancedContactDetailProps {
   contact: Contact;
   interactions: Interaction[];
@@ -24,6 +33,7 @@ interface EnhancedContactDetailProps {
   onDelete: () => void;
   onViewAll: () => void;
 }
+
 export function EnhancedContactDetail({
   contact,
   interactions,
@@ -31,209 +41,320 @@ export function EnhancedContactDetail({
   onDelete,
   onViewAll
 }: EnhancedContactDetailProps) {
-  const [activeTab, setActiveTab] = useState("about");
-  const getCircleColor = (circle: string) => {
-    switch (circle) {
-      case 'inner':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-      case 'middle':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
-      case 'outer':
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
+  const isMobile = useIsMobile();
+  const [showMobilePanel, setShowMobilePanel] = useState(false);
+
+  const getInteractionIcon = (type: string) => {
+    switch (type.toLowerCase()) {
+      case "meeting": return <Coffee className="h-4 w-4 text-green-500" />;
+      case "email": return <Mail className="h-4 w-4 text-blue-500" />;
+      case "phone": return <Phone className="h-4 w-4 text-amber-500" />;
+      case "note": return <MessageSquare className="h-4 w-4 text-purple-500" />;
+      default: return <Hash className="h-4 w-4 text-muted-foreground" />;
     }
   };
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+
+  const getCircleColor = (circle: string) => {
+    switch (circle) {
+      case "inner": return "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400";
+      case "middle": return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400";
+      case "outer": return "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400";
+      default: return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
+    }
   };
-  const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-  return <Card className="h-full flex flex-col">
-      {/* Header */}
-      <div className="p-6 border-b border-border">
-        <div className="flex items-start gap-4 mb-4">
-          <Avatar className="h-16 w-16">
-            <AvatarImage src={contact.avatar_url || ""} alt={contact.name} />
-            <AvatarFallback className="text-lg font-semibold">
-              {contact.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-            </AvatarFallback>
+
+  const ContactInfoSection = () => (
+    <div className="space-y-4">
+      {/* Contact Header */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-3">
+          <Avatar className="h-12 w-12">
+            {contact.avatar_url ? (
+              <AvatarImage src={contact.avatar_url} alt={contact.name} />
+            ) : (
+              <AvatarFallback className="text-lg font-medium bg-primary/10 text-primary">
+                {contact.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+              </AvatarFallback>
+            )}
           </Avatar>
           
           <div className="flex-1 min-w-0">
-            <h2 className="text-xl font-semibold text-foreground truncate">
-              {contact.name}
-            </h2>
-            {contact.job_title && <p className="text-sm text-muted-foreground">{contact.job_title}</p>}
-            {contact.company_name && <p className="text-sm text-muted-foreground">{contact.company_name}</p>}
-            
-            <div className="flex items-center gap-2 mt-2">
-              <Badge className={cn("text-xs", getCircleColor(contact.circle))}>
-                {contact.circle} circle
-              </Badge>
-              {contact.last_contact && <span className="text-xs text-muted-foreground">
-                  Last contact: {formatDate(contact.last_contact)}
-                </span>}
-            </div>
+            <h2 className="text-lg font-semibold text-foreground truncate">{contact.name}</h2>
+            {contact.job_title && contact.company_name && (
+              <p className="text-sm text-muted-foreground truncate">
+                {contact.job_title} at {contact.company_name}
+              </p>
+            )}
+            {contact.location && (
+              <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                <MapPin className="h-3 w-3" />
+                {contact.location}
+              </p>
+            )}
           </div>
         </div>
+        
+        <div className="flex items-center justify-between">
+          <Badge variant="secondary" className={getCircleColor(contact.circle)}>
+            {contact.circle.charAt(0).toUpperCase() + contact.circle.slice(1)} Circle
+          </Badge>
+          
+          <div className="flex items-center space-x-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onEdit}
+              className="h-8 w-8 p-0"
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onDelete}
+              className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
+            >
+              <Trash className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={onEdit} className="flex-1 rounded-full">
-            <Edit className="h-4 w-4 mr-2" />
-            Edit
+      <Separator />
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-2 gap-2">
+        {contact.personal_email && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="justify-start gap-2 h-9"
+            onClick={() => window.open(`mailto:${contact.personal_email}`)}
+          >
+            <Mail className="h-4 w-4" />
+            Email
           </Button>
-          <Button variant="outline" size="sm" onClick={onViewAll} className="flex-1 rounded-full">
-            <Eye className="h-4 w-4 mr-2" />
-            View All
+        )}
+        {contact.mobile_phone && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="justify-start gap-2 h-9"
+            onClick={() => window.open(`tel:${contact.mobile_phone}`)}
+          >
+            <Phone className="h-4 w-4" />
+            Call
           </Button>
-          <Button variant="destructive" size="sm" onClick={onDelete} className="rounded-full">
-            <Trash2 className="h-4 w-4" />
+        )}
+      </div>
+
+      <Separator />
+    </div>
+  );
+
+  const ContactDetailsSection = () => (
+    <div className="space-y-4">
+      {/* Contact Information */}
+      {(contact.personal_email || contact.mobile_phone || contact.website) && (
+        <div className="space-y-3">
+          <h3 className="text-sm font-medium text-foreground">Contact Details</h3>
+          <div className="space-y-2">
+            {contact.personal_email && (
+              <div className="flex items-center gap-2 text-sm">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+                <span className="text-foreground truncate">{contact.personal_email}</span>
+              </div>
+            )}
+            {contact.mobile_phone && (
+              <div className="flex items-center gap-2 text-sm">
+                <Phone className="h-4 w-4 text-muted-foreground" />
+                <span className="text-foreground">{contact.mobile_phone}</span>
+              </div>
+            )}
+            {contact.website && (
+              <div className="flex items-center gap-2 text-sm">
+                <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                <a
+                  href={contact.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline truncate"
+                >
+                  {contact.website}
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Professional Information */}
+      {(contact.company_name || contact.industry || contact.department) && (
+        <div className="space-y-3">
+          <h3 className="text-sm font-medium text-foreground">Professional</h3>
+          <div className="space-y-2">
+            {contact.company_name && (
+              <div className="flex items-center gap-2 text-sm">
+                <Building className="h-4 w-4 text-muted-foreground" />
+                <span className="text-foreground">{contact.company_name}</span>
+              </div>
+            )}
+            {contact.industry && (
+              <div className="flex items-center gap-2 text-sm">
+                <User className="h-4 w-4 text-muted-foreground" />
+                <span className="text-foreground">{contact.industry}</span>
+              </div>
+            )}
+            {contact.department && (
+              <div className="text-sm text-muted-foreground pl-6">
+                {contact.department}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Tags */}
+      {contact.tags && contact.tags.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="text-sm font-medium text-foreground">Tags</h3>
+          <div className="flex flex-wrap gap-1">
+            {contact.tags.slice(0, 6).map((tag) => (
+              <Badge key={tag} variant="outline" className="text-xs">
+                {tag}
+              </Badge>
+            ))}
+            {contact.tags.length > 6 && (
+              <Badge variant="outline" className="text-xs">
+                +{contact.tags.length - 6} more
+              </Badge>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Notes */}
+      {contact.notes && (
+        <div className="space-y-3">
+          <h3 className="text-sm font-medium text-foreground">Notes</h3>
+          <div className="p-3 bg-muted/50 rounded-lg">
+            <p className="text-sm text-foreground leading-relaxed line-clamp-4">
+              {contact.notes}
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  const RecentActivitySection = () => (
+    <div className="space-y-4">
+      <h3 className="text-sm font-medium text-foreground">Recent Activity</h3>
+      {interactions.length === 0 ? (
+        <div className="text-center py-6 text-muted-foreground">
+          <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
+          <p className="text-sm">No recent interactions</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {interactions.slice(0, 3).map((interaction) => (
+            <div key={interaction.id} className="flex gap-3 p-3 bg-muted/30 rounded-lg">
+              <div className="flex-shrink-0 mt-0.5">
+                {getInteractionIcon(interaction.type)}
+              </div>
+              <div className="flex-1 space-y-1">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-medium text-foreground">
+                    {interaction.type.charAt(0).toUpperCase() + interaction.type.slice(1)}
+                  </h4>
+                  <span className="text-xs text-muted-foreground">
+                    {formatDistanceToNow(new Date(interaction.date), { addSuffix: true })}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground line-clamp-2">
+                  {interaction.notes}
+                </p>
+              </div>
+            </div>
+          ))}
+          {interactions.length > 3 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onViewAll}
+              className="w-full text-sm text-muted-foreground hover:text-foreground"
+            >
+              View all {interactions.length} interactions
+            </Button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+
+  // Mobile overlay
+  if (isMobile) {
+    return (
+      <AnimatePresence>
+        <motion.div
+          initial={{ x: "100%" }}
+          animate={{ x: 0 }}
+          exit={{ x: "100%" }}
+          transition={{ type: "spring", damping: 30, stiffness: 300 }}
+          className="fixed inset-0 bg-background z-50 flex flex-col"
+        >
+          {/* Mobile Header */}
+          <div className="flex items-center justify-between p-4 border-b border-border bg-background/95 backdrop-blur-sm">
+            <h1 className="text-lg font-semibold text-foreground">Contact Details</h1>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowMobilePanel(false)}
+              className="h-8 w-8 p-0"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Mobile Content */}
+          <ScrollArea className="flex-1">
+            <div className="p-4 space-y-6">
+              <ContactInfoSection />
+              <ContactDetailsSection />
+              <RecentActivitySection />
+            </div>
+          </ScrollArea>
+        </motion.div>
+      </AnimatePresence>
+    );
+  }
+
+  // Desktop panel
+  return (
+    <div className="h-full flex flex-col bg-card dark:bg-card">
+      {/* Header */}
+      <div className="flex-shrink-0 p-4 border-b border-border dark:border-border">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-lg font-semibold text-foreground">Contact Details</h2>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onViewAll}
+            className="text-xs text-muted-foreground hover:text-foreground"
+          >
+            View Full Profile
           </Button>
         </div>
       </div>
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-        <TabsList className="grid w-full grid-cols-2 mx-6 mt-4 rounded-full">
-          <TabsTrigger value="about" className="rounded-full">About</TabsTrigger>
-          <TabsTrigger value="timeline" className="rounded-full">Timeline</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="about" className="flex-1 mt-0">
-          <ScrollArea className="h-full">
-            <div className="p-6 space-y-6">
-              {/* Contact Information */}
-              <div className="space-y-3">
-                <h3 className="font-semibold text-foreground">Contact Information</h3>
-                <div className="space-y-2">
-                  {contact.personal_email && <div className="flex items-center gap-3 text-sm">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-foreground">{contact.personal_email}</span>
-                    </div>}
-                  {contact.mobile_phone && <div className="flex items-center gap-3 text-sm">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-foreground">{contact.mobile_phone}</span>
-                    </div>}
-                  {contact.location && <div className="flex items-center gap-3 text-sm">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-foreground">{contact.location}</span>
-                    </div>}
-                </div>
-              </div>
-
-              {/* Professional Information */}
-              {(contact.company_name || contact.job_title || contact.industry) && <div className="space-y-3">
-                  <h3 className="font-semibold text-foreground">Professional</h3>
-                  <div className="space-y-2">
-                    {contact.company_name && <div className="flex items-center gap-3 text-sm">
-                        <Building className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-foreground">{contact.company_name}</span>
-                      </div>}
-                    {contact.job_title && <div className="flex items-center gap-3 text-sm">
-                        <Briefcase className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-foreground">{contact.job_title}</span>
-                      </div>}
-                    {contact.industry && <div className="flex items-center gap-3 text-sm">
-                        <span className="text-muted-foreground">Industry:</span>
-                        <span className="text-foreground">{contact.industry}</span>
-                      </div>}
-                  </div>
-                </div>}
-
-              {/* Social Links */}
-              {(contact.linkedin || contact.website || contact.facebook) && <div className="space-y-3">
-                  <h3 className="font-semibold text-foreground">Social & Web</h3>
-                  <div className="space-y-2">
-                    {contact.linkedin && <div className="flex items-center gap-3 text-sm">
-                        <Linkedin className="h-4 w-4 text-muted-foreground" />
-                        <a href={contact.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
-                          LinkedIn
-                        </a>
-                      </div>}
-                    {contact.website && <div className="flex items-center gap-3 text-sm">
-                        <Globe className="h-4 w-4 text-muted-foreground" />
-                        <a href={contact.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
-                          Website
-                        </a>
-                      </div>}
-                    {contact.facebook && <div className="flex items-center gap-3 text-sm">
-                        <Facebook className="h-4 w-4 text-muted-foreground" />
-                        <a href={contact.facebook} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
-                          Facebook
-                        </a>
-                      </div>}
-                  </div>
-                </div>}
-
-              {/* Tags */}
-              {contact.tags && contact.tags.length > 0 && <div className="space-y-3">
-                  <h3 className="font-semibold text-foreground">Tags</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {contact.tags.map((tag, index) => <Badge key={index} variant="secondary" className="text-xs">
-                        {tag}
-                      </Badge>)}
-                  </div>
-                </div>}
-
-              {/* Notes */}
-              {contact.notes && <div className="space-y-3">
-                  <h3 className="font-semibold text-foreground">Notes</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {contact.notes}
-                  </p>
-                </div>}
-            </div>
-          </ScrollArea>
-        </TabsContent>
-
-        <TabsContent value="timeline" className="flex-1 mt-0">
-          <ScrollArea className="h-full">
-            <div className="p-6">
-              <h3 className="font-semibold text-foreground mb-4">Recent Activity</h3>
-              {interactions.length > 0 ? <div className="space-y-4">
-                  {interactions.map(interaction => <div key={interaction.id} className="flex gap-3 p-3 rounded-lg bg-muted/50">
-                      <div className="flex-shrink-0 mt-1">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge variant="outline" className="text-xs">
-                            {interaction.type}
-                          </Badge>
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Calendar className="h-3 w-3" />
-                            {formatDate(interaction.date)}
-                          </div>
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Clock className="h-3 w-3" />
-                            {formatTime(interaction.date)}
-                          </div>
-                        </div>
-                        <p className="text-sm text-foreground leading-relaxed">
-                          {interaction.notes}
-                        </p>
-                      </div>
-                    </div>)}
-                </div> : <div className="text-center py-8">
-                  <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-sm text-muted-foreground">No recent activity</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Interactions will appear here as you add them
-                  </p>
-                </div>}
-            </div>
-          </ScrollArea>
-        </TabsContent>
-      </Tabs>
-    </Card>;
+      {/* Scrollable Content */}
+      <ScrollArea className="flex-1">
+        <div className="p-4 space-y-6">
+          <ContactInfoSection />
+          <ContactDetailsSection />
+          <RecentActivitySection />
+        </div>
+      </ScrollArea>
+    </div>
+  );
 }

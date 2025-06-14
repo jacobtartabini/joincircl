@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Contact, Interaction } from "@/types/contact";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -91,10 +90,10 @@ export function MobileContactDetailSlideIn({
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 30, stiffness: 300 }}
-            className="fixed top-0 right-0 bottom-0 w-full bg-white z-50 flex flex-col"
+            className="fixed top-0 right-0 bottom-0 w-full bg-background z-50 flex flex-col"
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-white">
+            <div className="flex items-center justify-between p-4 border-b border-border bg-background/95 backdrop-blur-sm">
               <Button
                 variant="ghost"
                 size="sm"
@@ -103,6 +102,8 @@ export function MobileContactDetailSlideIn({
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
+              
+              <h1 className="text-lg font-semibold text-foreground">Contact Details</h1>
               
               <div className="flex items-center gap-2">
                 <Button
@@ -127,27 +128,27 @@ export function MobileContactDetailSlideIn({
             {/* Content */}
             <ScrollArea className="flex-1">
               <div className="p-6 space-y-8">
-                {/* Contact Header */}
+                {/* Contact Header - Updated styling */}
                 <div className="text-center space-y-4">
                   <Avatar className="h-24 w-24 mx-auto">
                     {contact.avatar_url ? (
                       <AvatarImage src={contact.avatar_url} alt={contact.name} />
                     ) : (
-                      <AvatarFallback className="text-xl bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                      <AvatarFallback className="text-xl bg-primary/10 text-primary font-medium">
                         {contact.name.charAt(0)}
                       </AvatarFallback>
                     )}
                   </Avatar>
                   
                   <div className="space-y-2">
-                    <h1 className="text-2xl font-semibold text-gray-900">{contact.name}</h1>
+                    <h1 className="text-2xl font-semibold text-foreground">{contact.name}</h1>
                     {contact.job_title && contact.company_name && (
-                      <p className="text-lg text-gray-600">
+                      <p className="text-lg text-muted-foreground">
                         {contact.job_title} at {contact.company_name}
                       </p>
                     )}
                     {contact.location && (
-                      <p className="text-sm text-gray-500 flex items-center justify-center gap-1">
+                      <p className="text-sm text-muted-foreground flex items-center justify-center gap-1">
                         <MapPin className="h-4 w-4" />
                         {contact.location}
                       </p>

@@ -1,4 +1,3 @@
-
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCirclesState } from "./hooks/useCirclesState";
@@ -14,6 +13,7 @@ import { InsightsDialog } from "./dialogs/InsightsDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Circle, Users } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function RedesignedCircles() {
   const navigate = useNavigate();
@@ -45,6 +45,7 @@ export default function RedesignedCircles() {
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<string>("name");
   const [filterBy, setFilterBy] = useState<string | null>(null);
+  const [showMobileDetail, setShowMobileDetail] = useState(false);
 
   // Set initial filter from URL params
   useEffect(() => {
@@ -59,10 +60,19 @@ export default function RedesignedCircles() {
     return contacts.find(contact => contact.id === selectedContactId) || null;
   }, [selectedContactId, contacts]);
 
-  // Handle selecting a contact
+  // Handle selecting a contact - updated for mobile
   const handleSelectContact = (contact: Contact) => {
     setSelectedContactId(contact.id);
     setInitialSelectedContact(contact);
+    if (isMobile) {
+      setShowMobileDetail(true);
+    }
+  };
+
+  // Handle closing mobile detail
+  const handleCloseMobileDetail = () => {
+    setShowMobileDetail(false);
+    setSelectedContactId(null);
   };
 
   // Handle edit action from contact detail panel
@@ -229,6 +239,19 @@ export default function RedesignedCircles() {
           </div>
         </div>
         
+        {/* Mobile Detail Panel */}
+        {selectedContact && showMobileDetail && (
+          <div className="fixed inset-0 z-50">
+            <EnhancedContactDetail 
+              contact={selectedContact} 
+              interactions={selectedContactInteractions} 
+              onEdit={handleEditContact} 
+              onDelete={handleDeleteContact} 
+              onViewAll={handleViewAllDetails} 
+            />
+          </div>
+        )}
+        
         {/* Dialogs */}
         <AddContactDialog 
           isOpen={isAddDialogOpen} 
@@ -267,7 +290,10 @@ export default function RedesignedCircles() {
         {/* Main Content Area */}
         <div className="flex-1 flex overflow-hidden">
           {/* Contact List Panel */}
-          <div className="flex-1 flex flex-col bg-card dark:bg-card border-r border-border dark:border-border shadow-sm overflow-hidden min-w-0 max-w-none">
+          <div className={cn(
+            "flex flex-col bg-card dark:bg-card border-r border-border dark:border-border shadow-sm overflow-hidden min-w-0",
+            selectedContact ? "flex-1 max-w-none" : "flex-1 max-w-full"
+          )}>
             {/* Header */}
             <div className="flex-shrink-0 border-b border-border dark:border-border bg-card dark:bg-card">
               <div className="p-6 pb-4">
@@ -323,7 +349,7 @@ export default function RedesignedCircles() {
           
           {/* Contact Details Panel - Only show when contact is selected */}
           {selectedContact && (
-            <div className="w-96 flex-shrink-0 bg-card dark:bg-card shadow-sm border-l border-border dark:border-border overflow-hidden">
+            <div className="w-80 xl:w-96 flex-shrink-0 bg-card dark:bg-card shadow-sm border-l border-border dark:border-border overflow-hidden">
               <EnhancedContactDetail 
                 contact={selectedContact} 
                 interactions={selectedContactInteractions} 
