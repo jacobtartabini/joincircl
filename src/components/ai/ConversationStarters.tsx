@@ -12,57 +12,57 @@ export default function ConversationStarters({ onSelectPrompt }: ConversationSta
       icon: Users,
       title: "Inner Circle",
       question: "Who in my network can help me with a finance internship?",
-      color: "bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 border-blue-200 dark:border-blue-800"
+      color: "bg-[#0daeec]/5 dark:bg-[#0daeec]/10 hover:bg-[#0daeec]/10 dark:hover:bg-[#0daeec]/20 border-[#0daeec]/20 dark:border-[#0daeec]/30"
     },
     {
       icon: TrendingUp,
       title: "Network Growth",
       question: "How can I strengthen connections in the tech industry?",
-      color: "bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 border-green-200 dark:border-green-800"
+      color: "bg-[#0daeec]/5 dark:bg-[#0daeec]/10 hover:bg-[#0daeec]/10 dark:hover:bg-[#0daeec]/20 border-[#0daeec]/20 dark:border-[#0daeec]/30"
     },
     {
       icon: Calendar,
       title: "Follow-up",
       question: "Who haven't I spoken to in a while that I should reach out to?",
-      color: "bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 border-purple-200 dark:border-purple-800"
+      color: "bg-[#0daeec]/5 dark:bg-[#0daeec]/10 hover:bg-[#0daeec]/10 dark:hover:bg-[#0daeec]/20 border-[#0daeec]/20 dark:border-[#0daeec]/30"
     },
     {
       icon: MessageCircle,
       title: "Relationship Building",
       question: "What's the best way to maintain long-distance professional relationships?",
-      color: "bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 border-orange-200 dark:border-orange-800"
+      color: "bg-[#0daeec]/5 dark:bg-[#0daeec]/10 hover:bg-[#0daeec]/10 dark:hover:bg-[#0daeec]/20 border-[#0daeec]/20 dark:border-[#0daeec]/30"
     }
   ];
 
   return (
-    <div className="p-4 max-w-3xl mx-auto">
-      <div className="text-center mb-4">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+    <div className="p-3 max-w-2xl mx-auto">
+      <div className="text-center mb-3">
+        <h2 className="text-lg font-semibold text-foreground mb-1">
           Welcome to Arlo
         </h2>
-        <p className="text-gray-600 dark:text-gray-400 text-base">
+        <p className="text-muted-foreground text-sm">
           Your AI relationship assistant. How can I help you strengthen your network today?
         </p>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {prompts.map((prompt, index) => {
           const Icon = prompt.icon;
           return (
             <Card
               key={index}
-              className={`p-4 cursor-pointer transition-all duration-200 border-2 ${prompt.color}`}
+              className={`p-3 cursor-pointer transition-all duration-200 border ${prompt.color}`}
               onClick={() => onSelectPrompt(prompt.question)}
             >
-              <div className="flex items-start space-x-3">
-                <div className="flex-shrink-0">
-                  <Icon className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+              <div className="flex items-start space-x-2">
+                <div className="flex-shrink-0 mt-0.5">
+                  <Icon className="h-4 w-4 text-[#0daeec]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
+                  <h3 className="text-xs font-semibold text-foreground mb-1">
                     {prompt.title}
                   </h3>
-                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                  <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
                     {prompt.question}
                   </p>
                 </div>
