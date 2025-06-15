@@ -1,4 +1,3 @@
-
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface CareerHubHeaderProps {
@@ -18,7 +17,7 @@ export function CareerHubHeader({ activeTab, onTabChange, isMobile }: CareerHubH
           </div>
 
           <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 bg-gray-50/80 p-1.5 rounded-2xl">
+            <TabsList className="grid w-full grid-cols-3 bg-gray-50/80 p-1.5 rounded-full">
               <TabsTrigger value="overview" className="rounded-xl text-sm">Overview</TabsTrigger>
               <TabsTrigger value="applications" className="rounded-xl text-sm">Applications</TabsTrigger>
               <TabsTrigger value="tools" className="rounded-xl text-sm">Tools</TabsTrigger>
@@ -37,7 +36,7 @@ export function CareerHubHeader({ activeTab, onTabChange, isMobile }: CareerHubH
       </div>
 
       <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-3 bg-gray-50/80 p-1.5 rounded-2xl">
+        <TabsList className="grid w-full max-w-md grid-cols-3 bg-gray-50/80 p-1.5 rounded-full">
           <TabsTrigger value="overview" className="rounded-xl">Overview</TabsTrigger>
           <TabsTrigger value="applications" className="rounded-xl">Applications</TabsTrigger>
           <TabsTrigger value="tools" className="rounded-xl">Tools</TabsTrigger>
