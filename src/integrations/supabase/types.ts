@@ -9,6 +9,44 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      application_workflow_data: {
+        Row: {
+          created_at: string | null
+          data: Json | null
+          id: string
+          job_application_id: string | null
+          stage: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          job_application_id?: string | null
+          stage: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          job_application_id?: string | null
+          stage?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_workflow_data_job_application_id_fkey"
+            columns: ["job_application_id"]
+            isOneToOne: false
+            referencedRelation: "job_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       automation_suggestions: {
         Row: {
           contact_id: string | null
@@ -484,51 +522,66 @@ export type Database = {
       job_applications: {
         Row: {
           applied_date: string | null
+          arlo_insights: Json | null
           company_name: string
           contact_id: string | null
           created_at: string
           follow_up_date: string | null
           id: string
           interview_date: string | null
+          interviewer_contacts: string[] | null
+          job_description: string | null
           job_title: string
           job_url: string | null
           notes: string | null
           salary_range: string | null
+          stage_completion: Json | null
           status: string
           updated_at: string
           user_id: string
+          workflow_stage: string | null
         }
         Insert: {
           applied_date?: string | null
+          arlo_insights?: Json | null
           company_name: string
           contact_id?: string | null
           created_at?: string
           follow_up_date?: string | null
           id?: string
           interview_date?: string | null
+          interviewer_contacts?: string[] | null
+          job_description?: string | null
           job_title: string
           job_url?: string | null
           notes?: string | null
           salary_range?: string | null
+          stage_completion?: Json | null
           status?: string
           updated_at?: string
           user_id: string
+          workflow_stage?: string | null
         }
         Update: {
           applied_date?: string | null
+          arlo_insights?: Json | null
           company_name?: string
           contact_id?: string | null
           created_at?: string
           follow_up_date?: string | null
           id?: string
           interview_date?: string | null
+          interviewer_contacts?: string[] | null
+          job_description?: string | null
           job_title?: string
           job_url?: string | null
           notes?: string | null
           salary_range?: string | null
+          stage_completion?: Json | null
           status?: string
           updated_at?: string
           user_id?: string
+          workflow_stage?: string | null
         }
         Relationships: [
           {

@@ -116,7 +116,9 @@ export function useConversations() {
     
     // Save conversation with user ID and conversation object
     if (user) {
-      saveConversationToSupabase(user.id, newConversation);
+      saveConversationToSupabase(user.id, newConversation).catch(error => {
+        logError('Failed to save conversation to Supabase', error);
+      });
     }
 
     logDebug('New conversation created and saved', { conversationId });
@@ -180,7 +182,9 @@ export function useConversations() {
 
     // Save updated conversation with user ID and conversation object
     if (conversationToUpdate && user) {
-      saveConversationToSupabase(user.id, conversationToUpdate);
+      saveConversationToSupabase(user.id, conversationToUpdate).catch(error => {
+        logError('Failed to save conversation to Supabase', error);
+      });
     }
   };
 
@@ -230,7 +234,9 @@ export function useConversations() {
 
     // Save updated conversation with user ID and conversation object
     if (conversationToUpdate && user) {
-      saveConversationToSupabase(user.id, conversationToUpdate);
+      saveConversationToSupabase(user.id, conversationToUpdate).catch(error => {
+        logError('Failed to save conversation to Supabase', error);
+      });
     }
 
     return messageId;
