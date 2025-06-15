@@ -1,4 +1,3 @@
-
 "use client";
 
 import { cn } from "@/lib/utils";
@@ -95,14 +94,14 @@ export function MultiContactSelector({
       >
         <span className="truncate text-muted-foreground">
           {selectedContacts.length > 0 
-            ? `${selectedContacts.length} contact${selectedContacts.length > 1 ? 's' : ''} selected` 
+            ? `${selectedContacts.length} contact${selectedContacts.length > 1 ? 's' : ''}` 
             : "Select contacts"
           }
         </span>
         <ChevronDown size={16} strokeWidth={2} className="shrink-0 text-muted-foreground/80" />
       </Button>
 
-      <CommandDialog open={open} onOpenChange={setOpen} label="Contact selector dialog">
+      <CommandDialog open={open} onOpenChange={setOpen}>
         <CommandInput
           placeholder={placeholder}
           value={searchValue}
