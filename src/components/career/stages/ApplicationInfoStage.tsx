@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -83,9 +82,16 @@ export function ApplicationInfoStage({
       {/* AI Analysis Preview */}
       {jobDescription && <Card className="p-4 bg-blue-50/50 border-blue-100">
           <div className="flex items-center gap-2 mb-2">
-            <GradientIconBg size={24}>
-              <Atom className="h-4 w-4" color="white" />
-            </GradientIconBg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="atom-gradient-app-info" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#3b82f6" />
+                  <stop offset="50%" stopColor="#a21caf" />
+                  <stop offset="100%" stopColor="#ec4899" />
+                </linearGradient>
+              </defs>
+              <Atom className="w-full h-full" stroke="url(#atom-gradient-app-info)" strokeWidth="2" />
+            </svg>
             <span className="text-sm font-medium text-blue-900">Arlo's Insight</span>
           </div>
           <p className="text-sm text-blue-800">
