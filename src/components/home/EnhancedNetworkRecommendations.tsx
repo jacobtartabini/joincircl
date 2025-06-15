@@ -2,12 +2,13 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Brain, Users, RefreshCw, Loader2, ArrowRight, MessageCircle, User, Calendar } from "lucide-react";
+import { Atom, Users, RefreshCw, Loader2, ArrowRight, MessageCircle, User, Calendar } from "lucide-react";
 import { Contact } from "@/types/contact";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { contactService } from "@/services/contactService";
+
 interface NetworkRecommendationsProps {
   contacts: Contact[];
 }
@@ -294,8 +295,17 @@ ${staleContacts.slice(0, 8).map(c => `- ${c.name} (${c.circle} circle, ${c.compa
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-medium flex items-center gap-2">
-            <Brain className="h-5 w-5 text-purple-500" />
-            Strategic Network Insights
+            <svg width="0" height="0" style={{ position: 'absolute' }}>
+              <defs>
+                <linearGradient id="atom-gradient-network" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#0092ca" />
+                  <stop offset="50%" stopColor="#a21caf" />
+                  <stop offset="100%" stopColor="#ec4899" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <Atom className="h-5 w-5" stroke="url(#atom-gradient-network)" strokeWidth="2" />
+            Arlo's Network Analysis
           </CardTitle>
           <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isLoading || contacts.length === 0} className="glass-button">
             {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
