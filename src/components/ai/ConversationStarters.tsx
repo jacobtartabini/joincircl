@@ -35,31 +35,31 @@ export default function ConversationStarters({ onSelectPrompt }: ConversationSta
   ];
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <div className="text-center mb-8">
-        <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-3">
+    <div className="p-4 max-w-3xl mx-auto">
+      <div className="text-center mb-4">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
           Welcome to Arlo
         </h2>
-        <p className="text-gray-600 dark:text-gray-400 text-lg">
+        <p className="text-gray-600 dark:text-gray-400 text-base">
           Your AI relationship assistant. How can I help you strengthen your network today?
         </p>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {prompts.map((prompt, index) => {
           const Icon = prompt.icon;
           return (
             <Card
               key={index}
-              className={`p-6 cursor-pointer transition-all duration-200 border-2 ${prompt.color}`}
+              className={`p-4 cursor-pointer transition-all duration-200 border-2 ${prompt.color}`}
               onClick={() => onSelectPrompt(prompt.question)}
             >
-              <div className="flex items-start space-x-4">
+              <div className="flex items-start space-x-3">
                 <div className="flex-shrink-0">
-                  <Icon className="h-6 w-6 text-gray-700 dark:text-gray-300" />
+                  <Icon className="h-5 w-5 text-gray-700 dark:text-gray-300" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
                     {prompt.title}
                   </h3>
                   <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
