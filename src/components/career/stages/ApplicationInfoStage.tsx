@@ -50,12 +50,12 @@ export function ApplicationInfoStage({
         <div className="space-y-4">
           <div>
             <Label htmlFor="job_title">Job Title</Label>
-            <Input id="job_title" value={workflow.job_title} disabled className="h-12 px-4 border border-gray-200 rounded-lg bg-white/50 focus-visible:ring-blue-500 disabled:opacity-60" />
+            <Input id="job_title" value={workflow.job_title} disabled className="h-12 px-4 border border-gray-200 rounded-lg bg-white/50 focus-visible:ring-primary disabled:opacity-60" />
           </div>
 
           <div>
             <Label htmlFor="company_name">Company</Label>
-            <Input id="company_name" value={workflow.company_name} disabled className="h-12 px-4 border border-gray-200 rounded-lg bg-white/50 focus-visible:ring-blue-500 disabled:opacity-60" />
+            <Input id="company_name" value={workflow.company_name} disabled className="h-12 px-4 border border-gray-200 rounded-lg bg-white/50 focus-visible:ring-primary disabled:opacity-60" />
           </div>
 
           <div>
@@ -63,7 +63,7 @@ export function ApplicationInfoStage({
             <Input id="deadline" type="date" value={applicationDeadline} onChange={e => {
             setApplicationDeadline(e.target.value);
             setHasUnsavedChanges(true);
-          }} className="h-12 px-4 border border-gray-200 rounded-lg bg-white focus-visible:ring-blue-500" />
+          }} className="h-12 px-4 border border-gray-200 rounded-lg bg-white focus-visible:ring-primary" />
           </div>
         </div>
 
@@ -73,27 +73,27 @@ export function ApplicationInfoStage({
             <Textarea id="job_description" placeholder="Paste the full job description here..." value={jobDescription} onChange={e => {
             setJobDescription(e.target.value);
             setHasUnsavedChanges(true);
-          }} className="min-h-[200px] px-4 py-3 border border-gray-200 rounded-lg bg-white focus-visible:ring-blue-500 resize-none" />
+          }} className="min-h-[200px] px-4 py-3 border border-gray-200 rounded-lg bg-white focus-visible:ring-primary resize-none" />
           </div>
         </div>
       </div>
 
       {/* AI Analysis Preview */}
-      {jobDescription && <Card className="p-4 bg-blue-50/50 border-blue-100">
+      {jobDescription && <Card className="p-4 bg-primary-50/50 border-primary-100">
           <div className="flex items-center gap-2 mb-2">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <defs>
                 <linearGradient id="atom-gradient-app-info" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#3b82f6" />
+                  <stop offset="0%" stopColor="#0092ca" />
                   <stop offset="50%" stopColor="#a21caf" />
                   <stop offset="100%" stopColor="#ec4899" />
                 </linearGradient>
               </defs>
               <Atom className="w-full h-full" stroke="url(#atom-gradient-app-info)" strokeWidth="2" />
             </svg>
-            <span className="text-sm font-medium text-blue-900">Arlo's Analysis</span>
+            <span className="text-sm font-medium text-primary-900">Arlo's Analysis</span>
           </div>
-          <p className="text-sm text-blue-800">
+          <p className="text-sm text-primary-800">
             I've analyzed this job description and identified key requirements. Once you complete this stage,
             I'll help you tailor your resume and prepare targeted responses.
           </p>

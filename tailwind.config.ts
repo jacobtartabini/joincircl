@@ -30,7 +30,17 @@ export default {
         foreground: 'hsl(var(--foreground))',
         primary: {
           DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))'
+          foreground: 'hsl(var(--primary-foreground))',
+          50: '#e0f6fc',
+          100: '#b9e8f8',
+          200: '#7dd4f0',
+          300: '#38bbe1',
+          400: '#16a8d3',
+          500: '#0092ca', // main primary shade
+          600: '#017bb3',
+          700: '#025e8c',
+          800: '#02496d',
+          900: '#01375a',
         },
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',
@@ -57,9 +67,9 @@ export default {
           foreground: 'hsl(var(--card-foreground))'
         },
         circl: {
-          blue: "#0F67FE",
-          lightBlue: "#0F67FE",
-          darkBlue: '#0B7A9E',
+          blue: "#0092ca",          // updated to new primary
+          lightBlue: "#0092ca",     // updated to new primary
+          darkBlue: '#026387',      // complementary dark shade
           gray: '#403E43',
           lightGray: '#F1F1F1',
         },

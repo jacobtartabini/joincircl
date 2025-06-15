@@ -1,4 +1,3 @@
-
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Atom, Plus, Calendar } from "lucide-react";
@@ -24,12 +23,12 @@ export function SmartInsightsCard({
     const mobileInsightText = stats.careerContacts > 0 ? `📈 You have ${stats.careerContacts} career contacts! Consider following up with contacts you haven't spoken to recently.` : "🚀 Start building your career network by adding contacts and tracking job applications.";
 
     return (
-      <Card className="p-6 bg-blue-50/50 backdrop-blur-sm border-blue-100 rounded-2xl">
+      <Card className="p-6 bg-primary-50/50 backdrop-blur-sm border-primary-100 rounded-2xl">
         <div className="flex items-center gap-3 mb-4">
           <svg width="0" height="0" style={{ position: 'absolute' }}>
             <defs>
               <linearGradient id="atom-gradient-mobile" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#3b82f6" />
+                <stop offset="0%" stopColor="#0092ca" />
                 <stop offset="50%" stopColor="#a21caf" />
                 <stop offset="100%" stopColor="#ec4899" />
               </linearGradient>
@@ -41,7 +40,7 @@ export function SmartInsightsCard({
         <p className="text-sm text-gray-700 mb-4 leading-relaxed">
           {mobileInsightText}
         </p>
-        <Button onClick={() => onQuickAction("Add Application")} className="w-full bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-full">
+        <Button onClick={() => onQuickAction("Add Application")} className="w-full bg-primary-600 hover:bg-primary-700 text-white border-0 rounded-full">
           <Plus className="h-4 w-4 mr-2" />
           Application
         </Button>
@@ -50,12 +49,12 @@ export function SmartInsightsCard({
   }
 
   return (
-    <Card className="p-6 bg-blue-50/50 backdrop-blur-sm border-blue-100 rounded-2xl">
+    <Card className="p-6 bg-primary-50/50 backdrop-blur-sm border-primary-100 rounded-2xl">
       <div className="flex items-center gap-3 mb-4">
         <svg width="0" height="0" style={{ position: 'absolute' }}>
           <defs>
             <linearGradient id="atom-gradient-desktop" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#3b82f6" />
+              <stop offset="0%" stopColor="#0092ca" />
               <stop offset="50%" stopColor="#a21caf" />
               <stop offset="100%" stopColor="#ec4899" />
             </linearGradient>
@@ -68,7 +67,7 @@ export function SmartInsightsCard({
         {insightText}
       </p>
       <div className="flex gap-4">
-        <Button onClick={() => onQuickAction("Add Application")} className="bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-full">
+        <Button onClick={() => onQuickAction("Add Application")} className="bg-primary-600 hover:bg-primary-700 text-white border-0 rounded-full">
           <Plus className="h-4 w-4 mr-2" />
           Application
         </Button>
