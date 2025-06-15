@@ -122,9 +122,42 @@ export function JobApplicationWorkflow({ applicationId, onBack }: JobApplication
         {/* Arlo Insight */}
         <div className="mt-4 p-3 bg-blue-50/50 rounded-xl border border-blue-100">
           <div className="flex items-center gap-2 mb-2">
-            <GradientIconBg size={24}>
-              <Atom className="h-4 w-4" color="white" />
-            </GradientIconBg>
+            {/* Gradient-filled Atom Icon */}
+            <svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+              <defs>
+                <linearGradient id="arlo-atom-gradient" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+                  <stop stopColor="#3b82f6"/>
+                  <stop offset="0.5" stopColor="#a21caf"/>
+                  <stop offset="1" stopColor="#ec4899"/>
+                </linearGradient>
+              </defs>
+              <path
+                d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0
+                   M12 2v2
+                   M12 20v2
+                   M4.93 4.93l1.41 1.41
+                   M17.66 17.66l1.41 1.41
+                   M2 12h2
+                   M20 12h2
+                   M4.93 19.07l1.41 -1.41
+                   M17.66 6.34l1.41 -1.41
+                   M7.5 15.5C8.328 13.5 10.672 13.5 11.5 15.5
+                   M11.5 8.5C10.672 10.5 8.328 10.5 7.5 8.5"
+                stroke="url(#arlo-atom-gradient)"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+              />
+              <circle
+                cx="12"
+                cy="12"
+                r="3.5"
+                fill="url(#arlo-atom-gradient)"
+                fillOpacity="0.6"
+                stroke="none"
+              />
+            </svg>
             <span className="text-sm font-medium text-blue-900">Arlo's Insight</span>
           </div>
           <p className="text-sm text-blue-800">
