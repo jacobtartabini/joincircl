@@ -1,11 +1,12 @@
-
 import { useState, useEffect } from "react";
 import { Contact } from "@/types/contact";
 import { contactService } from "@/services/contactService";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const useContacts = () => {
   const { toast } = useToast();
+  const { user, loading: isAuthLoading } = useAuth(); // get user and loading from context
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [followUpStats, setFollowUpStats] = useState({
@@ -14,12 +15,32 @@ export const useContacts = () => {
   });
 
   useEffect(() => {
-    fetchContacts();
-  }, []);
+    // Only fetch if auth is not loading and user exists
+    if (!isAuthLoading && user && user.id) {
+      console.log(
+        "[useContacts] Auth is ready. Fetching contacts for user:",
+        user?.id
+      );
+      fetchContacts();
+    } else if (isAuthLoading) {
+      console.log("[useContacts] Waiting for auth to finish loading...");
+    } else if (!user) {
+      console.log("[useContacts] No user; skipping contact fetch.");
+      setIsLoading(false);
+      setContacts([]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, isAuthLoading]); // Run when auth state changes
 
   const fetchContacts = async () => {
     try {
       setIsLoading(true);
+      if (!user) {
+        console.log("[useContacts] Tried to fetch contacts with no user!");
+        setContacts([]);
+        setIsLoading(false);
+        return [];
+      }
       const data = await contactService.getContacts();
       setContacts(data);
       calculateFollowUpStats(data);
@@ -31,6 +52,7 @@ export const useContacts = () => {
         description: "Failed to load contacts. Please try again.",
         variant: "destructive",
       });
+      setContacts([]);
       return [];
     } finally {
       setIsLoading(false);
