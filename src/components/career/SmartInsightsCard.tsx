@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Zap, Plus } from "lucide-react";
+import { Zap, Plus, Calendar } from "lucide-react";
 
 interface SmartInsightsCardProps {
   stats: {
@@ -57,7 +57,10 @@ export function SmartInsightsCard({
           <Plus className="h-4 w-4 mr-2" />
           Application
         </Button>
-        <Button variant="outline" className="border-gray-200 hover:bg-gray-50 rounded-full">Follow-ups</Button>
+        <Button variant="outline" className="border-gray-200 hover:bg-gray-50 rounded-full">
+          <Calendar className="h-4 w-4 mr-2" />
+          Follow-ups
+        </Button>
       </div>
     </Card>
   );
