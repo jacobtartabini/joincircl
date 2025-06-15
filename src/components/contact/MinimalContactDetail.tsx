@@ -7,10 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { motion } from "framer-motion";
-import { ArrowLeft, Phone, Mail, MapPin, Edit, Trash, MessageSquare, Calendar, Coffee, Hash, User, MoreVertical } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { ArrowLeft, Phone, Mail, MapPin, Edit, Trash, MessageSquare, Calendar, Coffee, Hash, User, MoreVertical, Building, GraduationCap, Gift, Globe } from "lucide-react";
+import { formatDistanceToNow, format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { GradientText } from "@/components/ui/gradient-text";
 
 interface MinimalContactDetailProps {
   contact: Contact;
@@ -79,11 +78,11 @@ export function MinimalContactDetail({
     href?: string;
   }) => {
     const content = (
-      <div className="unified-button flex items-center gap-3 py-3 px-4 transition-all duration-200 hover:bg-white/50 dark:hover:bg-white/10 rounded-xl">
-        <Icon className="h-5 w-5 text-muted-foreground" />
+      <div className="unified-button flex items-center gap-3 py-3 px-4 transition-all duration-200 hover:bg-white/30 dark:hover:bg-white/5 rounded-xl">
+        <Icon className="h-5 w-5 text-muted-foreground flex-shrink-0" />
         <div className="flex-1 min-w-0">
-          <span className="text-base font-medium text-foreground">{value}</span>
-          <span className="text-sm text-muted-foreground ml-2">({label})</span>
+          <span className="text-base font-medium text-foreground block truncate">{value}</span>
+          <span className="text-sm text-muted-foreground">{label}</span>
         </div>
       </div>
     );
@@ -149,11 +148,11 @@ export function MinimalContactDetail({
 
         {/* Content */}
         <ScrollArea className="flex-1">
-          <div className="p-6 space-y-8">
+          <div className="p-6 space-y-6">
             {/* Contact Header */}
-            <div className="text-center space-y-6">
+            <div className="text-center space-y-4">
               <div className="relative inline-block">
-                <Avatar className="h-24 w-24 mx-auto border-2 border-white/20 dark:border-white/10">
+                <Avatar className="h-20 w-20 mx-auto border-2 border-white/20 dark:border-white/10">
                   {contact.avatar_url ? (
                     <AvatarImage src={contact.avatar_url} alt={contact.name} />
                   ) : (
@@ -165,10 +164,10 @@ export function MinimalContactDetail({
                 <div className={cn("absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-2 border-card", getCircleColor(contact.circle || 'outer'))} />
               </div>
               
-              <div className="space-y-3">
-                <GradientText className="text-2xl font-bold">
+              <div className="space-y-2">
+                <h1 className="text-2xl font-bold text-foreground">
                   {contact.name}
-                </GradientText>
+                </h1>
                 {contact.job_title && contact.company_name && (
                   <p className="text-lg text-muted-foreground font-medium">
                     {contact.job_title} at {contact.company_name}
@@ -180,7 +179,7 @@ export function MinimalContactDetail({
                     {contact.location}
                   </p>
                 )}
-                <Badge variant="secondary" className="text-sm bg-gradient-to-r from-[#0daeec]/10 to-[#0daeec]/5 text-[#0daeec] border border-[#0daeec]/20">
+                <Badge variant="secondary" className="text-sm bg-[#0daeec]/10 text-[#0daeec] border border-[#0daeec]/20">
                   {contact.circle.charAt(0).toUpperCase() + contact.circle.slice(1)} Circle
                 </Badge>
               </div>
@@ -191,7 +190,7 @@ export function MinimalContactDetail({
               {contact.personal_email && (
                 <Button 
                   onClick={() => window.open(`mailto:${contact.personal_email}`)} 
-                  className="unified-button h-12 flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#0daeec]/90 to-[#0daeec]/70 hover:from-[#0daeec] hover:to-[#0daeec]/90 text-white"
+                  className="unified-button h-12 flex items-center gap-2 rounded-xl bg-[#0daeec] hover:bg-[#0daeec]/90 text-white"
                 >
                   <Mail className="h-4 w-4" />
                   Email
@@ -209,41 +208,54 @@ export function MinimalContactDetail({
               )}
             </div>
 
-            {/* Contact Details Sections */}
-            {(contact.personal_email || contact.mobile_phone || contact.website) && (
-              <div className="space-y-4">
-                <h2 className="text-lg font-semibold text-foreground">Contact</h2>
-                <div className="unified-container space-y-2 p-4 rounded-xl">
-                  {contact.personal_email && (
-                    <ContactInfoItem 
-                      icon={Mail} 
-                      label="Email" 
-                      value={contact.personal_email} 
-                      href={`mailto:${contact.personal_email}`} 
-                    />
-                  )}
-                  {contact.mobile_phone && (
-                    <ContactInfoItem 
-                      icon={Phone} 
-                      label="Phone" 
-                      value={contact.mobile_phone} 
-                      href={`tel:${contact.mobile_phone}`} 
-                    />
-                  )}
-                </div>
+            {/* Contact Information */}
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold text-foreground">Contact Information</h2>
+              <div className="unified-container space-y-2 p-4 rounded-xl">
+                {contact.personal_email && (
+                  <ContactInfoItem 
+                    icon={Mail} 
+                    label="Email" 
+                    value={contact.personal_email} 
+                    href={`mailto:${contact.personal_email}`} 
+                  />
+                )}
+                {contact.mobile_phone && (
+                  <ContactInfoItem 
+                    icon={Phone} 
+                    label="Phone" 
+                    value={contact.mobile_phone} 
+                    href={`tel:${contact.mobile_phone}`} 
+                  />
+                )}
+                {contact.website && (
+                  <ContactInfoItem 
+                    icon={Globe} 
+                    label="Website" 
+                    value={contact.website} 
+                    href={contact.website} 
+                  />
+                )}
               </div>
-            )}
+            </div>
 
             {/* Professional Information */}
-            {(contact.company_name || contact.industry || contact.department) && (
+            {(contact.company_name || contact.job_title || contact.industry || contact.department) && (
               <div className="space-y-4">
                 <h2 className="text-lg font-semibold text-foreground">Professional</h2>
                 <div className="unified-container space-y-2 p-4 rounded-xl">
                   {contact.company_name && (
                     <ContactInfoItem 
-                      icon={User} 
+                      icon={Building} 
                       label="Company" 
                       value={contact.company_name} 
+                    />
+                  )}
+                  {contact.job_title && (
+                    <ContactInfoItem 
+                      icon={User} 
+                      label="Job Title" 
+                      value={contact.job_title} 
                     />
                   )}
                   {contact.industry && (
@@ -264,13 +276,78 @@ export function MinimalContactDetail({
               </div>
             )}
 
+            {/* Education */}
+            {(contact.university || contact.major || contact.minor || contact.graduation_year) && (
+              <div className="space-y-4">
+                <h2 className="text-lg font-semibold text-foreground">Education</h2>
+                <div className="unified-container space-y-2 p-4 rounded-xl">
+                  {contact.university && (
+                    <ContactInfoItem 
+                      icon={GraduationCap} 
+                      label="University" 
+                      value={contact.university} 
+                    />
+                  )}
+                  {contact.major && (
+                    <ContactInfoItem 
+                      icon={GraduationCap} 
+                      label="Major" 
+                      value={contact.major} 
+                    />
+                  )}
+                  {contact.minor && (
+                    <ContactInfoItem 
+                      icon={GraduationCap} 
+                      label="Minor" 
+                      value={contact.minor} 
+                    />
+                  )}
+                  {contact.graduation_year && (
+                    <ContactInfoItem 
+                      icon={Calendar} 
+                      label="Graduated" 
+                      value={contact.graduation_year.toString()} 
+                    />
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Personal Information */}
+            {(contact.birthday || contact.how_met || contact.hobbies_interests) && (
+              <div className="space-y-4">
+                <h2 className="text-lg font-semibold text-foreground">Personal</h2>
+                <div className="unified-container space-y-3 p-4 rounded-xl">
+                  {contact.birthday && (
+                    <ContactInfoItem 
+                      icon={Gift} 
+                      label="Birthday" 
+                      value={format(new Date(contact.birthday), 'MMM dd, yyyy')} 
+                    />
+                  )}
+                  {contact.how_met && (
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-foreground">How We Met</p>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{contact.how_met}</p>
+                    </div>
+                  )}
+                  {contact.hobbies_interests && (
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-foreground">Interests</p>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{contact.hobbies_interests}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Tags */}
             {contact.tags && contact.tags.length > 0 && (
               <div className="space-y-4">
                 <h2 className="text-lg font-semibold text-foreground">Tags</h2>
                 <div className="flex flex-wrap gap-2">
                   {contact.tags.map(tag => (
-                    <Badge key={tag} variant="secondary" className="rounded-full bg-gradient-to-r from-[#0daeec]/10 to-[#0daeec]/5 text-[#0daeec] border border-[#0daeec]/20">
+                    <Badge key={tag} variant="secondary" className="rounded-full bg-[#0daeec]/10 text-[#0daeec] border border-[#0daeec]/20">
                       {tag}
                     </Badge>
                   ))}

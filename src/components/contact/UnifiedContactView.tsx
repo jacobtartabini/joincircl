@@ -10,7 +10,6 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import InteractionForm from "@/components/interaction/InteractionForm";
 import KeystoneForm from "@/components/keystone/KeystoneForm";
-import { GradientText } from "@/components/ui/gradient-text";
 
 interface UnifiedContactViewProps {
   contact: Contact;
@@ -63,11 +62,11 @@ export function UnifiedContactView({
     href?: string;
   }) => {
     const content = (
-      <div className="unified-button flex items-center gap-3 py-3 px-4 transition-all duration-200 hover:bg-white/50 dark:hover:bg-white/10 rounded-xl">
-        <Icon className="h-4 w-4 text-muted-foreground" />
+      <div className="unified-button flex items-center gap-3 py-2 px-3 transition-all duration-200 hover:bg-white/30 dark:hover:bg-white/5 rounded-lg">
+        <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
         <div className="flex-1 min-w-0">
-          <span className="text-sm font-medium text-foreground">{value}</span>
-          <span className="text-xs text-muted-foreground ml-2">({label})</span>
+          <span className="text-sm font-medium text-foreground block truncate">{value}</span>
+          <span className="text-xs text-muted-foreground">{label}</span>
         </div>
       </div>
     );
@@ -94,7 +93,7 @@ export function UnifiedContactView({
       type: "keystone" as const,
       date: new Date(item.date),
       title: item.title,
-      description: item.notes || `${item.category} keystone`,
+      description: item.notes || `${item.category} event`,
       icon: <Bell className="h-4 w-4 text-amber-500" />,
       data: item
     })),
@@ -113,27 +112,27 @@ export function UnifiedContactView({
     <>
       <div className="min-h-screen refined-web-theme">
         <ScrollArea className="h-screen">
-          <div className="max-w-7xl mx-auto px-8 py-12">
+          <div className="max-w-6xl mx-auto px-6 py-8">
             {/* Header Section */}
-            <div className="glass-card-enhanced p-8 mb-8">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-8">
-                  <Avatar className="h-20 w-20 border-2 border-white/20 dark:border-white/10">
+            <div className="glass-card-enhanced p-6 mb-6">
+              <div className="flex items-start justify-between mb-6">
+                <div className="flex items-center gap-6">
+                  <Avatar className="h-16 w-16 border-2 border-white/20 dark:border-white/10">
                     {contact.avatar_url ? (
                       <AvatarImage src={contact.avatar_url} alt={contact.name} />
                     ) : (
-                      <AvatarFallback className="text-2xl font-medium bg-gradient-to-br from-[#0daeec] to-[#0daeec]/70 text-white">
+                      <AvatarFallback className="text-xl font-medium bg-gradient-to-br from-[#0daeec] to-[#0daeec]/70 text-white">
                         {contact.name.charAt(0)}
                       </AvatarFallback>
                     )}
                   </Avatar>
                   
-                  <div className="space-y-3">
-                    <GradientText className="text-3xl font-bold">
+                  <div className="space-y-2">
+                    <h1 className="text-2xl font-bold text-foreground">
                       {contact.name}
-                    </GradientText>
+                    </h1>
                     {contact.job_title && contact.company_name && (
-                      <p className="text-lg text-muted-foreground font-medium">
+                      <p className="text-base text-muted-foreground font-medium">
                         {contact.job_title} at {contact.company_name}
                       </p>
                     )}
@@ -143,16 +142,16 @@ export function UnifiedContactView({
                         {contact.location}
                       </p>
                     )}
-                    <div className="inline-flex px-4 py-2 rounded-full text-sm font-medium bg-gradient-to-r from-[#0daeec]/10 to-[#0daeec]/5 text-[#0daeec] border border-[#0daeec]/20">
+                    <div className="inline-flex px-3 py-1 rounded-full text-sm font-medium bg-[#0daeec]/10 text-[#0daeec] border border-[#0daeec]/20">
                       {contact.circle.charAt(0).toUpperCase() + contact.circle.slice(1)} Circle
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <Button 
                     onClick={() => setIsAddInteractionOpen(true)} 
-                    className="unified-button px-6 py-2 bg-gradient-to-r from-[#0daeec]/90 to-[#0daeec]/70 hover:from-[#0daeec] hover:to-[#0daeec]/90 text-white rounded-full"
+                    className="unified-button px-4 py-2 bg-[#0daeec] hover:bg-[#0daeec]/90 text-white rounded-lg"
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Add Interaction
@@ -160,7 +159,7 @@ export function UnifiedContactView({
                   <Button 
                     onClick={() => setIsAddKeystoneOpen(true)} 
                     variant="outline" 
-                    className="unified-button px-6 py-2 rounded-full"
+                    className="unified-button px-4 py-2 rounded-lg"
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Add Event
@@ -168,7 +167,7 @@ export function UnifiedContactView({
                   <Button 
                     onClick={onEdit} 
                     variant="outline" 
-                    className="unified-button px-6 py-2 rounded-full"
+                    className="unified-button px-4 py-2 rounded-lg"
                   >
                     <Edit className="h-4 w-4 mr-2" />
                     Edit
@@ -176,7 +175,7 @@ export function UnifiedContactView({
                   <Button 
                     onClick={onDelete} 
                     variant="outline" 
-                    className="unified-button px-6 py-2 rounded-full text-destructive hover:text-destructive border-destructive/20 hover:bg-destructive/10"
+                    className="unified-button px-4 py-2 rounded-lg text-destructive hover:text-destructive border-destructive/20 hover:bg-destructive/10"
                   >
                     <Trash className="h-4 w-4 mr-2" />
                     Delete
@@ -185,50 +184,51 @@ export function UnifiedContactView({
               </div>
             </div>
 
-            {/* Main Content Grid */}
-            <div className="grid grid-cols-12 gap-8">
-              {/* Left Column - Contact Information */}
-              <div className="col-span-4 space-y-6">
+            {/* Main Content - Simplified Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Contact Information - Left Column */}
+              <div className="lg:col-span-1 space-y-6">
                 {/* Contact Details */}
-                {(contact.personal_email || contact.mobile_phone || contact.website) && (
-                  <div className="glass-card-enhanced p-6">
-                    <h2 className="text-lg font-semibold text-foreground mb-4">Contact Information</h2>
-                    <div className="space-y-2">
-                      {contact.personal_email && (
-                        <ContactInfoItem 
-                          icon={Mail} 
-                          label="Email" 
-                          value={contact.personal_email} 
-                          href={`mailto:${contact.personal_email}`} 
-                        />
-                      )}
-                      {contact.mobile_phone && (
-                        <ContactInfoItem 
-                          icon={Phone} 
-                          label="Phone" 
-                          value={contact.mobile_phone} 
-                          href={`tel:${contact.mobile_phone}`} 
-                        />
-                      )}
-                      {contact.website && (
-                        <ContactInfoItem 
-                          icon={Globe} 
-                          label="Website" 
-                          value={contact.website} 
-                          href={contact.website} 
-                        />
-                      )}
-                    </div>
+                <div className="glass-card-enhanced p-5">
+                  <h2 className="text-lg font-semibold text-foreground mb-4">Contact Information</h2>
+                  <div className="space-y-3">
+                    {contact.personal_email && (
+                      <ContactInfoItem 
+                        icon={Mail} 
+                        label="Email" 
+                        value={contact.personal_email} 
+                        href={`mailto:${contact.personal_email}`} 
+                      />
+                    )}
+                    {contact.mobile_phone && (
+                      <ContactInfoItem 
+                        icon={Phone} 
+                        label="Phone" 
+                        value={contact.mobile_phone} 
+                        href={`tel:${contact.mobile_phone}`} 
+                      />
+                    )}
+                    {contact.website && (
+                      <ContactInfoItem 
+                        icon={Globe} 
+                        label="Website" 
+                        value={contact.website} 
+                        href={contact.website} 
+                      />
+                    )}
                   </div>
-                )}
+                </div>
 
                 {/* Professional Information */}
                 {(contact.company_name || contact.industry || contact.department || contact.work_address) && (
-                  <div className="glass-card-enhanced p-6">
+                  <div className="glass-card-enhanced p-5">
                     <h2 className="text-lg font-semibold text-foreground mb-4">Professional</h2>
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {contact.company_name && (
                         <ContactInfoItem icon={Building} label="Company" value={contact.company_name} />
+                      )}
+                      {contact.job_title && (
+                        <ContactInfoItem icon={Briefcase} label="Job Title" value={contact.job_title} />
                       )}
                       {contact.industry && (
                         <ContactInfoItem icon={Briefcase} label="Industry" value={contact.industry} />
@@ -244,10 +244,10 @@ export function UnifiedContactView({
                 )}
 
                 {/* Education */}
-                {(contact.university || contact.major || contact.graduation_year) && (
-                  <div className="glass-card-enhanced p-6">
+                {(contact.university || contact.major || contact.minor || contact.graduation_year) && (
+                  <div className="glass-card-enhanced p-5">
                     <h2 className="text-lg font-semibold text-foreground mb-4">Education</h2>
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {contact.university && (
                         <ContactInfoItem icon={GraduationCap} label="University" value={contact.university} />
                       )}
@@ -255,7 +255,14 @@ export function UnifiedContactView({
                         <ContactInfoItem 
                           icon={GraduationCap} 
                           label="Major" 
-                          value={`${contact.major}${contact.minor ? ` • Minor: ${contact.minor}` : ''}`} 
+                          value={contact.major} 
+                        />
+                      )}
+                      {contact.minor && (
+                        <ContactInfoItem 
+                          icon={GraduationCap} 
+                          label="Minor" 
+                          value={contact.minor} 
                         />
                       )}
                       {contact.graduation_year && (
@@ -267,26 +274,26 @@ export function UnifiedContactView({
 
                 {/* Personal Information */}
                 {(contact.birthday || contact.how_met || contact.hobbies_interests) && (
-                  <div className="glass-card-enhanced p-6">
+                  <div className="glass-card-enhanced p-5">
                     <h2 className="text-lg font-semibold text-foreground mb-4">Personal</h2>
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                       {contact.birthday && (
                         <ContactInfoItem 
                           icon={Gift} 
                           label="Birthday" 
-                          value={new Date(contact.birthday).toLocaleDateString()} 
+                          value={format(new Date(contact.birthday), 'MMM dd, yyyy')} 
                         />
                       )}
                       {contact.how_met && (
-                        <div className="unified-container p-4 rounded-xl">
-                          <p className="text-sm font-medium text-foreground mb-2">How We Met</p>
-                          <p className="text-sm text-muted-foreground leading-relaxed">{contact.how_met}</p>
+                        <div className="unified-container p-3 rounded-lg">
+                          <p className="text-sm font-medium text-foreground mb-1">How We Met</p>
+                          <p className="text-sm text-muted-foreground">{contact.how_met}</p>
                         </div>
                       )}
                       {contact.hobbies_interests && (
-                        <div className="unified-container p-4 rounded-xl">
-                          <p className="text-sm font-medium text-foreground mb-2">Interests</p>
-                          <p className="text-sm text-muted-foreground leading-relaxed">{contact.hobbies_interests}</p>
+                        <div className="unified-container p-3 rounded-lg">
+                          <p className="text-sm font-medium text-foreground mb-1">Interests</p>
+                          <p className="text-sm text-muted-foreground">{contact.hobbies_interests}</p>
                         </div>
                       )}
                     </div>
@@ -295,9 +302,9 @@ export function UnifiedContactView({
 
                 {/* Social Media */}
                 {(contact.linkedin || contact.twitter || contact.facebook || contact.instagram) && (
-                  <div className="glass-card-enhanced p-6">
+                  <div className="glass-card-enhanced p-5">
                     <h2 className="text-lg font-semibold text-foreground mb-4">Social Media</h2>
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {contact.linkedin && (
                         <ContactInfoItem icon={Linkedin} label="LinkedIn" value={contact.linkedin} href={contact.linkedin} />
                       )}
@@ -326,40 +333,54 @@ export function UnifiedContactView({
 
                 {/* Notes */}
                 {contact.notes && (
-                  <div className="glass-card-enhanced p-6">
+                  <div className="glass-card-enhanced p-5">
                     <h2 className="text-lg font-semibold text-foreground mb-4">Notes</h2>
-                    <div className="unified-container p-4 rounded-xl">
+                    <div className="unified-container p-3 rounded-lg">
                       <p className="text-sm text-foreground leading-relaxed">{contact.notes}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Tags */}
+                {contact.tags && contact.tags.length > 0 && (
+                  <div className="glass-card-enhanced p-5">
+                    <h2 className="text-lg font-semibold text-foreground mb-4">Tags</h2>
+                    <div className="flex flex-wrap gap-2">
+                      {contact.tags.map(tag => (
+                        <span key={tag} className="px-2 py-1 text-xs font-medium bg-[#0daeec]/10 text-[#0daeec] border border-[#0daeec]/20 rounded-full">
+                          {tag}
+                        </span>
+                      ))}
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* Right Column - Timeline */}
-              <div className="col-span-8">
-                <div className="glass-card-enhanced p-8">
-                  <div className="flex items-center justify-between mb-8">
-                    <GradientText className="text-2xl font-bold">Timeline</GradientText>
+              {/* Timeline - Right Column */}
+              <div className="lg:col-span-2">
+                <div className="glass-card-enhanced p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-bold text-foreground">Timeline</h2>
                     <p className="text-sm text-muted-foreground">
-                      {timelineItems.length} events • {interactions.length} interactions • {keystones.length} keystones
+                      {timelineItems.length} events
                     </p>
                   </div>
 
                   {timelineItems.length === 0 ? (
-                    <div className="text-center py-16 text-muted-foreground">
+                    <div className="text-center py-12 text-muted-foreground">
                       <MessageSquare className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
                       <p className="text-lg font-medium">No timeline events yet</p>
-                      <p className="text-sm mt-1">Interactions, keystones, and media will appear here as you add them.</p>
+                      <p className="text-sm mt-1">Interactions and events will appear here as you add them.</p>
                     </div>
                   ) : (
                     <div className="space-y-4">
                       {timelineItems.map(item => (
-                        <div key={item.id} className="unified-container p-4 rounded-xl">
+                        <div key={item.id} className="unified-container p-4 rounded-lg border-l-4 border-[#0daeec]/30">
                           <div className="flex gap-4">
                             <div className="flex-shrink-0 mt-1">
                               {item.icon}
                             </div>
-                            <div className="flex-1 space-y-2">
+                            <div className="flex-1 space-y-1">
                               <div className="flex items-center justify-between">
                                 <h3 className="text-sm font-medium text-foreground">{item.title}</h3>
                                 <span className="text-xs text-muted-foreground">
@@ -367,6 +388,9 @@ export function UnifiedContactView({
                                 </span>
                               </div>
                               <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {format(item.date, 'MMM dd, yyyy • h:mm a')}
+                              </p>
                             </div>
                           </div>
                         </div>
