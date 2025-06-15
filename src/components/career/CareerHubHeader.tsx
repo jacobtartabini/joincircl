@@ -10,7 +10,7 @@ interface CareerHubHeaderProps {
 export function CareerHubHeader({ activeTab, onTabChange, isMobile }: CareerHubHeaderProps) {
   if (isMobile) {
     return (
-      <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-xl border-b border-gray-100 p-4 pt-8">
+      <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-xl border-b border-gray-100 p-6 pt-8">
         <div className="max-w-7xl mx-auto">
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-900">Career Hub</h1>
@@ -30,7 +30,7 @@ export function CareerHubHeader({ activeTab, onTabChange, isMobile }: CareerHubH
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 px-6">
       <div className="text-left">
         <h1 className="text-3xl font-bold text-gray-900">Career Hub</h1>
         <p className="text-muted-foreground text-lg">Your professional journey starts here</p>
