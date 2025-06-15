@@ -70,6 +70,15 @@ export default function FloatingNav() {
   return (
     <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
       <div className="glass-nav flex items-center gap-2 p-1 shadow-2xl rounded-full">
+        <svg width="0" height="0" style={{ position: 'absolute' }}>
+          <defs>
+            <linearGradient id="atom-gradient-nav" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#3b82f6" />
+              <stop offset="50%" stopColor="#a21caf" />
+              <stop offset="100%" stopColor="#ec4899" />
+            </linearGradient>
+          </defs>
+        </svg>
         {tabs.map((tab, index) => {
           if ('type' in tab && tab.type === "separator") {
             return (
@@ -84,6 +93,7 @@ export default function FloatingNav() {
           const navTab = tab as NavTab;
           const Icon = navTab.icon;
           const isSelected = selectedTab === index;
+          const isArloTab = navTab.title === "Arlo";
 
           return (
             <Link 
@@ -96,7 +106,11 @@ export default function FloatingNav() {
               }`} 
               onClick={() => handleTabChange(index)}
             >
-              <Icon size={20} />
+              {isArloTab ? (
+                <Icon size={20} stroke="url(#atom-gradient-nav)" strokeWidth="2" />
+              ) : (
+                <Icon size={20} />
+              )}
               {isSelected && (
                 <span className="overflow-hidden whitespace-nowrap">
                   {navTab.title}
