@@ -97,7 +97,8 @@ export function useJobApplicationWorkflow(applicationId?: string) {
         ...data,
         stage_completion: (data.stage_completion as any) || {},
         arlo_insights: (data.arlo_insights as any) || {},
-        job_description: data.job_description || undefined
+        job_description: data.job_description || undefined,
+        workflow_stage: (data.workflow_stage as WorkflowStage) || 'application_info'
       };
 
       setWorkflow(workflowData);
