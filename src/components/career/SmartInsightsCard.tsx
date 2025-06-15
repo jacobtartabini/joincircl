@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Zap, Plus, Calendar } from "lucide-react";
+import { Atom, Plus, Calendar } from "lucide-react";
 
 interface SmartInsightsCardProps {
   stats: {
@@ -25,8 +25,10 @@ export function SmartInsightsCard({
     return (
       <Card className="p-6 bg-blue-50/50 backdrop-blur-sm border-blue-100 rounded-2xl">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-8 h-8 bg-blue-100 rounded-xl flex items-center justify-center">
-            <Zap className="h-4 w-4 text-blue-600" />
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-blue-100">
+            <span className="w-5 h-5 flex items-center justify-center bg-gradient-to-tr from-blue-500 via-fuchsia-500 to-pink-400 bg-clip-text text-transparent">
+              <Atom className="w-5 h-5" />
+            </span>
           </div>
           <h3 className="font-semibold text-gray-900">Smart Insights</h3>
         </div>
@@ -44,8 +46,10 @@ export function SmartInsightsCard({
   return (
     <Card className="p-6 bg-blue-50/50 backdrop-blur-sm border-blue-100 rounded-2xl">
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-8 h-8 bg-blue-100 rounded-xl flex items-center justify-center">
-          <Zap className="h-4 w-4 text-blue-600" />
+        <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-blue-100">
+          <span className="w-5 h-5 flex items-center justify-center bg-gradient-to-tr from-blue-500 via-fuchsia-500 to-pink-400 bg-clip-text text-transparent">
+            <Atom className="w-5 h-5" />
+          </span>
         </div>
         <h3 className="text-lg font-semibold text-gray-900">Arlo's Insights</h3>
       </div>
