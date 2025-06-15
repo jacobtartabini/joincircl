@@ -27,6 +27,7 @@ import { AddInterviewSessionDialog } from "@/components/career/dialogs/AddInterv
 import { JobApplicationWorkflow } from "@/components/career/JobApplicationWorkflow";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { CareerToolsView } from "@/components/career/tools/CareerToolsView";
 
 export default function CareerHub() {
   const [activeTab, setActiveTab] = useState("overview");
