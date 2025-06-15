@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useContacts } from '@/hooks/use-contacts';
 import { useActionSearch } from '@/hooks/use-action-search';
@@ -74,6 +75,7 @@ const MobileHomeContent: React.FC = () => {
         <div className="space-y-4">
           <ActionSearchBar 
             actions={actions}
+            contacts={contacts}
             placeholder="What would you like to do?"
             className="w-full"
           />
