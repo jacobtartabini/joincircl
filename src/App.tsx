@@ -33,6 +33,7 @@ import Duplicates from "@/pages/Duplicates";
 import Contact from "@/pages/Contact";
 import Arlo from "@/pages/Arlo";
 import CareerHub from "@/pages/CareerHub";
+import Events from "@/pages/Events";
 
 // User onboarding
 import { UserOnboarding } from "./components/UserOnboarding";
@@ -73,6 +74,7 @@ function App() {
                   {/* Core application routes - using the mobile-aware Circles component */}
                   <Route path="/circles" element={<Circles />} />
                   <Route path="/contact/:id" element={<RedesignedContactDetail />} />
+                  <Route path="/events" element={<Events />} />
                   <Route path="/arlo" element={<Arlo />} />
                   <Route path="/notifications" element={<Notifications />} />
                   

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useContacts } from '@/hooks/use-contacts';
@@ -12,6 +13,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '
 import ContactForm from '../contact/ContactForm';
 import KeystoneForm from '../keystone/KeystoneForm';
 import EnhancedNetworkRecommendations from '../home/EnhancedNetworkRecommendations';
+
 const ModernHomeContent: React.FC = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -22,18 +24,23 @@ const ModernHomeContent: React.FC = () => {
   } = useContacts();
   const [isAddContactDialogOpen, setIsAddContactDialogOpen] = useState(false);
   const [isAddKeystoneDialogOpen, setIsAddKeystoneDialogOpen] = useState(false);
+
   const handleAddContact = () => {
     setIsAddContactDialogOpen(true);
   };
+
   const handleAddKeystone = () => {
     setIsAddKeystoneDialogOpen(true);
   };
+
   const handleContactFormSuccess = () => {
     setIsAddContactDialogOpen(false);
   };
+
   const handleKeystoneFormSuccess = () => {
     setIsAddKeystoneDialogOpen(false);
   };
+
   const stats = [{
     title: "Total Contacts",
     value: contacts.length,
@@ -53,8 +60,10 @@ const ModernHomeContent: React.FC = () => {
     color: "text-orange-600 dark:text-orange-400",
     bgColor: "bg-orange-50/50 dark:bg-orange-900/20"
   }];
+
   const contactFormContent = <ContactForm onSuccess={handleContactFormSuccess} onCancel={() => setIsAddContactDialogOpen(false)} />;
   const keystoneFormContent = <KeystoneForm onSuccess={handleKeystoneFormSuccess} onCancel={() => setIsAddKeystoneDialogOpen(false)} />;
+
   return <div className="min-h-screen refined-web-theme">
       <div className="max-w-7xl mx-auto p-6 space-y-8">
         {/* Header Section */}
@@ -116,7 +125,7 @@ const ModernHomeContent: React.FC = () => {
                   <ArrowRight className="h-4 w-4 text-muted-foreground" />
                 </Button>
                 
-                <Button variant="ghost" onClick={() => navigate('/keystones')} className="w-full justify-between p-4 h-auto rounded-full">
+                <Button variant="ghost" onClick={() => navigate('/events')} className="w-full justify-between p-4 h-auto rounded-full">
                   <div className="flex items-center space-x-3">
                     <Calendar className="h-5 w-5 text-muted-foreground" />
                     <span className="font-medium text-foreground">Upcoming Events</span>
@@ -186,4 +195,5 @@ const ModernHomeContent: React.FC = () => {
         </>}
     </div>;
 };
+
 export default ModernHomeContent;
