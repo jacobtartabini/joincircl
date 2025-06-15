@@ -1,3 +1,4 @@
+
 import { useState, useMemo, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,7 @@ import { AddDocumentDialog } from "@/components/career/dialogs/AddDocumentDialog
 import { AddInterviewSessionDialog } from "@/components/career/dialogs/AddInterviewSessionDialog";
 
 export default function CareerHub() {
-  const [activeTab, setActiveTab] = useState("opportunities");
+  const [activeTab, setActiveTab] = useState("overview");
   const [isAddApplicationOpen, setIsAddApplicationOpen] = useState(false);
   const [isUploadDocumentOpen, setIsUploadDocumentOpen] = useState(false);
   const [isInterviewSessionOpen, setIsInterviewSessionOpen] = useState(false);
@@ -101,90 +102,84 @@ export default function CareerHub() {
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-2 bg-gray-50/80 p-1.5 rounded-2xl">
-                <TabsTrigger value="opportunities" className="rounded-xl text-sm">Opportunities</TabsTrigger>
-                <TabsTrigger value="prep" className="rounded-xl text-sm">Prep</TabsTrigger>
+                <TabsTrigger value="overview" className="rounded-xl text-sm">Overview</TabsTrigger>
+                <TabsTrigger value="tools" className="rounded-xl text-sm">Tools</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
         </div>
 
         <div className="max-w-7xl mx-auto p-4 space-y-6">
-          {/* Quick Actions */}
-          <div className="grid gap-3">
-            <Button 
-              onClick={() => handleQuickAction("Add Application")}
-              className="h-16 justify-between p-4 bg-blue-600 hover:bg-blue-700 border-0 rounded-2xl text-white" 
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center">
-                  <Plus className="h-5 w-5 text-white" />
-                </div>
-                <div className="text-left">
-                  <p className="font-medium text-white">Track New Opportunity</p>
-                  <p className="text-xs text-blue-100">Add your latest application</p>
-                </div>
-              </div>
-              <ArrowRight className="h-4 w-4 text-blue-100" />
-            </Button>
-          </div>
-
-          {/* Stats Overview */}
-          <div className="grid grid-cols-2 gap-4">
-            <Card className="p-4 bg-white/80 backdrop-blur-sm border-gray-100 rounded-2xl">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
-                  <Target className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-xl font-bold text-gray-900">{stats.activeApplications}</p>
-                  <p className="text-xs text-muted-foreground">Active Apps</p>
-                </div>
-              </div>
-            </Card>
-            
-            <Card className="p-4 bg-white/80 backdrop-blur-sm border-gray-100 rounded-2xl">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center">
-                  <Calendar className="h-5 w-5 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-xl font-bold text-gray-900">{stats.upcomingInterviews}</p>
-                  <p className="text-xs text-muted-foreground">Interviews</p>
-                </div>
-              </div>
-            </Card>
-          </div>
-
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsContent value="opportunities" className="space-y-6">
-              {/* Strategic Insights */}
-              <Card className="p-6 bg-purple-50/50 backdrop-blur-sm border-purple-100 rounded-2xl">
+            <TabsContent value="overview" className="space-y-6">
+              {/* Quick Stats */}
+              <div className="grid grid-cols-2 gap-4">
+                <Card className="p-4 bg-white/80 backdrop-blur-sm border-gray-100 rounded-2xl">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
+                      <Target className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-xl font-bold text-gray-900">{stats.activeApplications}</p>
+                      <p className="text-xs text-muted-foreground">Active Apps</p>
+                    </div>
+                  </div>
+                </Card>
+                
+                <Card className="p-4 bg-white/80 backdrop-blur-sm border-gray-100 rounded-2xl">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center">
+                      <Calendar className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-xl font-bold text-gray-900">{stats.upcomingInterviews}</p>
+                      <p className="text-xs text-muted-foreground">Interviews</p>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+
+              {/* Smart Insights */}
+              <Card className="p-6 bg-blue-50/50 backdrop-blur-sm border-blue-100 rounded-2xl">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-8 h-8 bg-purple-100 rounded-xl flex items-center justify-center">
-                    <Zap className="h-4 w-4 text-purple-600" />
+                  <div className="w-8 h-8 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <Zap className="h-4 w-4 text-blue-600" />
                   </div>
                   <h3 className="font-semibold text-gray-900">Smart Insights</h3>
                 </div>
                 <p className="text-sm text-gray-700 mb-4 leading-relaxed">
-                  📌 Great progress! Your networking is paying off. Consider following up with contacts from your recent events - 3 connections haven't heard from you in 2+ weeks.
+                  📌 Great progress! Consider following up with 3 contacts from recent events who haven't heard from you in 2+ weeks.
                 </p>
-                <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white border-0 rounded-full">
-                  View Suggestions
+                <Button 
+                  onClick={() => handleQuickAction("Add Application")}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-xl"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Track New Opportunity
                 </Button>
               </Card>
 
-              <div className="text-center py-8">
-                <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Target className="h-8 w-8 text-blue-600" />
+              {/* Progress Overview */}
+              <Card className="p-6 bg-white/80 backdrop-blur-sm border-gray-100 rounded-2xl">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-gray-900">Overall Progress</h3>
+                  <span className="text-2xl font-bold text-blue-600">{stats.overallProgress}%</span>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Track Your Applications</h3>
-                <p className="text-sm text-muted-foreground mb-6">
-                  Stay organized and never miss a follow-up
-                </p>
-              </div>
+                <Progress value={stats.overallProgress} className="mb-4" />
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                    <span className="text-muted-foreground">Applications: {stats.activeApplications}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+                    <span className="text-muted-foreground">Sessions: {stats.completedSessions}</span>
+                  </div>
+                </div>
+              </Card>
             </TabsContent>
 
-            <TabsContent value="prep" className="space-y-6">
+            <TabsContent value="tools" className="space-y-6">
               <div className="grid gap-4">
                 <Card className="p-6 bg-white/80 backdrop-blur-sm border-gray-100 rounded-2xl">
                   <div className="flex items-center gap-3 mb-4">
@@ -283,146 +278,171 @@ export default function CareerHub() {
           </div>
         </div>
 
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="p-6 bg-white/80 backdrop-blur-sm border-gray-100 rounded-2xl">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center">
-                <Target className="h-6 w-6 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Active Applications</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.activeApplications}</p>
-              </div>
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column - Stats & Insights */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Stats Overview */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Card className="p-4 bg-white/80 backdrop-blur-sm border-gray-100 rounded-2xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
+                    <Target className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Active Apps</p>
+                    <p className="text-xl font-bold text-gray-900">{stats.activeApplications}</p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-4 bg-white/80 backdrop-blur-sm border-gray-100 rounded-2xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center">
+                    <Calendar className="h-5 w-5 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Interviews</p>
+                    <p className="text-xl font-bold text-gray-900">{stats.upcomingInterviews}</p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-4 bg-white/80 backdrop-blur-sm border-gray-100 rounded-2xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center">
+                    <BookOpen className="h-5 w-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Sessions</p>
+                    <p className="text-xl font-bold text-gray-900">{stats.completedSessions}</p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-4 bg-white/80 backdrop-blur-sm border-gray-100 rounded-2xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center">
+                    <TrendingUp className="h-5 w-5 text-orange-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Progress</p>
+                    <p className="text-xl font-bold text-gray-900">{stats.overallProgress}%</p>
+                  </div>
+                </div>
+              </Card>
             </div>
-          </Card>
 
-          <Card className="p-6 bg-white/80 backdrop-blur-sm border-gray-100 rounded-2xl">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center">
-                <Calendar className="h-6 w-6 text-green-600" />
+            {/* Smart Insights */}
+            <Card className="p-6 bg-blue-50/50 backdrop-blur-sm border-blue-100 rounded-2xl">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 bg-blue-100 rounded-xl flex items-center justify-center">
+                  <Zap className="h-4 w-4 text-blue-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Smart Career Insights</h3>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Interviews Scheduled</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.upcomingInterviews}</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6 bg-white/80 backdrop-blur-sm border-gray-100 rounded-2xl">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-purple-50 rounded-2xl flex items-center justify-center">
-                <BookOpen className="h-6 w-6 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Prep Sessions</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.completedSessions}</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6 bg-white/80 backdrop-blur-sm border-gray-100 rounded-2xl">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center">
-                <TrendingUp className="h-6 w-6 text-orange-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Progress</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.overallProgress}%</p>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Strategic Insights */}
-        <Card className="p-8 bg-purple-50/50 backdrop-blur-sm border-purple-100 rounded-2xl">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-              <Zap className="h-5 w-5 text-purple-600" />
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900">Smart Career Insights</h3>
-          </div>
-          <p className="text-gray-700 mb-6 leading-relaxed max-w-3xl">
-            🚀 You're making excellent progress! Your network activity has increased 40% this month. Consider reaching out to 3 contacts from your recent networking events who haven't heard from you in 2+ weeks. The best time to follow up is typically Tuesday-Thursday between 10-11 AM.
-          </p>
-          <div className="flex gap-4">
-            <Button className="bg-purple-600 hover:bg-purple-700 text-white border-0 rounded-full">
-              View Detailed Insights
-            </Button>
-            <Button variant="outline" className="border-gray-200 hover:bg-gray-50 rounded-full">
-              Schedule Follow-ups
-            </Button>
-          </div>
-        </Card>
-
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 bg-gray-50/80 p-1.5 rounded-2xl">
-            <TabsTrigger value="opportunities" className="rounded-xl">Opportunities</TabsTrigger>
-            <TabsTrigger value="prep" className="rounded-xl">Preparation</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="opportunities" className="mt-8">
-            <div className="text-center py-16">
-              <div className="w-20 h-20 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <Target className="h-10 w-10 text-blue-600" />
-              </div>
-              <h3 className="text-2xl font-semibold text-gray-900 mb-4">Track Your Applications</h3>
-              <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-                Stay organized, follow up effectively, and never miss an opportunity
+              <p className="text-gray-700 mb-6 leading-relaxed">
+                🚀 You're making excellent progress! Your network activity has increased 40% this month. Consider reaching out to 3 contacts from your recent networking events who haven't heard from you in 2+ weeks.
               </p>
+              <div className="flex gap-4">
+                <Button 
+                  onClick={() => handleQuickAction("Add Application")}
+                  className="bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-full"
+                >
+                  Track New Application
+                </Button>
+                <Button variant="outline" className="border-gray-200 hover:bg-gray-50 rounded-full">
+                  Schedule Follow-ups
+                </Button>
+              </div>
+            </Card>
+
+            {/* Progress Overview */}
+            <Card className="p-6 bg-white/80 backdrop-blur-sm border-gray-100 rounded-2xl">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Overall Progress</h3>
+                <span className="text-2xl font-bold text-blue-600">{stats.overallProgress}%</span>
+              </div>
+              <Progress value={stats.overallProgress} className="mb-6" />
+              <div className="grid grid-cols-3 gap-4 text-sm">
+                <div className="text-center">
+                  <div className="text-lg font-bold text-blue-600">{stats.activeApplications}</div>
+                  <div className="text-muted-foreground">Applications</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-bold text-green-600">{stats.upcomingInterviews}</div>
+                  <div className="text-muted-foreground">Interviews</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-bold text-purple-600">{stats.completedSessions}</div>
+                  <div className="text-muted-foreground">Prep Sessions</div>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {/* Right Column - Tools */}
+          <div className="space-y-6">
+            <h3 className="text-xl font-semibold text-gray-900">Career Tools</h3>
+            
+            <Card className="p-6 bg-white/80 backdrop-blur-sm border-gray-100 rounded-2xl">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center">
+                  <BookOpen className="h-5 w-5 text-green-600" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900">Mock Interview</h4>
+                  <p className="text-sm text-muted-foreground">AI-powered practice sessions</p>
+                </div>
+              </div>
+              <Button 
+                onClick={() => handleQuickAction("Start Mock Interview")}
+                className="w-full bg-green-600 hover:bg-green-700 text-white border-0 rounded-xl"
+              >
+                Start Practice Session
+              </Button>
+            </Card>
+
+            <Card className="p-6 bg-white/80 backdrop-blur-sm border-gray-100 rounded-2xl">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center">
+                  <FileText className="h-5 w-5 text-purple-600" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900">Resume Review</h4>
+                  <p className="text-sm text-muted-foreground">Get AI feedback and suggestions</p>
+                </div>
+              </div>
+              <Button 
+                onClick={() => handleQuickAction("Upload Resume")}
+                variant="outline"
+                className="w-full border-gray-200 hover:bg-gray-50 rounded-xl"
+              >
+                Upload Resume
+              </Button>
+            </Card>
+
+            <Card className="p-6 bg-white/80 backdrop-blur-sm border-gray-100 rounded-2xl">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center">
+                  <Target className="h-5 w-5 text-orange-600" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900">Application Tracker</h4>
+                  <p className="text-sm text-muted-foreground">Organize your job applications</p>
+                </div>
+              </div>
               <Button 
                 onClick={() => handleQuickAction("Add Application")}
-                size="lg"
-                className="bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-full px-8"
+                variant="outline"
+                className="w-full border-gray-200 hover:bg-gray-50 rounded-xl"
               >
-                <Plus className="h-5 w-5 mr-2" />
-                Add Your First Application
+                <Plus className="h-4 w-4 mr-2" />
+                Add Application
               </Button>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="prep" className="mt-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-              <Card className="p-8 bg-white/80 backdrop-blur-sm border-gray-100 rounded-2xl hover:shadow-lg transition-all duration-200">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center">
-                    <BookOpen className="h-6 w-6 text-green-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900">Mock Interview</h3>
-                    <p className="text-sm text-muted-foreground">AI-powered practice sessions</p>
-                  </div>
-                </div>
-                <Button 
-                  onClick={() => handleQuickAction("Start Mock Interview")}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white border-0 rounded-xl h-12"
-                >
-                  Start Practice Session
-                </Button>
-              </Card>
-
-              <Card className="p-8 bg-white/80 backdrop-blur-sm border-gray-100 rounded-2xl hover:shadow-lg transition-all duration-200">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 bg-purple-50 rounded-2xl flex items-center justify-center">
-                    <FileText className="h-6 w-6 text-purple-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900">Resume Review</h3>
-                    <p className="text-sm text-muted-foreground">Get AI feedback and suggestions</p>
-                  </div>
-                </div>
-                <Button 
-                  onClick={() => handleQuickAction("Upload Resume")}
-                  variant="outline"
-                  className="w-full border-gray-200 hover:bg-gray-50 rounded-xl h-12"
-                >
-                  Upload Resume
-                </Button>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
+            </Card>
+          </div>
+        </div>
 
         {/* Dialogs */}
         <AddJobApplicationDialog
@@ -434,7 +454,7 @@ export default function CareerHub() {
         <AddDocumentDialog
           isOpen={isUploadDocumentOpen}
           onOpenChange={setIsUploadDocumentOpen}
-          onAdd={handleUploadDocument}
+          onAdd={handleUp  loadDocument}
         />
         
         <AddInterviewSessionDialog
