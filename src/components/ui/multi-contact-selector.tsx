@@ -108,52 +108,54 @@ export function MultiContactSelector({
       </Button>
 
       <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput
-          placeholder={placeholder}
-          value={searchValue}
-          onValueChange={setSearchValue}
-          className="h-9"
-          autoFocus
-        />
-        <CommandList>
-          <CommandEmpty>
-            {searchValue ? "No contacts found matching your search." : "No contacts available."}
-          </CommandEmpty>
-          <CommandGroup>
-            {filteredContacts.map(contact => {
-              const isSelected = selectedContacts.some(c => c.id === contact.id);
-              return (
-                <CommandItem
-                  key={contact.id}
-                  value={contact.id}
-                  onSelect={() => handleSelect(contact.id)}
-                  className={cn(
-                    "flex items-center justify-between cursor-pointer py-2 px-2",
-                    isSelected && "bg-accent text-accent-foreground"
-                  )}
-                  aria-selected={isSelected}
-                >
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <div className="flex flex-col min-w-0 flex-1">
-                      <span className="font-medium truncate">{contact.name}</span>
-                      {(contact.job_title || contact.company_name) && (
-                        <span className="text-xs text-muted-foreground truncate">
-                          {contact.job_title 
-                            ? `${contact.job_title}${contact.company_name ? ` at ${contact.company_name}` : ''}` 
-                            : contact.company_name
-                          }
-                        </span>
-                      )}
+        <Command shouldFilter={false}>
+          <CommandInput
+            placeholder={placeholder}
+            value={searchValue}
+            onValueChange={setSearchValue}
+            className="h-9"
+            autoFocus
+          />
+          <CommandList>
+            <CommandEmpty>
+              {searchValue ? "No contacts found matching your search." : "No contacts available."}
+            </CommandEmpty>
+            <CommandGroup>
+              {filteredContacts.map(contact => {
+                const isSelected = selectedContacts.some(c => c.id === contact.id);
+                return (
+                  <CommandItem
+                    key={contact.id}
+                    value={contact.id}
+                    onSelect={() => handleSelect(contact.id)}
+                    className={cn(
+                      "flex items-center justify-between cursor-pointer py-2 px-2",
+                      isSelected && "bg-accent text-accent-foreground"
+                    )}
+                    aria-selected={isSelected}
+                  >
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <span className="font-medium truncate">{contact.name}</span>
+                        {(contact.job_title || contact.company_name) && (
+                          <span className="text-xs text-muted-foreground truncate">
+                            {contact.job_title 
+                              ? `${contact.job_title}${contact.company_name ? ` at ${contact.company_name}` : ''}` 
+                              : contact.company_name
+                            }
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  {isSelected && (
-                    <Check size={16} strokeWidth={2} className="text-primary shrink-0" />
-                  )}
-                </CommandItem>
-              );
-            })}
-          </CommandGroup>
-        </CommandList>
+                    {isSelected && (
+                      <Check size={16} strokeWidth={2} className="text-primary shrink-0" />
+                    )}
+                  </CommandItem>
+                );
+              })}
+            </CommandGroup>
+          </CommandList>
+        </Command>
       </CommandDialog>
     </div>
   );
