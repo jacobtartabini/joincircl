@@ -39,7 +39,7 @@ export function SmartInsightsCard({
         <div className="w-8 h-8 bg-blue-100 rounded-xl flex items-center justify-center">
           <Zap className="h-4 w-4 text-blue-600" />
         </div>
-        <h3 className="text-lg font-semibold text-gray-900">Smart Career Insights</h3>
+        <h3 className="text-lg font-semibold text-gray-900">Arlo's Insights</h3>
       </div>
       <p className="text-gray-700 mb-6 leading-relaxed">
         {insightText}
