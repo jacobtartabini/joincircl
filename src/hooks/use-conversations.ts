@@ -115,7 +115,9 @@ export function useConversations() {
     setActiveConversationId(newConversation.id);
     
     // Save conversation with user ID and conversation object
-    saveConversationToSupabase(user.id, newConversation);
+    if (user) {
+      saveConversationToSupabase(user.id, newConversation);
+    }
 
     logDebug('New conversation created and saved', { conversationId });
     return newConversation.id;
