@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +7,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { FileText, Upload, CheckCircle } from "lucide-react";
 import { JobApplicationWorkflow, WorkflowStage } from "@/hooks/use-job-application-workflow";
+import GradientIconBg from "../GradientIconBg";
+import { Atom } from "lucide-react";
+
 interface ApplicationInfoStageProps {
   workflow: JobApplicationWorkflow;
   onUpdate: (stage: WorkflowStage, progress: number, completed?: boolean) => void;
@@ -79,7 +83,9 @@ export function ApplicationInfoStage({
       {/* AI Analysis Preview */}
       {jobDescription && <Card className="p-4 bg-blue-50/50 border-blue-100">
           <div className="flex items-center gap-2 mb-2">
-            <FileText className="h-4 w-4 text-blue-600" />
+            <GradientIconBg size={24}>
+              <Atom className="h-4 w-4" color="white" />
+            </GradientIconBg>
             <span className="text-sm font-medium text-blue-900">Arlo's Insight</span>
           </div>
           <p className="text-sm text-blue-800">
