@@ -1,11 +1,10 @@
-
 import React from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useContacts } from '@/hooks/use-contacts';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { GradientText } from '../ui/gradient-text';
-import { ArrowRight, Plus, Users, Brain, Calendar, TrendingUp } from 'lucide-react';
+import { ArrowRight, Plus, Users, Atom, Calendar, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { Dialog, DialogContent } from '../ui/dialog';
@@ -135,7 +134,16 @@ const ModernHomeContent: React.FC = () => {
                 
                 <Button variant="ghost" onClick={() => navigate('/ai-assistant')} className="w-full justify-between p-4 h-auto rounded-full">
                   <div className="flex items-center space-x-3">
-                    <Brain className="h-5 w-5 text-muted-foreground" />
+                    <svg width="0" height="0" style={{ position: 'absolute' }}>
+                      <defs>
+                        <linearGradient id="atom-gradient-home" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#0092ca" />
+                          <stop offset="50%" stopColor="#a21caf" />
+                          <stop offset="100%" stopColor="#ec4899" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                    <Atom className="h-5 w-5" stroke="url(#atom-gradient-home)" strokeWidth="2" />
                     <span className="font-medium text-foreground">AI Assistant</span>
                   </div>
                   <ArrowRight className="h-4 w-4 text-muted-foreground" />
