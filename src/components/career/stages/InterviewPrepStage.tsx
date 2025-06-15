@@ -1,28 +1,24 @@
-
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { CheckCircle, MessageSquare, Mic } from "lucide-react";
 import { JobApplicationWorkflow, WorkflowStage } from "@/hooks/use-job-application-workflow";
-
 interface InterviewPrepStageProps {
   workflow: JobApplicationWorkflow;
   onUpdate: (stage: WorkflowStage, progress: number, completed?: boolean) => void;
 }
-
-export function InterviewPrepStage({ workflow, onUpdate }: InterviewPrepStageProps) {
+export function InterviewPrepStage({
+  workflow,
+  onUpdate
+}: InterviewPrepStageProps) {
   const completion = workflow.stage_completion.interview_prep;
   const isCompleted = completion?.completed || false;
-
-  return (
-    <div className="p-6 space-y-6">
+  return <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h4 className="font-medium text-gray-900">Interview Preparation</h4>
-        {isCompleted && (
-          <div className="flex items-center gap-2 text-green-600">
+        
+        {isCompleted && <div className="flex items-center gap-2 text-green-600">
             <CheckCircle className="h-4 w-4" />
             <span className="text-sm">Complete</span>
-          </div>
-        )}
+          </div>}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -53,12 +49,8 @@ export function InterviewPrepStage({ workflow, onUpdate }: InterviewPrepStagePro
         </Card>
       </div>
 
-      <Button 
-        onClick={() => onUpdate('interview_prep', 100, true)}
-        className="rounded-full"
-      >
+      <Button onClick={() => onUpdate('interview_prep', 100, true)} className="rounded-full">
         Complete Preparation
       </Button>
-    </div>
-  );
+    </div>;
 }
