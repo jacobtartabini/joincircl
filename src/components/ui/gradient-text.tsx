@@ -1,5 +1,6 @@
 
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface GradientTextProps {
   children: React.ReactNode;
@@ -7,12 +8,15 @@ interface GradientTextProps {
 }
 
 export function GradientText({ children, className }: GradientTextProps) {
+  const { profile } = useAuth();
+  const firstName = profile?.full_name?.split(' ')[0] || 'User';
+
   return (
-    <span className={cn(
-      "bg-gradient-to-r from-[#0daeec] to-[#9c40ff] bg-clip-text text-transparent font-extrabold",
-      className
-    )}>
-      {children}
+    <span className={cn("font-bold", className)}>
+      <span className="text-black">Welcome back, </span>
+      <span className="bg-gradient-to-r from-blue-400 to-blue-800 bg-clip-text text-transparent font-bold">
+        {firstName}
+      </span>
     </span>
   );
 }
