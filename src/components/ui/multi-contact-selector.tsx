@@ -30,16 +30,22 @@ export function MultiContactSelector({
   const [open, setOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
 
-  // Filter contacts based on search value
+  // FIX: Robust contact search
   const filteredContacts = useMemo(() => {
     if (!searchValue.trim()) return contacts;
-    const searchLower = searchValue.toLowerCase();
+    const searchLower = searchValue.toLowerCase().trim();
     return contacts.filter(contact => {
+      const name = contact.name?.toLowerCase() || "";
+      const jobTitle = contact.job_title?.toLowerCase() || "";
+      const companyName = contact.company_name?.toLowerCase() || "";
+      const email = contact.personal_email?.toLowerCase() || "";
+
+      // Search should work if searchLower found in any of the fields
       return (
-        contact.name.toLowerCase().includes(searchLower) ||
-        (contact.job_title && contact.job_title.toLowerCase().includes(searchLower)) ||
-        (contact.company_name && contact.company_name.toLowerCase().includes(searchLower)) ||
-        (contact.personal_email && contact.personal_email.toLowerCase().includes(searchLower))
+        name.includes(searchLower) ||
+        jobTitle.includes(searchLower) ||
+        companyName.includes(searchLower) ||
+        email.includes(searchLower)
       );
     });
   }, [contacts, searchValue]);
