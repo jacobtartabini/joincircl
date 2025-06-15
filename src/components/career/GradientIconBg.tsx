@@ -13,7 +13,7 @@ interface GradientIconBgProps {
 export default function GradientIconBg({ children, size = 32 }: GradientIconBgProps) {
   return (
     <div
-      className="rounded-xl flex items-center justify-center"
+      className="rounded-2xl flex items-center justify-center"
       style={{
         width: size,
         height: size,
