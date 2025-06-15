@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -171,10 +172,10 @@ export default function Arlo() {
       if (section.includes('**') && section.includes('**')) {
         const parts = section.split('**');
         return (
-          <div key={index} className="mb-4">
+          <div key={index} className="mb-3">
             {parts.map((part, partIndex) => 
               partIndex % 2 === 1 ? (
-                <strong key={partIndex} className="text-gray-900 dark:text-white font-semibold text-base">
+                <strong key={partIndex} className="text-foreground font-medium">
                   {part}
                 </strong>
               ) : (
@@ -187,20 +188,20 @@ export default function Arlo() {
       if (section.includes('•') || section.includes('-')) {
         const lines = section.split('\n');
         return (
-          <div key={index} className="mb-4">
+          <div key={index} className="mb-3">
             {lines.map((line, lineIndex) => {
               if (line.trim().startsWith('•') || line.trim().startsWith('-')) {
                 return (
-                  <div key={lineIndex} className="flex items-start gap-3 mb-2">
-                    <span className="text-blue-500 mt-1.5 text-sm">•</span>
-                    <span className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                  <div key={lineIndex} className="flex items-start gap-2 mb-1.5">
+                    <span className="text-primary mt-1 text-xs">•</span>
+                    <span className="text-muted-foreground text-sm leading-relaxed">
                       {line.replace(/^[•-]\s*/, '')}
                     </span>
                   </div>
                 );
               }
               return (
-                <div key={lineIndex} className="text-gray-700 dark:text-gray-300 leading-relaxed mb-2">
+                <div key={lineIndex} className="text-muted-foreground text-sm leading-relaxed mb-1.5">
                   {line}
                 </div>
               );
@@ -209,7 +210,7 @@ export default function Arlo() {
         );
       }
       return (
-        <div key={index} className="mb-4 text-gray-700 dark:text-gray-300 leading-relaxed">
+        <div key={index} className="mb-3 text-muted-foreground text-sm leading-relaxed">
           {section}
         </div>
       );
@@ -219,12 +220,12 @@ export default function Arlo() {
   // Show loading state while conversations are loading
   if (conversationsLoading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50/20 dark:from-gray-900 dark:to-blue-900/20">
+      <div className="h-screen flex items-center justify-center refined-web-theme">
         <div className="text-center">
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg mb-4 mx-auto">
-            <Brain className="h-6 w-6 text-white" />
+          <div className="w-16 h-16 glass-card rounded-2xl flex items-center justify-center mb-4 mx-auto">
+            <Brain className="h-8 w-8 text-primary" />
           </div>
-          <p className="text-gray-600 dark:text-gray-400">Loading your conversations...</p>
+          <p className="text-muted-foreground">Loading conversations...</p>
         </div>
       </div>
     );
@@ -232,31 +233,32 @@ export default function Arlo() {
 
   if (isMobile) {
     return (
-      <div className="h-full flex flex-col bg-gradient-to-br from-gray-50 to-blue-50/20 dark:from-gray-900 dark:to-blue-900/20 pb-20">
+      <div className="h-full flex flex-col refined-web-theme pb-20">
         {/* Mobile Header */}
-        <div className="flex-shrink-0 bg-white/80 dark:bg-black/80 backdrop-blur-sm border-b border-white/20 dark:border-white/10 p-6 pt-8">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-              <Brain className="h-6 w-6 text-white" />
+        <div className="flex-shrink-0 glass-nav border-b p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 glass-card rounded-xl flex items-center justify-center">
+              <Brain className="h-5 w-5 text-primary" />
             </div>
             <div className="flex-1">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Arlo</h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Your relationship assistant</p>
+              <h1 className="text-lg font-semibold text-foreground">Arlo</h1>
+              <p className="text-xs text-muted-foreground">Relationship assistant</p>
             </div>
-            <button
+            <Button
               onClick={refreshConversations}
-              className="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-              title="Refresh conversations"
+              variant="ghost"
+              size="sm"
+              className="glass-button p-2"
             >
               <RefreshCw className="h-4 w-4" />
-            </button>
+            </Button>
           </div>
         </div>
 
         {/* Chat Messages Area */}
         <div className="flex-1 min-h-0">
           <ScrollArea className="h-full">
-            <div className="p-6 pb-32">
+            <div className="p-4 pb-32">
               {!activeConversation || activeConversation.messages.length <= 1 ? (
                 <ConversationStarters onSelectPrompt={handlePromptSelect} />
               ) : (
@@ -264,31 +266,31 @@ export default function Arlo() {
                   {activeConversation.messages.slice(1).map((message) => (
                     <motion.div
                       key={message.id}
-                      initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      transition={{ duration: 0.3, ease: "easeOut" }}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.2 }}
                       className={cn(
                         "flex mb-4",
                         message.role === 'user' ? "justify-end" : "justify-start"
                       )}
                     >
                       <div className={cn(
-                        "max-w-[85%] rounded-3xl px-5 py-3 relative group",
+                        "max-w-[85%] rounded-2xl px-4 py-3",
                         message.role === 'user'
-                          ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg"
-                          : "glass-card text-gray-900 dark:text-white"
+                          ? "bg-primary text-primary-foreground"
+                          : "glass-card"
                       )}>
                         {message.role === 'user' ? (
-                          <p className="text-base leading-relaxed">{message.content}</p>
+                          <p className="text-sm leading-relaxed">{message.content}</p>
                         ) : (
-                          <div className="prose prose-sm max-w-none">
+                          <div className="prose-sm">
                             {formatMessage(message.content)}
                           </div>
                         )}
                         
                         <div className={cn(
-                          "text-xs mt-2 opacity-70",
-                          message.role === 'user' ? "text-white/70" : "text-gray-500 dark:text-gray-400"
+                          "text-xs mt-2 opacity-60",
+                          message.role === 'user' ? "text-primary-foreground" : "text-muted-foreground"
                         )}>
                           {message.timestamp.toLocaleTimeString([], {
                             hour: '2-digit',
@@ -303,10 +305,10 @@ export default function Arlo() {
               
               {isLoading && (
                 <div className="flex justify-start mb-4">
-                  <div className="glass-card px-5 py-3 rounded-3xl">
+                  <div className="glass-card px-4 py-3 rounded-2xl">
                     <div className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Arlo is thinking...</span>
+                      <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                      <span className="text-sm text-muted-foreground">Thinking...</span>
                     </div>
                   </div>
                 </div>
@@ -318,7 +320,7 @@ export default function Arlo() {
         </div>
 
         {/* Fixed Input Area */}
-        <div className="fixed bottom-20 left-0 right-0 bg-white/90 dark:bg-black/90 backdrop-blur-sm border-t border-white/20 dark:border-white/10 p-6">
+        <div className="fixed bottom-20 left-0 right-0 glass-nav border-t p-4">
           <div className="flex items-end gap-3">
             <AutoExpandingTextarea
               placeholder="Ask Arlo about your relationships..."
@@ -326,14 +328,14 @@ export default function Arlo() {
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={isLoading}
-              className="flex-1"
+              className="flex-1 glass-input"
               maxHeight={120}
             />
             <Button
               onClick={handleSendMessage}
               disabled={isLoading || !inputValue.trim()}
               size="sm"
-              className="bg-blue-500 hover:bg-blue-600 min-w-[44px] h-[44px]"
+              className="min-w-[44px] h-[44px] rounded-xl"
             >
               {isLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -348,7 +350,7 @@ export default function Arlo() {
   }
 
   return (
-    <div className="h-screen flex bg-gradient-to-br from-gray-50 to-blue-50/30 dark:from-gray-900 dark:to-blue-900/30 pb-20">
+    <div className="h-screen flex refined-web-theme pb-20">
       {/* Sidebar */}
       <ConversationSidebar
         conversations={conversations}
@@ -367,17 +369,17 @@ export default function Arlo() {
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col min-h-0">
         {/* Header */}
-        <div className="flex-shrink-0 bg-white/80 dark:bg-black/20 backdrop-blur-sm border-b border-white/20 dark:border-white/10 px-6 py-4">
+        <div className="flex-shrink-0 glass-nav border-b px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                <Brain className="h-5 w-5 text-white" />
+              <div className="w-10 h-10 glass-card rounded-xl flex items-center justify-center">
+                <Brain className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                <h1 className="text-lg font-semibold text-foreground">
                   {activeConversation ? activeConversation.title : 'Arlo'}
                 </h1>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Your relationship assistant</p>
+                <p className="text-sm text-muted-foreground">Relationship assistant</p>
               </div>
             </div>
             <Button
@@ -394,39 +396,41 @@ export default function Arlo() {
         {/* Messages Area */}
         <div className="flex-1 min-h-0 relative">
           <ScrollArea className="h-full">
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-3xl mx-auto px-6">
               {!activeConversation || activeConversation.messages.length <= 1 ? (
-                <ConversationStarters onSelectPrompt={handlePromptSelect} />
+                <div className="py-8">
+                  <ConversationStarters onSelectPrompt={handlePromptSelect} />
+                </div>
               ) : (
-                <div className="p-6 space-y-6 pb-32">
+                <div className="py-6 space-y-4 pb-32">
                   {activeConversation.messages.slice(1).map((message) => (
                     <motion.div
                       key={message.id}
-                      initial={{ opacity: 0, y: 20 }}
+                      initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3 }}
+                      transition={{ duration: 0.2 }}
                       className={cn(
                         "flex",
                         message.role === 'user' ? 'justify-end' : 'justify-start'
                       )}
                     >
                       <div className={cn(
-                        "max-w-[80%] rounded-2xl p-4 relative",
+                        "max-w-[75%] rounded-2xl px-4 py-3",
                         message.role === 'user'
-                          ? 'bg-blue-500 text-white'
-                          : 'glass-card text-gray-900 dark:text-white'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'glass-card'
                       )}>
                         {message.role === 'user' ? (
-                          <p className="leading-relaxed">{message.content}</p>
+                          <p className="text-sm leading-relaxed">{message.content}</p>
                         ) : (
-                          <div className="prose prose-sm max-w-none">
+                          <div className="prose-sm">
                             {formatMessage(message.content)}
                           </div>
                         )}
                         
                         <div className={cn(
-                          "text-xs mt-3 opacity-70",
-                          message.role === 'user' ? "text-white/70" : "text-gray-500 dark:text-gray-400"
+                          "text-xs mt-2 opacity-60",
+                          message.role === 'user' ? "text-primary-foreground" : "text-muted-foreground"
                         )}>
                           {message.timestamp.toLocaleTimeString([], {
                             hour: '2-digit',
@@ -439,10 +443,10 @@ export default function Arlo() {
                   
                   {isLoading && (
                     <div className="flex justify-start">
-                      <div className="glass-card rounded-2xl p-4">
+                      <div className="glass-card rounded-2xl px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
-                          <span className="text-sm text-gray-600 dark:text-gray-400">Arlo is thinking...</span>
+                          <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                          <span className="text-sm text-muted-foreground">Thinking...</span>
                         </div>
                       </div>
                     </div>
@@ -456,8 +460,8 @@ export default function Arlo() {
         </div>
 
         {/* Fixed Input Area */}
-        <div className="flex-shrink-0 bg-white/80 dark:bg-black/20 backdrop-blur-sm border-t border-white/20 dark:border-white/10 p-6">
-          <div className="max-w-4xl mx-auto">
+        <div className="flex-shrink-0 glass-nav border-t px-6 py-4">
+          <div className="max-w-3xl mx-auto">
             <div className="flex items-end gap-3">
               <AutoExpandingTextarea
                 placeholder="Ask Arlo about your relationships..."
@@ -465,13 +469,13 @@ export default function Arlo() {
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
                 disabled={isLoading}
-                className="flex-1"
+                className="flex-1 glass-input"
                 maxHeight={120}
               />
               <Button
                 onClick={handleSendMessage}
                 disabled={isLoading || !inputValue.trim()}
-                className="bg-blue-500 hover:bg-blue-600 min-w-[44px] h-[44px]"
+                className="min-w-[44px] h-[44px] rounded-xl"
               >
                 {isLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -481,7 +485,7 @@ export default function Arlo() {
               </Button>
             </div>
           </div>
-        </div>
+        </</div>
       </div>
     </div>
   );
