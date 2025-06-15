@@ -6,6 +6,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion } from "framer-motion";
 import { ArrowLeft, Phone, Mail, MapPin, Edit, Trash, MessageSquare, Calendar, Coffee, Hash, User, MoreVertical, Building, GraduationCap, Gift, Globe } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
@@ -208,194 +209,207 @@ export function MinimalContactDetail({
               )}
             </div>
 
-            {/* Contact Information */}
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-foreground">Contact Information</h2>
-              <div className="unified-container space-y-2 p-4 rounded-xl">
-                {contact.personal_email && (
-                  <ContactInfoItem 
-                    icon={Mail} 
-                    label="Email" 
-                    value={contact.personal_email} 
-                    href={`mailto:${contact.personal_email}`} 
-                  />
-                )}
-                {contact.mobile_phone && (
-                  <ContactInfoItem 
-                    icon={Phone} 
-                    label="Phone" 
-                    value={contact.mobile_phone} 
-                    href={`tel:${contact.mobile_phone}`} 
-                  />
-                )}
-                {contact.website && (
-                  <ContactInfoItem 
-                    icon={Globe} 
-                    label="Website" 
-                    value={contact.website} 
-                    href={contact.website} 
-                  />
-                )}
-              </div>
-            </div>
-
-            {/* Professional Information */}
-            {(contact.company_name || contact.job_title || contact.industry || contact.department) && (
-              <div className="space-y-4">
-                <h2 className="text-lg font-semibold text-foreground">Professional</h2>
-                <div className="unified-container space-y-2 p-4 rounded-xl">
-                  {contact.company_name && (
-                    <ContactInfoItem 
-                      icon={Building} 
-                      label="Company" 
-                      value={contact.company_name} 
-                    />
-                  )}
-                  {contact.job_title && (
-                    <ContactInfoItem 
-                      icon={User} 
-                      label="Job Title" 
-                      value={contact.job_title} 
-                    />
-                  )}
-                  {contact.industry && (
-                    <ContactInfoItem 
-                      icon={User} 
-                      label="Industry" 
-                      value={contact.industry} 
-                    />
-                  )}
-                  {contact.department && (
-                    <ContactInfoItem 
-                      icon={User} 
-                      label="Department" 
-                      value={contact.department} 
-                    />
-                  )}
+            {/* Tabs */}
+            <Tabs defaultValue="about" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="about">About</TabsTrigger>
+                <TabsTrigger value="timeline">Timeline</TabsTrigger>
+              </TabsList>
+              
+              {/* About Tab Content */}
+              <TabsContent value="about" className="space-y-4 mt-6">
+                {/* Contact Information */}
+                <div className="space-y-4">
+                  <h2 className="text-lg font-semibold text-foreground">Contact Information</h2>
+                  <div className="unified-container space-y-2 p-4 rounded-xl">
+                    {contact.personal_email && (
+                      <ContactInfoItem 
+                        icon={Mail} 
+                        label="Email" 
+                        value={contact.personal_email} 
+                        href={`mailto:${contact.personal_email}`} 
+                      />
+                    )}
+                    {contact.mobile_phone && (
+                      <ContactInfoItem 
+                        icon={Phone} 
+                        label="Phone" 
+                        value={contact.mobile_phone} 
+                        href={`tel:${contact.mobile_phone}`} 
+                      />
+                    )}
+                    {contact.website && (
+                      <ContactInfoItem 
+                        icon={Globe} 
+                        label="Website" 
+                        value={contact.website} 
+                        href={contact.website} 
+                      />
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
 
-            {/* Education */}
-            {(contact.university || contact.major || contact.minor || contact.graduation_year) && (
-              <div className="space-y-4">
-                <h2 className="text-lg font-semibold text-foreground">Education</h2>
-                <div className="unified-container space-y-2 p-4 rounded-xl">
-                  {contact.university && (
-                    <ContactInfoItem 
-                      icon={GraduationCap} 
-                      label="University" 
-                      value={contact.university} 
-                    />
-                  )}
-                  {contact.major && (
-                    <ContactInfoItem 
-                      icon={GraduationCap} 
-                      label="Major" 
-                      value={contact.major} 
-                    />
-                  )}
-                  {contact.minor && (
-                    <ContactInfoItem 
-                      icon={GraduationCap} 
-                      label="Minor" 
-                      value={contact.minor} 
-                    />
-                  )}
-                  {contact.graduation_year && (
-                    <ContactInfoItem 
-                      icon={Calendar} 
-                      label="Graduated" 
-                      value={contact.graduation_year.toString()} 
-                    />
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Personal Information */}
-            {(contact.birthday || contact.how_met || contact.hobbies_interests) && (
-              <div className="space-y-4">
-                <h2 className="text-lg font-semibold text-foreground">Personal</h2>
-                <div className="unified-container space-y-3 p-4 rounded-xl">
-                  {contact.birthday && (
-                    <ContactInfoItem 
-                      icon={Gift} 
-                      label="Birthday" 
-                      value={format(new Date(contact.birthday), 'MMM dd, yyyy')} 
-                    />
-                  )}
-                  {contact.how_met && (
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium text-foreground">How We Met</p>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{contact.how_met}</p>
+                {/* Professional Information */}
+                {(contact.company_name || contact.job_title || contact.industry || contact.department) && (
+                  <div className="space-y-4">
+                    <h2 className="text-lg font-semibold text-foreground">Professional</h2>
+                    <div className="unified-container space-y-2 p-4 rounded-xl">
+                      {contact.company_name && (
+                        <ContactInfoItem 
+                          icon={Building} 
+                          label="Company" 
+                          value={contact.company_name} 
+                        />
+                      )}
+                      {contact.job_title && (
+                        <ContactInfoItem 
+                          icon={User} 
+                          label="Job Title" 
+                          value={contact.job_title} 
+                        />
+                      )}
+                      {contact.industry && (
+                        <ContactInfoItem 
+                          icon={User} 
+                          label="Industry" 
+                          value={contact.industry} 
+                        />
+                      )}
+                      {contact.department && (
+                        <ContactInfoItem 
+                          icon={User} 
+                          label="Department" 
+                          value={contact.department} 
+                        />
+                      )}
                     </div>
-                  )}
-                  {contact.hobbies_interests && (
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium text-foreground">Interests</p>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{contact.hobbies_interests}</p>
+                  </div>
+                )}
+
+                {/* Education */}
+                {(contact.university || contact.major || contact.minor || contact.graduation_year) && (
+                  <div className="space-y-4">
+                    <h2 className="text-lg font-semibold text-foreground">Education</h2>
+                    <div className="unified-container space-y-2 p-4 rounded-xl">
+                      {contact.university && (
+                        <ContactInfoItem 
+                          icon={GraduationCap} 
+                          label="University" 
+                          value={contact.university} 
+                        />
+                      )}
+                      {contact.major && (
+                        <ContactInfoItem 
+                          icon={GraduationCap} 
+                          label="Major" 
+                          value={contact.major} 
+                        />
+                      )}
+                      {contact.minor && (
+                        <ContactInfoItem 
+                          icon={GraduationCap} 
+                          label="Minor" 
+                          value={contact.minor} 
+                        />
+                      )}
+                      {contact.graduation_year && (
+                        <ContactInfoItem 
+                          icon={Calendar} 
+                          label="Graduated" 
+                          value={contact.graduation_year.toString()} 
+                        />
+                      )}
                     </div>
-                  )}
-                </div>
-              </div>
-            )}
+                  </div>
+                )}
 
-            {/* Tags */}
-            {contact.tags && contact.tags.length > 0 && (
-              <div className="space-y-4">
-                <h2 className="text-lg font-semibold text-foreground">Tags</h2>
-                <div className="flex flex-wrap gap-2">
-                  {contact.tags.map(tag => (
-                    <Badge key={tag} variant="secondary" className="rounded-full bg-[#0daeec]/10 text-[#0daeec] border border-[#0daeec]/20">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Notes */}
-            {contact.notes && (
-              <div className="space-y-4">
-                <h2 className="text-lg font-semibold text-foreground">Notes</h2>
-                <div className="unified-container p-4 rounded-xl">
-                  <p className="text-foreground leading-relaxed">{contact.notes}</p>
-                </div>
-              </div>
-            )}
-
-            {/* Recent Interactions */}
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-foreground">Recent Activity</h2>
-              {interactions.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <MessageSquare className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
-                  <p>No recent interactions</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {interactions.slice(0, 5).map((interaction) => (
-                    <div key={interaction.id} className="unified-container flex gap-3 p-4 rounded-xl">
-                      <div className="flex-shrink-0 mt-1">
-                        {getInteractionIcon(interaction.type)}
-                      </div>
-                      <div className="flex-1 space-y-1">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-medium text-foreground">
-                            {interaction.type.charAt(0).toUpperCase() + interaction.type.slice(1)}
-                          </h3>
-                          <span className="text-xs text-muted-foreground">
-                            {formatDistanceToNow(new Date(interaction.date), { addSuffix: true })}
-                          </span>
+                {/* Personal Information */}
+                {(contact.birthday || contact.how_met || contact.hobbies_interests) && (
+                  <div className="space-y-4">
+                    <h2 className="text-lg font-semibold text-foreground">Personal</h2>
+                    <div className="unified-container space-y-3 p-4 rounded-xl">
+                      {contact.birthday && (
+                        <ContactInfoItem 
+                          icon={Gift} 
+                          label="Birthday" 
+                          value={format(new Date(contact.birthday), 'MMM dd, yyyy')} 
+                        />
+                      )}
+                      {contact.how_met && (
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium text-foreground">How We Met</p>
+                          <p className="text-sm text-muted-foreground leading-relaxed">{contact.how_met}</p>
                         </div>
-                        <p className="text-sm text-muted-foreground">{interaction.notes}</p>
-                      </div>
+                      )}
+                      {contact.hobbies_interests && (
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium text-foreground">Interests</p>
+                          <p className="text-sm text-muted-foreground leading-relaxed">{contact.hobbies_interests}</p>
+                        </div>
+                      )}
                     </div>
-                  ))}
+                  </div>
+                )}
+
+                {/* Tags */}
+                {contact.tags && contact.tags.length > 0 && (
+                  <div className="space-y-4">
+                    <h2 className="text-lg font-semibold text-foreground">Tags</h2>
+                    <div className="flex flex-wrap gap-2">
+                      {contact.tags.map(tag => (
+                        <Badge key={tag} variant="secondary" className="rounded-full bg-[#0daeec]/10 text-[#0daeec] border border-[#0daeec]/20">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Notes */}
+                {contact.notes && (
+                  <div className="space-y-4">
+                    <h2 className="text-lg font-semibold text-foreground">Notes</h2>
+                    <div className="unified-container p-4 rounded-xl">
+                      <p className="text-foreground leading-relaxed">{contact.notes}</p>
+                    </div>
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* Timeline Tab Content */}
+              <TabsContent value="timeline" className="mt-6">
+                <div className="space-y-4">
+                  <h2 className="text-lg font-semibold text-foreground">Recent Activity</h2>
+                  {interactions.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <MessageSquare className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
+                      <p>No recent interactions</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {interactions.map((interaction) => (
+                        <div key={interaction.id} className="unified-container flex gap-3 p-4 rounded-xl">
+                          <div className="flex-shrink-0 mt-1">
+                            {getInteractionIcon(interaction.type)}
+                          </div>
+                          <div className="flex-1 space-y-1">
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-medium text-foreground">
+                                {interaction.type.charAt(0).toUpperCase() + interaction.type.slice(1)}
+                              </h3>
+                              <span className="text-xs text-muted-foreground">
+                                {formatDistanceToNow(new Date(interaction.date), { addSuffix: true })}
+                              </span>
+                            </div>
+                            <p className="text-sm text-muted-foreground">{interaction.notes}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              </TabsContent>
+            </Tabs>
           </div>
         </ScrollArea>
       </div>

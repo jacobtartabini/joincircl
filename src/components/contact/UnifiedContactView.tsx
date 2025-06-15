@@ -2,6 +2,7 @@
 import { Phone, Mail, MapPin, Briefcase, Calendar, MessageSquare, Edit, Trash, Gift, GraduationCap, Facebook, Instagram, Linkedin, Globe, Building, Plus, Clock, Bell, FileText, Coffee, Hash } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Contact, Interaction, ContactMedia } from "@/types/contact";
 import { Keystone } from "@/types/keystone";
 import { formatDistanceToNow, format } from "date-fns";
@@ -184,181 +185,194 @@ export function UnifiedContactView({
               </div>
             </div>
 
-            {/* Main Content - Simplified Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Contact Information - Left Column */}
-              <div className="lg:col-span-1 space-y-6">
-                {/* Contact Details */}
-                <div className="glass-card-enhanced p-5">
-                  <h2 className="text-lg font-semibold text-foreground mb-4">Contact Information</h2>
-                  <div className="space-y-3">
-                    {contact.personal_email && (
-                      <ContactInfoItem 
-                        icon={Mail} 
-                        label="Email" 
-                        value={contact.personal_email} 
-                        href={`mailto:${contact.personal_email}`} 
-                      />
-                    )}
-                    {contact.mobile_phone && (
-                      <ContactInfoItem 
-                        icon={Phone} 
-                        label="Phone" 
-                        value={contact.mobile_phone} 
-                        href={`tel:${contact.mobile_phone}`} 
-                      />
-                    )}
-                    {contact.website && (
-                      <ContactInfoItem 
-                        icon={Globe} 
-                        label="Website" 
-                        value={contact.website} 
-                        href={contact.website} 
-                      />
-                    )}
-                  </div>
-                </div>
+            {/* Main Content with Tabs */}
+            <div className="glass-card-enhanced p-6">
+              <Tabs defaultValue="about" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-6">
+                  <TabsTrigger value="about">About</TabsTrigger>
+                  <TabsTrigger value="timeline">Timeline</TabsTrigger>
+                </TabsList>
+                
+                {/* About Tab Content */}
+                <TabsContent value="about" className="space-y-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Contact Information */}
+                    <div className="space-y-6">
+                      {/* Contact Details */}
+                      <div className="unified-container p-5 rounded-lg">
+                        <h2 className="text-lg font-semibold text-foreground mb-4">Contact Information</h2>
+                        <div className="space-y-3">
+                          {contact.personal_email && (
+                            <ContactInfoItem 
+                              icon={Mail} 
+                              label="Email" 
+                              value={contact.personal_email} 
+                              href={`mailto:${contact.personal_email}`} 
+                            />
+                          )}
+                          {contact.mobile_phone && (
+                            <ContactInfoItem 
+                              icon={Phone} 
+                              label="Phone" 
+                              value={contact.mobile_phone} 
+                              href={`tel:${contact.mobile_phone}`} 
+                            />
+                          )}
+                          {contact.website && (
+                            <ContactInfoItem 
+                              icon={Globe} 
+                              label="Website" 
+                              value={contact.website} 
+                              href={contact.website} 
+                            />
+                          )}
+                        </div>
+                      </div>
 
-                {/* Professional Information */}
-                {(contact.company_name || contact.industry || contact.department || contact.work_address) && (
-                  <div className="glass-card-enhanced p-5">
-                    <h2 className="text-lg font-semibold text-foreground mb-4">Professional</h2>
-                    <div className="space-y-3">
-                      {contact.company_name && (
-                        <ContactInfoItem icon={Building} label="Company" value={contact.company_name} />
-                      )}
-                      {contact.job_title && (
-                        <ContactInfoItem icon={Briefcase} label="Job Title" value={contact.job_title} />
-                      )}
-                      {contact.industry && (
-                        <ContactInfoItem icon={Briefcase} label="Industry" value={contact.industry} />
-                      )}
-                      {contact.department && (
-                        <ContactInfoItem icon={Briefcase} label="Department" value={contact.department} />
-                      )}
-                      {contact.work_address && (
-                        <ContactInfoItem icon={MapPin} label="Office" value={contact.work_address} />
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Education */}
-                {(contact.university || contact.major || contact.minor || contact.graduation_year) && (
-                  <div className="glass-card-enhanced p-5">
-                    <h2 className="text-lg font-semibold text-foreground mb-4">Education</h2>
-                    <div className="space-y-3">
-                      {contact.university && (
-                        <ContactInfoItem icon={GraduationCap} label="University" value={contact.university} />
-                      )}
-                      {contact.major && (
-                        <ContactInfoItem 
-                          icon={GraduationCap} 
-                          label="Major" 
-                          value={contact.major} 
-                        />
-                      )}
-                      {contact.minor && (
-                        <ContactInfoItem 
-                          icon={GraduationCap} 
-                          label="Minor" 
-                          value={contact.minor} 
-                        />
-                      )}
-                      {contact.graduation_year && (
-                        <ContactInfoItem icon={Calendar} label="Graduated" value={contact.graduation_year.toString()} />
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Personal Information */}
-                {(contact.birthday || contact.how_met || contact.hobbies_interests) && (
-                  <div className="glass-card-enhanced p-5">
-                    <h2 className="text-lg font-semibold text-foreground mb-4">Personal</h2>
-                    <div className="space-y-3">
-                      {contact.birthday && (
-                        <ContactInfoItem 
-                          icon={Gift} 
-                          label="Birthday" 
-                          value={format(new Date(contact.birthday), 'MMM dd, yyyy')} 
-                        />
-                      )}
-                      {contact.how_met && (
-                        <div className="unified-container p-3 rounded-lg">
-                          <p className="text-sm font-medium text-foreground mb-1">How We Met</p>
-                          <p className="text-sm text-muted-foreground">{contact.how_met}</p>
+                      {/* Professional Information */}
+                      {(contact.company_name || contact.industry || contact.department || contact.work_address) && (
+                        <div className="unified-container p-5 rounded-lg">
+                          <h2 className="text-lg font-semibold text-foreground mb-4">Professional</h2>
+                          <div className="space-y-3">
+                            {contact.company_name && (
+                              <ContactInfoItem icon={Building} label="Company" value={contact.company_name} />
+                            )}
+                            {contact.job_title && (
+                              <ContactInfoItem icon={Briefcase} label="Job Title" value={contact.job_title} />
+                            )}
+                            {contact.industry && (
+                              <ContactInfoItem icon={Briefcase} label="Industry" value={contact.industry} />
+                            )}
+                            {contact.department && (
+                              <ContactInfoItem icon={Briefcase} label="Department" value={contact.department} />
+                            )}
+                            {contact.work_address && (
+                              <ContactInfoItem icon={MapPin} label="Office" value={contact.work_address} />
+                            )}
+                          </div>
                         </div>
                       )}
-                      {contact.hobbies_interests && (
-                        <div className="unified-container p-3 rounded-lg">
-                          <p className="text-sm font-medium text-foreground mb-1">Interests</p>
-                          <p className="text-sm text-muted-foreground">{contact.hobbies_interests}</p>
+
+                      {/* Social Media */}
+                      {(contact.linkedin || contact.twitter || contact.facebook || contact.instagram) && (
+                        <div className="unified-container p-5 rounded-lg">
+                          <h2 className="text-lg font-semibold text-foreground mb-4">Social Media</h2>
+                          <div className="space-y-3">
+                            {contact.linkedin && (
+                              <ContactInfoItem icon={Linkedin} label="LinkedIn" value={contact.linkedin} href={contact.linkedin} />
+                            )}
+                            {contact.twitter && (
+                              <ContactInfoItem 
+                                icon={MessageSquare} 
+                                label="Twitter" 
+                                value={`@${contact.twitter}`} 
+                                href={`https://twitter.com/${contact.twitter}`} 
+                              />
+                            )}
+                            {contact.facebook && (
+                              <ContactInfoItem icon={Facebook} label="Facebook" value={contact.facebook} href={contact.facebook} />
+                            )}
+                            {contact.instagram && (
+                              <ContactInfoItem 
+                                icon={Instagram} 
+                                label="Instagram" 
+                                value={`@${contact.instagram}`} 
+                                href={`https://instagram.com/${contact.instagram}`} 
+                              />
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
-                  </div>
-                )}
 
-                {/* Social Media */}
-                {(contact.linkedin || contact.twitter || contact.facebook || contact.instagram) && (
-                  <div className="glass-card-enhanced p-5">
-                    <h2 className="text-lg font-semibold text-foreground mb-4">Social Media</h2>
-                    <div className="space-y-3">
-                      {contact.linkedin && (
-                        <ContactInfoItem icon={Linkedin} label="LinkedIn" value={contact.linkedin} href={contact.linkedin} />
+                    {/* Right Column */}
+                    <div className="space-y-6">
+                      {/* Education */}
+                      {(contact.university || contact.major || contact.minor || contact.graduation_year) && (
+                        <div className="unified-container p-5 rounded-lg">
+                          <h2 className="text-lg font-semibold text-foreground mb-4">Education</h2>
+                          <div className="space-y-3">
+                            {contact.university && (
+                              <ContactInfoItem icon={GraduationCap} label="University" value={contact.university} />
+                            )}
+                            {contact.major && (
+                              <ContactInfoItem 
+                                icon={GraduationCap} 
+                                label="Major" 
+                                value={contact.major} 
+                              />
+                            )}
+                            {contact.minor && (
+                              <ContactInfoItem 
+                                icon={GraduationCap} 
+                                label="Minor" 
+                                value={contact.minor} 
+                              />
+                            )}
+                            {contact.graduation_year && (
+                              <ContactInfoItem icon={Calendar} label="Graduated" value={contact.graduation_year.toString()} />
+                            )}
+                          </div>
+                        </div>
                       )}
-                      {contact.twitter && (
-                        <ContactInfoItem 
-                          icon={MessageSquare} 
-                          label="Twitter" 
-                          value={`@${contact.twitter}`} 
-                          href={`https://twitter.com/${contact.twitter}`} 
-                        />
+
+                      {/* Personal Information */}
+                      {(contact.birthday || contact.how_met || contact.hobbies_interests) && (
+                        <div className="unified-container p-5 rounded-lg">
+                          <h2 className="text-lg font-semibold text-foreground mb-4">Personal</h2>
+                          <div className="space-y-3">
+                            {contact.birthday && (
+                              <ContactInfoItem 
+                                icon={Gift} 
+                                label="Birthday" 
+                                value={format(new Date(contact.birthday), 'MMM dd, yyyy')} 
+                              />
+                            )}
+                            {contact.how_met && (
+                              <div className="unified-container p-3 rounded-lg">
+                                <p className="text-sm font-medium text-foreground mb-1">How We Met</p>
+                                <p className="text-sm text-muted-foreground">{contact.how_met}</p>
+                              </div>
+                            )}
+                            {contact.hobbies_interests && (
+                              <div className="unified-container p-3 rounded-lg">
+                                <p className="text-sm font-medium text-foreground mb-1">Interests</p>
+                                <p className="text-sm text-muted-foreground">{contact.hobbies_interests}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       )}
-                      {contact.facebook && (
-                        <ContactInfoItem icon={Facebook} label="Facebook" value={contact.facebook} href={contact.facebook} />
+
+                      {/* Tags */}
+                      {contact.tags && contact.tags.length > 0 && (
+                        <div className="unified-container p-5 rounded-lg">
+                          <h2 className="text-lg font-semibold text-foreground mb-4">Tags</h2>
+                          <div className="flex flex-wrap gap-2">
+                            {contact.tags.map(tag => (
+                              <span key={tag} className="px-2 py-1 text-xs font-medium bg-[#0daeec]/10 text-[#0daeec] border border-[#0daeec]/20 rounded-full">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
                       )}
-                      {contact.instagram && (
-                        <ContactInfoItem 
-                          icon={Instagram} 
-                          label="Instagram" 
-                          value={`@${contact.instagram}`} 
-                          href={`https://instagram.com/${contact.instagram}`} 
-                        />
+
+                      {/* Notes */}
+                      {contact.notes && (
+                        <div className="unified-container p-5 rounded-lg">
+                          <h2 className="text-lg font-semibold text-foreground mb-4">Notes</h2>
+                          <div className="unified-container p-3 rounded-lg">
+                            <p className="text-sm text-foreground leading-relaxed">{contact.notes}</p>
+                          </div>
+                        </div>
                       )}
                     </div>
                   </div>
-                )}
+                </TabsContent>
 
-                {/* Notes */}
-                {contact.notes && (
-                  <div className="glass-card-enhanced p-5">
-                    <h2 className="text-lg font-semibold text-foreground mb-4">Notes</h2>
-                    <div className="unified-container p-3 rounded-lg">
-                      <p className="text-sm text-foreground leading-relaxed">{contact.notes}</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Tags */}
-                {contact.tags && contact.tags.length > 0 && (
-                  <div className="glass-card-enhanced p-5">
-                    <h2 className="text-lg font-semibold text-foreground mb-4">Tags</h2>
-                    <div className="flex flex-wrap gap-2">
-                      {contact.tags.map(tag => (
-                        <span key={tag} className="px-2 py-1 text-xs font-medium bg-[#0daeec]/10 text-[#0daeec] border border-[#0daeec]/20 rounded-full">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Timeline - Right Column */}
-              <div className="lg:col-span-2">
-                <div className="glass-card-enhanced p-6">
+                {/* Timeline Tab Content */}
+                <TabsContent value="timeline">
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-xl font-bold text-foreground">Timeline</h2>
                     <p className="text-sm text-muted-foreground">
@@ -397,8 +411,8 @@ export function UnifiedContactView({
                       ))}
                     </div>
                   )}
-                </div>
-              </div>
+                </TabsContent>
+              </Tabs>
             </div>
           </div>
         </ScrollArea>
