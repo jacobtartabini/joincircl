@@ -334,46 +334,9 @@ export default function CareerHub() {
               )}
             </TabsContent>
 
+            {/* TOOLS TAB (MOBILE) */}
             <TabsContent value="tools" className="space-y-6">
-              <div className="grid gap-4">
-                <Card className="p-6 bg-white/80 backdrop-blur-sm border-gray-100 rounded-2xl">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center">
-                      <BookOpen className="h-5 w-5 text-green-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">Interview Practice</h3>
-                      <p className="text-sm text-muted-foreground">AI-powered mock interviews</p>
-                    </div>
-                  </div>
-                  <Button 
-                    onClick={() => handleQuickAction("Start Practice")}
-                    variant="outline" 
-                    className="w-full border-gray-200 hover:bg-gray-50 rounded-full"
-                  >
-                    Start Practice Session
-                  </Button>
-                </Card>
-
-                <Card className="p-6 bg-white/80 backdrop-blur-sm border-gray-100 rounded-2xl">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center">
-                      <FileText className="h-5 w-5 text-purple-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">Resume Review</h3>
-                      <p className="text-sm text-muted-foreground">Get AI feedback on your resume</p>
-                    </div>
-                  </div>
-                  <Button 
-                    onClick={() => handleQuickAction("Upload Resume")}
-                    variant="outline" 
-                    className="w-full border-gray-200 hover:bg-gray-50 rounded-full"
-                  >
-                    Upload Resume
-                  </Button>
-                </Card>
-              </div>
+              <CareerToolsView />
             </TabsContent>
           </Tabs>
         </div>
