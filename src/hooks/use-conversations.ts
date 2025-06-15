@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Conversation, ChatMessage } from './conversationTypes';
@@ -113,7 +114,7 @@ export function useConversations() {
     setConversations(updatedConversations);
     setActiveConversationId(newConversation.id);
     
-    // Save conversation with fallback to localStorage - FIX: Add missing parameters
+    // Save conversation with fallback to localStorage
     saveConversationToSupabase(user.id, newConversation);
 
     logDebug('New conversation created and saved', { conversationId });
@@ -175,7 +176,7 @@ export function useConversations() {
 
     setConversations(updatedConversations);
 
-    // Save updated conversation with fallback to localStorage - FIX: Add missing parameters
+    // Save updated conversation with fallback to localStorage
     if (conversationToUpdate && user) {
       saveConversationToSupabase(user.id, conversationToUpdate);
     }
@@ -225,7 +226,7 @@ export function useConversations() {
 
     setConversations(updatedConversations);
 
-    // Save updated conversation with fallback to localStorage - FIX: Add missing parameters
+    // Save updated conversation with fallback to localStorage
     if (conversationToUpdate) {
       saveConversationToSupabase(user.id, conversationToUpdate);
     }
