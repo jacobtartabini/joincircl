@@ -29,11 +29,11 @@ export function FollowUpStage({ workflow, onUpdate }: FollowUpStageProps) {
 
       <div className="space-y-6">
         <div>
-          <Label htmlFor="interview-notes">Interview Reflection</Label>
+          <Label htmlFor="interview-notes" className="text-sm font-semibold text-gray-700">Interview Reflection</Label>
           <Textarea
             id="interview-notes"
             placeholder="How did the interview go? What went well? What could be improved?"
-            className="min-h-[100px] mt-2"
+            className="min-h-[100px] mt-2 px-4 py-3 border border-gray-200 rounded-lg bg-white focus-visible:ring-blue-500 resize-none"
           />
         </div>
 

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -66,13 +67,10 @@ export function JobApplicationWorkflow({ applicationId, onBack }: JobApplication
   const renderStageContent = (stageKey: WorkflowStage) => {
     switch (stageKey) {
       case 'application_info':
-        // Ensure ApplicationInfoStage inputs use modern glass/border styling
         return (
           <ApplicationInfoStage
             workflow={workflow}
             onUpdate={updateStageCompletion}
-            // Optionally, if ApplicationInfoStage accepts a `inputClassName` prop,
-            // pass something like: inputClassName="h-12 px-4 border border-gray-200 rounded-lg bg-white focus-visible:ring-blue-500"
           />
         );
       case 'resume_review':
@@ -111,22 +109,8 @@ export function JobApplicationWorkflow({ applicationId, onBack }: JobApplication
       <Card className="p-6 bg-white/80 backdrop-blur-sm border-gray-100 rounded-2xl">
         <div className="flex items-start justify-between mb-4">
           <div>
-            {/* Text input for job title styled like dialog modals */}
-            <input
-              type="text"
-              value={workflow.job_title}
-              readOnly
-              className="h-12 px-4 border border-gray-200 rounded-lg bg-white/90 focus-visible:ring-blue-500 font-bold text-2xl text-gray-900 mb-1 cursor-default pointer-events-none"
-              style={{ minWidth: 200, maxWidth: 320 }}
-            />
-            {/* Text input for company name styled like dialog modals */}
-            <input
-              type="text"
-              value={workflow.company_name}
-              readOnly
-              className="h-10 px-4 border border-gray-200 rounded-lg bg-white/60 focus-visible:ring-blue-500 text-lg text-muted-foreground cursor-default pointer-events-none"
-              style={{ minWidth: 180, maxWidth: 260 }}
-            />
+            <h1 className="text-2xl font-bold text-gray-900 mb-1">{workflow.job_title}</h1>
+            <p className="text-lg text-muted-foreground">{workflow.company_name}</p>
           </div>
           <Badge className="bg-blue-50 text-blue-700 border-blue-200">
             {workflow.status.charAt(0).toUpperCase() + workflow.status.slice(1)}
