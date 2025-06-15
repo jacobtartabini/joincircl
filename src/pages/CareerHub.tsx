@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { GradientText } from "@/components/ui/gradient-text";
 import { 
   Briefcase, 
   Target, 
@@ -22,9 +21,15 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useContacts } from "@/hooks/use-contacts";
 import { useToast } from "@/hooks/use-toast";
+import { AddJobApplicationDialog } from "@/components/career/dialogs/AddJobApplicationDialog";
+import { AddDocumentDialog } from "@/components/career/dialogs/AddDocumentDialog";
+import { AddInterviewSessionDialog } from "@/components/career/dialogs/AddInterviewSessionDialog";
 
 export default function CareerHub() {
   const [activeTab, setActiveTab] = useState("opportunities");
+  const [isAddApplicationOpen, setIsAddApplicationOpen] = useState(false);
+  const [isUploadDocumentOpen, setIsUploadDocumentOpen] = useState(false);
+  const [isInterviewSessionOpen, setIsInterviewSessionOpen] = useState(false);
   const isMobile = useIsMobile();
   const { contacts } = useContacts();
   const { toast } = useToast();
@@ -43,11 +48,46 @@ export default function CareerHub() {
 
   const handleQuickAction = useCallback((action: string) => {
     console.log(`Quick action: ${action}`);
-    toast({
-      title: "Action Started",
-      description: `${action} has been initiated.`,
-    });
+    if (action === "Add Application") {
+      setIsAddApplicationOpen(true);
+    } else if (action === "Upload Resume") {
+      setIsUploadDocumentOpen(true);
+    } else if (action === "Start Practice" || action === "Start Mock Interview") {
+      setIsInterviewSessionOpen(true);
+    } else {
+      toast({
+        title: "Action Started",
+        description: `${action} has been initiated.`,
+      });
+    }
   }, [toast]);
+
+  const handleAddApplication = (application: any) => {
+    console.log("Adding application:", application);
+    setIsAddApplicationOpen(false);
+    toast({
+      title: "Application Added",
+      description: `Your application for ${application.job_title} at ${application.company_name} has been tracked.`,
+    });
+  };
+
+  const handleUploadDocument = (document: any) => {
+    console.log("Uploading document:", document);
+    setIsUploadDocumentOpen(false);
+    toast({
+      title: "Document Uploaded",
+      description: `${document.document_name} has been uploaded successfully.`,
+    });
+  };
+
+  const handleStartInterviewSession = (session: any) => {
+    console.log("Starting interview session:", session);
+    setIsInterviewSessionOpen(false);
+    toast({
+      title: "Interview Session Started",
+      description: `${session.session_title} session is now ready.`,
+    });
+  };
 
   if (isMobile) {
     return (
@@ -56,13 +96,11 @@ export default function CareerHub() {
         <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-xl border-b border-gray-100 p-4 pt-8">
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 bg-gradient-to-br from-[#0daeec] to-[#9c40ff] rounded-2xl flex items-center justify-center shadow-lg">
-                <Briefcase className="h-6 w-6 text-white" />
+              <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center border border-blue-100">
+                <Briefcase className="h-6 w-6 text-blue-600" />
               </div>
               <div>
-                <h1 className="text-2xl">
-                  <GradientText>Career Hub</GradientText>
-                </h1>
+                <h1 className="text-2xl font-bold text-gray-900">Career Hub</h1>
                 <p className="text-sm text-muted-foreground">Your professional journey</p>
               </div>
             </div>
@@ -81,18 +119,18 @@ export default function CareerHub() {
           <div className="grid gap-3">
             <Button 
               onClick={() => handleQuickAction("Add Application")}
-              className="h-16 justify-between p-4 bg-gradient-to-r from-[#0daeec] to-[#9c40ff] hover:opacity-90 border-0 rounded-2xl text-white" 
+              className="h-16 justify-between p-4 bg-blue-600 hover:bg-blue-700 border-0 rounded-2xl text-white" 
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center">
                   <Plus className="h-5 w-5 text-white" />
                 </div>
                 <div className="text-left">
                   <p className="font-medium text-white">Track New Opportunity</p>
-                  <p className="text-xs text-white/80">Add your latest application</p>
+                  <p className="text-xs text-blue-100">Add your latest application</p>
                 </div>
               </div>
-              <ArrowRight className="h-4 w-4 text-white/80" />
+              <ArrowRight className="h-4 w-4 text-blue-100" />
             </Button>
           </div>
 
@@ -101,7 +139,7 @@ export default function CareerHub() {
             <Card className="p-4 bg-white/80 backdrop-blur-sm border-gray-100 rounded-2xl">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
-                  <Target className="h-5 w-5 text-[#0daeec]" />
+                  <Target className="h-5 w-5 text-blue-600" />
                 </div>
                 <div>
                   <p className="text-xl font-bold text-gray-900">{stats.activeApplications}</p>
@@ -126,24 +164,24 @@ export default function CareerHub() {
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsContent value="opportunities" className="space-y-6">
               {/* Strategic Insights */}
-              <Card className="p-6 bg-gradient-to-r from-purple-50/50 to-blue-50/50 backdrop-blur-sm border-purple-100 rounded-2xl">
+              <Card className="p-6 bg-purple-50/50 backdrop-blur-sm border-purple-100 rounded-2xl">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
-                    <Zap className="h-4 w-4 text-white" />
+                  <div className="w-8 h-8 bg-purple-100 rounded-xl flex items-center justify-center">
+                    <Zap className="h-4 w-4 text-purple-600" />
                   </div>
                   <h3 className="font-semibold text-gray-900">Smart Insights</h3>
                 </div>
                 <p className="text-sm text-gray-700 mb-4 leading-relaxed">
                   📌 Great progress! Your networking is paying off. Consider following up with contacts from your recent events - 3 connections haven't heard from you in 2+ weeks.
                 </p>
-                <Button size="sm" className="bg-gradient-to-r from-[#0daeec] to-[#9c40ff] hover:opacity-90 text-white border-0 rounded-full">
+                <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white border-0 rounded-full">
                   View Suggestions
                 </Button>
               </Card>
 
               <div className="text-center py-8">
                 <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Target className="h-8 w-8 text-[#0daeec]" />
+                  <Target className="h-8 w-8 text-blue-600" />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Track Your Applications</h3>
                 <p className="text-sm text-muted-foreground mb-6">
@@ -166,7 +204,7 @@ export default function CareerHub() {
                   </div>
                   <Button 
                     onClick={() => handleQuickAction("Start Practice")}
-                    className="w-full bg-gradient-to-r from-[#0daeec] to-[#9c40ff] hover:opacity-90 text-white border-0 rounded-xl"
+                    className="w-full bg-green-600 hover:bg-green-700 text-white border-0 rounded-xl"
                   >
                     Start Practice Session
                   </Button>
@@ -194,6 +232,25 @@ export default function CareerHub() {
             </TabsContent>
           </Tabs>
         </div>
+
+        {/* Dialogs */}
+        <AddJobApplicationDialog
+          isOpen={isAddApplicationOpen}
+          onOpenChange={setIsAddApplicationOpen}
+          onAdd={handleAddApplication}
+        />
+        
+        <AddDocumentDialog
+          isOpen={isUploadDocumentOpen}
+          onOpenChange={setIsUploadDocumentOpen}
+          onAdd={handleUploadDocument}
+        />
+        
+        <AddInterviewSessionDialog
+          isOpen={isInterviewSessionOpen}
+          onOpenChange={setIsInterviewSessionOpen}
+          onAdd={handleStartInterviewSession}
+        />
       </div>
     );
   }
@@ -205,13 +262,11 @@ export default function CareerHub() {
         {/* Header */}
         <div className="text-center space-y-4">
           <div className="flex items-center justify-center gap-4 mb-6">
-            <div className="w-16 h-16 bg-gradient-to-br from-[#0daeec] to-[#9c40ff] rounded-2xl flex items-center justify-center shadow-lg">
-              <Briefcase className="h-8 w-8 text-white" />
+            <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center border border-blue-100">
+              <Briefcase className="h-8 w-8 text-blue-600" />
             </div>
             <div className="text-left">
-              <h1 className="text-4xl">
-                <GradientText>Career Hub</GradientText>
-              </h1>
+              <h1 className="text-4xl font-bold text-gray-900">Career Hub</h1>
               <p className="text-muted-foreground text-lg">Your professional journey starts here</p>
             </div>
           </div>
@@ -220,7 +275,7 @@ export default function CareerHub() {
           <div className="flex justify-center gap-4 mb-8">
             <Button 
               onClick={() => handleQuickAction("Add Application")}
-              className="bg-gradient-to-r from-[#0daeec] to-[#9c40ff] hover:opacity-90 text-white border-0 rounded-full px-6"
+              className="bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-full px-6"
               size="lg"
             >
               <Plus className="h-5 w-5 mr-2" />
@@ -244,7 +299,7 @@ export default function CareerHub() {
           <Card className="p-6 bg-white/80 backdrop-blur-sm border-gray-100 rounded-2xl">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center">
-                <Target className="h-6 w-6 text-[#0daeec]" />
+                <Target className="h-6 w-6 text-blue-600" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Active Applications</p>
@@ -291,10 +346,10 @@ export default function CareerHub() {
         </div>
 
         {/* Strategic Insights */}
-        <Card className="p-8 bg-gradient-to-r from-purple-50/50 to-blue-50/50 backdrop-blur-sm border-purple-100 rounded-2xl">
+        <Card className="p-8 bg-purple-50/50 backdrop-blur-sm border-purple-100 rounded-2xl">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
-              <Zap className="h-5 w-5 text-white" />
+            <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+              <Zap className="h-5 w-5 text-purple-600" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900">Smart Career Insights</h3>
           </div>
@@ -302,7 +357,7 @@ export default function CareerHub() {
             🚀 You're making excellent progress! Your network activity has increased 40% this month. Consider reaching out to 3 contacts from your recent networking events who haven't heard from you in 2+ weeks. The best time to follow up is typically Tuesday-Thursday between 10-11 AM.
           </p>
           <div className="flex gap-4">
-            <Button className="bg-gradient-to-r from-[#0daeec] to-[#9c40ff] hover:opacity-90 text-white border-0 rounded-full">
+            <Button className="bg-purple-600 hover:bg-purple-700 text-white border-0 rounded-full">
               View Detailed Insights
             </Button>
             <Button variant="outline" className="border-gray-200 hover:bg-gray-50 rounded-full">
@@ -321,7 +376,7 @@ export default function CareerHub() {
           <TabsContent value="opportunities" className="mt-8">
             <div className="text-center py-16">
               <div className="w-20 h-20 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <Target className="h-10 w-10 text-[#0daeec]" />
+                <Target className="h-10 w-10 text-blue-600" />
               </div>
               <h3 className="text-2xl font-semibold text-gray-900 mb-4">Track Your Applications</h3>
               <p className="text-muted-foreground mb-8 max-w-md mx-auto">
@@ -330,7 +385,7 @@ export default function CareerHub() {
               <Button 
                 onClick={() => handleQuickAction("Add Application")}
                 size="lg"
-                className="bg-gradient-to-r from-[#0daeec] to-[#9c40ff] hover:opacity-90 text-white border-0 rounded-full px-8"
+                className="bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-full px-8"
               >
                 <Plus className="h-5 w-5 mr-2" />
                 Add Your First Application
@@ -352,7 +407,7 @@ export default function CareerHub() {
                 </div>
                 <Button 
                   onClick={() => handleQuickAction("Start Mock Interview")}
-                  className="w-full bg-gradient-to-r from-[#0daeec] to-[#9c40ff] hover:opacity-90 text-white border-0 rounded-xl h-12"
+                  className="w-full bg-green-600 hover:bg-green-700 text-white border-0 rounded-xl h-12"
                 >
                   Start Practice Session
                 </Button>
@@ -379,6 +434,25 @@ export default function CareerHub() {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Dialogs */}
+        <AddJobApplicationDialog
+          isOpen={isAddApplicationOpen}
+          onOpenChange={setIsAddApplicationOpen}
+          onAdd={handleAddApplication}
+        />
+        
+        <AddDocumentDialog
+          isOpen={isUploadDocumentOpen}
+          onOpenChange={setIsUploadDocumentOpen}
+          onAdd={handleUploadDocument}
+        />
+        
+        <AddInterviewSessionDialog
+          isOpen={isInterviewSessionOpen}
+          onOpenChange={setIsInterviewSessionOpen}
+          onAdd={handleStartInterviewSession}
+        />
       </div>
     </div>
   );
