@@ -1,17 +1,17 @@
-
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Briefcase } from "lucide-react";
-
 interface CareerHubHeaderProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   isMobile: boolean;
 }
-
-export function CareerHubHeader({ activeTab, onTabChange, isMobile }: CareerHubHeaderProps) {
+export function CareerHubHeader({
+  activeTab,
+  onTabChange,
+  isMobile
+}: CareerHubHeaderProps) {
   if (isMobile) {
-    return (
-      <div className="flex-shrink-0 p-4 pb-2 bg-card border-b border-border">
+    return <div className="flex-shrink-0 p-4 pb-2 bg-card border-b border-border">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
             <Briefcase className="h-5 w-5 text-primary" />
@@ -41,13 +41,11 @@ export function CareerHubHeader({ activeTab, onTabChange, isMobile }: CareerHubH
             </div>
           </Tabs>
         </div>
-      </div>
-    );
+      </div>;
   }
 
   // Desktop - Match Settings page header exactly
-  return (
-    <div className="mb-8 flex-shrink-0 pt-6 px-6">
+  return <div className="mb-8 flex-shrink-0 pt-6 px-6">
       <div className="flex items-center gap-3 mb-2">
         <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
           <Briefcase className="h-5 w-5 text-primary" />
@@ -61,12 +59,11 @@ export function CareerHubHeader({ activeTab, onTabChange, isMobile }: CareerHubH
       <div className="mt-6">
         <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
           <TabsList className="grid w-full max-w-md grid-cols-3 bg-gray-50/80 p-1.5 rounded-full">
-            <TabsTrigger value="overview" className="rounded-xl">Overview</TabsTrigger>
-            <TabsTrigger value="applications" className="rounded-xl">Applications</TabsTrigger>
-            <TabsTrigger value="tools" className="rounded-xl">Tools</TabsTrigger>
+            <TabsTrigger value="overview" className="rounded-full">Overview</TabsTrigger>
+            <TabsTrigger value="applications" className="rounded-full">Applications</TabsTrigger>
+            <TabsTrigger value="tools" className="rounded-full">Tools</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
-    </div>
-  );
+    </div>;
 }
