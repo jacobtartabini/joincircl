@@ -77,6 +77,11 @@ export default function FloatingNav() {
               <stop offset="50%" stopColor="#a21caf" />
               <stop offset="100%" stopColor="#ec4899" />
             </linearGradient>
+            <linearGradient id="arlo-text-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#0092ca" />
+              <stop offset="50%" stopColor="#a21caf" />
+              <stop offset="100%" stopColor="#ec4899" />
+            </linearGradient>
           </defs>
         </svg>
         {tabs.map((tab, index) => {
@@ -112,7 +117,11 @@ export default function FloatingNav() {
                 <Icon size={20} />
               )}
               {isSelected && (
-                <span className="overflow-hidden whitespace-nowrap">
+                <span className={`overflow-hidden whitespace-nowrap ${
+                  isArloTab && isSelected 
+                    ? "bg-gradient-to-r from-[#0092ca] via-[#a21caf] to-[#ec4899] bg-clip-text text-transparent font-semibold"
+                    : ""
+                }`}>
                   {navTab.title}
                 </span>
               )}
