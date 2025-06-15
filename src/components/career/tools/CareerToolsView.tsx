@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { ToolCard } from "./ToolCard";
 import { 
@@ -17,21 +18,20 @@ import {
   ListCheck 
 } from "lucide-react";
 
-import { 
-  ResumeReviewerTool,
-  CoverLetterGeneratorTool,
-  ApplicationInfoIntakeTool,
-  JobDescriptionAnalyzerTool,
-  NetworkDiscoveryTool,
-  InterviewerResearchTool,
-  CompanyResearchTool,
-  MockInterviewTool,
-  TimelineTrackerTool,
-  FollowUpGeneratorTool,
-  InterviewDebriefJournalTool,
-  OfferComparisonTool,
-  SkillGapPlanTool
-} from "./";
+// FIX: Import each tool individually instead of from "./"
+import { ResumeReviewerTool } from "./ResumeReviewerTool";
+import { CoverLetterGeneratorTool } from "./CoverLetterGeneratorTool";
+import { ApplicationInfoIntakeTool } from "./ApplicationInfoIntakeTool";
+import { JobDescriptionAnalyzerTool } from "./JobDescriptionAnalyzerTool";
+import { NetworkDiscoveryTool } from "./NetworkDiscoveryTool";
+import { InterviewerResearchTool } from "./InterviewerResearchTool";
+import { CompanyResearchTool } from "./CompanyResearchTool";
+import { MockInterviewTool } from "./MockInterviewTool";
+import { TimelineTrackerTool } from "./TimelineTrackerTool";
+import { FollowUpGeneratorTool } from "./FollowUpGeneratorTool";
+import { InterviewDebriefJournalTool } from "./InterviewDebriefJournalTool";
+import { OfferComparisonTool } from "./OfferComparisonTool";
+import { SkillGapPlanTool } from "./SkillGapPlanTool";
 
 type ToolKey =
   | "appInfo"
