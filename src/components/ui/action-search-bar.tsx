@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -66,25 +66,22 @@ function ActionSearchBar({
   className = ""
 }: ActionSearchBarProps) {
   const [query, setQuery] = useState("");
-  const [result, setResult] = useState<{ actions: Action[]; contacts: Contact[]; keystones: Keystone[] }>({ 
-    actions: [], 
-    contacts: [], 
-    keystones: [] 
-  });
   const [isFocused, setIsFocused] = useState(false);
   const [selectedAction, setSelectedAction] = useState<Action | null>(null);
   const debouncedQuery = useDebounce(query, 200);
   const navigate = useNavigate();
 
-  useEffect(() => {
+  // Memoize the search results to prevent unnecessary recalculations
+  const result = useMemo(() => {
+    console.log('ActionSearchBar - Computing search results for query:', debouncedQuery);
+    console.log('ActionSearchBar - Data available - contacts:', contacts?.length, 'keystones:', keystones?.length, 'actions:', actions?.length);
+
     if (!isFocused) {
-      setResult({ actions: [], contacts: [], keystones: [] });
-      return;
+      return { actions: [], contacts: [], keystones: [] };
     }
 
     if (!debouncedQuery) {
-      setResult({ actions, contacts: [], keystones: [] });
-      return;
+      return { actions, contacts: [], keystones: [] };
     }
 
     const normalizedQuery = debouncedQuery.toLowerCase().trim();
@@ -103,12 +100,18 @@ function ActionSearchBar({
           const email = contact.personal_email?.toLowerCase() || "";
           const jobTitle = contact.job_title?.toLowerCase() || "";
           
-          return (
+          const isMatch = (
             name.includes(normalizedQuery) ||
             company.includes(normalizedQuery) ||
             email.includes(normalizedQuery) ||
             jobTitle.includes(normalizedQuery)
           );
+          
+          if (isMatch) {
+            console.log('Contact match found:', contact.name);
+          }
+          
+          return isMatch;
         })
       : [];
 
@@ -119,15 +122,27 @@ function ActionSearchBar({
           const category = keystone.category?.toLowerCase() || "";
           const notes = keystone.notes?.toLowerCase() || "";
           
-          return (
+          const isMatch = (
             title.includes(normalizedQuery) ||
             category.includes(normalizedQuery) ||
             notes.includes(normalizedQuery)
           );
+          
+          if (isMatch) {
+            console.log('Keystone match found:', keystone.title);
+          }
+          
+          return isMatch;
         })
       : [];
 
-    setResult({ actions: filteredActions, contacts: filteredContacts, keystones: filteredKeystones });
+    console.log('ActionSearchBar - Search results:', {
+      actions: filteredActions.length,
+      contacts: filteredContacts.length,
+      keystones: filteredKeystones.length
+    });
+
+    return { actions: filteredActions, contacts: filteredContacts, keystones: filteredKeystones };
   }, [debouncedQuery, isFocused, actions, contacts, keystones]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

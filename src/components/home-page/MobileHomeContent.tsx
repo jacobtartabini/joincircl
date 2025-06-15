@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useContacts } from '@/hooks/use-contacts';
 import { useKeystones } from '@/hooks/use-keystones';
 import { useActionSearch } from '@/hooks/use-action-search';
@@ -27,17 +27,28 @@ const MobileHomeContent: React.FC = () => {
   const [selectedKeystone, setSelectedKeystone] = useState<Keystone | null>(null);
   const [isKeystoneDetailOpen, setIsKeystoneDetailOpen] = useState(false);
 
-  const handleAddContact = () => setIsAddContactSheetOpen(true);
-  const handleAddKeystone = () => setIsAddKeystoneSheetOpen(true);
-  const handleAddInteraction = () => {
+  // Memoize callback functions to prevent re-renders
+  const handleAddContact = useCallback(() => {
+    console.log('Add contact triggered');
+    setIsAddContactSheetOpen(true);
+  }, []);
+
+  const handleAddKeystone = useCallback(() => {
+    console.log('Add keystone triggered');
+    setIsAddKeystoneSheetOpen(true);
+  }, []);
+
+  const handleAddInteraction = useCallback(() => {
+    console.log('Add interaction triggered');
     // For now, navigate to circles where they can select a contact
     navigate('/circles');
-  };
+  }, [navigate]);
 
-  const handleKeystoneSelect = (keystone: Keystone) => {
+  const handleKeystoneSelect = useCallback((keystone: Keystone) => {
+    console.log('Keystone selected:', keystone.title);
     setSelectedKeystone(keystone);
     setIsKeystoneDetailOpen(true);
-  };
+  }, []);
 
   const { actions } = useActionSearch({
     onAddContact: handleAddContact,
@@ -52,18 +63,21 @@ const MobileHomeContent: React.FC = () => {
     onAddInteraction: handleAddInteraction,
   });
 
-  const handleContactFormSuccess = () => {
+  const handleContactFormSuccess = useCallback(() => {
     setIsAddContactSheetOpen(false);
-  };
+  }, []);
 
-  const handleKeystoneFormSuccess = () => {
+  const handleKeystoneFormSuccess = useCallback(() => {
     setIsAddKeystoneSheetOpen(false);
-  };
+  }, []);
+
+  // Debug logging
+  console.log('MobileHomeContent render - contacts:', contacts?.length || 0, 'keystones:', keystones?.length || 0);
 
   // Quick stats for minimal display
   const stats = [{
     label: "Contacts",
-    value: contacts.length,
+    value: contacts?.length || 0,
     icon: Users,
     color: "bg-blue-50 text-blue-600"
   }, {
@@ -73,7 +87,7 @@ const MobileHomeContent: React.FC = () => {
     color: "bg-orange-50 text-orange-600"
   }, {
     label: "Inner Circle",
-    value: contacts.filter(c => c.circle === 'inner').length,
+    value: contacts?.filter(c => c.circle === 'inner').length || 0,
     icon: TrendingUp,
     color: "bg-green-50 text-green-600"
   }];
@@ -86,8 +100,8 @@ const MobileHomeContent: React.FC = () => {
         <div className="space-y-4">
           <ActionSearchBar 
             actions={actions}
-            contacts={contacts}
-            keystones={keystones}
+            contacts={contacts || []}
+            keystones={keystones || []}
             onKeystoneSelect={handleKeystoneSelect}
             placeholder="What would you like to do?"
             className="w-full"
