@@ -45,7 +45,7 @@ const ModernHomeContent: React.FC = () => {
   };
 
   const handleKeystoneSelect = useCallback((keystone: Keystone) => {
-    console.log('Keystone selected:', keystone.title);
+    console.log('[ModernHomeContent] Keystone selected:', keystone.title);
     setSelectedKeystone(keystone);
     setIsKeystoneDetailOpen(true);
   }, []);
