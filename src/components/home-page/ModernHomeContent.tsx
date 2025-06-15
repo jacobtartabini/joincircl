@@ -2,6 +2,8 @@
 import React from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useContacts } from '@/hooks/use-contacts';
+import { useActionSearch } from '@/hooks/use-action-search';
+import { ActionSearchBar } from '@/components/ui/action-search-bar';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { GradientText } from '../ui/gradient-text';
@@ -25,13 +27,14 @@ const ModernHomeContent: React.FC = () => {
   const [isAddContactDialogOpen, setIsAddContactDialogOpen] = useState(false);
   const [isAddKeystoneDialogOpen, setIsAddKeystoneDialogOpen] = useState(false);
 
-  const handleAddContact = () => {
-    setIsAddContactDialogOpen(true);
-  };
-
-  const handleAddKeystone = () => {
-    setIsAddKeystoneDialogOpen(true);
-  };
+  const { actions } = useActionSearch({
+    onAddContact: () => setIsAddContactDialogOpen(true),
+    onAddKeystone: () => setIsAddKeystoneDialogOpen(true),
+    onAddInteraction: () => {
+      // For now, navigate to circles where they can select a contact
+      navigate('/circles');
+    },
+  });
 
   const handleContactFormSuccess = () => {
     setIsAddContactDialogOpen(false);
@@ -64,7 +67,8 @@ const ModernHomeContent: React.FC = () => {
   const contactFormContent = <ContactForm onSuccess={handleContactFormSuccess} onCancel={() => setIsAddContactDialogOpen(false)} />;
   const keystoneFormContent = <KeystoneForm onSuccess={handleKeystoneFormSuccess} onCancel={() => setIsAddKeystoneDialogOpen(false)} />;
 
-  return <div className="min-h-screen refined-web-theme">
+  return (
+    <div className="min-h-screen refined-web-theme">
       <div className="max-w-7xl mx-auto p-6 space-y-8">
         {/* Header Section */}
         <div className="flex flex-col space-y-2">
@@ -74,21 +78,38 @@ const ModernHomeContent: React.FC = () => {
           <p className="text-muted-foreground text-lg font-normal">Let's strengthen your connections today</p>
         </div>
 
-        {/* Quick Actions */}
-        <div className="flex gap-3">
-          <Button onClick={handleAddContact} className="px-6 py-2 text-white bg-gradient-to-r from-[#0daeec]/90 to-[#0daeec]/70 hover:from-[#0daeec] hover:to-[#0daeec]/90 border-[#0daeec]/30 rounded-full">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Contact
-          </Button>
-          <Button onClick={handleAddKeystone} variant="outline" className="px-6 py-2 rounded-full">
-            <Calendar className="h-4 w-4 mr-2" />
-            Add Event
-          </Button>
+        {/* Action Search Bar */}
+        <div className="space-y-4">
+          <ActionSearchBar 
+            actions={actions}
+            placeholder="What would you like to do today?"
+            className="max-w-2xl"
+          />
+          
+          {/* Quick Actions - Kept as backup/alternative */}
+          <div className="flex gap-3">
+            <Button 
+              onClick={() => setIsAddContactDialogOpen(true)} 
+              className="px-6 py-2 text-white bg-gradient-to-r from-[#0daeec]/90 to-[#0daeec]/70 hover:from-[#0daeec] hover:to-[#0daeec]/90 border-[#0daeec]/30 rounded-full"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Contact
+            </Button>
+            <Button 
+              onClick={() => setIsAddKeystoneDialogOpen(true)} 
+              variant="outline" 
+              className="px-6 py-2 rounded-full"
+            >
+              <Calendar className="h-4 w-4 mr-2" />
+              Add Event
+            </Button>
+          </div>
         </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {stats.map((stat, index) => <Card key={index} className="glass-card-enhanced">
+          {stats.map((stat, index) => (
+            <Card key={index} className="glass-card-enhanced">
               <CardContent className="p-6">
                 <div className="flex items-center space-x-4">
                   <div className={`p-3 rounded-xl ${stat.bgColor} border border-white/20 dark:border-white/10`}>
@@ -100,7 +121,8 @@ const ModernHomeContent: React.FC = () => {
                   </div>
                 </div>
               </CardContent>
-            </Card>)}
+            </Card>
+          ))}
         </div>
 
         {/* Main Content Grid */}
@@ -117,7 +139,11 @@ const ModernHomeContent: React.FC = () => {
                 <CardTitle className="text-lg font-medium text-foreground">Quick Access</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button variant="ghost" onClick={() => navigate('/circles')} className="w-full justify-between p-4 h-auto rounded-full">
+                <Button 
+                  variant="ghost" 
+                  onClick={() => navigate('/circles')} 
+                  className="w-full justify-between p-4 h-auto rounded-full"
+                >
                   <div className="flex items-center space-x-3">
                     <Users className="h-5 w-5 text-muted-foreground" />
                     <span className="font-medium text-foreground">View All Contacts</span>
@@ -125,7 +151,11 @@ const ModernHomeContent: React.FC = () => {
                   <ArrowRight className="h-4 w-4 text-muted-foreground" />
                 </Button>
                 
-                <Button variant="ghost" onClick={() => navigate('/events')} className="w-full justify-between p-4 h-auto rounded-full">
+                <Button 
+                  variant="ghost" 
+                  onClick={() => navigate('/events')} 
+                  className="w-full justify-between p-4 h-auto rounded-full"
+                >
                   <div className="flex items-center space-x-3">
                     <Calendar className="h-5 w-5 text-muted-foreground" />
                     <span className="font-medium text-foreground">Upcoming Events</span>
@@ -133,7 +163,6 @@ const ModernHomeContent: React.FC = () => {
                   <ArrowRight className="h-4 w-4 text-muted-foreground" />
                 </Button>
                 
-                {/* ----- Arlo button with gradient-stroked Atom icon and aligned layout ----- */}
                 <svg width="0" height="0" style={{ position: 'absolute' }}>
                   <defs>
                     <linearGradient id="atom-gradient-home" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -143,14 +172,17 @@ const ModernHomeContent: React.FC = () => {
                     </linearGradient>
                   </defs>
                 </svg>
-                <Button variant="ghost" onClick={() => navigate('/ai-assistant')} className="w-full justify-between p-4 h-auto rounded-full">
+                <Button 
+                  variant="ghost" 
+                  onClick={() => navigate('/ai-assistant')} 
+                  className="w-full justify-between p-4 h-auto rounded-full"
+                >
                   <div className="flex items-center space-x-3">
                     <Atom className="h-5 w-5" stroke="url(#atom-gradient-home)" strokeWidth="2" />
                     <span className="font-medium text-foreground">Arlo</span>
                   </div>
                   <ArrowRight className="h-4 w-4 text-muted-foreground" />
                 </Button>
-                {/* ----------------------------------------------------------- */}
               </CardContent>
             </Card>
           </div>
@@ -158,7 +190,8 @@ const ModernHomeContent: React.FC = () => {
       </div>
       
       {/* Dialogs */}
-      {isMobile ? <>
+      {isMobile ? (
+        <>
           <Sheet open={isAddContactDialogOpen} onOpenChange={setIsAddContactDialogOpen}>
             <SheetContent side="bottom" className="h-[90vh] overflow-auto pt-6 glass-card-enhanced">
               <div className="mx-auto -mt-1 mb-4 h-1.5 w-[60px] rounded-full bg-white/30" />
@@ -180,7 +213,9 @@ const ModernHomeContent: React.FC = () => {
               {keystoneFormContent}
             </SheetContent>
           </Sheet>
-        </> : <>
+        </>
+      ) : (
+        <>
           <Dialog open={isAddContactDialogOpen} onOpenChange={setIsAddContactDialogOpen}>
             <DialogContent className="sm:max-w-xl glass-card-enhanced border-white/20 dark:border-white/15">
               {contactFormContent}
@@ -192,8 +227,10 @@ const ModernHomeContent: React.FC = () => {
               {keystoneFormContent}
             </DialogContent>
           </Dialog>
-        </>}
-    </div>;
+        </>
+      )}
+    </div>
+  );
 };
 
 export default ModernHomeContent;
