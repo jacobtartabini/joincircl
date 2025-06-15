@@ -15,7 +15,8 @@ import {
   Mail, 
   Star, 
   Archive, 
-  ListCheck 
+  ListCheck,
+  MessageCircle
 } from "lucide-react";
 
 // FIX: Import each tool individually instead of from "./"
@@ -32,6 +33,7 @@ import { FollowUpGeneratorTool } from "./FollowUpGeneratorTool";
 import { InterviewDebriefJournalTool } from "./InterviewDebriefJournalTool";
 import { OfferComparisonTool } from "./OfferComparisonTool";
 import { SkillGapPlanTool } from "./SkillGapPlanTool";
+import { LinkedInMessageGeneratorTool } from "./LinkedInMessageGeneratorTool";
 
 type ToolKey =
   | "appInfo"
@@ -47,6 +49,7 @@ type ToolKey =
   | "interviewDebrief"
   | "offerCompare"
   | "skillGap"
+  | "linkedinMessage"
 ;
 
 const TOOLS: {
@@ -84,6 +87,12 @@ const TOOLS: {
     title: "Network Discovery",
     description: "Find connections at a company or industry and draft outreach messages.",
     icon: <Network size={28} />
+  },
+  {
+    key: "linkedinMessage",
+    title: "LinkedIn Message Generator",
+    description: "Generate personalized LinkedIn messages for networking and outreach.",
+    icon: <MessageCircle size={28} />
   },
   {
     key: "interviewerResearch",
@@ -141,6 +150,7 @@ const modals: Partial<Record<ToolKey, React.ComponentType<{ onClose: () => void 
   coverLetter: CoverLetterGeneratorTool,
   jobAnalyzer: JobDescriptionAnalyzerTool,
   networkDiscovery: NetworkDiscoveryTool,
+  linkedinMessage: LinkedInMessageGeneratorTool,
   interviewerResearch: InterviewerResearchTool,
   companyResearch: CompanyResearchTool,
   mockInterview: MockInterviewTool,
