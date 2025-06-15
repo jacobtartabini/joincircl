@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { ToolCard } from "./ToolCard";
 import { 
@@ -18,19 +17,21 @@ import {
   ListCheck 
 } from "lucide-react";
 
-import { ResumeReviewerTool } from "./ResumeReviewerTool";
-import { CoverLetterGeneratorTool } from "./CoverLetterGeneratorTool";
-import { ApplicationInfoIntakeTool } from "./ApplicationInfoIntakeTool";
-import { JobDescriptionAnalyzerTool } from "./JobDescriptionAnalyzerTool";
-import { NetworkDiscoveryTool } from "./NetworkDiscoveryTool";
-import { InterviewerResearchTool } from "./InterviewerResearchTool";
-import { CompanyResearchTool } from "./CompanyResearchTool";
-import { MockInterviewTool } from "./MockInterviewTool";
-import { TimelineTrackerTool } from "./TimelineTrackerTool";
-import { FollowUpGeneratorTool } from "./FollowUpGeneratorTool";
-import { InterviewDebriefJournalTool } from "./InterviewDebriefJournalTool";
-import { OfferComparisonTool } from "./OfferComparisonTool";
-import { SkillGapPlanTool } from "./SkillGapPlanTool";
+import { 
+  ResumeReviewerTool,
+  CoverLetterGeneratorTool,
+  ApplicationInfoIntakeTool,
+  JobDescriptionAnalyzerTool,
+  NetworkDiscoveryTool,
+  InterviewerResearchTool,
+  CompanyResearchTool,
+  MockInterviewTool,
+  TimelineTrackerTool,
+  FollowUpGeneratorTool,
+  InterviewDebriefJournalTool,
+  OfferComparisonTool,
+  SkillGapPlanTool
+} from "./";
 
 type ToolKey =
   | "appInfo"
@@ -134,7 +135,7 @@ const TOOLS: {
   },
 ];
 
-const modals: Partial<Record<ToolKey, () => JSX.Element>> = {
+const modals: Partial<Record<ToolKey, React.ComponentType<{ onClose: () => void }>>> = {
   appInfo: ApplicationInfoIntakeTool,
   resume: ResumeReviewerTool,
   coverLetter: CoverLetterGeneratorTool,
