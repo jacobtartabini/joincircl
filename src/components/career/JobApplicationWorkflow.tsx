@@ -22,7 +22,7 @@ import { InterviewPrepStage } from "./stages/InterviewPrepStage";
 import { CompanyResearchStage } from "./stages/CompanyResearchStage";
 import { FollowUpStage } from "./stages/FollowUpStage";
 import GradientIconBg from "./GradientIconBg";
-import { Atom } from "@/components/ui/atom";
+import { Atom } from "lucide-react";
 
 interface JobApplicationWorkflowProps {
   applicationId: string;
