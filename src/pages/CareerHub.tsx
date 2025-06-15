@@ -273,7 +273,7 @@ export default function CareerHub() {
                   className="rounded-full"
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Add New
+                  Application
                 </Button>
               </div>
 
@@ -562,7 +562,7 @@ export default function CareerHub() {
                 className="bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-full px-6"
               >
                 <Plus className="h-5 w-5 mr-2" />
-                Add Application
+                Application
               </Button>
             </div>
 
