@@ -44,7 +44,7 @@ export const saveConversationToSupabase = async (userId: string, conversation: C
         id: conversation.id,
         user_id: userId,
         title: conversation.title,
-        messages: conversation.messages,
+        messages: JSON.stringify(conversation.messages),
         created_at: conversation.createdAt.toISOString(),
         updated_at: conversation.updatedAt.toISOString()
       });
