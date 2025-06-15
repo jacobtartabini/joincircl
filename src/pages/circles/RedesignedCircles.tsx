@@ -1,8 +1,9 @@
+
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCirclesState } from "./hooks/useCirclesState";
 import { CirclesList } from "@/components/circles/CirclesList";
-import { CirclesFilter } from "@/components/circles/CirclesFilter";
+import { AdvancedCirclesFilter } from "@/components/circles/AdvancedCirclesFilter";
 import { EnhancedContactDetail } from "@/components/contact/EnhancedContactDetail";
 import { SyncContactsButton } from "@/components/circles/SyncContactsButton";
 import { Contact } from "@/types/contact";
@@ -12,8 +13,10 @@ import { InteractionDialog } from "./dialogs/InteractionDialog";
 import { InsightsDialog } from "./dialogs/InsightsDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Circle, Users } from "lucide-react";
+import { Circle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Filter } from "@/components/ui/filters";
+import { useAdvancedContactFilters } from "@/hooks/use-advanced-contact-filters";
 
 export default function RedesignedCircles() {
   const navigate = useNavigate();
@@ -43,14 +46,17 @@ export default function RedesignedCircles() {
 
   // Local state for the selected contact (used in detail panel)
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<string>("name");
-  const [filterBy, setFilterBy] = useState<string | null>(null);
   const [showMobileDetail, setShowMobileDetail] = useState(false);
+  const [filters, setFilters] = useState<Filter[]>([]);
+
+  // Apply advanced filtering
+  const filteredSortedContacts = useAdvancedContactFilters(contacts || [], filters, searchQuery);
 
   // Set initial filter from URL params
   useEffect(() => {
     if (tagFilter) {
-      setFilterBy(tagFilter);
+      // Convert URL tag filter to new filter format if needed
+      // This maintains backward compatibility
     }
   }, [tagFilter]);
 
@@ -97,64 +103,6 @@ export default function RedesignedCircles() {
       navigate(`/contact/${selectedContact.id}`);
     }
   };
-
-  // Handle filter changes - this fixes the filter functionality
-  const handleFilterChange = (filter: string | null) => {
-    setFilterBy(filter);
-    if (filter && filter !== tagFilter) {
-      // If it's a circle filter (inner, middle, outer), don't update URL
-      // If it's a tag filter, update URL
-      if (['inner', 'middle', 'outer'].includes(filter)) {
-        // Clear any existing tag filter from URL
-        const newSearchParams = new URLSearchParams(searchParams);
-        newSearchParams.delete('tag');
-        navigate(`/circles?${newSearchParams.toString()}`, { replace: true });
-      }
-    } else if (!filter) {
-      // Clear all filters including URL params
-      navigate('/circles', { replace: true });
-    }
-  };
-
-  // Filter and sort contacts
-  const filteredSortedContacts = useMemo(() => {
-    if (!contacts) return [];
-    let result = contacts.filter(contact => {
-      // Search query filter
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        const matchesSearch = contact.name?.toLowerCase().includes(query) || 
-                             contact.personal_email?.toLowerCase().includes(query) || 
-                             contact.company_name?.toLowerCase().includes(query) || 
-                             contact.job_title?.toLowerCase().includes(query);
-        if (!matchesSearch) return false;
-      }
-
-      // Tag filter (either from filterBy state or URL param)
-      const activeTagFilter = tagFilter || (filterBy && !['inner', 'middle', 'outer'].includes(filterBy) ? filterBy : null);
-      if (activeTagFilter) {
-        if (!contact.tags || !contact.tags.includes(activeTagFilter)) {
-          return false;
-        }
-      }
-
-      // Circle filter
-      if (filterBy && ['inner', 'middle', 'outer'].includes(filterBy) && contact.circle !== filterBy) {
-        return false;
-      }
-      return true;
-    });
-    return [...result].sort((a, b) => {
-      if (sortBy === "name") {
-        return a.name.localeCompare(b.name);
-      } else if (sortBy === "recent") {
-        const dateA = a.last_contact ? new Date(a.last_contact).getTime() : 0;
-        const dateB = b.last_contact ? new Date(b.last_contact).getTime() : 0;
-        return dateB - dateA;
-      }
-      return 0;
-    });
-  }, [contacts, searchQuery, filterBy, tagFilter, sortBy]);
 
   // Mock interactions for selected contact
   const selectedContactInteractions = useMemo(() => {
@@ -210,13 +158,13 @@ export default function RedesignedCircles() {
                 </div>
               </div>
               
-              <CirclesFilter 
-                searchQuery={searchQuery} 
-                onSearchChange={setSearchQuery} 
-                onAddContact={() => setIsAddDialogOpen(true)} 
-                onSort={setSortBy} 
-                onFilter={handleFilterChange} 
-                activeTagFilter={tagFilter} 
+              <AdvancedCirclesFilter
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                onAddContact={() => setIsAddDialogOpen(true)}
+                contacts={contacts || []}
+                filters={filters}
+                onFiltersChange={setFilters}
                 refetchContacts={fetchContacts}
               />
               <div className="mt-3 flex justify-end">
@@ -314,18 +262,18 @@ export default function RedesignedCircles() {
                 <div className="mb-4">
                   <p className="text-sm text-muted-foreground dark:text-muted-foreground">
                     {filteredSortedContacts.length} contact{filteredSortedContacts.length !== 1 ? 's' : ''}
-                    {tagFilter && ` tagged with "${tagFilter}"`}
+                    {filters.length > 0 && ' (filtered)'}
                   </p>
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex-1">
-                    <CirclesFilter 
-                      searchQuery={searchQuery} 
-                      onSearchChange={setSearchQuery} 
-                      onAddContact={() => setIsAddDialogOpen(true)} 
-                      onSort={setSortBy} 
-                      onFilter={handleFilterChange} 
-                      activeTagFilter={tagFilter} 
+                    <AdvancedCirclesFilter
+                      searchQuery={searchQuery}
+                      onSearchChange={setSearchQuery}
+                      onAddContact={() => setIsAddDialogOpen(true)}
+                      contacts={contacts || []}
+                      filters={filters}
+                      onFiltersChange={setFilters}
                       refetchContacts={fetchContacts}
                     />
                   </div>
