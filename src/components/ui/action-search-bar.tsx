@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -264,7 +265,7 @@ function ActionSearchBar({
               <div className="max-h-80 overflow-y-auto">
                 {result.contacts.length > 0 && (
                   <div>
-                    <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                       Contacts
                     </div>
                     <motion.ul>
@@ -275,15 +276,15 @@ function ActionSearchBar({
                           variants={item}
                           onClick={() => handleContactClick(contact.id)}
                         >
-                          <span className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-800 font-semibold text-base">
+                          <span className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-800 dark:text-gray-200 font-semibold text-base">
                             {contact.name?.charAt(0)?.toUpperCase() || "?"}
                           </span>
                           <div>
-                            <div className="font-medium text-foreground text-sm truncate max-w-[160px]">
+                            <div className="font-medium text-gray-900 dark:text-gray-100 text-sm truncate max-w-[160px]">
                               {contact.name}
                             </div>
                             {contact.company_name && (
-                              <div className="text-xs text-muted-foreground truncate max-w-[160px]">
+                              <div className="text-xs text-gray-600 dark:text-gray-400 truncate max-w-[160px]">
                                 {contact.company_name}
                               </div>
                             )}
@@ -296,7 +297,7 @@ function ActionSearchBar({
 
                 {result.keystones.length > 0 && (
                   <div>
-                    <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                       Events
                     </div>
                     <motion.ul>
@@ -311,10 +312,10 @@ function ActionSearchBar({
                             <Calendar className="h-5 w-5 text-blue-500" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="font-medium text-foreground text-sm">
+                            <div className="font-medium text-gray-900 dark:text-gray-100 text-sm">
                               {keystone.title}
                             </div>
-                            <div className="text-xs text-muted-foreground">
+                            <div className="text-xs text-gray-600 dark:text-gray-400">
                               {new Date(keystone.date).toLocaleDateString()}
                               {keystone.category && ` • ${keystone.category}`}
                             </div>
@@ -327,7 +328,7 @@ function ActionSearchBar({
 
                 {result.actions.length > 0 && (
                   <div>
-                    <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                       Actions
                     </div>
                     <motion.ul className="p-0">
@@ -343,18 +344,18 @@ function ActionSearchBar({
                               {action.icon}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="font-medium text-foreground text-sm">
+                              <div className="font-medium text-gray-900 dark:text-gray-100 text-sm">
                                 {action.label}
                               </div>
                               {action.description && (
-                                <div className="text-xs text-muted-foreground">
+                                <div className="text-xs text-gray-600 dark:text-gray-400">
                                   {action.description}
                                 </div>
                               )}
                             </div>
                           </div>
                           {action.shortcut && (
-                            <div className="text-xs text-muted-foreground bg-gray-100 dark:bg-zinc-800/40 px-2 py-1 rounded border border-gray-200 dark:border-white/10">
+                            <div className="text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-zinc-800/40 px-2 py-1 rounded border border-gray-200 dark:border-white/10">
                               {action.shortcut}
                             </div>
                           )}
