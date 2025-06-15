@@ -158,7 +158,7 @@ export function useConversations() {
     }
     
     // Save remaining conversations with fallback to localStorage
-    if (updatedConversations.length > 0) {
+    if (updatedConversations.length > 0 && user) {
       saveConversationsToLocalStorage(user.id, updatedConversations);
     }
   };

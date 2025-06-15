@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -225,7 +224,8 @@ export default function CareerHub() {
                   </div>
                   <Button 
                     onClick={() => handleQuickAction("Start Practice")}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white border-0 rounded-xl"
+                    variant="outline" 
+                    className="w-full border-gray-200 hover:bg-gray-50 rounded-xl"
                   >
                     Start Practice Session
                   </Button>
@@ -432,7 +432,8 @@ export default function CareerHub() {
               </div>
               <Button 
                 onClick={() => handleQuickAction("Start Mock Interview")}
-                className="w-full bg-green-600 hover:bg-green-700 text-white border-0 rounded-xl"
+                variant="outline"
+                className="w-full border-gray-200 hover:bg-gray-50 rounded-xl"
               >
                 Start Practice Session
               </Button>
