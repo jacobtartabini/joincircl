@@ -26,26 +26,43 @@ export default function ContactDetailLeftColumn({
   onInteractionAdded
 }: ContactDetailLeftColumnProps) {
   return (
-    <div className="space-y-6">
-      <ContactInfoSection contact={contact} />
-      <ContactKeystonesSection 
-        contact={contact} 
-        keystones={keystones} 
-        onKeystoneAdded={onKeystoneAdded} 
-      />
-      <ContactInteractionsSection 
-        contact={contact} 
-        interactions={interactions} 
-        onInteractionAdded={onInteractionAdded} 
-      />
-      <SocialFeedSection contactId={contact.id} />
-      <ContactMediaSection 
-        contactId={contact.id} 
-        contactMedia={contactMedia} 
-      />
-      <ContactInsightsSection 
-        contactId={contact.id} 
-      />
+    <div className="space-y-8">
+      <div className="glass-card-enhanced">
+        <ContactInfoSection contact={contact} />
+      </div>
+      
+      <div className="glass-card-enhanced">
+        <ContactKeystonesSection 
+          contact={contact} 
+          keystones={keystones} 
+          onKeystoneAdded={onKeystoneAdded} 
+        />
+      </div>
+      
+      <div className="glass-card-enhanced">
+        <ContactInteractionsSection 
+          contact={contact} 
+          interactions={interactions} 
+          onInteractionAdded={onInteractionAdded} 
+        />
+      </div>
+      
+      <div className="glass-card-enhanced">
+        <SocialFeedSection contactId={contact.id} />
+      </div>
+      
+      <div className="glass-card-enhanced">
+        <ContactMediaSection 
+          contactId={contact.id} 
+          contactMedia={contactMedia} 
+        />
+      </div>
+      
+      <div className="glass-card-enhanced">
+        <ContactInsightsSection 
+          contactId={contact.id} 
+        />
+      </div>
     </div>
   );
 }

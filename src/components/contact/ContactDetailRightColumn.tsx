@@ -4,15 +4,15 @@ import ContactInsightsSection from "@/components/contact/ContactInsightsSection"
 
 interface ContactDetailRightColumnProps {
   connectionStrength?: ConnectionStrength;
-  contactId: string;  // Add the contactId prop
+  contactId: string;
 }
 
 export default function ContactDetailRightColumn({
   connectionStrength,
-  contactId  // Destructure the contactId prop
+  contactId
 }: ContactDetailRightColumnProps) {
   return (
-    <div>
+    <div className="glass-card-enhanced">
       <ContactInsightsSection connectionStrength={connectionStrength} contactId={contactId} />
     </div>
   );
