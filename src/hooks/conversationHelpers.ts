@@ -3,12 +3,14 @@ import { Conversation, ChatMessage } from "./conversationTypes";
 
 // Parse messages array, converting timestamps to Date
 export function parseMessages(messages: any[]): ChatMessage[] {
-  return Array.isArray(messages)
-    ? messages.map((msg: any) => ({
-        ...msg,
-        timestamp: new Date(msg.timestamp)
-      }))
-    : [];
+  if (!Array.isArray(messages)) return [];
+  
+  return messages.map((msg: any) => ({
+    id: msg.id || `msg-${Date.now()}-${Math.random()}`,
+    role: msg.role || 'assistant',
+    content: msg.content || '',
+    timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date()
+  }));
 }
 
 // Parse a raw conversation from Supabase/db/localStorage to Conversation type
@@ -16,7 +18,7 @@ export function parseConversation(conv: any): Conversation {
   return {
     id: conv.id,
     title: conv.title,
-    messages: parseMessages(conv.messages),
+    messages: parseMessages(conv.messages || []),
     createdAt: new Date(conv.created_at ?? conv.createdAt),
     updatedAt: new Date(conv.updated_at ?? conv.updatedAt)
   };

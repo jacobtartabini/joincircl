@@ -1,6 +1,9 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { parseConversation } from './conversationHelpers';
+import { Conversation, ChatMessage } from './conversationTypes';
 
 export interface Message {
   id: string;
@@ -9,19 +12,14 @@ export interface Message {
   created_at: string;
 }
 
-export interface Conversation {
-  id: string;
-  title: string;
-  user_id: string;
-  messages: Message[];
-  created_at: string;
-  updated_at: string;
-}
-
 export function useConversations() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
+
+  // Get active conversation
+  const activeConversation = conversations.find(conv => conv.id === activeConversationId) || null;
 
   const fetchConversations = async () => {
     if (!user) return;
@@ -34,7 +32,9 @@ export function useConversations() {
         .order('updated_at', { ascending: false });
 
       if (error) throw error;
-      setConversations(data || []);
+      
+      const parsedConversations = (data || []).map(parseConversation);
+      setConversations(parsedConversations);
     } catch (error) {
       console.error('Error fetching conversations:', error);
     } finally {
@@ -58,21 +58,55 @@ export function useConversations() {
 
       if (error) throw error;
 
-      setConversations(prev => [data, ...prev]);
-      return data;
+      const parsedConversation = parseConversation(data);
+      setConversations(prev => [parsedConversation, ...prev]);
+      return parsedConversation;
     } catch (error) {
       console.error('Error creating conversation:', error);
       return null;
     }
   };
 
+  const createNewConversation = () => {
+    const newId = `new-${Date.now()}`;
+    const newConversation: Conversation = {
+      id: newId,
+      title: 'New Chat',
+      messages: [{
+        id: 'initial',
+        role: 'assistant',
+        content: 'Hello! How can I help you today?',
+        timestamp: new Date()
+      }],
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    setConversations(prev => [newConversation, ...prev]);
+    setActiveConversationId(newId);
+    return newId;
+  };
+
   const updateConversation = async (conversationId: string, updates: Partial<Conversation>) => {
     if (!user) return;
 
     try {
+      // Convert updates to database format
+      const dbUpdates: any = {};
+      if (updates.title) dbUpdates.title = updates.title;
+      if (updates.messages) {
+        // Convert ChatMessage[] to Json format for database
+        dbUpdates.messages = updates.messages.map(msg => ({
+          id: msg.id,
+          role: msg.role,
+          content: msg.content,
+          timestamp: msg.timestamp.toISOString()
+        }));
+      }
+
       const { data, error } = await supabase
         .from('conversations')
-        .update(updates)
+        .update(dbUpdates)
         .eq('id', conversationId)
         .eq('user_id', user.id)
         .select()
@@ -80,12 +114,17 @@ export function useConversations() {
 
       if (error) throw error;
 
+      const parsedConversation = parseConversation(data);
       setConversations(prev => 
-        prev.map(conv => conv.id === conversationId ? data : conv)
+        prev.map(conv => conv.id === conversationId ? parsedConversation : conv)
       );
     } catch (error) {
       console.error('Error updating conversation:', error);
     }
+  };
+
+  const renameConversation = async (conversationId: string, newTitle: string) => {
+    await updateConversation(conversationId, { title: newTitle });
   };
 
   const deleteConversation = async (conversationId: string) => {
@@ -101,47 +140,44 @@ export function useConversations() {
       if (error) throw error;
 
       setConversations(prev => prev.filter(conv => conv.id !== conversationId));
+      
+      if (activeConversationId === conversationId) {
+        setActiveConversationId(null);
+      }
     } catch (error) {
       console.error('Error deleting conversation:', error);
     }
   };
 
-  const addMessage = async (conversationId: string, message: Message) => {
-    if (!user) return;
+  const addMessage = (conversationId: string, messageData: { role: 'user' | 'assistant'; content: string }) => {
+    const message: ChatMessage = {
+      id: `msg-${Date.now()}-${Math.random()}`,
+      role: messageData.role,
+      content: messageData.content,
+      timestamp: new Date()
+    };
 
-    try {
-      // First get the current conversation
-      const { data: currentConv, error: fetchError } = await supabase
-        .from('conversations')
-        .select('messages')
-        .eq('id', conversationId)
-        .eq('user_id', user.id)
-        .single();
+    setConversations(prev => 
+      prev.map(conv => {
+        if (conv.id === conversationId) {
+          const updatedConv = {
+            ...conv,
+            messages: [...conv.messages, message],
+            updatedAt: new Date()
+          };
+          
+          // Save to database if it's a real conversation (not a local one)
+          if (!conversationId.startsWith('new-')) {
+            updateConversation(conversationId, updatedConv);
+          }
+          
+          return updatedConv;
+        }
+        return conv;
+      })
+    );
 
-      if (fetchError) throw fetchError;
-
-      const currentMessages = (currentConv.messages as Message[]) || [];
-      const updatedMessages = [...currentMessages, message];
-
-      const { data, error } = await supabase
-        .from('conversations')
-        .update({ 
-          messages: updatedMessages,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', conversationId)
-        .eq('user_id', user.id)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      setConversations(prev => 
-        prev.map(conv => conv.id === conversationId ? data : conv)
-      );
-    } catch (error) {
-      console.error('Error adding message:', error);
-    }
+    return message.id;
   };
 
   useEffect(() => {
@@ -150,11 +186,17 @@ export function useConversations() {
 
   return {
     conversations,
+    activeConversation,
+    activeConversationId,
     isLoading,
+    setActiveConversationId,
     createConversation,
+    createNewConversation,
     updateConversation,
+    renameConversation,
     deleteConversation,
     addMessage,
-    refetch: fetchConversations
+    refetch: fetchConversations,
+    refreshConversations: fetchConversations
   };
 }
