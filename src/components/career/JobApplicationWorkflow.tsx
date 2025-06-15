@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,6 +21,8 @@ import { InterviewerResearchStage } from "./stages/InterviewerResearchStage";
 import { InterviewPrepStage } from "./stages/InterviewPrepStage";
 import { CompanyResearchStage } from "./stages/CompanyResearchStage";
 import { FollowUpStage } from "./stages/FollowUpStage";
+import GradientIconBg from "./GradientIconBg";
+import { Atom } from "@/components/ui/atom";
 
 interface JobApplicationWorkflowProps {
   applicationId: string;
@@ -121,7 +122,9 @@ export function JobApplicationWorkflow({ applicationId, onBack }: JobApplication
         {/* Arlo Insight */}
         <div className="mt-4 p-3 bg-blue-50/50 rounded-xl border border-blue-100">
           <div className="flex items-center gap-2 mb-2">
-            <Sparkles className="h-4 w-4 text-blue-600" />
+            <GradientIconBg size={24}>
+              <Atom className="h-4 w-4" color="white" />
+            </GradientIconBg>
             <span className="text-sm font-medium text-blue-900">Arlo's Insight</span>
           </div>
           <p className="text-sm text-blue-800">
