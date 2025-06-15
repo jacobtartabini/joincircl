@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { useContacts } from '@/hooks/use-contacts';
+import { useKeystones } from '@/hooks/use-keystones';
 import { useActionSearch } from '@/hooks/use-action-search';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { ActionSearchBar } from '@/components/ui/action-search-bar';
@@ -10,7 +11,9 @@ import { useNavigate } from 'react-router-dom';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import ContactForm from '@/components/contact/ContactForm';
 import KeystoneForm from '@/components/keystone/KeystoneForm';
+import { KeystoneDetailDialog } from '@/components/keystone/KeystoneDetailDialog';
 import { Badge } from '@/components/ui/badge';
+import type { Keystone } from '@/types/keystone';
 
 const MobileHomeContent: React.FC = () => {
   const navigate = useNavigate();
@@ -18,14 +21,22 @@ const MobileHomeContent: React.FC = () => {
     contacts,
     followUpStats
   } = useContacts();
+  const { keystones } = useKeystones();
   const [isAddContactSheetOpen, setIsAddContactSheetOpen] = useState(false);
   const [isAddKeystoneSheetOpen, setIsAddKeystoneSheetOpen] = useState(false);
+  const [selectedKeystone, setSelectedKeystone] = useState<Keystone | null>(null);
+  const [isKeystoneDetailOpen, setIsKeystoneDetailOpen] = useState(false);
 
   const handleAddContact = () => setIsAddContactSheetOpen(true);
   const handleAddKeystone = () => setIsAddKeystoneSheetOpen(true);
   const handleAddInteraction = () => {
     // For now, navigate to circles where they can select a contact
     navigate('/circles');
+  };
+
+  const handleKeystoneSelect = (keystone: Keystone) => {
+    setSelectedKeystone(keystone);
+    setIsKeystoneDetailOpen(true);
   };
 
   const { actions } = useActionSearch({
@@ -76,6 +87,8 @@ const MobileHomeContent: React.FC = () => {
           <ActionSearchBar 
             actions={actions}
             contacts={contacts}
+            keystones={keystones}
+            onKeystoneSelect={handleKeystoneSelect}
             placeholder="What would you like to do?"
             className="w-full"
           />
@@ -188,6 +201,16 @@ const MobileHomeContent: React.FC = () => {
           <KeystoneForm onSuccess={handleKeystoneFormSuccess} onCancel={() => setIsAddKeystoneSheetOpen(false)} />
         </SheetContent>
       </Sheet>
+
+      {/* Keystone Detail Dialog */}
+      <KeystoneDetailDialog
+        keystone={selectedKeystone}
+        isOpen={isKeystoneDetailOpen}
+        onClose={() => {
+          setIsKeystoneDetailOpen(false);
+          setSelectedKeystone(null);
+        }}
+      />
     </div>
   );
 };

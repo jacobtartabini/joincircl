@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -17,6 +18,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { Contact } from "@/types/contact";
+import type { Keystone } from "@/types/keystone";
 
 function useDebounce<T>(value: T, delay: number = 500): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -44,11 +46,12 @@ export interface Action {
   handler: () => void;
 }
 
-// Add props for contacts
 interface ActionSearchBarProps {
   actions: Action[];
   contacts?: Contact[];
+  keystones?: Keystone[];
   onActionSelect?: (action: Action) => void;
+  onKeystoneSelect?: (keystone: Keystone) => void;
   placeholder?: string;
   className?: string;
 }
@@ -56,12 +59,18 @@ interface ActionSearchBarProps {
 function ActionSearchBar({ 
   actions, 
   contacts = [],
+  keystones = [],
   onActionSelect,
+  onKeystoneSelect,
   placeholder = "What would you like to do?",
   className = ""
 }: ActionSearchBarProps) {
   const [query, setQuery] = useState("");
-  const [result, setResult] = useState<{ actions: Action[]; contacts: Contact[] }>({ actions: [], contacts: [] });
+  const [result, setResult] = useState<{ actions: Action[]; contacts: Contact[]; keystones: Keystone[] }>({ 
+    actions: [], 
+    contacts: [], 
+    keystones: [] 
+  });
   const [isFocused, setIsFocused] = useState(false);
   const [selectedAction, setSelectedAction] = useState<Action | null>(null);
   const debouncedQuery = useDebounce(query, 200);
@@ -69,12 +78,12 @@ function ActionSearchBar({
 
   useEffect(() => {
     if (!isFocused) {
-      setResult({ actions: [], contacts: [] });
+      setResult({ actions: [], contacts: [], keystones: [] });
       return;
     }
 
     if (!debouncedQuery) {
-      setResult({ actions, contacts: [] });
+      setResult({ actions, contacts: [], keystones: [] });
       return;
     }
 
@@ -86,21 +95,40 @@ function ActionSearchBar({
       return searchableText.includes(normalizedQuery);
     });
 
-    // Filter contacts
+    // Filter contacts - ensure we're searching properly
     const filteredContacts = Array.isArray(contacts)
       ? contacts.filter((contact) => {
-          // Search by name or company, fallback to empty string
           const name = contact.name?.toLowerCase() || "";
           const company = contact.company_name?.toLowerCase() || "";
+          const email = contact.personal_email?.toLowerCase() || "";
+          const jobTitle = contact.job_title?.toLowerCase() || "";
+          
           return (
             name.includes(normalizedQuery) ||
-            company.includes(normalizedQuery)
+            company.includes(normalizedQuery) ||
+            email.includes(normalizedQuery) ||
+            jobTitle.includes(normalizedQuery)
           );
         })
       : [];
 
-    setResult({ actions: filteredActions, contacts: filteredContacts });
-  }, [debouncedQuery, isFocused, actions, contacts]);
+    // Filter keystones
+    const filteredKeystones = Array.isArray(keystones)
+      ? keystones.filter((keystone) => {
+          const title = keystone.title?.toLowerCase() || "";
+          const category = keystone.category?.toLowerCase() || "";
+          const notes = keystone.notes?.toLowerCase() || "";
+          
+          return (
+            title.includes(normalizedQuery) ||
+            category.includes(normalizedQuery) ||
+            notes.includes(normalizedQuery)
+          );
+        })
+      : [];
+
+    setResult({ actions: filteredActions, contacts: filteredContacts, keystones: filteredKeystones });
+  }, [debouncedQuery, isFocused, actions, contacts, keystones]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);
@@ -118,6 +146,12 @@ function ActionSearchBar({
     setQuery("");
     setIsFocused(false);
     navigate(`/contact/${contactId}`);
+  };
+
+  const handleKeystoneClick = (keystone: Keystone) => {
+    setQuery("");
+    setIsFocused(false);
+    onKeystoneSelect?.(keystone);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -166,6 +200,8 @@ function ActionSearchBar({
     setIsFocused(true);
   };
 
+  const hasResults = result.actions.length > 0 || result.contacts.length > 0 || result.keystones.length > 0;
+
   return (
     <div className={`w-full ${className}`}>
       <div className="relative flex items-center">
@@ -196,7 +232,7 @@ function ActionSearchBar({
           }}
         />
         <AnimatePresence>
-          {isFocused && (result.actions.length > 0 || result.contacts.length > 0) && !selectedAction && (
+          {isFocused && hasResults && !selectedAction && (
             <motion.div
               className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-950 border border-gray-200 dark:border-white/10 rounded-2xl shadow-lg z-50"
               variants={container}
@@ -230,6 +266,37 @@ function ActionSearchBar({
                                 {contact.company_name}
                               </div>
                             )}
+                          </div>
+                        </motion.li>
+                      ))}
+                    </motion.ul>
+                  </div>
+                )}
+
+                {result.keystones.length > 0 && (
+                  <div>
+                    <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      Events
+                    </div>
+                    <motion.ul>
+                      {result.keystones.map((keystone) => (
+                        <motion.li
+                          key={keystone.id}
+                          className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer rounded-xl transition-all duration-200"
+                          variants={item}
+                          onClick={() => handleKeystoneClick(keystone)}
+                        >
+                          <div className="flex-shrink-0">
+                            <Calendar className="h-5 w-5 text-blue-500" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-foreground text-sm">
+                              {keystone.title}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {new Date(keystone.date).toLocaleDateString()}
+                              {keystone.category && ` • ${keystone.category}`}
+                            </div>
                           </div>
                         </motion.li>
                       ))}
@@ -276,14 +343,14 @@ function ActionSearchBar({
                   </div>
                 )}
               </div>
-              {result.actions.length === 0 && result.contacts.length === 0 && (
+              {!hasResults && (
                 <div className="p-8 text-center">
                   <Search className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
                   <p className="text-sm text-muted-foreground">No matches found</p>
                   <p className="text-xs text-muted-foreground mt-1">Try a different search term</p>
                 </div>
               )}
-              {(result.actions.length > 0 || result.contacts.length > 0) && (
+              {hasResults && (
                 <div className="border-t border-gray-100 dark:border-white/10 p-3 rounded-b-2xl bg-gray-50 dark:bg-zinc-900/60 flex items-center justify-between text-xs text-muted-foreground">
                   <span>Press Enter to select</span>
                   <span>ESC to cancel</span>
