@@ -21,7 +21,7 @@ export const loadConversationsFromSupabase = async (userId: string): Promise<Con
     const conversations = data?.map(row => ({
       id: row.id,
       title: row.title,
-      messages: JSON.parse(row.messages),
+      messages: typeof row.messages === 'string' ? JSON.parse(row.messages) : row.messages,
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at)
     })) || [];
@@ -44,7 +44,7 @@ export const saveConversationToSupabase = async (userId: string, conversation: C
         id: conversation.id,
         user_id: userId,
         title: conversation.title,
-        messages: JSON.stringify(conversation.messages),
+        messages: conversation.messages,
         created_at: conversation.createdAt.toISOString(),
         updated_at: conversation.updatedAt.toISOString()
       });

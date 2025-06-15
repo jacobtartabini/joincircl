@@ -114,7 +114,7 @@ export function useConversations() {
     setConversations(updatedConversations);
     setActiveConversationId(newConversation.id);
     
-    // Save conversation with fallback to localStorage
+    // Save conversation with user ID and conversation object
     saveConversationToSupabase(user.id, newConversation);
 
     logDebug('New conversation created and saved', { conversationId });
@@ -176,7 +176,7 @@ export function useConversations() {
 
     setConversations(updatedConversations);
 
-    // Save updated conversation with fallback to localStorage
+    // Save updated conversation with user ID and conversation object
     if (conversationToUpdate && user) {
       saveConversationToSupabase(user.id, conversationToUpdate);
     }
@@ -226,7 +226,7 @@ export function useConversations() {
 
     setConversations(updatedConversations);
 
-    // Save updated conversation with fallback to localStorage
+    // Save updated conversation with user ID and conversation object
     if (conversationToUpdate) {
       saveConversationToSupabase(user.id, conversationToUpdate);
     }
