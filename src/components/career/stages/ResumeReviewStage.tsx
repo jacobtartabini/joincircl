@@ -3,10 +3,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Brain, CheckCircle, Upload, Zap } from "lucide-react";
+import { FileText, Brain, CheckCircle, Upload, Zap, Atom } from "lucide-react";
 import { JobApplicationWorkflow, WorkflowStage } from "@/hooks/use-job-application-workflow";
-// Removed erroneous '-import GradientIconBg from "../GradientIconBg";'
-import { Atom } from "lucide-react";
 
 interface ResumeReviewStageProps {
   workflow: JobApplicationWorkflow;
@@ -130,20 +128,13 @@ export function ResumeReviewStage({ workflow, onUpdate }: ResumeReviewStageProps
       {/* Arlo's Insights */}
       <Card className="p-4 bg-blue-50/50 border-blue-100">
         <div className="flex items-center gap-2 mb-2">
-          <svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-            <defs>
-              <linearGradient id="arlo-atom-gradient" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#3b82f6"/>
-                <stop offset="0.5" stopColor="#a21caf"/>
-                <stop offset="1" stopColor="#ec4899"/>
-              </linearGradient>
-            </defs>
-            <Atom 
-              stroke="url(#arlo-atom-gradient)" 
-              fill="url(#arlo-atom-gradient)" 
-              className="h-4 w-4"
-            />
-          </svg>
+          <Atom className="h-5 w-5 text-transparent bg-gradient-to-r from-blue-500 via-purple-700 to-pink-500 bg-clip-text" 
+                style={{
+                  background: 'linear-gradient(135deg, #3b82f6 0%, #a21caf 50%, #ec4899 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text'
+                }} />
           <span className="text-sm font-medium text-blue-900">Arlo's Insights</span>
         </div>
         <p className="text-sm text-blue-800">
@@ -154,4 +145,3 @@ export function ResumeReviewStage({ workflow, onUpdate }: ResumeReviewStageProps
     </div>
   );
 }
-
