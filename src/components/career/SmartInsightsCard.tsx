@@ -26,18 +26,16 @@ export function SmartInsightsCard({
     return (
       <Card className="p-6 bg-blue-50/50 backdrop-blur-sm border-blue-100 rounded-2xl">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-8 h-8 rounded-2xl flex items-center justify-center bg-gray-100">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="atom-gradient-mobile" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#3b82f6" />
-                  <stop offset="50%" stopColor="#a21caf" />
-                  <stop offset="100%" stopColor="#ec4899" />
-                </linearGradient>
-              </defs>
-              <Atom className="w-full h-full" stroke="url(#atom-gradient-mobile)" strokeWidth="2" />
-            </svg>
-          </div>
+          <svg width="0" height="0" style={{ position: 'absolute' }}>
+            <defs>
+              <linearGradient id="atom-gradient-mobile" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#3b82f6" />
+                <stop offset="50%" stopColor="#a21caf" />
+                <stop offset="100%" stopColor="#ec4899" />
+              </linearGradient>
+            </defs>
+          </svg>
+          <Atom size={28} stroke="url(#atom-gradient-mobile)" strokeWidth="2" />
           <h3 className="font-semibold text-gray-900">Smart Insights</h3>
         </div>
         <p className="text-sm text-gray-700 mb-4 leading-relaxed">
@@ -54,18 +52,16 @@ export function SmartInsightsCard({
   return (
     <Card className="p-6 bg-blue-50/50 backdrop-blur-sm border-blue-100 rounded-2xl">
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-8 h-8 rounded-2xl flex items-center justify-center bg-gray-100">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="atom-gradient-desktop" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#3b82f6" />
-                <stop offset="50%" stopColor="#a21caf" />
-                <stop offset="100%" stopColor="#ec4899" />
-              </linearGradient>
-            </defs>
-            <Atom className="w-full h-full" stroke="url(#atom-gradient-desktop)" strokeWidth="2" />
-          </svg>
-        </div>
+        <svg width="0" height="0" style={{ position: 'absolute' }}>
+          <defs>
+            <linearGradient id="atom-gradient-desktop" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#3b82f6" />
+              <stop offset="50%" stopColor="#a21caf" />
+              <stop offset="100%" stopColor="#ec4899" />
+            </linearGradient>
+          </defs>
+        </svg>
+        <Atom size={28} stroke="url(#atom-gradient-desktop)" strokeWidth="2" />
         <h3 className="text-lg font-semibold text-gray-900">Arlo's Insights</h3>
       </div>
       <p className="text-gray-700 mb-6 leading-relaxed">
