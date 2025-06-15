@@ -1,23 +1,21 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FileText, Brain, CheckCircle, Upload, Zap, Atom } from "lucide-react";
 import { JobApplicationWorkflow, WorkflowStage } from "@/hooks/use-job-application-workflow";
-
 interface ResumeReviewStageProps {
   workflow: JobApplicationWorkflow;
   onUpdate: (stage: WorkflowStage, progress: number, completed?: boolean) => void;
 }
-
-export function ResumeReviewStage({ workflow, onUpdate }: ResumeReviewStageProps) {
+export function ResumeReviewStage({
+  workflow,
+  onUpdate
+}: ResumeReviewStageProps) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisComplete, setAnalysisComplete] = useState(false);
-
   const completion = workflow.stage_completion.resume_review;
   const isCompleted = completion?.completed || false;
-
   const handleAnalyzeResume = async () => {
     setIsAnalyzing(true);
     // Simulate AI analysis
@@ -27,21 +25,16 @@ export function ResumeReviewStage({ workflow, onUpdate }: ResumeReviewStageProps
       onUpdate('resume_review', 80);
     }, 3000);
   };
-
   const handleCompleteStage = () => {
     onUpdate('resume_review', 100, true);
   };
-
-  return (
-    <div className="p-6 space-y-6">
+  return <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h4 className="font-medium text-gray-900">Resume Review & Optimization</h4>
-        {isCompleted && (
-          <div className="flex items-center gap-2 text-green-600">
+        {isCompleted && <div className="flex items-center gap-2 text-green-600">
             <CheckCircle className="h-4 w-4" />
             <span className="text-sm">Complete</span>
-          </div>
-        )}
+          </div>}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -72,31 +65,22 @@ export function ResumeReviewStage({ workflow, onUpdate }: ResumeReviewStageProps
               <h5 className="font-medium text-gray-900">AI Analysis</h5>
             </div>
             
-            {!analysisComplete && !isAnalyzing && (
-              <div>
+            {!analysisComplete && !isAnalyzing && <div>
                 <p className="text-sm text-muted-foreground mb-4">
                   Arlo will analyze your resume against the job requirements and provide tailored suggestions.
                 </p>
-                <Button 
-                  onClick={handleAnalyzeResume}
-                  className="w-full rounded-full"
-                  disabled={!workflow.job_description}
-                >
+                <Button onClick={handleAnalyzeResume} className="w-full rounded-full" disabled={!workflow.job_description}>
                   <Zap className="h-4 w-4 mr-2" />
                   Analyze Resume
                 </Button>
-              </div>
-            )}
+              </div>}
 
-            {isAnalyzing && (
-              <div className="text-center space-y-3">
+            {isAnalyzing && <div className="text-center space-y-3">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
                 <p className="text-sm text-blue-600">Analyzing your resume...</p>
-              </div>
-            )}
+              </div>}
 
-            {analysisComplete && (
-              <div className="space-y-4">
+            {analysisComplete && <div className="space-y-4">
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Match Score</span>
@@ -113,14 +97,10 @@ export function ResumeReviewStage({ workflow, onUpdate }: ResumeReviewStageProps
                   </div>
                 </div>
                 
-                <Button 
-                  onClick={handleCompleteStage}
-                  className="w-full rounded-full"
-                >
+                <Button onClick={handleCompleteStage} className="w-full rounded-full">
                   Apply Suggestions & Complete
                 </Button>
-              </div>
-            )}
+              </div>}
           </div>
         </Card>
       </div>
@@ -138,13 +118,12 @@ export function ResumeReviewStage({ workflow, onUpdate }: ResumeReviewStageProps
             </defs>
             <Atom className="w-full h-full" stroke="url(#atom-gradient-resume)" strokeWidth="2" />
           </svg>
-          <span className="text-sm font-medium text-blue-900">Arlo's Insights</span>
+          <span className="text-sm font-medium text-blue-900">Arlo's Analysis</span>
         </div>
         <p className="text-sm text-blue-800">
           A tailored resume can increase your chances of getting an interview by up to 40%. 
           I'll help you highlight the most relevant skills and experiences for this specific role.
         </p>
       </Card>
-    </div>
-  );
+    </div>;
 }
