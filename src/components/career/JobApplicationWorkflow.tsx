@@ -1,20 +1,10 @@
-
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { 
-  ChevronDown, 
-  ChevronUp, 
-  CheckCircle, 
-  Circle, 
-  Clock,
-  ArrowLeft,
-  Sparkles,
-  Atom
-} from "lucide-react";
+import { ChevronDown, ChevronUp, CheckCircle, Circle, Clock, ArrowLeft, Sparkles, Atom } from "lucide-react";
 import { useJobApplicationWorkflow, WorkflowStage } from "@/hooks/use-job-application-workflow";
 import { ApplicationInfoStage } from "./stages/ApplicationInfoStage";
 import { ResumeReviewStage } from "./stages/ResumeReviewStage";
@@ -24,55 +14,48 @@ import { InterviewPrepStage } from "./stages/InterviewPrepStage";
 import { CompanyResearchStage } from "./stages/CompanyResearchStage";
 import { FollowUpStage } from "./stages/FollowUpStage";
 import GradientIconBg from "./GradientIconBg";
-
 interface JobApplicationWorkflowProps {
   applicationId: string;
   onBack: () => void;
 }
-
-export function JobApplicationWorkflow({ applicationId, onBack }: JobApplicationWorkflowProps) {
-  const { workflow, stages, isLoading, updateStageCompletion, getOverallProgress } = useJobApplicationWorkflow(applicationId);
+export function JobApplicationWorkflow({
+  applicationId,
+  onBack
+}: JobApplicationWorkflowProps) {
+  const {
+    workflow,
+    stages,
+    isLoading,
+    updateStageCompletion,
+    getOverallProgress
+  } = useJobApplicationWorkflow(applicationId);
   const [expandedStage, setExpandedStage] = useState<WorkflowStage | null>('application_info');
-
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center p-8">
+    return <div className="flex items-center justify-center p-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
+      </div>;
   }
-
   if (!workflow) {
-    return (
-      <div className="text-center p-8">
+    return <div className="text-center p-8">
         <p className="text-muted-foreground">Application not found</p>
-      </div>
-    );
+      </div>;
   }
-
   const getStageStatus = (stageKey: WorkflowStage) => {
     const completion = workflow.stage_completion[stageKey];
     if (completion?.completed) return 'completed';
     if (completion?.progress > 0) return 'in-progress';
     return 'not-started';
   };
-
   const getStageIcon = (stageKey: WorkflowStage) => {
     const status = getStageStatus(stageKey);
     if (status === 'completed') return <CheckCircle className="h-5 w-5 text-green-600" />;
     if (status === 'in-progress') return <Clock className="h-5 w-5 text-blue-600" />;
     return <Circle className="h-5 w-5 text-gray-400" />;
   };
-
   const renderStageContent = (stageKey: WorkflowStage) => {
     switch (stageKey) {
       case 'application_info':
-        return (
-          <ApplicationInfoStage
-            workflow={workflow}
-            onUpdate={updateStageCompletion}
-          />
-        );
+        return <ApplicationInfoStage workflow={workflow} onUpdate={updateStageCompletion} />;
       case 'resume_review':
         return <ResumeReviewStage workflow={workflow} onUpdate={updateStageCompletion} />;
       case 'network_discovery':
@@ -89,17 +72,10 @@ export function JobApplicationWorkflow({ applicationId, onBack }: JobApplication
         return <div className="p-4 text-center text-muted-foreground">Stage content coming soon...</div>;
     }
   };
-
-  return (
-    <div className="max-w-4xl mx-auto space-y-6">
+  return <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={onBack}
-          className="rounded-full"
-        >
+        <Button variant="ghost" size="sm" onClick={onBack} className="rounded-full">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Applications
         </Button>
@@ -138,7 +114,7 @@ export function JobApplicationWorkflow({ applicationId, onBack }: JobApplication
               </defs>
               <Atom className="w-full h-full" stroke="url(#atom-gradient)" strokeWidth="2" />
             </svg>
-            <span className="text-sm font-medium text-blue-900">Arlo's Insight</span>
+            <span className="text-sm font-medium text-blue-900">Arlo's Analysis</span>
           </div>
           <p className="text-sm text-blue-800">
             Great start! You're {getOverallProgress()}% through your application workflow. 
@@ -152,16 +128,11 @@ export function JobApplicationWorkflow({ applicationId, onBack }: JobApplication
       {/* Workflow Timeline */}
       <div className="space-y-4">
         {stages.map((stage, index) => {
-          const isExpanded = expandedStage === stage.key;
-          const status = getStageStatus(stage.key);
-          const completion = workflow.stage_completion[stage.key];
-
-          return (
-            <Card key={stage.key} className="bg-white/80 backdrop-blur-sm border-gray-100 rounded-2xl overflow-hidden">
-              <Collapsible 
-                open={isExpanded} 
-                onOpenChange={(open) => setExpandedStage(open ? stage.key : null)}
-              >
+        const isExpanded = expandedStage === stage.key;
+        const status = getStageStatus(stage.key);
+        const completion = workflow.stage_completion[stage.key];
+        return <Card key={stage.key} className="bg-white/80 backdrop-blur-sm border-gray-100 rounded-2xl overflow-hidden">
+              <Collapsible open={isExpanded} onOpenChange={open => setExpandedStage(open ? stage.key : null)}>
                 <CollapsibleTrigger asChild>
                   <div className="p-6 cursor-pointer hover:bg-gray-50/50 transition-colors">
                     <div className="flex items-center justify-between">
@@ -179,19 +150,16 @@ export function JobApplicationWorkflow({ applicationId, onBack }: JobApplication
                       </div>
                       
                       <div className="flex items-center gap-4">
-                        {completion && (
-                          <div className="text-right">
+                        {completion && <div className="text-right">
                             <div className="text-sm font-medium text-gray-900">
                               {completion.progress}%
                             </div>
                             <div className="w-16 h-1 bg-gray-200 rounded-full overflow-hidden">
-                              <div 
-                                className="h-full bg-blue-600 transition-all duration-300"
-                                style={{ width: `${completion.progress}%` }}
-                              />
+                              <div className="h-full bg-blue-600 transition-all duration-300" style={{
+                          width: `${completion.progress}%`
+                        }} />
                             </div>
-                          </div>
-                        )}
+                          </div>}
                         {isExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
                       </div>
                     </div>
@@ -204,10 +172,8 @@ export function JobApplicationWorkflow({ applicationId, onBack }: JobApplication
                   </div>
                 </CollapsibleContent>
               </Collapsible>
-            </Card>
-          );
-        })}
+            </Card>;
+      })}
       </div>
-    </div>
-  );
+    </div>;
 }
