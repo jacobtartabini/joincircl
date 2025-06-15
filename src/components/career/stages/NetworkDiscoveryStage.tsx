@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { CheckCircle, Users, Network } from "lucide-react";
+import { CheckCircle, Users, Network, Atom } from "lucide-react";
 import { JobApplicationWorkflow, WorkflowStage } from "@/hooks/use-job-application-workflow";
 import { MultiContactSelector } from "@/components/ui/multi-contact-selector";
 import { useContacts } from "@/hooks/use-contacts";
@@ -110,12 +110,21 @@ export function NetworkDiscoveryStage({ workflow, onUpdate }: NetworkDiscoverySt
       </div>
 
       {/* Arlo's Insight */}
-      <Card className="p-4 bg-purple-50/50 border-purple-100">
+      <Card className="p-4 bg-blue-50/50 border-blue-100">
         <div className="flex items-center gap-2 mb-2">
-          <Network className="h-4 w-4 text-purple-600" />
-          <span className="text-sm font-medium text-purple-900">Arlo's Tip</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="atom-gradient-network" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#3b82f6" />
+                <stop offset="50%" stopColor="#a21caf" />
+                <stop offset="100%" stopColor="#ec4899" />
+              </linearGradient>
+            </defs>
+            <Atom className="w-full h-full" stroke="url(#atom-gradient-network)" strokeWidth="2" />
+          </svg>
+          <span className="text-sm font-medium text-blue-900">Arlo's Tip</span>
         </div>
-        <p className="text-sm text-purple-800">
+        <p className="text-sm text-blue-800">
           Leveraging your network can increase your chances of landing an interview by 5x. 
           Even weak connections can provide valuable insights about the company culture and hiring process.
         </p>
