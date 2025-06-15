@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { CreditCard, Calendar, Users, Zap, Check, Loader2, Settings } from "lucide-react";
 import { useUserSubscription } from "@/hooks/useUserSubscription";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const PLANS = {
   free: {
@@ -60,7 +61,7 @@ const SubscriptionTab = () => {
     try {
       const plan = PLANS[plan_key as keyof typeof PLANS];
       if (!plan.price_id) throw new Error("No Stripe price id configured for this plan. Contact support.");
-      const { data, error } = await window.supabase.functions.invoke("create-checkout", {
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: { plan_price_id: plan.price_id },
       });
       if (error || !data?.url) throw error || new Error("No checkout URL");
@@ -78,7 +79,7 @@ const SubscriptionTab = () => {
   const handleManage = async () => {
     setPortalLoading(true);
     try {
-      const { data, error } = await window.supabase.functions.invoke("customer-portal");
+      const { data, error } = await supabase.functions.invoke("customer-portal");
       if (error || !data?.url) throw error || new Error("No portal URL");
       window.open(data.url, "_blank");
       toast({ title: "Stripe Portal", description: "Manage your subscription in the newly opened tab." });
@@ -125,7 +126,7 @@ const SubscriptionTab = () => {
                 <span className="text-sm font-semibold text-gray-700">Plan</span>
               </div>
               <p className="text-xl font-bold text-gray-900">{currentPlan.name}</p>
-              <p className="text-gray-500 mt-1">{currentPlan.price} {currentPlan.period}</p>
+              <p className="text-gray-500 mt-1">{currentPlan.price} {currentPlanKey !== "free" ? "/month" : ""}</p>
             </div>
 
             <div className="p-6 bg-gray-50 rounded-xl border border-gray-200">
@@ -171,16 +172,16 @@ const SubscriptionTab = () => {
                   className="bg-blue-600 hover:bg-blue-700 rounded-full px-6"
                   onClick={() => handleUpgrade("pro")}
                   disabled={checkoutLoading !== null}
-                  loading={checkoutLoading === "pro"}
                 >
+                  {checkoutLoading === "pro" && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
                   {checkoutLoading === "pro" ? "Redirecting..." : "Upgrade to Pro"}
                 </Button>
                 <Button
                   className="bg-gray-900 hover:bg-gray-950 rounded-full px-6"
                   onClick={() => handleUpgrade("business")}
                   disabled={checkoutLoading !== null}
-                  loading={checkoutLoading === "business"}
                 >
+                  {checkoutLoading === "business" && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
                   {checkoutLoading === "business" ? "Redirecting..." : "Upgrade to Business"}
                 </Button>
               </div>
@@ -193,9 +194,9 @@ const SubscriptionTab = () => {
                 className="rounded-full px-6"
                 onClick={handleManage}
                 disabled={portalLoading}
-                loading={portalLoading}
                 variant="outline"
               >
+                {portalLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
                 <Settings className="h-5 w-5 mr-2" />
                 Manage Subscription
               </Button>
@@ -259,6 +260,7 @@ const SubscriptionTab = () => {
                     onClick={() => handleUpgrade(key)}
                     disabled={checkoutLoading !== null}
                   >
+                    {checkoutLoading === key && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
                     {checkoutLoading === key ? "Redirecting..." : `Upgrade to ${plan.name}`}
                   </Button>
                 )}
@@ -270,4 +272,5 @@ const SubscriptionTab = () => {
     </div>
   );
 };
+
 export default SubscriptionTab;
