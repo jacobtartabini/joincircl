@@ -40,6 +40,12 @@ import ResumeReviewer from "@/pages/career/ResumeReviewer";
 import CoverLetterGenerator from "@/pages/career/CoverLetterGenerator";
 import JobAnalyzer from "@/pages/career/JobAnalyzer";
 import NetworkDiscovery from "@/pages/career/NetworkDiscovery";
+import InterviewerResearch from "@/pages/career/InterviewerResearch";
+import CompanyResearch from "@/pages/career/CompanyResearch";
+import MockInterview from "@/pages/career/MockInterview";
+import FollowUpGenerator from "@/pages/career/FollowUpGenerator";
+import OfferComparison from "@/pages/career/OfferComparison";
+import SkillGapAnalysis from "@/pages/career/SkillGapAnalysis";
 
 // User onboarding
 import { UserOnboarding } from "./components/UserOnboarding";
@@ -90,6 +96,12 @@ function App() {
                   <Route path="/career/coverLetter" element={<CoverLetterGenerator />} />
                   <Route path="/career/jobAnalyzer" element={<JobAnalyzer />} />
                   <Route path="/career/networkDiscovery" element={<NetworkDiscovery />} />
+                  <Route path="/career/interviewerResearch" element={<InterviewerResearch />} />
+                  <Route path="/career/companyResearch" element={<CompanyResearch />} />
+                  <Route path="/career/mockInterview" element={<MockInterview />} />
+                  <Route path="/career/followUp" element={<FollowUpGenerator />} />
+                  <Route path="/career/offerCompare" element={<OfferComparison />} />
+                  <Route path="/career/skillGap" element={<SkillGapAnalysis />} />
                   
                   {/* Settings and management */}
                   <Route path="/settings" element={<Settings />} />
