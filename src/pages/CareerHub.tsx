@@ -454,7 +454,7 @@ export default function CareerHub() {
         <AddDocumentDialog
           isOpen={isUploadDocumentOpen}
           onOpenChange={setIsUploadDocumentOpen}
-          onAdd={handleUp  loadDocument}
+          onAdd={handleUploadDocument}
         />
         
         <AddInterviewSessionDialog
