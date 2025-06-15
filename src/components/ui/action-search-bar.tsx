@@ -144,12 +144,12 @@ function ActionSearchBar({
     };
 
     return (
-        <div className={`w-full max-w-2xl mx-auto ${className}`}>
+        <div className={`w-full ${className}`}>
             <div className="relative">
-                {/* Styled Search Input with new layout */}
+                {/* Updated search input with left-aligned icon */}
                 <div className="relative">
-                    {/* Leading icon inside input */}
-                    <span className="absolute left-3 top-1.5 flex items-center text-muted-foreground pointer-events-none h-9">
+                    {/* Search icon on the left */}
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center text-muted-foreground pointer-events-none">
                         <Search className="w-5 h-5" />
                     </span>
                     <Input
@@ -160,45 +160,19 @@ function ActionSearchBar({
                         onFocus={handleFocus}
                         onBlur={() => setTimeout(() => setIsFocused(false), 200)}
                         onKeyDown={handleKeyDown}
-                        // Tweaked input styles for a modern, pill-shaped look
                         className={`
-                            pl-10 pr-12 py-3 h-12 text-base border 
+                            pl-12 pr-4 py-3 h-12 text-base border 
                             border-gray-200 dark:border-white/10 
                             bg-white dark:bg-background 
-                            rounded-full shadow-sm 
+                            rounded-2xl shadow-sm 
                             focus-visible:ring-2 focus-visible:ring-[#0daeec]/30 
                             transition-all duration-200
+                            text-left
                         `}
                         style={{
                           boxShadow: '0 2px 12px 0 rgba(36, 156, 255, 0.05)'
                         }}
                     />
-                    {/* Trailing right icon animates send/search */}
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 z-10">
-                        <AnimatePresence mode="popLayout">
-                            {query.length > 0 ? (
-                                <motion.div
-                                    key="send"
-                                    initial={{ scale: 0.8, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    exit={{ scale: 0.8, opacity: 0 }}
-                                    transition={{ duration: 0.2 }}
-                                >
-                                    <Send className="w-5 h-5 text-muted-foreground" />
-                                </motion.div>
-                            ) : (
-                                <motion.div
-                                    key="search"
-                                    initial={{ scale: 0.8, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    exit={{ scale: 0.8, opacity: 0 }}
-                                    transition={{ duration: 0.2 }}
-                                >
-                                    <Search className="w-5 h-5 text-muted-foreground" />
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
                 </div>
 
                 {/* Animated suggestion dropdown list */}

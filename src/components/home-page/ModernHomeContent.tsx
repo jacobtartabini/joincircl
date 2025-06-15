@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useContacts } from '@/hooks/use-contacts';
 import { useActionSearch } from '@/hooks/use-action-search';
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { ActionSearchBar } from '@/components/ui/action-search-bar';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -27,13 +27,24 @@ const ModernHomeContent: React.FC = () => {
   const [isAddContactDialogOpen, setIsAddContactDialogOpen] = useState(false);
   const [isAddKeystoneDialogOpen, setIsAddKeystoneDialogOpen] = useState(false);
 
+  const handleAddContact = () => setIsAddContactDialogOpen(true);
+  const handleAddKeystone = () => setIsAddKeystoneDialogOpen(true);
+  const handleAddInteraction = () => {
+    // For now, navigate to circles where they can select a contact
+    navigate('/circles');
+  };
+
   const { actions } = useActionSearch({
-    onAddContact: () => setIsAddContactDialogOpen(true),
-    onAddKeystone: () => setIsAddKeystoneDialogOpen(true),
-    onAddInteraction: () => {
-      // For now, navigate to circles where they can select a contact
-      navigate('/circles');
-    },
+    onAddContact: handleAddContact,
+    onAddKeystone: handleAddKeystone,
+    onAddInteraction: handleAddInteraction,
+  });
+
+  // Enable keyboard shortcuts
+  useKeyboardShortcuts({
+    onAddContact: handleAddContact,
+    onAddKeystone: handleAddKeystone,
+    onAddInteraction: handleAddInteraction,
   });
 
   const handleContactFormSuccess = () => {
@@ -78,7 +89,7 @@ const ModernHomeContent: React.FC = () => {
           <p className="text-muted-foreground text-lg font-normal">Let's strengthen your connections today</p>
         </div>
 
-        {/* Action Search Bar */}
+        {/* Action Search Bar - Left aligned */}
         <div className="space-y-4">
           <ActionSearchBar 
             actions={actions}

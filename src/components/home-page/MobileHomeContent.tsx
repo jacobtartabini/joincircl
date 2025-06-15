@@ -1,7 +1,7 @@
-
 import React, { useState } from 'react';
 import { useContacts } from '@/hooks/use-contacts';
 import { useActionSearch } from '@/hooks/use-action-search';
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { ActionSearchBar } from '@/components/ui/action-search-bar';
 import { Button } from '@/components/ui/button';
 import { Plus, Calendar, Users, TrendingUp } from 'lucide-react';
@@ -20,13 +20,24 @@ const MobileHomeContent: React.FC = () => {
   const [isAddContactSheetOpen, setIsAddContactSheetOpen] = useState(false);
   const [isAddKeystoneSheetOpen, setIsAddKeystoneSheetOpen] = useState(false);
 
+  const handleAddContact = () => setIsAddContactSheetOpen(true);
+  const handleAddKeystone = () => setIsAddKeystoneSheetOpen(true);
+  const handleAddInteraction = () => {
+    // For now, navigate to circles where they can select a contact
+    navigate('/circles');
+  };
+
   const { actions } = useActionSearch({
-    onAddContact: () => setIsAddContactSheetOpen(true),
-    onAddKeystone: () => setIsAddKeystoneSheetOpen(true),
-    onAddInteraction: () => {
-      // For now, navigate to circles where they can select a contact
-      navigate('/circles');
-    },
+    onAddContact: handleAddContact,
+    onAddKeystone: handleAddKeystone,
+    onAddInteraction: handleAddInteraction,
+  });
+
+  // Enable keyboard shortcuts
+  useKeyboardShortcuts({
+    onAddContact: handleAddContact,
+    onAddKeystone: handleAddKeystone,
+    onAddInteraction: handleAddInteraction,
   });
 
   const handleContactFormSuccess = () => {
