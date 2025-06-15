@@ -1,54 +1,104 @@
-import { useState, useEffect } from "react";
+
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { CreditCard, Calendar, Users, Zap, Check, Loader2 } from "lucide-react";
+import { CreditCard, Calendar, Users, Zap, Check, Loader2, Settings } from "lucide-react";
 import { useUserSubscription } from "@/hooks/useUserSubscription";
+import { toast } from "@/hooks/use-toast";
+
+const PLANS = {
+  free: {
+    name: "Free",
+    price: "$0",
+    price_id: undefined,
+    features: [
+      "Up to 50 contacts",
+      "Basic interaction tracking",
+      "Email notifications",
+      "Mobile app access"
+    ],
+  },
+  pro: {
+    name: "Pro",
+    price: "$19",
+    price_id: "price_1PCuzBJNfdMIE8sydztestpro", // <-- FILL IN WITH YOUR ACTUAL PRO PRICE ID FROM STRIPE DASHBOARD
+    features: [
+      "Unlimited contacts",
+      "Advanced analytics",
+      "Integration with CRM tools",
+      "Priority support",
+      "Custom tags and fields",
+      "Bulk import/export"
+    ]
+  },
+  business: {
+    name: "Business",
+    price: "$49",
+    price_id: "price_1PCuzBJNfdMIE8sybizzzz", // <-- FILL IN WITH YOUR BUSINESS PRICE ID FROM STRIPE DASHBOARD
+    features: [
+      "Everything in Pro",
+      "Team collaboration",
+      "Advanced automation",
+      "Custom integrations",
+      "Dedicated account manager",
+      "SSO & security features"
+    ]
+  }
+};
+
 const SubscriptionTab = () => {
-  const {
-    subscription,
-    loading
-  } = useUserSubscription();
-  const plans = {
-    free: {
-      name: "Free",
-      price: "$0",
-      period: "forever",
-      features: ["Up to 50 contacts", "Basic interaction tracking", "Email notifications", "Mobile app access"],
-      limits: {
-        contacts: 50,
-        interactions: 100
-      }
-    },
-    pro: {
-      name: "Pro",
-      price: "$19",
-      period: "per month",
-      features: ["Unlimited contacts", "Advanced analytics", "Integration with CRM tools", "Priority support", "Custom tags and fields", "Bulk import/export"],
-      limits: {
-        contacts: "unlimited",
-        interactions: "unlimited"
-      }
-    },
-    business: {
-      name: "Business",
-      price: "$49",
-      period: "per month",
-      features: ["Everything in Pro", "Team collaboration", "Advanced automation", "Custom integrations", "Dedicated account manager", "SSO & security features"],
-      limits: {
-        contacts: "unlimited",
-        interactions: "unlimited"
-      }
+  const { subscription, loading, refetch } = useUserSubscription();
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
+  const [portalLoading, setPortalLoading] = useState(false);
+
+  const currentPlanKey = subscription?.plan_type || "free";
+  const currentPlan = PLANS[currentPlanKey as keyof typeof PLANS] || PLANS.free;
+
+  const handleUpgrade = async (plan_key: string) => {
+    setCheckoutLoading(plan_key);
+    try {
+      const plan = PLANS[plan_key as keyof typeof PLANS];
+      if (!plan.price_id) throw new Error("No Stripe price id configured for this plan. Contact support.");
+      const { data, error } = await window.supabase.functions.invoke("create-checkout", {
+        body: { plan_price_id: plan.price_id },
+      });
+      if (error || !data?.url) throw error || new Error("No checkout URL");
+      window.open(data.url, "_blank");
+      toast({ title: "Redirected to Stripe", description: "Complete your checkout in the newly opened tab." });
+      // Optionally: refetch trigger after a delay to reload status
+      setTimeout(refetch, 6000);
+    } catch (e) {
+      toast({ title: "Error", description: e?.message || `${e}`, variant: "destructive" });
+    } finally {
+      setCheckoutLoading(null);
     }
   };
-  const currentPlan = plans[subscription?.plan_type as keyof typeof plans] || plans.free;
+
+  const handleManage = async () => {
+    setPortalLoading(true);
+    try {
+      const { data, error } = await window.supabase.functions.invoke("customer-portal");
+      if (error || !data?.url) throw error || new Error("No portal URL");
+      window.open(data.url, "_blank");
+      toast({ title: "Stripe Portal", description: "Manage your subscription in the newly opened tab." });
+    } catch (e) {
+      toast({ title: "Error", description: e?.message || `${e}`, variant: "destructive" });
+    } finally {
+      setPortalLoading(false);
+    }
+  };
+
   if (loading) {
-    return <div className="flex items-center justify-center h-96">
+    return (
+      <div className="flex items-center justify-center h-96">
         <Loader2 className="h-10 w-10 animate-spin" />
-      </div>;
+      </div>
+    );
   }
-  return <div className="space-y-10">
+
+  return (
+    <div className="space-y-10">
       {/* Current Plan */}
       <Card className="border border-gray-200 shadow-sm bg-white">
         <CardHeader className="pb-8">
@@ -83,12 +133,14 @@ const SubscriptionTab = () => {
                 <Calendar className="h-5 w-5 text-gray-600" />
                 <span className="text-sm font-semibold text-gray-700">Status</span>
               </div>
-              <p className="text-xl font-bold text-green-600">
-                {subscription?.status === 'active' ? 'Active' : 'Inactive'}
+              <p className={`text-xl font-bold ${subscription?.status === 'active' ? 'text-green-600' : 'text-gray-400'}`}>
+                {subscription?.status === 'active' ? 'Active' : (subscription?.status || 'Inactive')}
               </p>
-              {subscription?.current_period_end && <p className="text-gray-500 mt-1">
+              {subscription?.current_period_end && (
+                <p className="text-gray-500 mt-1">
                   Renews {new Date(subscription.current_period_end).toLocaleDateString()}
-                </p>}
+                </p>
+              )}
             </div>
 
             <div className="p-6 bg-gray-50 rounded-xl border border-gray-200">
@@ -98,12 +150,15 @@ const SubscriptionTab = () => {
               </div>
               <p className="text-xl font-bold text-gray-900">Contact Limit</p>
               <p className="text-gray-500 mt-1">
-                {typeof currentPlan.limits.contacts === 'string' ? currentPlan.limits.contacts : `${currentPlan.limits.contacts} contacts`}
+                {currentPlanKey === "free"
+                  ? "50 contacts"
+                  : "Unlimited contacts"}
               </p>
             </div>
           </div>
 
-          {subscription?.plan_type === 'free' && <div className="p-6 bg-blue-50 border border-blue-200 rounded-xl">
+          {currentPlanKey === "free" && (
+            <div className="p-6 bg-blue-50 border border-blue-200 rounded-xl">
               <div className="flex items-center gap-3 mb-3">
                 <Zap className="h-5 w-5 text-blue-600" />
                 <span className="text-base font-semibold text-blue-900">Upgrade Available</span>
@@ -111,14 +166,52 @@ const SubscriptionTab = () => {
               <p className="text-blue-700 mb-4 leading-relaxed">
                 Unlock unlimited contacts and advanced features with Pro or Business plans.
               </p>
-              <Button className="bg-blue-600 hover:bg-blue-700 rounded-full px-6">
-                Upgrade Now
+              <div className="flex gap-3">
+                <Button
+                  className="bg-blue-600 hover:bg-blue-700 rounded-full px-6"
+                  onClick={() => handleUpgrade("pro")}
+                  disabled={checkoutLoading !== null}
+                  loading={checkoutLoading === "pro"}
+                >
+                  {checkoutLoading === "pro" ? "Redirecting..." : "Upgrade to Pro"}
+                </Button>
+                <Button
+                  className="bg-gray-900 hover:bg-gray-950 rounded-full px-6"
+                  onClick={() => handleUpgrade("business")}
+                  disabled={checkoutLoading !== null}
+                  loading={checkoutLoading === "business"}
+                >
+                  {checkoutLoading === "business" ? "Redirecting..." : "Upgrade to Business"}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {currentPlanKey !== "free" && (
+            <div className="flex gap-3">
+              <Button
+                className="rounded-full px-6"
+                onClick={handleManage}
+                disabled={portalLoading}
+                loading={portalLoading}
+                variant="outline"
+              >
+                <Settings className="h-5 w-5 mr-2" />
+                Manage Subscription
               </Button>
-            </div>}
+              <Button
+                className="rounded-full px-6 bg-gray-200 text-gray-800"
+                onClick={refetch}
+                variant="secondary"
+              >
+                Refresh Status
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Available Plans */}
+      {/* Available Plans grid */}
       <Card className="border border-gray-200 shadow-sm bg-white">
         <CardHeader className="pb-8">
           <CardTitle className="text-xl font-semibold text-gray-900">Available Plans</CardTitle>
@@ -126,63 +219,55 @@ const SubscriptionTab = () => {
         </CardHeader>
         <CardContent className="px-8 pb-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {Object.entries(plans).map(([key, plan]) => <div key={key} className={`p-8 rounded-xl border-2 transition-all ${subscription?.plan_type === key ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300 hover:shadow-md'}`}>
+            {Object.entries(PLANS).map(([key, plan]) => (
+              <div
+                key={key}
+                className={`p-8 rounded-xl border-2 transition-all ${
+                  currentPlanKey === key
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
+                }`}
+              >
                 <div className="text-center mb-6">
                   <h3 className="text-xl font-bold text-gray-900">{plan.name}</h3>
                   <div className="mt-4">
                     <span className="text-4xl font-bold text-gray-900">{plan.price}</span>
-                    <span className="text-gray-500 ml-2">/{plan.period.split(' ')[1] || ''}</span>
+                    <span className="text-gray-500 ml-2">{key !== "free" ? "/month" : ""}</span>
                   </div>
                 </div>
-
                 <ul className="space-y-3 mb-8">
-                  {plan.features.map((feature, index) => <li key={index} className="flex items-start gap-3">
+                  {plan.features.map((feature, idx) => (
+                    <li key={idx} className="flex items-start gap-3">
                       <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
                       <span className="text-gray-600 leading-relaxed">{feature}</span>
-                    </li>)}
+                    </li>
+                  ))}
                 </ul>
-
-                <Button variant={subscription?.plan_type === key ? "secondary" : "default"} disabled={subscription?.plan_type === key} size="lg" className="w-full rounded-full py-3 text-base font-medium bg-[#30a2ed]">
-                  {subscription?.plan_type === key ? 'Current Plan' : `Upgrade to ${plan.name}`}
-                </Button>
-              </div>)}
+                {currentPlanKey === key ? (
+                  <Button
+                    variant="secondary"
+                    size="lg"
+                    className="w-full rounded-full py-3 text-base font-medium"
+                    disabled
+                  >
+                    Current Plan
+                  </Button>
+                ) : (
+                  <Button
+                    size="lg"
+                    className="w-full rounded-full py-3 text-base font-medium bg-[#30a2ed]"
+                    onClick={() => handleUpgrade(key)}
+                    disabled={checkoutLoading !== null}
+                  >
+                    {checkoutLoading === key ? "Redirecting..." : `Upgrade to ${plan.name}`}
+                  </Button>
+                )}
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
-
-      {/* Billing Information */}
-      {subscription?.plan_type !== 'free' && <Card className="border border-gray-200 shadow-sm bg-white">
-          <CardHeader className="pb-8">
-            <CardTitle className="text-xl font-semibold text-gray-900">Billing Information</CardTitle>
-          </CardHeader>
-          <CardContent className="px-8 pb-8 space-y-6">
-            <div className="flex items-center justify-between p-6 bg-gray-50 rounded-xl border border-gray-200">
-              <div>
-                <p className="font-semibold text-gray-900">Payment Method</p>
-                <p className="text-gray-500 mt-1">•••• •••• •••• 4242</p>
-              </div>
-              <Button variant="outline" className="rounded-full px-6">
-                Update
-              </Button>
-            </div>
-
-            <div className="flex items-center justify-between p-6 bg-gray-50 rounded-xl border border-gray-200">
-              <div>
-                <p className="font-semibold text-gray-900">Billing Address</p>
-                <p className="text-gray-500 mt-1">Update your billing information</p>
-              </div>
-              <Button variant="outline" className="rounded-full px-6">
-                Edit
-              </Button>
-            </div>
-
-            {subscription?.cancel_at_period_end && <div className="p-6 bg-yellow-50 border border-yellow-200 rounded-xl">
-                <p className="text-yellow-800 leading-relaxed">
-                  Your subscription will be canceled at the end of the current billing period.
-                </p>
-              </div>}
-          </CardContent>
-        </Card>}
-    </div>;
+    </div>
+  );
 };
 export default SubscriptionTab;

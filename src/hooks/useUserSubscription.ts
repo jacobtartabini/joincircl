@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -22,34 +21,22 @@ export const useUserSubscription = () => {
 
   const fetchSubscription = async () => {
     try {
+      setLoading(true);
+      // New: call the check-subscription edge function (syncs and retrieves from Stripe/Supabase)
+      const { error, data } = await supabase.functions.invoke("check-subscription");
+      if (error) throw error;
+      // After sync, load latest row from user_subscriptions
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from('user_subscriptions')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') throw error;
-      
-      // If no subscription exists, create a free tier subscription
-      if (!data) {
-        const { data: newSub, error: insertError } = await supabase
-          .from('user_subscriptions')
-          .insert({
-            user_id: user.id,
-            plan_type: 'free',
-            status: 'active'
-          })
-          .select()
-          .single();
-        
-        if (insertError) throw insertError;
-        setSubscription(newSub);
-      } else {
-        setSubscription(data);
+      if (!user) {
+        setSubscription(null);
+        return;
       }
+      const { data: subRow, error: subErr } = await supabase
+        .from("user_subscriptions")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      setSubscription(subRow || null);
     } catch (error) {
       console.error('Error fetching subscription:', error);
       toast({
@@ -64,6 +51,9 @@ export const useUserSubscription = () => {
 
   useEffect(() => {
     fetchSubscription();
+    // Optionally poll every 20s to refresh state
+    // const interval = setInterval(fetchSubscription, 20000);
+    // return () => clearInterval(interval);
   }, []);
 
   return { subscription, loading, refetch: fetchSubscription };
