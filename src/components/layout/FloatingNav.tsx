@@ -89,7 +89,7 @@ export default function FloatingNav() {
             <Link 
               key={navTab.title} 
               to={navTab.path} 
-              className={`relative flex items-center rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ${
+              className={`relative flex items-center rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${
                 isSelected 
                   ? "bg-white/30 dark:bg-white/20 text-primary gap-2 shadow-md"
                   : "text-muted-foreground hover:bg-white/20 dark:hover:bg-white/10 hover:text-foreground gap-0"
