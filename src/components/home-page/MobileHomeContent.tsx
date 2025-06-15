@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { useContacts } from '@/hooks/use-contacts';
 import { useKeystones } from '@/hooks/use-keystones';
@@ -26,6 +25,9 @@ const MobileHomeContent: React.FC = () => {
   const [isAddKeystoneSheetOpen, setIsAddKeystoneSheetOpen] = useState(false);
   const [selectedKeystone, setSelectedKeystone] = useState<Keystone | null>(null);
   const [isKeystoneDetailOpen, setIsKeystoneDetailOpen] = useState(false);
+
+  // Debug logging for component render
+  console.log('[MobileHomeContent] Render - contacts:', contacts?.length, 'keystones:', keystones?.length);
 
   // Memoize callback functions to prevent re-renders
   const handleAddContact = useCallback(() => {
@@ -70,9 +72,6 @@ const MobileHomeContent: React.FC = () => {
   const handleKeystoneFormSuccess = useCallback(() => {
     setIsAddKeystoneSheetOpen(false);
   }, []);
-
-  // Debug logging
-  console.log('MobileHomeContent render - contacts:', contacts?.length || 0, 'keystones:', keystones?.length || 0);
 
   // Quick stats for minimal display
   const stats = [{

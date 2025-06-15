@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export const useContacts = () => {
   const { toast } = useToast();
-  const { user, loading: isAuthLoading } = useAuth(); // get user and loading from context
+  const { user, loading: isAuthLoading } = useAuth();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [followUpStats, setFollowUpStats] = useState({
@@ -15,38 +15,43 @@ export const useContacts = () => {
   });
 
   useEffect(() => {
+    console.log("[useContacts] Effect triggered - Auth loading:", isAuthLoading, "User:", user?.id);
+    
     // Only fetch if auth is not loading and user exists
     if (!isAuthLoading && user && user.id) {
-      console.log(
-        "[useContacts] Auth is ready. Fetching contacts for user:",
-        user?.id
-      );
+      console.log("[useContacts] Auth is ready. Fetching contacts for user:", user?.id);
       fetchContacts();
     } else if (isAuthLoading) {
       console.log("[useContacts] Waiting for auth to finish loading...");
     } else if (!user) {
-      console.log("[useContacts] No user; skipping contact fetch.");
+      console.log("[useContacts] No user; skipping contact fetch and setting empty state.");
       setIsLoading(false);
       setContacts([]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, isAuthLoading]); // Run when auth state changes
+  }, [user, isAuthLoading]);
 
   const fetchContacts = async () => {
     try {
+      console.log("[useContacts] Starting fetchContacts...");
       setIsLoading(true);
+      
       if (!user) {
         console.log("[useContacts] Tried to fetch contacts with no user!");
         setContacts([]);
         setIsLoading(false);
         return [];
       }
+      
+      console.log("[useContacts] Calling contactService.getContacts()...");
       const data = await contactService.getContacts();
+      console.log("[useContacts] Received contacts data:", data?.length || 0, "contacts");
+      console.log("[useContacts] Sample contact:", data?.[0]);
+      
       setContacts(data);
       calculateFollowUpStats(data);
       return data;
     } catch (error) {
-      console.error("Error fetching contacts:", error);
+      console.error("[useContacts] Error fetching contacts:", error);
       toast({
         title: "Error",
         description: "Failed to load contacts. Please try again.",
@@ -135,6 +140,8 @@ export const useContacts = () => {
       })
       .slice(0, limit);
   };
+
+  console.log("[useContacts] Returning state - contacts:", contacts?.length || 0, "isLoading:", isLoading);
 
   return {
     contacts,

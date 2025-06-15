@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -71,10 +70,13 @@ function ActionSearchBar({
   const debouncedQuery = useDebounce(query, 200);
   const navigate = useNavigate();
 
+  // Debug logging for data availability
+  console.log('[ActionSearchBar] Render - contacts:', contacts?.length, 'keystones:', keystones?.length, 'query:', query);
+
   // Memoize the search results to prevent unnecessary recalculations
   const result = useMemo(() => {
-    console.log('ActionSearchBar - Computing search results for query:', debouncedQuery);
-    console.log('ActionSearchBar - Data available - contacts:', contacts?.length, 'keystones:', keystones?.length, 'actions:', actions?.length);
+    console.log('[ActionSearchBar] Computing search results for query:', debouncedQuery);
+    console.log('[ActionSearchBar] Data available - contacts:', contacts?.length, 'keystones:', keystones?.length, 'actions:', actions?.length);
 
     if (!isFocused) {
       return { actions: [], contacts: [], keystones: [] };
@@ -85,6 +87,7 @@ function ActionSearchBar({
     }
 
     const normalizedQuery = debouncedQuery.toLowerCase().trim();
+    console.log('[ActionSearchBar] Normalized query:', normalizedQuery);
 
     // Filter actions
     const filteredActions = actions.filter((action) => {
@@ -108,7 +111,7 @@ function ActionSearchBar({
           );
           
           if (isMatch) {
-            console.log('Contact match found:', contact.name);
+            console.log('[ActionSearchBar] Contact match found:', contact.name);
           }
           
           return isMatch;
@@ -129,14 +132,14 @@ function ActionSearchBar({
           );
           
           if (isMatch) {
-            console.log('Keystone match found:', keystone.title);
+            console.log('[ActionSearchBar] Keystone match found:', keystone.title);
           }
           
           return isMatch;
         })
       : [];
 
-    console.log('ActionSearchBar - Search results:', {
+    console.log('[ActionSearchBar] Search results:', {
       actions: filteredActions.length,
       contacts: filteredContacts.length,
       keystones: filteredKeystones.length
@@ -150,6 +153,7 @@ function ActionSearchBar({
   };
 
   const handleActionClick = (action: Action) => {
+    console.log('[ActionSearchBar] Action clicked:', action.label);
     setSelectedAction(action);
     setQuery("");
     setIsFocused(false);
@@ -158,12 +162,14 @@ function ActionSearchBar({
   };
 
   const handleContactClick = (contactId: string) => {
+    console.log('[ActionSearchBar] Contact clicked:', contactId);
     setQuery("");
     setIsFocused(false);
     navigate(`/contact/${contactId}`);
   };
 
   const handleKeystoneClick = (keystone: Keystone) => {
+    console.log('[ActionSearchBar] Keystone clicked:', keystone.title);
     setQuery("");
     setIsFocused(false);
     onKeystoneSelect?.(keystone);

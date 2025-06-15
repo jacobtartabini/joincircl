@@ -1,6 +1,8 @@
+
 import React from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useContacts } from '@/hooks/use-contacts';
+import { useKeystones } from '@/hooks/use-keystones';
 import { useActionSearch } from '@/hooks/use-action-search';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { ActionSearchBar } from '@/components/ui/action-search-bar';
@@ -9,12 +11,14 @@ import { Button } from '../ui/button';
 import { GradientText } from '../ui/gradient-text';
 import { ArrowRight, Plus, Users, Atom, Calendar, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Dialog, DialogContent } from '../ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '../ui/sheet';
 import ContactForm from '../contact/ContactForm';
 import KeystoneForm from '../keystone/KeystoneForm';
 import EnhancedNetworkRecommendations from '../home/EnhancedNetworkRecommendations';
+import { KeystoneDetailDialog } from '../keystone/KeystoneDetailDialog';
+import type { Keystone } from '@/types/keystone';
 
 const ModernHomeContent: React.FC = () => {
   const isMobile = useIsMobile();
@@ -24,8 +28,14 @@ const ModernHomeContent: React.FC = () => {
     isLoading,
     followUpStats
   } = useContacts();
+  const { keystones } = useKeystones();
   const [isAddContactDialogOpen, setIsAddContactDialogOpen] = useState(false);
   const [isAddKeystoneDialogOpen, setIsAddKeystoneDialogOpen] = useState(false);
+  const [selectedKeystone, setSelectedKeystone] = useState<Keystone | null>(null);
+  const [isKeystoneDetailOpen, setIsKeystoneDetailOpen] = useState(false);
+
+  // Debug logging for component render
+  console.log('[ModernHomeContent] Render - contacts:', contacts?.length, 'keystones:', keystones?.length);
 
   const handleAddContact = () => setIsAddContactDialogOpen(true);
   const handleAddKeystone = () => setIsAddKeystoneDialogOpen(true);
@@ -33,6 +43,12 @@ const ModernHomeContent: React.FC = () => {
     // For now, navigate to circles where they can select a contact
     navigate('/circles');
   };
+
+  const handleKeystoneSelect = useCallback((keystone: Keystone) => {
+    console.log('Keystone selected:', keystone.title);
+    setSelectedKeystone(keystone);
+    setIsKeystoneDetailOpen(true);
+  }, []);
 
   const { actions } = useActionSearch({
     onAddContact: handleAddContact,
@@ -81,7 +97,6 @@ const ModernHomeContent: React.FC = () => {
   return (
     <div className="min-h-screen refined-web-theme">
       <div className="max-w-7xl mx-auto p-6 space-y-8">
-        {/* Header Section */}
         <div className="flex flex-col space-y-2">
           <GradientText className="text-3xl font-extrabold">
             Welcome back
@@ -89,15 +104,16 @@ const ModernHomeContent: React.FC = () => {
           <p className="text-muted-foreground text-lg font-normal">Let's strengthen your connections today</p>
         </div>
 
-        {/* Action Search Bar - Left aligned */}
         <div className="space-y-4">
           <ActionSearchBar 
             actions={actions}
+            contacts={contacts || []}
+            keystones={keystones || []}
+            onKeystoneSelect={handleKeystoneSelect}
             placeholder="What would you like to do today?"
             className="max-w-2xl"
           />
           
-          {/* Quick Actions - Kept as backup/alternative */}
           <div className="flex gap-3">
             <Button 
               onClick={() => setIsAddContactDialogOpen(true)} 
@@ -136,14 +152,11 @@ const ModernHomeContent: React.FC = () => {
           ))}
         </div>
 
-        {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Enhanced Network Recommendations - Takes 2 columns */}
           <div className="lg:col-span-2">
             <EnhancedNetworkRecommendations contacts={contacts} />
           </div>
           
-          {/* Quick Navigation */}
           <div className="space-y-6">
             <Card className="glass-card-enhanced">
               <CardHeader className="pb-4">
@@ -240,6 +253,15 @@ const ModernHomeContent: React.FC = () => {
           </Dialog>
         </>
       )}
+
+      <KeystoneDetailDialog
+        keystone={selectedKeystone}
+        isOpen={isKeystoneDetailOpen}
+        onClose={() => {
+          setIsKeystoneDetailOpen(false);
+          setSelectedKeystone(null);
+        }}
+      />
     </div>
   );
 };
