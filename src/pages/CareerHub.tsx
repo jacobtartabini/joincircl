@@ -1,5 +1,5 @@
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,11 +19,13 @@ import {
   Clock
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useContacts } from "@/hooks/use-contacts";
+import { useCareerData } from "@/hooks/use-career-data";
 import { useToast } from "@/hooks/use-toast";
 import { AddJobApplicationDialog } from "@/components/career/dialogs/AddJobApplicationDialog";
 import { AddDocumentDialog } from "@/components/career/dialogs/AddDocumentDialog";
 import { AddInterviewSessionDialog } from "@/components/career/dialogs/AddInterviewSessionDialog";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function CareerHub() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -31,20 +33,9 @@ export default function CareerHub() {
   const [isUploadDocumentOpen, setIsUploadDocumentOpen] = useState(false);
   const [isInterviewSessionOpen, setIsInterviewSessionOpen] = useState(false);
   const isMobile = useIsMobile();
-  const { contacts } = useContacts();
+  const { stats, isLoading, refetch } = useCareerData();
   const { toast } = useToast();
-
-  // Calculate stats from user data
-  const stats = useMemo(() => {
-    const careerContacts = contacts.filter(contact => contact.career_priority === true || contact.career_tags?.length > 0);
-    return {
-      careerContacts: careerContacts.length,
-      activeApplications: 3,
-      upcomingInterviews: 1,
-      completedSessions: 7,
-      overallProgress: 65
-    };
-  }, [contacts]);
+  const { user } = useAuth();
 
   const handleQuickAction = useCallback((action: string) => {
     console.log(`Quick action: ${action}`);
@@ -62,13 +53,40 @@ export default function CareerHub() {
     }
   }, [toast]);
 
-  const handleAddApplication = (application: any) => {
-    console.log("Adding application:", application);
-    setIsAddApplicationOpen(false);
-    toast({
-      title: "Application Added",
-      description: `Your application for ${application.job_title} at ${application.company_name} has been tracked.`,
-    });
+  const handleAddApplication = async (applicationData: any) => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to add applications.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('job_applications')
+        .insert({
+          ...applicationData,
+          user_id: user.id
+        });
+
+      if (error) throw error;
+
+      setIsAddApplicationOpen(false);
+      refetch(); // Refresh the stats
+      toast({
+        title: "Application Added",
+        description: `Your application for ${applicationData.job_title} at ${applicationData.company_name} has been tracked.`,
+      });
+    } catch (error) {
+      console.error('Error adding application:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add job application. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleUploadDocument = (document: any) => {
@@ -88,6 +106,17 @@ export default function CareerHub() {
       description: `${session.session_title} session is now ready.`,
     });
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen refined-web-theme flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading your career data...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (isMobile) {
     return (
@@ -148,7 +177,10 @@ export default function CareerHub() {
                   <h3 className="font-semibold text-gray-900">Smart Insights</h3>
                 </div>
                 <p className="text-sm text-gray-700 mb-4 leading-relaxed">
-                  📌 Great progress! Consider following up with 3 contacts from recent events who haven't heard from you in 2+ weeks.
+                  {stats.careerContacts > 0 
+                    ? `📈 You have ${stats.careerContacts} career contacts! Consider following up with contacts you haven't spoken to recently.`
+                    : "🚀 Start building your career network by adding contacts and tracking job applications."
+                  }
                 </p>
                 <Button 
                   onClick={() => handleQuickAction("Add Application")}
@@ -342,7 +374,10 @@ export default function CareerHub() {
                 <h3 className="text-lg font-semibold text-gray-900">Smart Career Insights</h3>
               </div>
               <p className="text-gray-700 mb-6 leading-relaxed">
-                🚀 You're making excellent progress! Your network activity has increased 40% this month. Consider reaching out to 3 contacts from your recent networking events who haven't heard from you in 2+ weeks.
+                {stats.careerContacts > 0 
+                  ? `🚀 You have ${stats.careerContacts} career contacts and ${stats.activeApplications} active applications! ${stats.completedSessions > 0 ? `Plus ${stats.completedSessions} practice sessions completed. ` : ''}Consider reaching out to contacts you haven't spoken to recently.`
+                  : "🚀 Start building your career network by adding contacts, tracking job applications, and practicing for interviews."
+                }
               </p>
               <div className="flex gap-4">
                 <Button 
