@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -240,8 +239,7 @@ function ActionSearchBar({
           onKeyDown={handleKeyDown}
           className={`
             pl-12 pr-4 py-3 h-12 w-full border
-            border-gray-200 dark:border-white/10 
-            bg-white dark:bg-background 
+            border-border bg-background text-foreground
             rounded-full shadow-sm 
             focus-visible:ring-2 focus-visible:ring-[#0daeec]/30 
             transition-all duration-200
@@ -256,7 +254,7 @@ function ActionSearchBar({
         <AnimatePresence>
           {isFocused && hasResults && !selectedAction && (
             <motion.div
-              className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-950 border border-gray-200 dark:border-white/10 rounded-2xl shadow-lg z-50"
+              className="absolute top-full left-0 right-0 mt-2 bg-background border border-border rounded-2xl shadow-lg z-50"
               variants={container}
               initial="hidden"
               animate="show"
@@ -265,26 +263,26 @@ function ActionSearchBar({
               <div className="max-h-80 overflow-y-auto">
                 {result.contacts.length > 0 && (
                   <div>
-                    <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    <div className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                       Contacts
                     </div>
                     <motion.ul>
                       {result.contacts.map((contact) => (
                         <motion.li
                           key={contact.id}
-                          className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer rounded-xl transition-all duration-200"
+                          className="flex items-center gap-3 px-4 py-3 hover:bg-accent cursor-pointer rounded-xl transition-all duration-200"
                           variants={item}
                           onClick={() => handleContactClick(contact.id)}
                         >
-                          <span className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-800 dark:text-gray-200 font-semibold text-base">
+                          <span className="flex-shrink-0 w-8 h-8 rounded-full bg-muted flex items-center justify-center text-foreground font-semibold text-base">
                             {contact.name?.charAt(0)?.toUpperCase() || "?"}
                           </span>
                           <div>
-                            <div className="font-medium text-gray-900 dark:text-gray-100 text-sm truncate max-w-[160px]">
+                            <div className="font-medium text-foreground text-sm truncate max-w-[160px]">
                               {contact.name}
                             </div>
                             {contact.company_name && (
-                              <div className="text-xs text-gray-600 dark:text-gray-400 truncate max-w-[160px]">
+                              <div className="text-xs text-muted-foreground truncate max-w-[160px]">
                                 {contact.company_name}
                               </div>
                             )}
@@ -297,14 +295,14 @@ function ActionSearchBar({
 
                 {result.keystones.length > 0 && (
                   <div>
-                    <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    <div className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                       Events
                     </div>
                     <motion.ul>
                       {result.keystones.map((keystone) => (
                         <motion.li
                           key={keystone.id}
-                          className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer rounded-xl transition-all duration-200"
+                          className="flex items-center gap-3 px-4 py-3 hover:bg-accent cursor-pointer rounded-xl transition-all duration-200"
                           variants={item}
                           onClick={() => handleKeystoneClick(keystone)}
                         >
@@ -312,10 +310,10 @@ function ActionSearchBar({
                             <Calendar className="h-5 w-5 text-blue-500" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="font-medium text-gray-900 dark:text-gray-100 text-sm">
+                            <div className="font-medium text-foreground text-sm">
                               {keystone.title}
                             </div>
-                            <div className="text-xs text-gray-600 dark:text-gray-400">
+                            <div className="text-xs text-muted-foreground">
                               {new Date(keystone.date).toLocaleDateString()}
                               {keystone.category && ` • ${keystone.category}`}
                             </div>
@@ -328,14 +326,14 @@ function ActionSearchBar({
 
                 {result.actions.length > 0 && (
                   <div>
-                    <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    <div className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                       Actions
                     </div>
                     <motion.ul className="p-0">
                       {result.actions.map((action) => (
                         <motion.li
                           key={action.id}
-                          className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer rounded-xl transition-all duration-200"
+                          className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-accent cursor-pointer rounded-xl transition-all duration-200"
                           variants={item}
                           onClick={() => handleActionClick(action)}
                         >
@@ -344,18 +342,18 @@ function ActionSearchBar({
                               {action.icon}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="font-medium text-gray-900 dark:text-gray-100 text-sm">
+                              <div className="font-medium text-foreground text-sm">
                                 {action.label}
                               </div>
                               {action.description && (
-                                <div className="text-xs text-gray-600 dark:text-gray-400">
+                                <div className="text-xs text-muted-foreground">
                                   {action.description}
                                 </div>
                               )}
                             </div>
                           </div>
                           {action.shortcut && (
-                            <div className="text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-zinc-800/40 px-2 py-1 rounded border border-gray-200 dark:border-white/10">
+                            <div className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded border">
                               {action.shortcut}
                             </div>
                           )}
@@ -373,7 +371,7 @@ function ActionSearchBar({
                 </div>
               )}
               {hasResults && (
-                <div className="border-t border-gray-100 dark:border-white/10 p-3 rounded-b-2xl bg-gray-50 dark:bg-zinc-900/60 flex items-center justify-between text-xs text-muted-foreground">
+                <div className="border-t border-border p-3 rounded-b-2xl bg-muted/50 flex items-center justify-between text-xs text-muted-foreground">
                   <span>Press Enter to select</span>
                   <span>ESC to cancel</span>
                 </div>
