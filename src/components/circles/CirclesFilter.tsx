@@ -16,6 +16,7 @@ interface CirclesFilterProps {
   activeTagFilter?: string | null;
   refetchContacts: () => void;
 }
+
 export function CirclesFilter({
   searchQuery,
   onSearchChange,
@@ -26,26 +27,50 @@ export function CirclesFilter({
   refetchContacts
 }: CirclesFilterProps) {
   const [importOpen, setImportOpen] = useState(false);
-  return <div className="flex items-center gap-3">
-      {/* Search - Takes most space */}
+
+  return (
+    <div className="flex items-center gap-3">
+      {/* Search - Takes most space with unified styling */}
       <div className="relative flex-1">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-        <Input placeholder="Search contacts..." value={searchQuery} onChange={e => onSearchChange(e.target.value)} className="pl-10 h-10 border-gray-200 bg-gray-50/50 focus:bg-white focus:border-blue-300 transition-colors rounded-full" />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+        <Input
+          placeholder="Search contacts..."
+          value={searchQuery}
+          onChange={(e) => onSearchChange(e.target.value)}
+          className="pl-12 pr-4 py-3 h-12 w-full border border-gray-200 dark:border-white/10 bg-white dark:bg-background rounded-full shadow-sm focus-visible:ring-2 focus-visible:ring-[#0daeec]/30 transition-all duration-200"
+          style={{
+            boxShadow: '0 2px 12px 0 rgba(36, 156, 255, 0.05)'
+          }}
+        />
       </div>
 
       {/* Active Tag Filter Badge */}
-      {activeTagFilter && <Badge variant="secondary" className="px-3 py-1.5 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 transition-colors">
-          <span className="text-xs font-medium">Tag: {activeTagFilter}</span>
-          <button onClick={() => onFilter(null)} className="ml-2 text-blue-500 hover:text-blue-700 font-medium" aria-label="Remove tag filter">
+      {activeTagFilter && (
+        <Badge 
+          variant="secondary" 
+          className="px-3 py-2 h-12 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 transition-colors rounded-full flex items-center"
+        >
+          <span className="text-sm font-medium">Tag: {activeTagFilter}</span>
+          <button
+            onClick={() => onFilter(null)}
+            className="ml-2 text-blue-500 hover:text-blue-700 font-medium"
+            aria-label="Remove tag filter"
+          >
             ×
           </button>
-        </Badge>}
+        </Badge>
+      )}
 
-      {/* Sort & Filter Dropdown - Now with fully rounded edges */}
+      {/* Sort & Filter Dropdown - Unified height */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" className="h-10 px-3 border-gray-200 hover:bg-gray-50 transition-colors rounded-full" aria-label="Sort and filter options">
-            <SlidersHorizontal className="h-4 w-4 mr-2" />
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-12 px-4 border-gray-200 hover:bg-gray-50 transition-colors rounded-full flex items-center gap-2"
+            aria-label="Sort and filter options"
+          >
+            <SlidersHorizontal className="h-5 w-5" />
             <span className="text-sm font-medium">Filter</span>
           </Button>
         </DropdownMenuTrigger>
@@ -73,17 +98,36 @@ export function CirclesFilter({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Import Contacts Button */}
-      <Button variant="outline" size="sm" aria-label="Import Contacts" className="h-10 px-4 flex items-center gap-2 rounded-full" onClick={() => setImportOpen(true)}>
-        <FileUp className="h-4 w-4" />
+      {/* Import Contacts Button - Unified height */}
+      <Button
+        variant="outline"
+        size="sm"
+        aria-label="Import Contacts"
+        className="h-12 px-4 flex items-center gap-2 rounded-full border-gray-200 hover:bg-gray-50 transition-colors"
+        onClick={() => setImportOpen(true)}
+      >
+        <FileUp className="h-5 w-5" />
         <span className="text-sm font-medium">Import</span>
       </Button>
-      {/* Add Contact Button */}
-      <Button onClick={onAddContact} size="sm" aria-label="Add new contact" className="h-10 px-4 text-white transition-colors rounded-full bg-[#30a2ed]">
-        <Plus className="h-4 w-4 mr-2" />
+
+      {/* Add Contact Button - Unified height and styling */}
+      <Button
+        onClick={onAddContact}
+        size="sm"
+        aria-label="Add new contact"
+        className="h-12 px-4 text-white transition-colors rounded-full bg-[#0daeec] hover:bg-[#0092ca] flex items-center gap-2"
+      >
+        <Plus className="h-5 w-5" />
         <span className="text-sm font-medium">Add</span>
       </Button>
+
       {/* Dialog */}
-      <ImportContactsDialog open={importOpen} onOpenChange={setImportOpen} onImportSuccess={() => {}} refetchContacts={refetchContacts} />
-    </div>;
+      <ImportContactsDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        onImportSuccess={() => {}}
+        refetchContacts={refetchContacts}
+      />
+    </div>
+  );
 }
