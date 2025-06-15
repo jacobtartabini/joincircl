@@ -1,4 +1,3 @@
-
 import { useState, useMemo, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -95,14 +94,9 @@ export default function CareerHub() {
         {/* Mobile Header */}
         <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-xl border-b border-gray-100 p-4 pt-8">
           <div className="max-w-7xl mx-auto">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center border border-blue-100">
-                <Briefcase className="h-6 w-6 text-blue-600" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Career Hub</h1>
-                <p className="text-sm text-muted-foreground">Your professional journey</p>
-              </div>
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-gray-900">Career Hub</h1>
+              <p className="text-sm text-muted-foreground">Your professional journey</p>
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -260,19 +254,14 @@ export default function CareerHub() {
     <div className="min-h-screen refined-web-theme">
       <div className="max-w-7xl mx-auto p-6 space-y-8">
         {/* Header */}
-        <div className="text-center space-y-4">
-          <div className="flex items-center justify-center gap-4 mb-6">
-            <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center border border-blue-100">
-              <Briefcase className="h-8 w-8 text-blue-600" />
-            </div>
-            <div className="text-left">
-              <h1 className="text-4xl font-bold text-gray-900">Career Hub</h1>
-              <p className="text-muted-foreground text-lg">Your professional journey starts here</p>
-            </div>
+        <div className="space-y-4">
+          <div className="text-left">
+            <h1 className="text-3xl font-bold text-gray-900">Career Hub</h1>
+            <p className="text-muted-foreground text-lg">Your professional journey starts here</p>
           </div>
 
           {/* Quick Actions */}
-          <div className="flex justify-center gap-4 mb-8">
+          <div className="flex gap-4">
             <Button 
               onClick={() => handleQuickAction("Add Application")}
               className="bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-full px-6"
