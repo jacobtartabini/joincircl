@@ -17,7 +17,8 @@ import {
   Zap,
   Clock,
   ChevronRight,
-  Upload
+  Upload,
+  Play
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useCareerData } from "@/hooks/use-career-data";
@@ -509,7 +510,8 @@ export default function CareerHub() {
                     variant="outline"
                     className="w-full border-gray-200 hover:bg-gray-50 rounded-full"
                   >
-                    Start Practice Session
+                    <Play className="h-4 w-4 mr-2" />
+                    Practice
                   </Button>
                 </Card>
 
