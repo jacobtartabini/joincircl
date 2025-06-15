@@ -49,13 +49,22 @@ export function EventForm({ onSuccess, onCancel, preselectedContactId }: EventFo
           notes: formData.notes || undefined
         })
       } else if (formData.type === 'interaction') {
+        // --- Fix: get current user id and include it ---
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser()
+        if (!user || userError) {
+          throw new Error('Failed to get user info for interaction event')
+        }
         const { error } = await supabase
           .from('interactions')
           .insert({
             contact_id: formData.contact_ids?.[0] || '',
             type: formData.category || 'general',
             date: datetime,
-            notes: formData.notes || undefined
+            notes: formData.notes || undefined,
+            user_id: user.id // This is now required!
           })
 
         if (error) throw error
