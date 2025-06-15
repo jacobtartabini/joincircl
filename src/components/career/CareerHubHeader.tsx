@@ -15,10 +15,12 @@ export function CareerHubHeader({ activeTab, onTabChange, isMobile }: CareerHubH
         <div className="max-w-7xl mx-auto">
           <div className="mb-6">
             <div className="flex items-center gap-3 mb-2">
-              <Briefcase className="h-6 w-6 text-gray-900" />
-              <h1 className="text-2xl font-bold text-gray-900">Career Hub</h1>
+              <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                <Briefcase className="h-5 w-5 text-primary" />
+              </div>
+              <h1 className="text-2xl font-semibold text-foreground">Career Hub</h1>
             </div>
-            <p className="text-sm text-muted-foreground">Your professional journey</p>
+            <p className="text-muted-foreground">Your professional journey</p>
           </div>
 
           <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
@@ -37,10 +39,12 @@ export function CareerHubHeader({ activeTab, onTabChange, isMobile }: CareerHubH
     <div className="space-y-4 pl-12">
       <div className="text-left">
         <div className="flex items-center gap-3 mb-2">
-          <Briefcase className="h-8 w-8 text-gray-900" />
-          <h1 className="text-3xl font-bold text-gray-900">Career Hub</h1>
+          <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+            <Briefcase className="h-5 w-5 text-primary" />
+          </div>
+          <h1 className="text-2xl font-semibold text-foreground">Career Hub</h1>
         </div>
-        <p className="text-muted-foreground text-lg">Your professional journey starts here</p>
+        <p className="text-muted-foreground">Your professional journey starts here</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
