@@ -16,7 +16,8 @@ import {
   ArrowRight,
   Zap,
   Clock,
-  ChevronRight
+  ChevronRight,
+  Upload
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useCareerData } from "@/hooks/use-career-data";
@@ -527,7 +528,8 @@ export default function CareerHub() {
                     variant="outline"
                     className="w-full border-gray-200 hover:bg-gray-50 rounded-full"
                   >
-                    Upload Resume
+                    <Upload className="h-4 w-4 mr-2" />
+                    Resume
                   </Button>
                 </Card>
 
