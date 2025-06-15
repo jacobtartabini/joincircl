@@ -1,4 +1,6 @@
+
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Briefcase } from "lucide-react";
 
 interface CareerHubHeaderProps {
   activeTab: string;
@@ -12,7 +14,10 @@ export function CareerHubHeader({ activeTab, onTabChange, isMobile }: CareerHubH
       <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-xl border-b border-gray-100 p-6 pt-8">
         <div className="max-w-7xl mx-auto">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Career Hub</h1>
+            <div className="flex items-center gap-3 mb-2">
+              <Briefcase className="h-6 w-6 text-gray-900" />
+              <h1 className="text-2xl font-bold text-gray-900">Career Hub</h1>
+            </div>
             <p className="text-sm text-muted-foreground">Your professional journey</p>
           </div>
 
@@ -31,7 +36,10 @@ export function CareerHubHeader({ activeTab, onTabChange, isMobile }: CareerHubH
   return (
     <div className="space-y-4 pl-12">
       <div className="text-left">
-        <h1 className="text-3xl font-bold text-gray-900">Career Hub</h1>
+        <div className="flex items-center gap-3 mb-2">
+          <Briefcase className="h-8 w-8 text-gray-900" />
+          <h1 className="text-3xl font-bold text-gray-900">Career Hub</h1>
+        </div>
         <p className="text-muted-foreground text-lg">Your professional journey starts here</p>
       </div>
 
