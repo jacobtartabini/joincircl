@@ -29,7 +29,7 @@ export function CareerHubHeader({ activeTab, onTabChange, isMobile }: CareerHubH
   }
 
   return (
-    <div className="space-y-4 px-6">
+    <div className="space-y-4 pl-12">
       <div className="text-left">
         <h1 className="text-3xl font-bold text-gray-900">Career Hub</h1>
         <p className="text-muted-foreground text-lg">Your professional journey starts here</p>
