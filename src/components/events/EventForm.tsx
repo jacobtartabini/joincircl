@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Calendar, Clock, User } from 'lucide-react'
+import { Calendar } from 'lucide-react'
 import { format } from 'date-fns'
 import { EventFormData } from '@/types/events'
 import { keystoneService } from '@/services/keystoneService'
@@ -107,7 +107,7 @@ export function EventForm({ onSuccess, onCancel, preselectedContactId }: EventFo
             value={formData.type} 
             onValueChange={(value) => setFormData(prev => ({ ...prev, type: value as 'keystone' | 'interaction' }))}
           >
-            <SelectTrigger>
+            <SelectTrigger className="glass-input rounded-xl">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -125,6 +125,7 @@ export function EventForm({ onSuccess, onCancel, preselectedContactId }: EventFo
             onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
             placeholder="Event title"
             required
+            className="glass-input rounded-xl"
           />
         </div>
 
@@ -137,6 +138,7 @@ export function EventForm({ onSuccess, onCancel, preselectedContactId }: EventFo
               value={formData.date}
               onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
               required
+              className="glass-input rounded-xl"
             />
           </div>
           <div>
@@ -146,6 +148,7 @@ export function EventForm({ onSuccess, onCancel, preselectedContactId }: EventFo
               type="time"
               value={formData.time}
               onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
+              className="glass-input rounded-xl"
             />
           </div>
         </div>
@@ -157,6 +160,7 @@ export function EventForm({ onSuccess, onCancel, preselectedContactId }: EventFo
             value={formData.category}
             onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
             placeholder="Event category"
+            className="glass-input rounded-xl"
           />
         </div>
 
@@ -168,6 +172,7 @@ export function EventForm({ onSuccess, onCancel, preselectedContactId }: EventFo
             onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
             placeholder="Additional notes about this event"
             rows={3}
+            className="glass-input rounded-xl"
           />
         </div>
       </div>
