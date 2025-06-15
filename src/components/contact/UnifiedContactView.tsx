@@ -387,7 +387,7 @@ export function UnifiedContactView({
             <DialogTitle>Add Interaction</DialogTitle>
           </DialogHeader>
           <InteractionForm
-            contactId={contact.id}
+            contact={contact}
             onSuccess={() => {
               setIsAddInteractionOpen(false);
               onInteractionAdded();
@@ -403,7 +403,7 @@ export function UnifiedContactView({
             <DialogTitle>Add Keystone</DialogTitle>
           </DialogHeader>
           <KeystoneForm
-            contactId={contact.id}
+            contact={contact}
             onSuccess={() => {
               setIsAddKeystoneOpen(false);
               onKeystoneAdded();
