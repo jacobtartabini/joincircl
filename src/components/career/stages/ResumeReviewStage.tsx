@@ -1,10 +1,11 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FileText, Brain, CheckCircle, Upload, Zap } from "lucide-react";
 import { JobApplicationWorkflow, WorkflowStage } from "@/hooks/use-job-application-workflow";
+import GradientIconBg from "../GradientIconBg";
+import { Atom } from "lucide-react";
 
 interface ResumeReviewStageProps {
   workflow: JobApplicationWorkflow;
@@ -125,13 +126,15 @@ export function ResumeReviewStage({ workflow, onUpdate }: ResumeReviewStageProps
         </Card>
       </div>
 
-      {/* Arlo's Insight */}
-      <Card className="p-4 bg-purple-50/50 border-purple-100">
+      {/* Arlo's Insights */}
+      <Card className="p-4 bg-blue-50/50 border-blue-100">
         <div className="flex items-center gap-2 mb-2">
-          <Brain className="h-4 w-4 text-purple-600" />
-          <span className="text-sm font-medium text-purple-900">Arlo's Tip</span>
+          <GradientIconBg size={24}>
+            <Atom className="h-4 w-4" color="white" />
+          </GradientIconBg>
+          <span className="text-sm font-medium text-blue-900">Arlo's Insights</span>
         </div>
-        <p className="text-sm text-purple-800">
+        <p className="text-sm text-blue-800">
           A tailored resume can increase your chances of getting an interview by up to 40%. 
           I'll help you highlight the most relevant skills and experiences for this specific role.
         </p>
