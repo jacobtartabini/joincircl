@@ -122,14 +122,9 @@ export function JobApplicationWorkflow({ applicationId, onBack }: JobApplication
         {/* Arlo Insight */}
         <div className="mt-4 p-3 bg-blue-50/50 rounded-xl border border-blue-100">
           <div className="flex items-center gap-2 mb-2">
-            <div className="relative">
-              <Atom className="h-6 w-6 text-transparent bg-gradient-to-r from-blue-500 via-purple-700 to-pink-500 bg-clip-text" 
-                    style={{
-                      background: 'linear-gradient(135deg, #3b82f6 0%, #a21caf 50%, #ec4899 100%)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      backgroundClip: 'text'
-                    }} />
+            <div className="relative w-6 h-6 flex items-center justify-center">
+              <Atom className="h-5 w-5 text-blue-600" />
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500 via-purple-700 to-pink-500 rounded-full opacity-20"></div>
             </div>
             <span className="text-sm font-medium text-blue-900">Arlo's Insight</span>
           </div>
