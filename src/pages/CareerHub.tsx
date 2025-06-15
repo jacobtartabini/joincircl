@@ -628,66 +628,7 @@ export default function CareerHub() {
 
           <TabsContent value="tools" className="space-y-6">
             <h2 className="text-2xl font-bold text-gray-900">Career Tools</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <Card className="p-6 bg-white/80 backdrop-blur-sm border-gray-100 rounded-2xl">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center">
-                    <BookOpen className="h-6 w-6 text-green-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">Mock Interview</h4>
-                    <p className="text-sm text-muted-foreground">AI-powered practice sessions</p>
-                  </div>
-                </div>
-                <Button 
-                  onClick={() => handleQuickAction("Start Mock Interview")}
-                  variant="outline"
-                  className="w-full border-gray-200 hover:bg-gray-50 rounded-full"
-                >
-                  Start Practice Session
-                </Button>
-              </Card>
-
-              <Card className="p-6 bg-white/80 backdrop-blur-sm border-gray-100 rounded-2xl">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center">
-                    <FileText className="h-6 w-6 text-purple-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">Resume Review</h4>
-                    <p className="text-sm text-muted-foreground">Get AI feedback and suggestions</p>
-                  </div>
-                </div>
-                <Button 
-                  onClick={() => handleQuickAction("Upload Resume")}
-                  variant="outline"
-                  className="w-full border-gray-200 hover:bg-gray-50 rounded-full"
-                >
-                  Upload Resume
-                </Button>
-              </Card>
-
-              <Card className="p-6 bg-white/80 backdrop-blur-sm border-gray-100 rounded-2xl">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center">
-                    <Target className="h-6 w-6 text-orange-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">Application Tracker</h4>
-                    <p className="text-sm text-muted-foreground">Organize your job applications</p>
-                  </div>
-                </div>
-                <Button 
-                  onClick={() => handleQuickAction("Add Application")}
-                  variant="outline"
-                  className="w-full border-gray-200 hover:bg-gray-50 rounded-full"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Application
-                </Button>
-              </Card>
-            </div>
+            <CareerToolsView />
           </TabsContent>
         </Tabs>
 
