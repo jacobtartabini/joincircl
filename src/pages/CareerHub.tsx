@@ -550,6 +550,7 @@ export default function CareerHub() {
                     variant="outline"
                     className="w-full border-gray-200 hover:bg-gray-50 rounded-full"
                   >
+                    <Plus className="h-4 w-4 mr-2" />
                     Application
                   </Button>
                 </Card>
