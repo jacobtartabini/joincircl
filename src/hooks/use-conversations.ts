@@ -153,14 +153,10 @@ export function useConversations() {
       logDebug('Switching active conversation', { newActiveId });
       setActiveConversationId(newActiveId);
     }
-    const fallbackConversation: Conversation = updatedConversations[0] ?? {
-      id: '',
-      title: '',
-      messages: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    saveConversationToSupabase(user.id, fallbackConversation, updatedConversations);
+    
+    if (updatedConversations.length > 0) {
+      saveConversationToSupabase(user.id, updatedConversations[0], updatedConversations);
+    }
   };
 
   const renameConversation = (conversationId: string, newTitle: string) => {
@@ -178,8 +174,8 @@ export function useConversations() {
 
     setConversations(updatedConversations);
 
-    if (conversationToUpdate) {
-      saveConversationToSupabase(user!.id, conversationToUpdate, updatedConversations);
+    if (conversationToUpdate && user) {
+      saveConversationToSupabase(user.id, conversationToUpdate, updatedConversations);
     }
   };
 
