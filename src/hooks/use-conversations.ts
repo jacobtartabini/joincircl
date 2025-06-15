@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -39,6 +38,27 @@ export function useConversations() {
       console.error('Error fetching conversations:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const generateConversationTitle = async (firstUserMessage: string): Promise<string> => {
+    try {
+      const { data, error } = await supabase.functions.invoke('openrouter-ai', {
+        body: {
+          prompt: `Generate a concise, descriptive title (max 5 words) for a conversation that starts with: "${firstUserMessage}"`,
+          systemPrompt: 'Generate a short, descriptive title for this conversation. Respond with only the title, no quotes or extra text.',
+          model: 'mistralai/mistral-7b-instruct',
+          maxTokens: 20,
+          temperature: 0.3
+        }
+      });
+
+      if (error) throw error;
+      
+      return data?.response?.trim() || firstUserMessage.slice(0, 30) + '...';
+    } catch (error) {
+      console.error('Error generating title:', error);
+      return firstUserMessage.slice(0, 30) + '...';
     }
   };
 
@@ -91,11 +111,9 @@ export function useConversations() {
     if (!user) return;
 
     try {
-      // Convert updates to database format
       const dbUpdates: any = {};
       if (updates.title) dbUpdates.title = updates.title;
       if (updates.messages) {
-        // Convert ChatMessage[] to Json format for database
         dbUpdates.messages = updates.messages.map(msg => ({
           id: msg.id,
           role: msg.role,
@@ -149,7 +167,7 @@ export function useConversations() {
     }
   };
 
-  const addMessage = (conversationId: string, messageData: { role: 'user' | 'assistant'; content: string }) => {
+  const addMessage = async (conversationId: string, messageData: { role: 'user' | 'assistant'; content: string }) => {
     const message: ChatMessage = {
       id: `msg-${Date.now()}-${Math.random()}`,
       role: messageData.role,
@@ -157,26 +175,33 @@ export function useConversations() {
       timestamp: new Date()
     };
 
-    setConversations(prev => 
-      prev.map(conv => {
-        if (conv.id === conversationId) {
-          const updatedConv = {
-            ...conv,
-            messages: [...conv.messages, message],
-            updatedAt: new Date()
-          };
-          
-          // Save to database if it's a real conversation (not a local one)
-          if (!conversationId.startsWith('new-')) {
-            updateConversation(conversationId, updatedConv);
-          }
-          
-          return updatedConv;
-        }
-        return conv;
-      })
-    );
+    const updatedConversations = conversations.map(conv => {
+      if (conv.id === conversationId) {
+        const updatedMessages = [...conv.messages, message];
+        const updatedConv = {
+          ...conv,
+          messages: updatedMessages,
+          updatedAt: new Date()
+        };
 
+        // Auto-generate title for first user message
+        if (messageData.role === 'user' && conv.title === 'New Chat' && updatedMessages.filter(m => m.role === 'user').length === 1) {
+          generateConversationTitle(messageData.content).then(title => {
+            updateConversation(conversationId, { ...updatedConv, title });
+          });
+        }
+
+        // Save to database if it's a real conversation
+        if (!conversationId.startsWith('new-')) {
+          updateConversation(conversationId, updatedConv);
+        }
+        
+        return updatedConv;
+      }
+      return conv;
+    });
+
+    setConversations(updatedConversations);
     return message.id;
   };
 
