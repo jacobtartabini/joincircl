@@ -32,7 +32,7 @@ export function MultiContactSelector({
   const [open, setOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
 
-  // Filter contacts based on search value with proper memoization
+  // Filter contacts based on search value
   const filteredContacts = useMemo(() => {
     if (!searchValue.trim()) return contacts;
     
@@ -61,10 +61,6 @@ export function MultiContactSelector({
 
   const handleRemove = (contactToRemove: Contact) => {
     onSelectionChange(selectedContacts.filter(c => c.id !== contactToRemove.id));
-  };
-
-  const handleClearSearch = () => {
-    setSearchValue("");
   };
 
   return (
@@ -97,24 +93,25 @@ export function MultiContactSelector({
             variant="outline" 
             role="combobox" 
             aria-expanded={open} 
-            className="w-full justify-between bg-background px-3 font-normal outline-offset-0 hover:bg-background focus-visible:border-ring focus-visible:outline-[3px] focus-visible:outline-ring/20 rounded-md"
+            className="w-full justify-between bg-background px-3 font-normal"
           >
-            <span className={cn("truncate text-muted-foreground")}>
+            <span className="truncate text-muted-foreground">
               {selectedContacts.length > 0 
                 ? `${selectedContacts.length} contact${selectedContacts.length > 1 ? 's' : ''} selected` 
                 : "Select contacts"
               }
             </span>
-            <ChevronDown size={16} strokeWidth={2} className="shrink-0 text-muted-foreground/80" aria-hidden="true" />
+            <ChevronDown size={16} strokeWidth={2} className="shrink-0 text-muted-foreground/80" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[var(--radix-popover-trigger-width)] border-input p-0" align="start">
-          <Command shouldFilter={false}>
+        
+        <PopoverContent className="w-[400px] p-0" align="start">
+          <Command>
             <CommandInput 
               placeholder={placeholder} 
-              className="h-9" 
               value={searchValue}
               onValueChange={setSearchValue}
+              className="h-9"
             />
             
             <CommandList>
@@ -130,7 +127,7 @@ export function MultiContactSelector({
                       key={contact.id} 
                       value={contact.id}
                       onSelect={() => handleSelect(contact.id)}
-                      className="flex items-center justify-between cursor-pointer py-2"
+                      className="flex items-center justify-between cursor-pointer py-2 px-2"
                     >
                       <div className="flex items-center gap-2 flex-1 min-w-0">
                         <div className="flex flex-col min-w-0 flex-1">
