@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -147,7 +146,12 @@ function ActionSearchBar({
     return (
         <div className={`w-full max-w-2xl mx-auto ${className}`}>
             <div className="relative">
+                {/* Styled Search Input with new layout */}
                 <div className="relative">
+                    {/* Leading icon inside input */}
+                    <span className="absolute left-3 top-1.5 flex items-center text-muted-foreground pointer-events-none h-9">
+                        <Search className="w-5 h-5" />
+                    </span>
                     <Input
                         type="text"
                         placeholder={placeholder}
@@ -156,9 +160,21 @@ function ActionSearchBar({
                         onFocus={handleFocus}
                         onBlur={() => setTimeout(() => setIsFocused(false), 200)}
                         onKeyDown={handleKeyDown}
-                        className="pl-4 pr-12 py-3 h-12 text-base rounded-xl glass-input border-white/20 dark:border-white/15 focus-visible:ring-2 focus-visible:ring-[#0daeec]/30 focus-visible:ring-offset-0 transition-all duration-200"
+                        // Tweaked input styles for a modern, pill-shaped look
+                        className={`
+                            pl-10 pr-12 py-3 h-12 text-base border 
+                            border-gray-200 dark:border-white/10 
+                            bg-white dark:bg-background 
+                            rounded-full shadow-sm 
+                            focus-visible:ring-2 focus-visible:ring-[#0daeec]/30 
+                            transition-all duration-200
+                        `}
+                        style={{
+                          boxShadow: '0 2px 12px 0 rgba(36, 156, 255, 0.05)'
+                        }}
                     />
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5">
+                    {/* Trailing right icon animates send/search */}
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 z-10">
                         <AnimatePresence mode="popLayout">
                             {query.length > 0 ? (
                                 <motion.div
@@ -185,10 +201,11 @@ function ActionSearchBar({
                     </div>
                 </div>
 
+                {/* Animated suggestion dropdown list */}
                 <AnimatePresence>
                     {isFocused && result && !selectedAction && (
                         <motion.div
-                            className="absolute top-full left-0 right-0 mt-2 glass-card-enhanced border-white/20 dark:border-white/15 rounded-xl overflow-hidden z-50"
+                            className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-950 border border-gray-200 dark:border-white/10 rounded-2xl shadow-lg z-50"
                             variants={container}
                             initial="hidden"
                             animate="show"
@@ -200,7 +217,7 @@ function ActionSearchBar({
                                         {result.actions.map((action) => (
                                             <motion.li
                                                 key={action.id}
-                                                className="unified-button flex items-center justify-between p-3 hover:bg-white/30 dark:hover:bg-white/5 cursor-pointer rounded-lg transition-all duration-200"
+                                                className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer rounded-xl transition-all duration-200"
                                                 variants={item}
                                                 onClick={() => handleActionClick(action)}
                                             >
@@ -220,7 +237,7 @@ function ActionSearchBar({
                                                     </div>
                                                 </div>
                                                 {action.shortcut && (
-                                                    <div className="text-xs text-muted-foreground bg-white/10 dark:bg-white/5 px-2 py-1 rounded border border-white/20 dark:border-white/10">
+                                                    <div className="text-xs text-muted-foreground bg-gray-100 dark:bg-zinc-800/40 px-2 py-1 rounded border border-gray-200 dark:border-white/10">
                                                         {action.shortcut}
                                                     </div>
                                                 )}
@@ -237,11 +254,9 @@ function ActionSearchBar({
                             </div>
                             
                             {result.actions.length > 0 && (
-                                <div className="border-t border-white/20 dark:border-white/10 p-3 bg-white/5 dark:bg-white/2">
-                                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                                        <span>Press Enter to select</span>
-                                        <span>ESC to cancel</span>
-                                    </div>
+                                <div className="border-t border-gray-100 dark:border-white/10 p-3 rounded-b-2xl bg-gray-50 dark:bg-zinc-900/60 flex items-center justify-between text-xs text-muted-foreground">
+                                    <span>Press Enter to select</span>
+                                    <span>ESC to cancel</span>
                                 </div>
                             )}
                         </motion.div>
