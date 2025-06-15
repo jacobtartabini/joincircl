@@ -12,6 +12,7 @@ import {
   saveConversationToSupabase,
   saveConversationsToLocalStorage
 } from './useConversations.storage';
+import { supabase } from '@/integrations/supabase/client';
 
 export function useConversations() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -37,7 +38,6 @@ export function useConversations() {
     if (!user) return;
     logDebug('Setting up real-time subscription', { userId: user.id });
 
-    const { supabase } = require('@/integrations/supabase/client');
     const channel = supabase
       .channel('conversations-changes')
       .on(
@@ -113,6 +113,8 @@ export function useConversations() {
     const updatedConversations = [newConversation, ...conversations];
     setConversations(updatedConversations);
     setActiveConversationId(newConversation.id);
+    
+    // Fix: Pass all required arguments to saveConversationToSupabase
     saveConversationToSupabase(user.id, newConversation, updatedConversations);
 
     logDebug('New conversation created and saved', { conversationId });
@@ -128,7 +130,6 @@ export function useConversations() {
     logDebug('Deleting conversation', { conversationId, userId: user.id });
 
     try {
-      const { supabase } = require('@/integrations/supabase/client');
       const { error } = await supabase
         .from('conversations')
         .delete()
@@ -154,6 +155,7 @@ export function useConversations() {
       setActiveConversationId(newActiveId);
     }
     
+    // Fix: Only save if there are remaining conversations
     if (updatedConversations.length > 0) {
       saveConversationToSupabase(user.id, updatedConversations[0], updatedConversations);
     }
@@ -174,6 +176,7 @@ export function useConversations() {
 
     setConversations(updatedConversations);
 
+    // Fix: Pass all required arguments to saveConversationToSupabase
     if (conversationToUpdate && user) {
       saveConversationToSupabase(user.id, conversationToUpdate, updatedConversations);
     }
@@ -223,6 +226,7 @@ export function useConversations() {
 
     setConversations(updatedConversations);
 
+    // Fix: Pass all required arguments to saveConversationToSupabase
     if (conversationToUpdate) {
       saveConversationToSupabase(user.id, conversationToUpdate, updatedConversations);
     }
