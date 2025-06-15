@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from "react";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -185,7 +184,7 @@ export default function CareerHub() {
 
           <TabsContent value="tools" className="space-y-6">
             {!isMobile && <h2 className="text-2xl font-bold text-gray-900">Career Tools</h2>}
-            <CareerToolsView />
+            <CareerToolsView onAddApplication={() => setIsAddApplicationOpen(true)} />
           </TabsContent>
         </Tabs>
       </div>

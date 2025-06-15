@@ -18,8 +18,9 @@ import {
   ListCheck,
   MessageCircle
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-// FIX: Import each tool individually instead of from "./"
+// Tool components for modals only
 import { ResumeReviewerTool } from "./ResumeReviewerTool";
 import { CoverLetterGeneratorTool } from "./CoverLetterGeneratorTool";
 import { ApplicationInfoIntakeTool } from "./ApplicationInfoIntakeTool";
@@ -52,47 +53,58 @@ type ToolKey =
   | "linkedinMessage"
 ;
 
+interface CareerToolsViewProps {
+  onAddApplication?: () => void;
+}
+
 const TOOLS: {
   key: ToolKey;
   title: string;
   description: string;
   icon: React.ReactNode;
+  hasPage?: boolean;
 }[] = [
   {
     key: "appInfo",
     title: "Application Info Intake",
     description: "Add job title, company, deadline, description, and more.",
-    icon: <Briefcase size={28} />
+    icon: <Briefcase size={28} />,
+    hasPage: false // Opens modal
   },
   {
     key: "resume",
     title: "Resume Reviewer (Arlo AI)",
     description: "AI analyzes your resume vs. the job description with tailored suggestions.",
-    icon: <FileText size={28} />
+    icon: <FileText size={28} />,
+    hasPage: true
   },
   {
     key: "coverLetter",
     title: "Cover Letter Generator",
     description: "AI to draft or refine your cover letter in your tone.",
-    icon: <Pencil size={28} />
+    icon: <Pencil size={28} />,
+    hasPage: true
   },
   {
     key: "jobAnalyzer",
     title: "Job Description Analyzer",
     description: "Extracts skills, responsibilities, and rates your fit.",
-    icon: <Search size={28} />
+    icon: <Search size={28} />,
+    hasPage: true
   },
   {
     key: "networkDiscovery",
     title: "Network Discovery",
     description: "Find connections at a company or industry and draft outreach messages.",
-    icon: <Network size={28} />
+    icon: <Network size={28} />,
+    hasPage: true
   },
   {
     key: "linkedinMessage",
     title: "LinkedIn Message Generator",
     description: "Generate personalized LinkedIn messages for networking and outreach.",
-    icon: <MessageCircle size={28} />
+    icon: <MessageCircle size={28} />,
+    hasPage: false // Keep as modal for now
   },
   {
     key: "interviewerResearch",
@@ -144,12 +156,8 @@ const TOOLS: {
   },
 ];
 
+// Modal components map for tools that still use modals
 const modals: Partial<Record<ToolKey, React.ComponentType<{ onClose: () => void }>>> = {
-  appInfo: ApplicationInfoIntakeTool,
-  resume: ResumeReviewerTool,
-  coverLetter: CoverLetterGeneratorTool,
-  jobAnalyzer: JobDescriptionAnalyzerTool,
-  networkDiscovery: NetworkDiscoveryTool,
   linkedinMessage: LinkedInMessageGeneratorTool,
   interviewerResearch: InterviewerResearchTool,
   companyResearch: CompanyResearchTool,
@@ -161,8 +169,25 @@ const modals: Partial<Record<ToolKey, React.ComponentType<{ onClose: () => void 
   skillGap: SkillGapPlanTool,
 };
 
-export function CareerToolsView() {
+export function CareerToolsView({ onAddApplication }: CareerToolsViewProps) {
   const [activeModal, setActiveModal] = useState<ToolKey | null>(null);
+  const navigate = useNavigate();
+
+  const handleToolClick = (tool: { key: ToolKey; hasPage?: boolean }) => {
+    if (tool.key === "appInfo") {
+      // Open the add application dialog
+      onAddApplication?.();
+      return;
+    }
+
+    if (tool.hasPage) {
+      // Navigate to dedicated page
+      navigate(`/career/${tool.key}`);
+    } else {
+      // Open modal
+      setActiveModal(tool.key);
+    }
+  };
 
   return (
     <div>
@@ -173,10 +198,11 @@ export function CareerToolsView() {
             icon={tool.icon}
             title={tool.title}
             description={tool.description}
-            onClick={() => setActiveModal(tool.key)}
+            onClick={() => handleToolClick(tool)}
           />
         ))}
       </div>
+      
       {activeModal && (() => {
         const ModalComp = modals[activeModal];
         return ModalComp ? (

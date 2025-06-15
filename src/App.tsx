@@ -35,6 +35,12 @@ import Arlo from "@/pages/Arlo";
 import CareerHub from "@/pages/CareerHub";
 import Events from "@/pages/Events";
 
+// Career tool pages
+import ResumeReviewer from "@/pages/career/ResumeReviewer";
+import CoverLetterGenerator from "@/pages/career/CoverLetterGenerator";
+import JobAnalyzer from "@/pages/career/JobAnalyzer";
+import NetworkDiscovery from "@/pages/career/NetworkDiscovery";
+
 // User onboarding
 import { UserOnboarding } from "./components/UserOnboarding";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -78,6 +84,13 @@ function App() {
                   <Route path="/arlo" element={<Arlo />} />
                   <Route path="/notifications" element={<Notifications />} />
                   
+                  {/* Career Hub and tools */}
+                  <Route path="/career" element={<CareerHub />} />
+                  <Route path="/career/resume" element={<ResumeReviewer />} />
+                  <Route path="/career/coverLetter" element={<CoverLetterGenerator />} />
+                  <Route path="/career/jobAnalyzer" element={<JobAnalyzer />} />
+                  <Route path="/career/networkDiscovery" element={<NetworkDiscovery />} />
+                  
                   {/* Settings and management */}
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/duplicates" element={<Duplicates />} />
@@ -91,7 +104,6 @@ function App() {
                   
                   {/* PWA functionality */}
                   <Route path="/share-target" element={<ShareTarget />} />
-                  <Route path="/career" element={<CareerHub />} />
                 </Route>
                 
                 <Route path="*" element={<NotFound />} />
