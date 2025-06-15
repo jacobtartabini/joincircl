@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -261,7 +260,7 @@ export default function Arlo() {
               {!activeConversation || activeConversation.messages.length <= 1 ? (
                 <ConversationStarters onSelectPrompt={handlePromptSelect} />
               ) : (
-                <AnimatePres enter="fade-in" exit="fade-out">
+                <AnimatePresence>
                   {activeConversation.messages.slice(1).map((message) => (
                     <motion.div
                       key={message.id}
