@@ -531,7 +531,7 @@ export default function CareerHub() {
                     className="w-full border-gray-200 hover:bg-gray-50 rounded-full"
                   >
                     <Upload className="h-4 w-4 mr-2" />
-                    Resume
+                    Upload
                   </Button>
                 </Card>
 
