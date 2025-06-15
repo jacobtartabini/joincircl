@@ -212,8 +212,8 @@ export function AdvancedCirclesFilter({
                           key={filter.name as string}
                           value={filter.name as string}
                           onSelect={(currentValue) => {
-                            onFiltersChange((prev) => [
-                              ...prev,
+                            onFiltersChange([
+                              ...filters,
                               {
                                 id: nanoid(),
                                 type: selectedView,
