@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FileText, Brain, CheckCircle, Upload, Zap } from "lucide-react";
 import { JobApplicationWorkflow, WorkflowStage } from "@/hooks/use-job-application-workflow";
--import GradientIconBg from "../GradientIconBg";
+// Removed erroneous '-import GradientIconBg from "../GradientIconBg";'
 import { Atom } from "lucide-react";
 
 interface ResumeReviewStageProps {
