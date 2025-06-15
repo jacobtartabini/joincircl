@@ -79,13 +79,7 @@ export function AvatarNotificationBell({
   const recentNotifications = notifications.slice(0, 5);
 
   return (
-    <div className={cn("flex items-center gap-2", className)}>
-      {showFullName && (
-        <span className="text-sm font-medium text-foreground hidden sm:block">
-          {displayName}
-        </span>
-      )}
-      
+    <div className={cn("flex items-center gap-2", className)}>      
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <Button
