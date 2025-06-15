@@ -185,7 +185,7 @@ export default function CareerHub() {
                 </p>
                 <Button 
                   onClick={() => handleQuickAction("Add Application")}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-xl"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-full"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Track New Opportunity
@@ -227,7 +227,7 @@ export default function CareerHub() {
                   <Button 
                     onClick={() => handleQuickAction("Start Practice")}
                     variant="outline" 
-                    className="w-full border-gray-200 hover:bg-gray-50 rounded-xl"
+                    className="w-full border-gray-200 hover:bg-gray-50 rounded-full"
                   >
                     Start Practice Session
                   </Button>
@@ -246,7 +246,7 @@ export default function CareerHub() {
                   <Button 
                     onClick={() => handleQuickAction("Upload Resume")}
                     variant="outline" 
-                    className="w-full border-gray-200 hover:bg-gray-50 rounded-xl"
+                    className="w-full border-gray-200 hover:bg-gray-50 rounded-full"
                   >
                     Upload Resume
                   </Button>
@@ -435,7 +435,7 @@ export default function CareerHub() {
               <Button 
                 onClick={() => handleQuickAction("Start Mock Interview")}
                 variant="outline"
-                className="w-full border-gray-200 hover:bg-gray-50 rounded-xl"
+                className="w-full border-gray-200 hover:bg-gray-50 rounded-full"
               >
                 Start Practice Session
               </Button>
@@ -454,7 +454,7 @@ export default function CareerHub() {
               <Button 
                 onClick={() => handleQuickAction("Upload Resume")}
                 variant="outline"
-                className="w-full border-gray-200 hover:bg-gray-50 rounded-xl"
+                className="w-full border-gray-200 hover:bg-gray-50 rounded-full"
               >
                 Upload Resume
               </Button>
@@ -473,7 +473,7 @@ export default function CareerHub() {
               <Button 
                 onClick={() => handleQuickAction("Add Application")}
                 variant="outline"
-                className="w-full border-gray-200 hover:bg-gray-50 rounded-xl"
+                className="w-full border-gray-200 hover:bg-gray-50 rounded-full"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Application
