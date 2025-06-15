@@ -114,7 +114,7 @@ export function useConversations() {
     setConversations(updatedConversations);
     setActiveConversationId(newConversation.id);
     
-    // Fix: Pass all required arguments to saveConversationToSupabase
+    // Save conversation with fallback to localStorage
     saveConversationToSupabase(user.id, newConversation, updatedConversations);
 
     logDebug('New conversation created and saved', { conversationId });
@@ -155,9 +155,9 @@ export function useConversations() {
       setActiveConversationId(newActiveId);
     }
     
-    // Fix: Only save if there are remaining conversations
+    // Save remaining conversations with fallback to localStorage
     if (updatedConversations.length > 0) {
-      saveConversationToSupabase(user.id, updatedConversations[0], updatedConversations);
+      saveConversationsToLocalStorage(user.id, updatedConversations);
     }
   };
 
@@ -176,7 +176,7 @@ export function useConversations() {
 
     setConversations(updatedConversations);
 
-    // Fix: Pass all required arguments to saveConversationToSupabase
+    // Save updated conversation with fallback to localStorage
     if (conversationToUpdate && user) {
       saveConversationToSupabase(user.id, conversationToUpdate, updatedConversations);
     }
@@ -226,7 +226,7 @@ export function useConversations() {
 
     setConversations(updatedConversations);
 
-    // Fix: Pass all required arguments to saveConversationToSupabase
+    // Save updated conversation with fallback to localStorage
     if (conversationToUpdate) {
       saveConversationToSupabase(user.id, conversationToUpdate, updatedConversations);
     }
