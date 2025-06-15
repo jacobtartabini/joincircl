@@ -145,37 +145,35 @@ function ActionSearchBar({
 
     return (
         <div className={`w-full ${className}`}>
-            <div className="relative">
-                {/* Updated search input with left-aligned icon */}
-                <div className="relative">
-                    {/* Search icon on the left */}
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center text-muted-foreground pointer-events-none">
-                        <Search className="w-5 h-5" />
-                    </span>
-                    <Input
-                        type="text"
-                        placeholder={placeholder}
-                        value={query}
-                        onChange={handleInputChange}
-                        onFocus={handleFocus}
-                        onBlur={() => setTimeout(() => setIsFocused(false), 200)}
-                        onKeyDown={handleKeyDown}
-                        className={`
-                            pl-12 pr-4 py-3 h-12 text-base border 
-                            border-gray-200 dark:border-white/10 
-                            bg-white dark:bg-background 
-                            rounded-2xl shadow-sm 
-                            focus-visible:ring-2 focus-visible:ring-[#0daeec]/30 
-                            transition-all duration-200
-                            text-left
-                        `}
-                        style={{
-                          boxShadow: '0 2px 12px 0 rgba(36, 156, 255, 0.05)'
-                        }}
-                    />
-                </div>
-
-                {/* Animated suggestion dropdown list */}
+            <div className="relative flex items-center">
+                {/* Circle background for search icon, fully rounded */}
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center justify-center z-10">
+                    <Search className="w-5 h-5 text-muted-foreground" />
+                </span>
+                <Input
+                    type="text"
+                    placeholder={placeholder}
+                    value={query}
+                    onChange={handleInputChange}
+                    onFocus={handleFocus}
+                    onBlur={() => setTimeout(() => setIsFocused(false), 200)}
+                    onKeyDown={handleKeyDown}
+                    className={`
+                        pl-12 pr-4 py-3 h-12 w-full border
+                        border-gray-200 dark:border-white/10 
+                        bg-white dark:bg-background 
+                        rounded-full shadow-sm 
+                        focus-visible:ring-2 focus-visible:ring-[#0daeec]/30 
+                        transition-all duration-200
+                        text-left
+                        outline-none
+                        text-base
+                    `}
+                    style={{
+                        boxShadow: '0 2px 12px 0 rgba(36, 156, 255, 0.05)'
+                    }}
+                />
+                {/* Dropdown */}
                 <AnimatePresence>
                     {isFocused && result && !selectedAction && (
                         <motion.div
@@ -226,7 +224,6 @@ function ActionSearchBar({
                                     </div>
                                 )}
                             </div>
-                            
                             {result.actions.length > 0 && (
                                 <div className="border-t border-gray-100 dark:border-white/10 p-3 rounded-b-2xl bg-gray-50 dark:bg-zinc-900/60 flex items-center justify-between text-xs text-muted-foreground">
                                     <span>Press Enter to select</span>
