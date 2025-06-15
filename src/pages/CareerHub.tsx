@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -58,7 +58,7 @@ export default function CareerHub() {
   }, [user]);
 
   // Fetch applications on mount
-  useState(() => {
+  useEffect(() => {
     fetchApplications();
   }, [fetchApplications]);
 

@@ -36,7 +36,7 @@ export function ResumeReviewStage({ workflow, onUpdate }: ResumeReviewStageProps
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h4 className="font-medium text-gray-900">Resume Review & Optimization</h4>
-        {isCompl0ed && (
+        {isCompleted && (
           <div className="flex items-center gap-2 text-green-600">
             <CheckCircle className="h-4 w-4" />
             <span className="text-sm">Complete</span>

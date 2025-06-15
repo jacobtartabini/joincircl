@@ -29,6 +29,7 @@ export interface JobApplicationWorkflow {
   arlo_insights: Record<string, any>;
   status: string;
   applied_date?: string;
+  job_description?: string;
   created_at: string;
 }
 
@@ -91,7 +92,15 @@ export function useJobApplicationWorkflow(applicationId?: string) {
 
       if (error) throw error;
 
-      setWorkflow(data as JobApplicationWorkflow);
+      // Convert the data to our interface with proper type handling
+      const workflowData: JobApplicationWorkflow = {
+        ...data,
+        stage_completion: (data.stage_completion as any) || {},
+        arlo_insights: (data.arlo_insights as any) || {},
+        job_description: data.job_description || undefined
+      };
+
+      setWorkflow(workflowData);
     } catch (error) {
       console.error('Error fetching workflow:', error);
     } finally {
