@@ -61,7 +61,6 @@ export function AddDocumentDialog({ isOpen, onOpenChange, onAdd }: AddDocumentDi
               value={formData.document_name}
               onChange={(e) => handleInputChange('document_name', e.target.value)}
               placeholder="e.g. Software Engineer Resume 2024"
-              className="glass-input"
               required
             />
           </div>
@@ -69,7 +68,7 @@ export function AddDocumentDialog({ isOpen, onOpenChange, onAdd }: AddDocumentDi
           <div className="space-y-2">
             <Label htmlFor="document_type">Document Type</Label>
             <Select value={formData.document_type} onValueChange={(value) => handleInputChange('document_type', value)}>
-              <SelectTrigger className="glass-input">
+              <SelectTrigger className="bg-white/40 dark:bg-white/5 border-white/30 dark:border-white/15 backdrop-blur-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -89,7 +88,6 @@ export function AddDocumentDialog({ isOpen, onOpenChange, onAdd }: AddDocumentDi
               type="file"
               onChange={handleFileChange}
               accept=".pdf,.doc,.docx,.txt"
-              className="glass-input"
               required
             />
             <p className="text-xs text-muted-foreground">

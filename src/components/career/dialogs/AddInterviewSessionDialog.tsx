@@ -71,7 +71,6 @@ export function AddInterviewSessionDialog({ isOpen, onOpenChange, onAdd }: AddIn
               value={formData.session_title}
               onChange={(e) => handleInputChange('session_title', e.target.value)}
               placeholder="e.g. Software Engineer Prep"
-              className="glass-input"
               required
             />
           </div>
@@ -79,7 +78,7 @@ export function AddInterviewSessionDialog({ isOpen, onOpenChange, onAdd }: AddIn
           <div className="space-y-2">
             <Label htmlFor="session_type">Session Type</Label>
             <Select value={formData.session_type} onValueChange={(value) => handleInputChange('session_type', value)}>
-              <SelectTrigger className="glass-input">
+              <SelectTrigger className="bg-white/40 dark:bg-white/5 border-white/30 dark:border-white/15 backdrop-blur-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -97,7 +96,7 @@ export function AddInterviewSessionDialog({ isOpen, onOpenChange, onAdd }: AddIn
           <div className="space-y-2">
             <Label htmlFor="duration_minutes">Duration (minutes)</Label>
             <Select value={formData.duration_minutes.toString()} onValueChange={(value) => handleInputChange('duration_minutes', parseInt(value))}>
-              <SelectTrigger className="glass-input">
+              <SelectTrigger className="bg-white/40 dark:bg-white/5 border-white/30 dark:border-white/15 backdrop-blur-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

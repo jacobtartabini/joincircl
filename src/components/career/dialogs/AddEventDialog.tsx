@@ -66,7 +66,6 @@ export function AddEventDialog({ isOpen, onOpenChange, onAdd }: AddEventDialogPr
               value={formData.event_name}
               onChange={(e) => handleInputChange('event_name', e.target.value)}
               placeholder="e.g. Tech Career Fair 2024"
-              className="glass-input"
               required
             />
           </div>
@@ -74,7 +73,7 @@ export function AddEventDialog({ isOpen, onOpenChange, onAdd }: AddEventDialogPr
           <div className="space-y-2">
             <Label htmlFor="event_type">Event Type</Label>
             <Select value={formData.event_type} onValueChange={(value) => handleInputChange('event_type', value)}>
-              <SelectTrigger className="glass-input">
+              <SelectTrigger className="bg-white/40 dark:bg-white/5 border-white/30 dark:border-white/15 backdrop-blur-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -96,7 +95,6 @@ export function AddEventDialog({ isOpen, onOpenChange, onAdd }: AddEventDialogPr
                 type="date"
                 value={formData.event_date}
                 onChange={(e) => handleInputChange('event_date', e.target.value)}
-                className="glass-input"
                 required
               />
             </div>
@@ -109,7 +107,6 @@ export function AddEventDialog({ isOpen, onOpenChange, onAdd }: AddEventDialogPr
                 min="0"
                 value={formData.contacts_met}
                 onChange={(e) => handleInputChange('contacts_met', parseInt(e.target.value) || 0)}
-                className="glass-input"
               />
             </div>
           </div>
@@ -121,7 +118,6 @@ export function AddEventDialog({ isOpen, onOpenChange, onAdd }: AddEventDialogPr
               value={formData.location}
               onChange={(e) => handleInputChange('location', e.target.value)}
               placeholder="e.g. Convention Center, Virtual"
-              className="glass-input"
             />
           </div>
 
@@ -132,7 +128,6 @@ export function AddEventDialog({ isOpen, onOpenChange, onAdd }: AddEventDialogPr
               value={formData.notes}
               onChange={(e) => handleInputChange('notes', e.target.value)}
               placeholder="Key takeaways, follow-up actions, etc."
-              className="glass-input min-h-[80px]"
             />
           </div>
 

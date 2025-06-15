@@ -65,15 +65,15 @@ export function AddJobApplicationDialog({ isOpen, onOpenChange, onAdd }: AddJobA
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md rounded-2xl border border-gray-100 shadow-xl p-0 bg-white">
-        <DialogHeader className="px-6 pt-6 pb-0 border-b border-gray-100">
-          <DialogTitle className="text-lg font-bold text-gray-900">Add Job Application</DialogTitle>
+      <DialogContent className="glass-card max-w-md">
+        <DialogHeader className="pb-4">
+          <DialogTitle className="text-foreground">Add Job Application</DialogTitle>
         </DialogHeader>
-        <ScrollArea className="max-h-[calc(90vh-60px)] py-0">
-          <form onSubmit={handleSubmit} className="space-y-5 px-6 py-6">
+        <ScrollArea className="max-h-[calc(90vh-120px)]">
+          <form onSubmit={handleSubmit} className="space-y-4 pr-4">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="job_title" className="block font-medium text-gray-700">
+                <Label htmlFor="job_title">
                   Job Title <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -81,13 +81,12 @@ export function AddJobApplicationDialog({ isOpen, onOpenChange, onAdd }: AddJobA
                   value={formData.job_title}
                   onChange={(e) => handleInputChange('job_title', e.target.value)}
                   placeholder="e.g. Software Engineer"
-                  className="h-12 px-4 border-gray-200 rounded-lg bg-white focus-visible:ring-blue-500"
                   required
                   autoFocus
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="company_name" className="block font-medium text-gray-700">
+                <Label htmlFor="company_name">
                   Company <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -95,18 +94,15 @@ export function AddJobApplicationDialog({ isOpen, onOpenChange, onAdd }: AddJobA
                   value={formData.company_name}
                   onChange={(e) => handleInputChange('company_name', e.target.value)}
                   placeholder="e.g. Google"
-                  className="h-12 px-4 border-gray-200 rounded-lg bg-white focus-visible:ring-blue-500"
                   required
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="status" className="block font-medium text-gray-700">
-                Status
-              </Label>
+              <Label htmlFor="status">Status</Label>
               <Select value={formData.status} onValueChange={(value) => handleInputChange('status', value)}>
-                <SelectTrigger className="h-12 px-4 border-gray-200 rounded-lg bg-white">
+                <SelectTrigger className="bg-white/40 dark:bg-white/5 border-white/30 dark:border-white/15 backdrop-blur-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -120,57 +116,49 @@ export function AddJobApplicationDialog({ isOpen, onOpenChange, onAdd }: AddJobA
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="applied_date" className="block font-medium text-gray-700">
-                Applied Date
-              </Label>
+              <Label htmlFor="applied_date">Applied Date</Label>
               <Input
                 id="applied_date"
                 type="date"
                 value={formData.applied_date || ''}
                 onChange={(e) => handleInputChange('applied_date', e.target.value)}
-                className="h-12 px-4 border-gray-200 rounded-lg bg-white"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="salary_range" className="block font-medium text-gray-700">Salary Range</Label>
+              <Label htmlFor="salary_range">Salary Range</Label>
               <Input
                 id="salary_range"
                 value={formData.salary_range || ''}
                 onChange={(e) => handleInputChange('salary_range', e.target.value)}
                 placeholder="e.g. $80k - $120k"
-                className="h-12 px-4 border-gray-200 rounded-lg bg-white"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="job_url" className="block font-medium text-gray-700">Job URL</Label>
+              <Label htmlFor="job_url">Job URL</Label>
               <Input
                 id="job_url"
                 type="url"
                 value={formData.job_url || ''}
                 onChange={(e) => handleInputChange('job_url', e.target.value)}
                 placeholder="https://..."
-                className="h-12 px-4 border-gray-200 rounded-lg bg-white"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="job_description" className="block font-medium text-gray-700">Job Description</Label>
+              <Label htmlFor="job_description">Job Description</Label>
               <Textarea
                 id="job_description"
                 value={formData.job_description || ''}
                 onChange={(e) => handleInputChange('job_description', e.target.value)}
                 placeholder="Paste the full job description here..."
-                className="min-h-[92px] px-4 py-3 border-gray-200 rounded-lg bg-white"
                 rows={4}
               />
             </div>
 
             <div className="space-y-2">
-              <Label className="block font-medium text-gray-700">
-                Interviewers (from your contacts)
-              </Label>
+              <Label>Interviewers (from your contacts)</Label>
               <MultiContactSelector
                 contacts={contacts}
                 selectedContacts={selectedInterviewers}
@@ -185,27 +173,26 @@ export function AddJobApplicationDialog({ isOpen, onOpenChange, onAdd }: AddJobA
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="notes" className="block font-medium text-gray-700">Notes</Label>
+              <Label htmlFor="notes">Notes</Label>
               <Textarea
                 id="notes"
                 value={formData.notes || ''}
                 onChange={(e) => handleInputChange('notes', e.target.value)}
                 placeholder="Additional notes about this application..."
-                className="min-h-[72px] px-4 py-3 border-gray-200 rounded-lg bg-white"
                 rows={3}
               />
             </div>
 
-            <div className="flex gap-3 pt-2 border-t border-gray-100 mt-2">
+            <div className="flex gap-3 pt-4">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                className="flex-1 h-12 rounded-full font-semibold"
+                className="flex-1"
               >
                 Cancel
               </Button>
-              <Button type="submit" className="flex-1 h-12 rounded-full font-semibold bg-blue-600 text-white hover:bg-blue-700">
+              <Button type="submit" className="flex-1 glass-button">
                 Add Application
               </Button>
             </div>

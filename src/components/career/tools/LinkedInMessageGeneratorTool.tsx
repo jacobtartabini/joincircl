@@ -58,9 +58,9 @@ export function LinkedInMessageGeneratorTool({ onClose }: LinkedInMessageGenerat
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="glass-card max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 text-foreground">
             <Sparkles className="h-5 w-5 text-blue-600" />
             LinkedIn Message Generator
           </DialogTitle>
@@ -92,7 +92,7 @@ export function LinkedInMessageGeneratorTool({ onClose }: LinkedInMessageGenerat
           <div className="space-y-2">
             <Label htmlFor="messageType">Message Type *</Label>
             <Select value={messageType} onValueChange={setMessageType}>
-              <SelectTrigger>
+              <SelectTrigger className="bg-white/40 dark:bg-white/5 border-white/30 dark:border-white/15 backdrop-blur-sm">
                 <SelectValue placeholder="Select message type" />
               </SelectTrigger>
               <SelectContent>

@@ -77,7 +77,6 @@ export function AddContactDialog({ isOpen, onOpenChange, onAdd }: AddContactDial
               value={formData.name}
               onChange={(e) => handleInputChange('name', e.target.value)}
               placeholder="Contact name"
-              className="glass-input"
               required
             />
           </div>
@@ -90,7 +89,6 @@ export function AddContactDialog({ isOpen, onOpenChange, onAdd }: AddContactDial
               value={formData.personal_email}
               onChange={(e) => handleInputChange('personal_email', e.target.value)}
               placeholder="email@example.com"
-              className="glass-input"
             />
           </div>
 
@@ -102,7 +100,6 @@ export function AddContactDialog({ isOpen, onOpenChange, onAdd }: AddContactDial
               value={formData.mobile_phone}
               onChange={(e) => handleInputChange('mobile_phone', e.target.value)}
               placeholder="+1 (555) 123-4567"
-              className="glass-input"
             />
           </div>
 
@@ -114,7 +111,6 @@ export function AddContactDialog({ isOpen, onOpenChange, onAdd }: AddContactDial
                 value={formData.company_name}
                 onChange={(e) => handleInputChange('company_name', e.target.value)}
                 placeholder="Company name"
-                className="glass-input"
               />
             </div>
 
@@ -125,7 +121,6 @@ export function AddContactDialog({ isOpen, onOpenChange, onAdd }: AddContactDial
                 value={formData.job_title}
                 onChange={(e) => handleInputChange('job_title', e.target.value)}
                 placeholder="Job title"
-                className="glass-input"
               />
             </div>
           </div>
@@ -137,7 +132,6 @@ export function AddContactDialog({ isOpen, onOpenChange, onAdd }: AddContactDial
               value={tagsInput}
               onChange={(e) => setTagsInput(e.target.value)}
               placeholder="networking, mentor, recruiter (comma separated)"
-              className="glass-input"
             />
           </div>
 
@@ -157,7 +151,6 @@ export function AddContactDialog({ isOpen, onOpenChange, onAdd }: AddContactDial
               value={formData.notes}
               onChange={(e) => handleInputChange('notes', e.target.value)}
               placeholder="Additional notes about this contact..."
-              className="glass-input min-h-[80px]"
             />
           </div>
 
