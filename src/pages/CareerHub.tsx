@@ -67,7 +67,9 @@ export default function CareerHub() {
         .from('job_applications')
         .insert({
           ...applicationData,
-          user_id: user.id
+          user_id: user.id,
+          job_description: applicationData.job_description || null,
+          interviewer_contacts: applicationData.interviewer_contacts || []
         });
 
       if (error) throw error;
