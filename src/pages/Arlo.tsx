@@ -1,5 +1,3 @@
-
-
 import { useState, useRef, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -351,7 +349,7 @@ export default function Arlo() {
   }
 
   return (
-    <div className="h-screen flex refined-web-theme pb-20">
+    <div className="h-screen flex refined-web-theme overflow-hidden">
       {/* Sidebar */}
       <ConversationSidebar
         conversations={conversations}
@@ -385,7 +383,13 @@ export default function Arlo() {
 
         {/* Messages Area */}
         <div className="flex-1 min-h-0 relative">
-          <ScrollArea className="h-full">
+          <div 
+            className="h-full overflow-y-auto scrollbar-hide"
+            style={{
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none'
+            }}
+          >
             <div className="max-w-3xl mx-auto px-6">
               {!activeConversation || activeConversation.messages.length <= 1 ? (
                 <div className="py-8">
@@ -446,11 +450,11 @@ export default function Arlo() {
               
               <div ref={messagesEndRef} />
             </div>
-          </ScrollArea>
+          </div>
         </div>
 
-        {/* Fixed Input Area */}
-        <div className="flex-shrink-0 glass-nav border-t px-6 py-4">
+        {/* Fixed Input Area - positioned above floating nav */}
+        <div className="flex-shrink-0 glass-nav border-t px-6 py-4 mb-20">
           <div className="max-w-3xl mx-auto">
             <div className="flex items-end gap-3">
               <AutoExpandingTextarea
@@ -477,7 +481,12 @@ export default function Arlo() {
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
     </div>
   );
 }
-

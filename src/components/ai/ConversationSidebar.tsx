@@ -1,4 +1,5 @@
 
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,44 +54,18 @@ export default function ConversationSidebar({
   if (isCollapsed) {
     return (
       <div className="w-16 bg-white/80 dark:bg-black/20 border-r border-white/20 dark:border-white/10 backdrop-blur-lg flex flex-col h-full">
-        <div className="p-4 border-b border-white/20 dark:border-white/10">
+        <div className="p-4 border-b border-white/20 dark:border-white/10 flex justify-center">
           <Button
             onClick={onToggleCollapse}
             variant="ghost"
             size="sm"
-            className="w-full p-2 glass-button"
+            className="w-8 h-8 p-0 glass-button"
           >
             <PanelLeft className="h-4 w-4" />
           </Button>
         </div>
         
-        <div className="flex-1 p-2">
-          <Button
-            onClick={onCreateConversation}
-            variant="ghost"
-            size="sm"
-            className="w-full p-2 glass-button mb-2"
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-          
-          <div className="space-y-1">
-            {conversations.slice(0, 8).map(conversation => (
-              <Button
-                key={conversation.id}
-                onClick={() => onSelectConversation(conversation.id)}
-                variant="ghost"
-                size="sm"
-                className={cn(
-                  "w-full p-2 glass-button",
-                  activeConversationId === conversation.id && "bg-white/30 dark:bg-white/15"
-                )}
-              >
-                <MessageSquare className="h-4 w-4" />
-              </Button>
-            ))}
-          </div>
-        </div>
+        {/* No content when collapsed - just the toggle button */}
       </div>
     );
   }
@@ -100,15 +75,15 @@ export default function ConversationSidebar({
       {/* Header */}
       <div className="p-4 border-b border-white/20 dark:border-white/10">
         <div className="flex items-center gap-2 mb-3">
+          <h2 className="text-sm font-semibold text-foreground">Conversations</h2>
           <Button
             onClick={onToggleCollapse}
             variant="ghost"
             size="sm"
-            className="p-2 glass-button"
+            className="ml-auto w-8 h-8 p-0 glass-button"
           >
             <PanelLeft className="h-4 w-4" />
           </Button>
-          <h2 className="text-sm font-semibold text-foreground">Conversations</h2>
         </div>
         
         <Button 
@@ -215,3 +190,4 @@ export default function ConversationSidebar({
     </div>
   );
 }
+
