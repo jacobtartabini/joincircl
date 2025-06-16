@@ -8,6 +8,7 @@ import { RequireAuth } from "@/components/guards/RequireAuth";
 import MainLayout from "@/components/layout/MainLayout";
 import Home from "@/pages/home";
 import NotFound from "./pages/NotFound";
+import Onboarding from "@/pages/Onboarding";
 
 // Import circles index component that handles mobile detection
 import Circles from "@/pages/circles";
@@ -47,8 +48,6 @@ import FollowUpGenerator from "@/pages/career/FollowUpGenerator";
 import OfferComparison from "@/pages/career/OfferComparison";
 import SkillGapAnalysis from "@/pages/career/SkillGapAnalysis";
 
-// User onboarding
-import { UserOnboarding } from "./components/UserOnboarding";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 const queryClient = new QueryClient();
@@ -70,6 +69,16 @@ function App() {
                 <Route path="/reset" element={<ResetPassword />} />
                 <Route path="/auth/callback" element={<UnifiedAuthCallbackHandler />} />
                 <Route path="/auth/google/callback" element={<UnifiedAuthCallbackHandler />} />
+
+                {/* Onboarding route - protected but separate from main layout */}
+                <Route
+                  path="/onboarding"
+                  element={
+                    <RequireAuth>
+                      <Onboarding />
+                    </RequireAuth>
+                  }
+                />
 
                 {/* Protected routes */}
                 <Route
@@ -122,7 +131,6 @@ function App() {
               </Routes>
             </AuthErrorBoundary>
           </BrowserRouter>
-          <UserOnboarding />
         </TooltipProvider>
       </AuthProvider>
     </QueryClientProvider>

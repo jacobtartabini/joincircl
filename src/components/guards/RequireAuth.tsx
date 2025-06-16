@@ -10,7 +10,7 @@ interface RequireAuthProps {
 }
 
 export function RequireAuth({ children, requiredPermission }: RequireAuthProps) {
-  const { user, loading, hasPermission } = useAuth();
+  const { user, profile, loading, hasPermission } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [isChecking, setIsChecking] = useState(true);
@@ -20,6 +20,7 @@ export function RequireAuth({ children, requiredPermission }: RequireAuthProps) 
       console.log('RequireAuth: checking auth state', { 
         loading, 
         hasUser: !!user, 
+        hasProfile: !!profile,
         pathname: location.pathname 
       });
 
@@ -53,6 +54,17 @@ export function RequireAuth({ children, requiredPermission }: RequireAuthProps) 
         // Continue with auth check even if validation fails
       }
 
+      // Check if user needs onboarding (but not if already on onboarding page)
+      if (profile && location.pathname !== '/onboarding') {
+        const hasCompletedOnboarding = profile.onboarding_completed;
+        
+        if (!hasCompletedOnboarding) {
+          console.log('RequireAuth: onboarding not completed, redirecting to onboarding');
+          navigate("/onboarding", { replace: true });
+          return;
+        }
+      }
+
       // Check permission if specified
       if (requiredPermission && !hasPermission(requiredPermission)) {
         console.log('RequireAuth: insufficient permissions, redirecting to home');
@@ -65,7 +77,7 @@ export function RequireAuth({ children, requiredPermission }: RequireAuthProps) 
     };
 
     checkAuth();
-  }, [user, loading, navigate, location.pathname, requiredPermission, hasPermission]);
+  }, [user, profile, loading, navigate, location.pathname, requiredPermission, hasPermission]);
 
   // Show loading state while checking authentication
   if (loading || isChecking) {

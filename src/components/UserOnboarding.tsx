@@ -1,39 +1,27 @@
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import FullScreenOnboarding from './onboarding/FullScreenOnboarding';
 
 export const UserOnboarding = () => {
   const { user, profile } = useAuth();
-  const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
   
   useEffect(() => {
-    // Check if user needs onboarding
+    // Check if user needs onboarding and redirect to dedicated page
     if (user && profile) {
       const hasCompletedOnboarding = profile.onboarding_completed;
       const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
       
-      // Show onboarding if not completed and not seen before
+      // Redirect to onboarding page if not completed and not seen before
       if (!hasCompletedOnboarding && !hasSeenOnboarding) {
-        const timer = setTimeout(() => {
-          setIsOpen(true);
-        }, 1000); // Reduced delay for better UX
-        
-        return () => clearTimeout(timer);
+        navigate('/onboarding', { replace: true });
       }
     }
-  }, [user, profile]);
+  }, [user, profile, navigate]);
   
-  const handleComplete = () => {
-    localStorage.setItem('hasSeenOnboarding', 'true');
-    setIsOpen(false);
-  };
-
-  if (!isOpen || !user) {
-    return null;
-  }
-  
-  return <FullScreenOnboarding onComplete={handleComplete} />;
+  // This component no longer renders anything - onboarding is handled by the route
+  return null;
 };
 
 export default UserOnboarding;
