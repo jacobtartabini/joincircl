@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -10,7 +9,6 @@ import { MultiContactSelector } from "@/components/ui/multi-contact-selector";
 import { useContacts } from "@/hooks/use-contacts";
 import { Contact } from "@/types/contact";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
 interface JobApplication {
   job_title: string;
   company_name: string;
@@ -23,24 +21,26 @@ interface JobApplication {
   notes?: string;
   interviewer_contacts?: string[];
 }
-
 interface AddJobApplicationDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onAdd: (application: JobApplication) => void;
 }
-
-export function AddJobApplicationDialog({ isOpen, onOpenChange, onAdd }: AddJobApplicationDialogProps) {
+export function AddJobApplicationDialog({
+  isOpen,
+  onOpenChange,
+  onAdd
+}: AddJobApplicationDialogProps) {
   const [formData, setFormData] = useState<JobApplication>({
     job_title: '',
     company_name: '',
     status: 'applied',
     interviewer_contacts: []
   });
-  
   const [selectedInterviewers, setSelectedInterviewers] = useState<Contact[]>([]);
-  const { contacts } = useContacts();
-
+  const {
+    contacts
+  } = useContacts();
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.job_title && formData.company_name) {
@@ -58,13 +58,13 @@ export function AddJobApplicationDialog({ isOpen, onOpenChange, onAdd }: AddJobA
       setSelectedInterviewers([]);
     }
   };
-
   const handleInputChange = (field: keyof JobApplication, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+  return <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="glass-card max-w-md">
         <DialogHeader className="pb-4">
           <DialogTitle className="text-foreground">Add Job Application</DialogTitle>
@@ -76,32 +76,19 @@ export function AddJobApplicationDialog({ isOpen, onOpenChange, onAdd }: AddJobA
                 <Label htmlFor="job_title">
                   Job Title <span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  id="job_title"
-                  value={formData.job_title}
-                  onChange={(e) => handleInputChange('job_title', e.target.value)}
-                  placeholder="e.g. Software Engineer"
-                  required
-                  autoFocus
-                />
+                <Input id="job_title" value={formData.job_title} onChange={e => handleInputChange('job_title', e.target.value)} placeholder="e.g. Software Engineer" required autoFocus />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="company_name">
                   Company <span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  id="company_name"
-                  value={formData.company_name}
-                  onChange={(e) => handleInputChange('company_name', e.target.value)}
-                  placeholder="e.g. Google"
-                  required
-                />
+                <Input id="company_name" value={formData.company_name} onChange={e => handleInputChange('company_name', e.target.value)} placeholder="e.g. Google" required />
               </div>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
-              <Select value={formData.status} onValueChange={(value) => handleInputChange('status', value)}>
+              <Select value={formData.status} onValueChange={value => handleInputChange('status', value)}>
                 <SelectTrigger className="bg-white/40 dark:bg-white/5 border-white/30 dark:border-white/15 backdrop-blur-sm">
                   <SelectValue />
                 </SelectTrigger>
@@ -117,56 +104,27 @@ export function AddJobApplicationDialog({ isOpen, onOpenChange, onAdd }: AddJobA
 
             <div className="space-y-2">
               <Label htmlFor="applied_date">Applied Date</Label>
-              <Input
-                id="applied_date"
-                type="date"
-                value={formData.applied_date || ''}
-                onChange={(e) => handleInputChange('applied_date', e.target.value)}
-              />
+              <Input id="applied_date" type="date" value={formData.applied_date || ''} onChange={e => handleInputChange('applied_date', e.target.value)} />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="salary_range">Salary Range</Label>
-              <Input
-                id="salary_range"
-                value={formData.salary_range || ''}
-                onChange={(e) => handleInputChange('salary_range', e.target.value)}
-                placeholder="e.g. $80k - $120k"
-              />
+              <Input id="salary_range" value={formData.salary_range || ''} onChange={e => handleInputChange('salary_range', e.target.value)} placeholder="e.g. $80k - $120k" />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="job_url">Job URL</Label>
-              <Input
-                id="job_url"
-                type="url"
-                value={formData.job_url || ''}
-                onChange={(e) => handleInputChange('job_url', e.target.value)}
-                placeholder="https://..."
-              />
+              <Input id="job_url" type="url" value={formData.job_url || ''} onChange={e => handleInputChange('job_url', e.target.value)} placeholder="https://..." />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="job_description">Job Description</Label>
-              <Textarea
-                id="job_description"
-                value={formData.job_description || ''}
-                onChange={(e) => handleInputChange('job_description', e.target.value)}
-                placeholder="Paste the full job description here..."
-                rows={4}
-              />
+              <Textarea id="job_description" value={formData.job_description || ''} onChange={e => handleInputChange('job_description', e.target.value)} placeholder="Paste the full job description here..." rows={4} />
             </div>
 
             <div className="space-y-2">
               <Label>Interviewers (from your contacts)</Label>
-              <MultiContactSelector
-                contacts={contacts}
-                selectedContacts={selectedInterviewers}
-                onSelectionChange={setSelectedInterviewers}
-                label=""
-                placeholder="Search for interviewer contacts..."
-                className="w-full"
-              />
+              <MultiContactSelector contacts={contacts} selectedContacts={selectedInterviewers} onSelectionChange={setSelectedInterviewers} label="" placeholder="Search for interviewer contacts..." className="w-full" />
               <p className="text-xs mt-1 text-muted-foreground">
                 Select contacts from your Circl who will be interviewing you for this position.
               </p>
@@ -174,31 +132,17 @@ export function AddJobApplicationDialog({ isOpen, onOpenChange, onAdd }: AddJobA
 
             <div className="space-y-2">
               <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                value={formData.notes || ''}
-                onChange={(e) => handleInputChange('notes', e.target.value)}
-                placeholder="Additional notes about this application..."
-                rows={3}
-              />
+              <Textarea id="notes" value={formData.notes || ''} onChange={e => handleInputChange('notes', e.target.value)} placeholder="Additional notes about this application..." rows={3} />
             </div>
 
             <div className="flex gap-3 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-                className="flex-1"
-              >
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1 rounded-full">
                 Cancel
               </Button>
-              <Button type="submit" className="flex-1 glass-button">
-                Add Application
-              </Button>
+              <Button type="submit" className="flex-1 glass-button rounded-full">Submit</Button>
             </div>
           </form>
         </ScrollArea>
       </DialogContent>
-    </Dialog>
-  );
+    </Dialog>;
 }
