@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -36,7 +37,7 @@ export function AvatarNotificationBell({
   const {
     user,
     profile,
-    logout
+    signOut
   } = useAuth();
   const {
     notifications,
@@ -79,7 +80,7 @@ export function AvatarNotificationBell({
 
   const handleLogOut = async () => {
     setIsOpen(false);
-    await logout();
+    await signOut();
     navigate('/auth');
   };
 
