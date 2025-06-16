@@ -255,6 +255,30 @@ ${staleContacts.slice(0, 8).map(c => `- ${c.name} (${c.circle} circle, ${c.compa
         return 'bg-gray-50/20 text-gray-700 border-gray-200/30 dark:bg-gray-800/20 dark:text-gray-300 dark:border-gray-700/30 backdrop-blur-md';
     }
   };
+  const getCircleBadge = (circle: string) => {
+    switch (circle) {
+      case "inner":
+        return (
+          <Badge className="bg-[#2664EB] text-white hover:bg-[#1d4ed8] border-0">
+            Inner
+          </Badge>
+        );
+      case "middle":
+        return (
+          <Badge className="bg-[#16A34A] text-white hover:bg-[#15803d] border-0">
+            Middle
+          </Badge>
+        );
+      case "outer":
+        return (
+          <Badge className="bg-[#9CA3AF] text-white hover:bg-[#6b7280] border-0">
+            Outer
+          </Badge>
+        );
+      default:
+        return null;
+    }
+  };
   const handleActionClick = async (recommendation: Recommendation) => {
     const {
       contact,
@@ -346,9 +370,7 @@ ${staleContacts.slice(0, 8).map(c => `- ${c.name} (${c.circle} circle, ${c.compa
                 <p className="text-xs text-muted-foreground/80 mb-3 italic">{rec.reasoning}</p>
                 
                 <div className="flex items-center justify-between">
-                  <Badge variant="secondary" className="text-xs bg-white/20 dark:bg-white/10 border border-white/20 dark:border-white/10">
-                    {rec.contact.circle} circle
-                  </Badge>
+                  {getCircleBadge(rec.contact.circle)}
                   <Button size="sm" onClick={e => {
               e.stopPropagation();
               handleActionClick(rec);
