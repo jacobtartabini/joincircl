@@ -15,9 +15,26 @@ export const ContactAvatar = ({
   circle,
   className
 }: ContactAvatarProps) => {
+  // Get circle-specific ring color using new standardized colors
+  const getRingColor = () => {
+    switch (circle) {
+      case "inner":
+        return "ring-[#2664EB]";
+      case "middle":
+        return "ring-[#16A34A]";
+      case "outer":
+        return "ring-[#9CA3AF]";
+      default:
+        return "ring-gray-400";
+    }
+  };
+
   return (
     <div className={cn("relative", className)}>
-      <div className="w-12 h-12 bg-circl-lightBlue/20 rounded-full flex items-center justify-center text-circl-blue font-medium">
+      <div className={cn(
+        "w-12 h-12 bg-circl-lightBlue/20 rounded-full flex items-center justify-center text-circl-blue font-medium ring-2",
+        getRingColor()
+      )}>
         {avatarUrl ? (
           <img
             src={avatarUrl}

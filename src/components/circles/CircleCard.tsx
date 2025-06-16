@@ -30,24 +30,24 @@ export function CircleCard({
     return format(interactionDate, 'MMM d');
   };
 
-  // Determine circle type badge with unified styling
+  // Determine circle type badge with unified styling using new standardized colors
   const getCircleBadge = () => {
     switch (contact.circle) {
       case "inner":
         return (
-          <Badge variant="success">
+          <Badge className="bg-[#2664EB] text-white hover:bg-[#1d4ed8] border-0">
             Inner
           </Badge>
         );
       case "middle":
         return (
-          <Badge variant="warning">
+          <Badge className="bg-[#16A34A] text-white hover:bg-[#15803d] border-0">
             Middle
           </Badge>
         );
       case "outer":
         return (
-          <Badge variant="default">
+          <Badge className="bg-[#9CA3AF] text-white hover:bg-[#6b7280] border-0">
             Outer
           </Badge>
         );

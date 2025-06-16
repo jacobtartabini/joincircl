@@ -11,13 +11,29 @@ interface ContactInfoProps {
 }
 
 export default function ContactInfo({ contact }: ContactInfoProps) {
-  // Group media by type for display
+  // Get circle-specific colors for consistent styling
+  const getCircleRingColor = () => {
+    switch (contact.circle) {
+      case "inner":
+        return "ring-[#2664EB]";
+      case "middle":
+        return "ring-[#16A34A]";
+      case "outer":
+        return "ring-[#9CA3AF]";
+      default:
+        return "ring-gray-400";
+    }
+  };
+
   return (
     <Card>
       <CardHeader className="pb-2">
         <div className="flex items-center gap-4">
           <div className="relative">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xl font-medium">
+            <div className={cn(
+              "w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xl font-medium ring-2",
+              getCircleRingColor()
+            )}>
               {contact.avatar_url ? <img src={contact.avatar_url} alt={contact.name} className="w-full h-full object-cover rounded-full" /> : contact.name.charAt(0).toUpperCase()}
             </div>
             <CircleBadge type={contact.circle} className="absolute -bottom-1 -right-1 border-2 border-white w-7 h-7" />

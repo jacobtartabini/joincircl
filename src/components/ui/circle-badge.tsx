@@ -12,11 +12,11 @@ interface CircleBadgeProps {
 export const getCircleColor = (type: CircleType) => {
   switch (type) {
     case "inner":
-      return "bg-rose-500 text-white";
+      return "bg-[#2664EB] text-white";
     case "middle":
-      return "bg-amber-500 text-white";
+      return "bg-[#16A34A] text-white";
     case "outer":
-      return "bg-blue-500 text-white";
+      return "bg-[#9CA3AF] text-white";
     default:
       return "bg-gray-400 text-white";
   }

@@ -72,6 +72,10 @@ export default {
           darkBlue: '#026387',      // complementary dark shade
           gray: '#403E43',
           lightGray: '#F1F1F1',
+          // Standardized Circle colors
+          inner: '#2664EB',         // Inner Circle - Blue
+          middle: '#16A34A',        // Middle Circle - Green
+          outer: '#9CA3AF',         // Outer Circle - Gray
         },
       },
       borderRadius: {
