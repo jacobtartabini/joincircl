@@ -85,7 +85,7 @@ export function AvatarNotificationBell({
   const handleLogOut = async () => {
     setIsOpen(false);
     await signOut();
-    navigate('/auth');
+    navigate('/signin');
   };
 
   const displayName = profile?.full_name?.split(' ')[0] || 'User';
