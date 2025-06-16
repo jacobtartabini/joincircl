@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Camera, Upload, Loader2, User } from 'lucide-react';
+import { Camera, Upload, Loader2, User, Sparkles } from 'lucide-react';
 import { useUserProfile } from '@/hooks/useUserProfile';
 
 interface ProfileSetupStepProps {
@@ -74,7 +74,7 @@ export default function ProfileSetupStep({ onNext, onSkip }: ProfileSetupStepPro
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto space-y-6">
       <input 
         ref={fileInputRef} 
         type="file" 
@@ -83,24 +83,29 @@ export default function ProfileSetupStep({ onNext, onSkip }: ProfileSetupStepPro
         className="hidden" 
       />
 
-      <div className="text-center mb-8">
-        <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+      {/* Header */}
+      <div className="text-center space-y-4">
+        <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center mx-auto shadow-lg">
           <User className="h-8 w-8 text-white" />
         </div>
-        <h1 className="text-3xl font-bold text-foreground mb-3">Complete Your Profile</h1>
-        <p className="text-lg text-muted-foreground">Help others recognize and connect with you</p>
-        <div className="mt-2">
-          <span className="text-sm text-blue-600 font-medium">{getCompletionPercentage()}% Complete</span>
+        <div>
+          <h1 className="text-3xl font-bold text-foreground mb-2 gradient-text">Complete Your Profile</h1>
+          <p className="text-muted-foreground">Help others recognize and connect with you</p>
+        </div>
+        <div className="glass-card inline-flex items-center gap-2 px-4 py-2">
+          <Sparkles className="h-4 w-4 text-primary" />
+          <span className="text-sm font-medium text-foreground">{getCompletionPercentage()}% Complete</span>
         </div>
       </div>
 
-      <Card className="border-0 shadow-lg bg-white/90 backdrop-blur-sm">
+      {/* Main Form */}
+      <Card className="glass-card-enhanced border-0 shadow-xl">
         <CardHeader className="text-center pb-4">
           <div className="flex justify-center mb-6">
             <div className="relative">
-              <Avatar className="h-24 w-24 border-4 border-white shadow-lg">
+              <Avatar className="h-24 w-24 border-4 border-white/20 shadow-lg backdrop-blur-sm">
                 <AvatarImage src={profile?.avatar_url} alt="Profile" />
-                <AvatarFallback className="text-2xl font-semibold bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                <AvatarFallback className="text-2xl font-semibold bg-gradient-to-br from-primary to-primary/80 text-white">
                   {formData.first_name?.charAt(0) || profile?.email?.charAt(0) || 'U'}
                   {formData.last_name?.charAt(0) || ''}
                 </AvatarFallback>
@@ -108,12 +113,12 @@ export default function ProfileSetupStep({ onNext, onSkip }: ProfileSetupStepPro
               <button 
                 onClick={handlePhotoUpload} 
                 disabled={uploading}
-                className="absolute -bottom-2 -right-2 p-2 bg-white border border-gray-200 rounded-full shadow-md hover:bg-gray-50 transition-colors disabled:opacity-50"
+                className="glass-button absolute -bottom-2 -right-2 p-2 rounded-full shadow-lg hover:scale-105 transition-all disabled:opacity-50"
               >
                 {uploading ? (
-                  <Loader2 className="h-4 w-4 animate-spin text-gray-600" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  <Camera className="h-4 w-4 text-gray-600" />
+                  <Camera className="h-4 w-4" />
                 )}
               </button>
             </div>
@@ -123,7 +128,10 @@ export default function ProfileSetupStep({ onNext, onSkip }: ProfileSetupStepPro
         <CardContent className="space-y-6">
           {/* Basic Information */}
           <div className="space-y-4">
-            <h3 className="font-semibold text-foreground border-b pb-2">Basic Information</h3>
+            <h3 className="font-semibold text-foreground flex items-center gap-2">
+              <div className="w-2 h-2 bg-primary rounded-full"></div>
+              Basic Information
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="firstName" className="text-sm font-medium text-foreground">
@@ -133,7 +141,7 @@ export default function ProfileSetupStep({ onNext, onSkip }: ProfileSetupStepPro
                   id="firstName"
                   value={formData.first_name}
                   onChange={(e) => setFormData({...formData, first_name: e.target.value})}
-                  className="rounded-full border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  className="glass-input rounded-xl"
                   placeholder="Enter your first name"
                 />
               </div>
@@ -145,7 +153,7 @@ export default function ProfileSetupStep({ onNext, onSkip }: ProfileSetupStepPro
                   id="lastName"
                   value={formData.last_name}
                   onChange={(e) => setFormData({...formData, last_name: e.target.value})}
-                  className="rounded-full border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  className="glass-input rounded-xl"
                   placeholder="Enter your last name"
                 />
               </div>
@@ -158,7 +166,7 @@ export default function ProfileSetupStep({ onNext, onSkip }: ProfileSetupStepPro
                   id="phone"
                   value={formData.phone_number}
                   onChange={(e) => setFormData({...formData, phone_number: e.target.value})}
-                  className="rounded-full border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  className="glass-input rounded-xl"
                   placeholder="Enter your phone number"
                 />
               </div>
@@ -168,7 +176,7 @@ export default function ProfileSetupStep({ onNext, onSkip }: ProfileSetupStepPro
                   id="location"
                   value={formData.location}
                   onChange={(e) => setFormData({...formData, location: e.target.value})}
-                  className="rounded-full border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  className="glass-input rounded-xl"
                   placeholder="City, Country"
                 />
               </div>
@@ -177,7 +185,10 @@ export default function ProfileSetupStep({ onNext, onSkip }: ProfileSetupStepPro
 
           {/* Professional Information */}
           <div className="space-y-4">
-            <h3 className="font-semibold text-foreground border-b pb-2">Professional Information</h3>
+            <h3 className="font-semibold text-foreground flex items-center gap-2">
+              <div className="w-2 h-2 bg-primary rounded-full"></div>
+              Professional Information
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="company" className="text-sm font-medium text-foreground">Company</Label>
@@ -185,7 +196,7 @@ export default function ProfileSetupStep({ onNext, onSkip }: ProfileSetupStepPro
                   id="company"
                   value={formData.company_name}
                   onChange={(e) => setFormData({...formData, company_name: e.target.value})}
-                  className="rounded-full border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  className="glass-input rounded-xl"
                   placeholder="Your company name"
                 />
               </div>
@@ -195,7 +206,7 @@ export default function ProfileSetupStep({ onNext, onSkip }: ProfileSetupStepPro
                   id="jobTitle"
                   value={formData.job_title}
                   onChange={(e) => setFormData({...formData, job_title: e.target.value})}
-                  className="rounded-full border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  className="glass-input rounded-xl"
                   placeholder="Your job title"
                 />
               </div>
@@ -209,7 +220,7 @@ export default function ProfileSetupStep({ onNext, onSkip }: ProfileSetupStepPro
               id="bio"
               value={formData.bio}
               onChange={(e) => setFormData({...formData, bio: e.target.value})}
-              className="border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 min-h-[100px]"
+              className="glass-input rounded-xl min-h-[100px] resize-none"
               placeholder="Tell us a bit about yourself..."
             />
           </div>
@@ -218,7 +229,7 @@ export default function ProfileSetupStep({ onNext, onSkip }: ProfileSetupStepPro
             <Button 
               variant="ghost" 
               onClick={handleSkip}
-              className="text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground glass-button"
             >
               Skip for now
             </Button>
@@ -226,7 +237,7 @@ export default function ProfileSetupStep({ onNext, onSkip }: ProfileSetupStepPro
             <Button 
               onClick={handleContinue}
               disabled={!isBasicInfoComplete || saving}
-              className="bg-blue-600 hover:bg-blue-700 px-8 rounded-full min-w-[120px]"
+              className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white px-8 rounded-xl shadow-lg min-w-[120px] glass-float"
             >
               {saving ? (
                 <>

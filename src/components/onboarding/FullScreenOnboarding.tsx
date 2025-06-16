@@ -83,31 +83,35 @@ export default function FullScreenOnboarding({ onComplete }: FullScreenOnboardin
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-gradient-to-br from-blue-50/90 to-purple-50/90 backdrop-blur-md">
-      <div className="min-h-screen flex flex-col">
-        {/* Header with logo and progress */}
-        <div className="flex justify-between items-center pt-8 px-8 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-lg">C</span>
+    <div className="fixed inset-0 z-50 bg-gradient-to-br from-background via-muted/20 to-background overflow-hidden">
+      <div className="h-full flex flex-col">
+        {/* Header with logo and progress - Fixed at top */}
+        <div className="flex-shrink-0 glass-nav border-b border-white/10">
+          <div className="flex justify-between items-center px-6 py-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-lg">
+                <span className="text-white font-bold text-lg">C</span>
+              </div>
+              <span className="font-bold text-xl text-foreground">Circl</span>
             </div>
-            <span className="font-bold text-2xl text-foreground">Circl</span>
-          </div>
-          
-          <div className="text-sm text-muted-foreground">
-            Progress: {getProgress()}%
+            
+            <div className="glass-card px-3 py-1.5">
+              <div className="text-sm font-medium text-foreground">
+                {getProgress()}% Complete
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Main content area */}
-        <div className="flex-1 flex items-center justify-center px-4 py-8">
-          <div className="w-full max-w-4xl">
+        {/* Main scrollable content area */}
+        <div className="flex-1 overflow-y-auto px-4 py-6">
+          <div className="max-w-4xl mx-auto">
             {renderCurrentStep()}
           </div>
         </div>
 
-        {/* Bottom stepper with tiny indicators */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-200 p-6">
+        {/* Bottom stepper - Fixed at bottom */}
+        <div className="flex-shrink-0 glass-nav border-t border-white/10 p-4">
           <div className="max-w-md mx-auto">
             <Stepper value={currentStep} className="w-full">
               {steps.map((step, index) => (
@@ -120,7 +124,7 @@ export default function FullScreenOnboarding({ onComplete }: FullScreenOnboardin
                 >
                   <StepperTrigger asChild>
                     <div className="flex flex-col items-center gap-2">
-                      <StepperIndicator className="size-4 data-[state=active]:border-2 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=completed]:bg-primary data-[state=completed]:text-primary-foreground [&_span]:sr-only [&_svg]:size-3" />
+                      <StepperIndicator className="size-3 data-[state=active]:border-2 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=completed]:bg-primary data-[state=completed]:text-primary-foreground [&_span]:sr-only [&_svg]:size-2" />
                       <span className="text-xs font-medium text-muted-foreground">
                         {stepLabels[index]}
                       </span>
