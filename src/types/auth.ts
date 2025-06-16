@@ -11,7 +11,7 @@ export interface Profile {
   has_seen_tutorial: boolean | null;
   onboarding_completed: boolean | null;
   onboarding_completed_at: string | null;
-  onboarding_step_completed: string | null;
+  onboarding_step_completed: any | null; // Changed from string to any to match Json type from Supabase
   first_name: string | null;
   last_name: string | null;
   phone_number: string | null;
