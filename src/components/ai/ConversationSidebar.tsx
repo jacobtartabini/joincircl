@@ -68,16 +68,16 @@ export default function ConversationSidebar({
   }
 
   return (
-    <div className="w-56 bg-white/80 dark:bg-black/20 border-r border-white/20 dark:border-white/10 backdrop-blur-lg flex flex-col h-full">
+    <div className="w-64 bg-white/80 dark:bg-black/20 border-r border-white/20 dark:border-white/10 backdrop-blur-lg flex flex-col h-full">
       {/* Header */}
       <div className="p-3 border-b border-white/20 dark:border-white/10">
         <div className="flex items-center gap-2 mb-3">
-          <h2 className="font-semibold text-foreground text-lg text-center flex-1">Conversations</h2>
+          <h2 className="font-semibold text-foreground text-lg">Conversations</h2>
           <Button 
             onClick={onToggleCollapse} 
             variant="ghost" 
             size="sm" 
-            className="w-8 h-8 p-0 glass-button"
+            className="ml-auto w-8 h-8 p-0 glass-button"
           >
             <PanelLeft className="h-4 w-4" />
           </Button>
