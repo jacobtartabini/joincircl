@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -365,7 +366,7 @@ export default function Arlo() {
       />
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col min-h-0">
+      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
         {/* Header with refresh button in top right */}
         <div className="flex-shrink-0 glass-nav border-b px-6 py-4">
           <div className="flex items-center justify-end">
@@ -381,7 +382,7 @@ export default function Arlo() {
         </div>
 
         {/* Messages Area */}
-        <div className="flex-1 min-h-0 relative">
+        <div className="flex-1 min-h-0 relative overflow-hidden">
           <div 
             className="h-full overflow-y-auto scrollbar-hide"
             style={{
@@ -389,13 +390,13 @@ export default function Arlo() {
               msOverflowStyle: 'none'
             }}
           >
-            <div className="max-w-3xl mx-auto px-6">
+            <div className="max-w-3xl mx-auto px-6 pb-40">
               {!activeConversation || activeConversation.messages.length <= 1 ? (
                 <div className="py-8">
                   <ConversationStarters onSelectPrompt={handlePromptSelect} />
                 </div>
               ) : (
-                <div className="py-6 space-y-4 pb-32">
+                <div className="py-6 space-y-4">
                   {activeConversation.messages.slice(1).map((message) => (
                     <motion.div
                       key={message.id}
@@ -452,8 +453,8 @@ export default function Arlo() {
           </div>
         </div>
 
-        {/* Fixed Input Area - positioned above floating nav with more spacing */}
-        <div className="flex-shrink-0 glass-nav border-t px-6 py-6 mb-32">
+        {/* Fixed Input Area - positioned at bottom with proper spacing */}
+        <div className="absolute bottom-36 left-0 right-0 glass-nav border-t px-6 py-4">
           <div className="max-w-3xl mx-auto">
             <div className="flex items-end gap-3">
               <AutoExpandingTextarea
