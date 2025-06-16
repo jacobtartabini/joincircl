@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Contact, Interaction } from "@/types/contact";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -10,7 +9,6 @@ import { MoreHorizontal, Phone, Mail, MapPin, Edit, Trash, MessageSquare, Calend
 import { formatDistanceToNow } from "date-fns";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { motion, AnimatePresence } from "framer-motion";
-import { getCircleColor } from "@/components/ui/circle-badge";
 
 interface EnhancedContactDetailProps {
   contact: Contact;
@@ -45,16 +43,28 @@ export function EnhancedContactDetail({
     }
   };
 
-  const getCircleColor = (circle: string) => {
+  const getCircleBadge = (circle: string) => {
     switch (circle) {
       case "inner":
-        return "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400";
+        return (
+          <Badge className="bg-[#2664EB] text-white hover:bg-[#1d4ed8] border-0">
+            Inner Circle
+          </Badge>
+        );
       case "middle":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400";
+        return (
+          <Badge className="bg-[#16A34A] text-white hover:bg-[#15803d] border-0">
+            Middle Circle
+          </Badge>
+        );
       case "outer":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400";
+        return (
+          <Badge className="bg-[#9CA3AF] text-white hover:bg-[#6b7280] border-0">
+            Outer Circle
+          </Badge>
+        );
       default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
+        return null;
     }
   };
 
@@ -92,9 +102,7 @@ export function EnhancedContactDetail({
         </div>
         
         <div className="flex items-center justify-between">
-          <Badge variant="secondary" className={getCircleColor(contact.circle)}>
-            {contact.circle.charAt(0).toUpperCase() + contact.circle.slice(1)} Circle
-          </Badge>
+          {getCircleBadge(contact.circle)}
           
           <div className="flex items-center space-x-1">
             <Button variant="ghost" size="sm" onClick={onEdit} className="unified-button h-8 w-8 p-0">
