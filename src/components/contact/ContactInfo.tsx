@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { Calendar, Mail, Phone, MapPin, Briefcase, GraduationCap, Instagram, Twitter } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 interface ContactInfoProps {
   contact: Contact;
