@@ -3,36 +3,37 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import FullScreenOnboarding from './onboarding/FullScreenOnboarding';
 
-// Named export for consistency
 export const UserOnboarding = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   
   useEffect(() => {
-    // Check if this is the user's first visit
-    const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
-    
-    if (user && !hasSeenOnboarding) {
-      // Delay showing the onboarding flow to prevent it from showing immediately on login
-      const timer = setTimeout(() => {
-        setIsOpen(true);
-      }, 1500);
+    // Check if user needs onboarding
+    if (user && profile) {
+      const hasCompletedOnboarding = profile.onboarding_completed;
+      const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
       
-      return () => clearTimeout(timer);
+      // Show onboarding if not completed and not seen before
+      if (!hasCompletedOnboarding && !hasSeenOnboarding) {
+        const timer = setTimeout(() => {
+          setIsOpen(true);
+        }, 1000); // Reduced delay for better UX
+        
+        return () => clearTimeout(timer);
+      }
     }
-  }, [user]);
+  }, [user, profile]);
   
   const handleComplete = () => {
     localStorage.setItem('hasSeenOnboarding', 'true');
     setIsOpen(false);
   };
 
-  if (!isOpen) {
+  if (!isOpen || !user) {
     return null;
   }
   
   return <FullScreenOnboarding onComplete={handleComplete} />;
 };
 
-// Add default export as well for backward compatibility
 export default UserOnboarding;
