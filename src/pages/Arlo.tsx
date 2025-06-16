@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -370,16 +371,11 @@ export default function Arlo() {
         {/* Header */}
         <div className="flex-shrink-0 glass-nav border-b px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 glass-card rounded-xl flex items-center justify-center">
-                <Brain className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-lg font-semibold text-foreground">
-                  {activeConversation ? activeConversation.title : 'Arlo'}
-                </h1>
-                <p className="text-sm text-muted-foreground">Relationship assistant</p>
-              </div>
+            <div>
+              <h1 className="text-lg font-semibold text-foreground">
+                {activeConversation ? activeConversation.title : 'Arlo'}
+              </h1>
+              <p className="text-sm text-muted-foreground">Relationship assistant</p>
             </div>
             <Button
               onClick={refreshConversations}
