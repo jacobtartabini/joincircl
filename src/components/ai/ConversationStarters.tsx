@@ -1,8 +1,11 @@
+
 import { Card } from "@/components/ui/card";
 import { MessageCircle, Users, TrendingUp, Calendar } from "lucide-react";
+
 interface ConversationStartersProps {
   onSelectPrompt: (prompt: string) => void;
 }
+
 export default function ConversationStarters({
   onSelectPrompt
 }: ConversationStartersProps) {
@@ -23,10 +26,12 @@ export default function ConversationStarters({
     title: "Relationship Building",
     question: "What's the best way to maintain long-distance professional relationships?"
   }];
-  return <div className="max-w-2xl mx-auto p-4">
+
+  return (
+    <div className="max-w-2xl mx-auto p-4">
       <div className="text-center mb-6">
         <h2 className="text-foreground mb-2 text-3xl font-bold">
-          Welcome to Arlo
+          Welcome to <span className="bg-gradient-to-r from-[#0daeec] to-[#7c3aed] bg-clip-text text-transparent">Arlo</span>
         </h2>
         <p className="text-muted-foreground text-sm">
           Your AI relationship assistant. How can I help you strengthen your network today?
@@ -35,8 +40,13 @@ export default function ConversationStarters({
       
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {prompts.map((prompt, index) => {
-        const Icon = prompt.icon;
-        return <Card key={index} className="glass-card p-4 cursor-pointer transition-all duration-200 hover:glass-float" onClick={() => onSelectPrompt(prompt.question)}>
+          const Icon = prompt.icon;
+          return (
+            <Card 
+              key={index} 
+              className="glass-card p-4 cursor-pointer transition-all duration-200 hover:glass-float" 
+              onClick={() => onSelectPrompt(prompt.question)}
+            >
               <div className="flex items-start space-x-3">
                 <div className="flex-shrink-0 mt-1">
                   <Icon className="h-4 w-4 text-primary" />
@@ -50,8 +60,10 @@ export default function ConversationStarters({
                   </p>
                 </div>
               </div>
-            </Card>;
-      })}
+            </Card>
+          );
+        })}
       </div>
-    </div>;
+    </div>
+  );
 }

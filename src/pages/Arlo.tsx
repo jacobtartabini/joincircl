@@ -240,8 +240,7 @@ export default function Arlo() {
               <Brain className="h-5 w-5 text-primary" />
             </div>
             <div className="flex-1">
-              <h1 className="text-lg font-semibold text-foreground">Arlo</h1>
-              <p className="text-xs text-muted-foreground">Relationship assistant</p>
+              {/* Mobile header content removed as requested */}
             </div>
             <Button
               onClick={refreshConversations}
@@ -319,7 +318,7 @@ export default function Arlo() {
         </div>
 
         {/* Fixed Input Area */}
-        <div className="fixed bottom-20 left-0 right-0 glass-nav border-t p-4">
+        <div className="fixed bottom-24 left-0 right-0 glass-nav border-t p-4">
           <div className="flex items-end gap-3">
             <AutoExpandingTextarea
               placeholder="Ask Arlo about your relationships..."
@@ -367,9 +366,9 @@ export default function Arlo() {
 
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col min-h-0">
-        {/* Header */}
+        {/* Header with refresh button in top right */}
         <div className="flex-shrink-0 glass-nav border-b px-6 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-end">
             <Button
               onClick={refreshConversations}
               variant="ghost"
@@ -453,8 +452,8 @@ export default function Arlo() {
           </div>
         </div>
 
-        {/* Fixed Input Area - positioned above floating nav */}
-        <div className="flex-shrink-0 glass-nav border-t px-6 py-4 mb-20">
+        {/* Fixed Input Area - positioned above floating nav with increased spacing */}
+        <div className="flex-shrink-0 glass-nav border-t px-6 py-4 mb-24">
           <div className="max-w-3xl mx-auto">
             <div className="flex items-end gap-3">
               <AutoExpandingTextarea
@@ -482,11 +481,13 @@ export default function Arlo() {
         </div>
       </div>
 
-      <style>{`
+      <style>
+        {`
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
         }
-      `}</style>
+      `}
+      </style>
     </div>
   );
 }
