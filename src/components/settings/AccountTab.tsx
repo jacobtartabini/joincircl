@@ -3,11 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertTriangle, Globe, Moon, Sun, Monitor, LogOut, Loader2 } from "lucide-react";
+import { AlertTriangle, Globe, LogOut, Loader2 } from "lucide-react";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { ThemeSelector } from "./ThemeSelector";
+
 const AccountTab = () => {
   const {
     preferences,
@@ -19,6 +21,7 @@ const AccountTab = () => {
     toast
   } = useToast();
   const navigate = useNavigate();
+
   const handleSignOut = async () => {
     setSigningOut(true);
     try {
@@ -37,6 +40,7 @@ const AccountTab = () => {
     }
     setSigningOut(false);
   };
+
   const handleExportData = async () => {
     try {
       const {
@@ -78,6 +82,7 @@ const AccountTab = () => {
       });
     }
   };
+
   const handleDeleteAccount = async () => {
     if (!confirm('Are you absolutely sure you want to delete your account? This action cannot be undone.')) {
       return;
@@ -103,11 +108,13 @@ const AccountTab = () => {
       });
     }
   };
+
   if (loading) {
     return <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>;
   }
+
   return <div className="space-y-6">
       {/* General Settings */}
       <Card className="border border-gray-200">
@@ -164,32 +171,11 @@ const AccountTab = () => {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Theme</label>
-            <div className="flex gap-2">
-              {[{
-              value: "light",
-              icon: Sun,
-              label: "Light"
-            }, {
-              value: "dark",
-              icon: Moon,
-              label: "Dark"
-            }, {
-              value: "system",
-              icon: Monitor,
-              label: "System"
-            }].map(({
-              value,
-              icon: Icon,
-              label
-            }) => <Button key={value} variant={preferences?.theme === value ? "default" : "outline"} size="sm" onClick={() => updatePreferences({
-              theme: value
-            })} className="flex items-center gap-2 rounded-full">
-                  <Icon className="h-4 w-4" />
-                  {label}
-                </Button>)}
-            </div>
+          <div className="space-y-4">
+            <ThemeSelector 
+              value={preferences?.theme || 'system'} 
+              onValueChange={(theme) => updatePreferences({ theme })}
+            />
           </div>
         </CardContent>
       </Card>
@@ -274,4 +260,5 @@ const AccountTab = () => {
       </Card>
     </div>;
 };
+
 export default AccountTab;
