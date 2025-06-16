@@ -1,10 +1,11 @@
 
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { GlassModal } from "@/components/ui/GlassModal";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { GlassInput } from "@/components/ui/GlassInput";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { GlassSelect, GlassSelectContent, GlassSelectItem, GlassSelectTrigger, GlassSelectValue } from "@/components/ui/GlassSelect";
+import { FileText } from "lucide-react";
 
 interface DocumentFormData {
   document_name: string;
@@ -47,16 +48,19 @@ export function AddDocumentDialog({ isOpen, onOpenChange, onAdd }: AddDocumentDi
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="glass-card max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-foreground">Upload Document</DialogTitle>
-        </DialogHeader>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <GlassModal
+      open={isOpen}
+      onOpenChange={onOpenChange}
+      title="Upload Document"
+      subtitle="Add documents to your career toolkit"
+      icon={FileText}
+      maxWidth="max-w-md"
+    >
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="document_name">Document Name *</Label>
-            <Input
+            <GlassInput
               id="document_name"
               value={formData.document_name}
               onChange={(e) => handleInputChange('document_name', e.target.value)}
@@ -67,49 +71,53 @@ export function AddDocumentDialog({ isOpen, onOpenChange, onAdd }: AddDocumentDi
 
           <div className="space-y-2">
             <Label htmlFor="document_type">Document Type</Label>
-            <Select value={formData.document_type} onValueChange={(value) => handleInputChange('document_type', value)}>
-              <SelectTrigger className="bg-white/40 dark:bg-white/5 border-white/30 dark:border-white/15 backdrop-blur-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="resume">Resume</SelectItem>
-                <SelectItem value="cover_letter">Cover Letter</SelectItem>
-                <SelectItem value="portfolio">Portfolio</SelectItem>
-                <SelectItem value="reference">Reference</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-              </SelectContent>
-            </Select>
+            <GlassSelect value={formData.document_type} onValueChange={(value) => handleInputChange('document_type', value)}>
+              <GlassSelectTrigger>
+                <GlassSelectValue />
+              </GlassSelectTrigger>
+              <GlassSelectContent>
+                <GlassSelectItem value="resume">Resume</GlassSelectItem>
+                <GlassSelectItem value="cover_letter">Cover Letter</GlassSelectItem>
+                <GlassSelectItem value="portfolio">Portfolio</GlassSelectItem>
+                <GlassSelectItem value="reference">Reference</GlassSelectItem>
+                <GlassSelectItem value="other">Other</GlassSelectItem>
+              </GlassSelectContent>
+            </GlassSelect>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="file">File *</Label>
-            <Input
+            <GlassInput
               id="file"
               type="file"
               onChange={handleFileChange}
               accept=".pdf,.doc,.docx,.txt"
               required
+              className="file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
             />
             <p className="text-xs text-muted-foreground">
-              Supported formats: PDF, DOC, DOCX, TXT
+              Supported formats: PDF, DOC, DOCX, TXT (Max 10MB)
             </p>
           </div>
+        </div>
 
-          <div className="flex gap-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-            <Button type="submit" className="flex-1 glass-button">
-              Upload Document
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+        <div className="flex gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            className="flex-1 rounded-full bg-white/20 border-white/30 backdrop-blur-sm hover:bg-white/30"
+          >
+            Cancel
+          </Button>
+          <Button 
+            type="submit" 
+            className="flex-1 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0"
+          >
+            Upload Document
+          </Button>
+        </div>
+      </form>
+    </GlassModal>
   );
 }

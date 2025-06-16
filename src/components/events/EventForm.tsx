@@ -1,21 +1,22 @@
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Calendar } from 'lucide-react'
-import { format } from 'date-fns'
-import { EventFormData } from '@/types/events'
-import { keystoneService } from '@/services/keystoneService'
-import { supabase } from '@/integrations/supabase/client'
-import { useToast } from '@/hooks/use-toast'
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { GlassInput } from '@/components/ui/GlassInput';
+import { GlassTextarea } from '@/components/ui/GlassTextarea';
+import { Label } from '@/components/ui/label';
+import { GlassSelect, GlassSelectContent, GlassSelectItem, GlassSelectTrigger, GlassSelectValue } from '@/components/ui/GlassSelect';
+import { StandardModalHeader } from '@/components/ui/StandardModalHeader';
+import { Calendar } from 'lucide-react';
+import { format } from 'date-fns';
+import { EventFormData } from '@/types/events';
+import { keystoneService } from '@/services/keystoneService';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface EventFormProps {
-  onSuccess: () => void
-  onCancel: () => void
-  preselectedContactId?: string
+  onSuccess: () => void;
+  onCancel: () => void;
+  preselectedContactId?: string;
 }
 
 export function EventForm({ onSuccess, onCancel, preselectedContactId }: EventFormProps) {
@@ -28,16 +29,16 @@ export function EventForm({ onSuccess, onCancel, preselectedContactId }: EventFo
     category: '',
     notes: '',
     is_recurring: false
-  })
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const { toast } = useToast()
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+    e.preventDefault();
+    setIsSubmitting(true);
 
     try {
-      const datetime = `${formData.date}T${formData.time || '00:00'}:00.000Z`
+      const datetime = `${formData.date}T${formData.time || '00:00'}:00.000Z`;
 
       if (formData.type === 'keystone') {
         await keystoneService.createKeystone({
@@ -47,15 +48,14 @@ export function EventForm({ onSuccess, onCancel, preselectedContactId }: EventFo
           contact_id: formData.contact_ids?.[0] || null,
           is_recurring: formData.is_recurring,
           notes: formData.notes || undefined
-        })
+        });
       } else if (formData.type === 'interaction') {
-        // --- Fix: get current user id and include it ---
         const {
           data: { user },
           error: userError,
-        } = await supabase.auth.getUser()
+        } = await supabase.auth.getUser();
         if (!user || userError) {
-          throw new Error('Failed to get user info for interaction event')
+          throw new Error('Failed to get user info for interaction event');
         }
         const { error } = await supabase
           .from('interactions')
@@ -64,127 +64,129 @@ export function EventForm({ onSuccess, onCancel, preselectedContactId }: EventFo
             type: formData.category || 'general',
             date: datetime,
             notes: formData.notes || undefined,
-            user_id: user.id // This is now required!
-          })
+            user_id: user.id
+          });
 
-        if (error) throw error
+        if (error) throw error;
       }
 
       toast({
         title: "Event created",
         description: `${formData.type} "${formData.title}" has been created successfully.`,
-      })
+      });
       
-      onSuccess()
+      onSuccess();
     } catch (error) {
-      console.error('Error creating event:', error)
+      console.error('Error creating event:', error);
       toast({
         title: "Error",
         description: "Failed to create event. Please try again.",
         variant: "destructive"
-      })
+      });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-          <Calendar className="h-5 w-5 text-primary" />
-        </div>
-        <div>
-          <h2 className="text-lg font-semibold text-foreground">Create New Event</h2>
-          <p className="text-sm text-muted-foreground">Add a new event to your calendar</p>
-        </div>
-      </div>
+    <div className="space-y-6">
+      <StandardModalHeader
+        icon={Calendar}
+        title="Create New Event"
+        subtitle="Add a new event to your calendar"
+      />
 
-      <div className="space-y-4">
-        <div>
-          <Label htmlFor="type">Event Type</Label>
-          <Select 
-            value={formData.type} 
-            onValueChange={(value) => setFormData(prev => ({ ...prev, type: value as 'keystone' | 'interaction' }))}
-          >
-            <SelectTrigger className="glass-input rounded-xl">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="keystone">Keystone Event</SelectItem>
-              <SelectItem value="interaction">Interaction</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="type">Event Type</Label>
+            <GlassSelect 
+              value={formData.type} 
+              onValueChange={(value) => setFormData(prev => ({ ...prev, type: value as 'keystone' | 'interaction' }))}
+            >
+              <GlassSelectTrigger>
+                <GlassSelectValue />
+              </GlassSelectTrigger>
+              <GlassSelectContent>
+                <GlassSelectItem value="keystone">Keystone Event</GlassSelectItem>
+                <GlassSelectItem value="interaction">Interaction</GlassSelectItem>
+              </GlassSelectContent>
+            </GlassSelect>
+          </div>
 
-        <div>
-          <Label htmlFor="title">Title</Label>
-          <Input
-            id="title"
-            value={formData.title}
-            onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-            placeholder="Event title"
-            required
-            className="glass-input rounded-xl"
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="date">Date</Label>
-            <Input
-              id="date"
-              type="date"
-              value={formData.date}
-              onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+          <div className="space-y-2">
+            <Label htmlFor="title">Title</Label>
+            <GlassInput
+              id="title"
+              value={formData.title}
+              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              placeholder="Event title"
               required
-              className="glass-input rounded-xl"
             />
           </div>
-          <div>
-            <Label htmlFor="time">Time</Label>
-            <Input
-              id="time"
-              type="time"
-              value={formData.time}
-              onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
-              className="glass-input rounded-xl"
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="date">Date</Label>
+              <GlassInput
+                id="date"
+                type="date"
+                value={formData.date}
+                onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="time">Time</Label>
+              <GlassInput
+                id="time"
+                type="time"
+                value={formData.time}
+                onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="category">Category</Label>
+            <GlassInput
+              id="category"
+              value={formData.category}
+              onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+              placeholder="Event category"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="notes">Notes</Label>
+            <GlassTextarea
+              id="notes"
+              value={formData.notes}
+              onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+              placeholder="Additional notes about this event"
+              rows={3}
             />
           </div>
         </div>
 
-        <div>
-          <Label htmlFor="category">Category</Label>
-          <Input
-            id="category"
-            value={formData.category}
-            onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-            placeholder="Event category"
-            className="glass-input rounded-xl"
-          />
+        <div className="flex gap-3">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={onCancel}
+            className="flex-1 rounded-full bg-white/20 border-white/30 backdrop-blur-sm hover:bg-white/30"
+          >
+            Cancel
+          </Button>
+          <Button 
+            type="submit" 
+            disabled={isSubmitting} 
+            className="flex-1 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0"
+          >
+            {isSubmitting ? 'Creating...' : 'Create Event'}
+          </Button>
         </div>
-
-        <div>
-          <Label htmlFor="notes">Notes</Label>
-          <Textarea
-            id="notes"
-            value={formData.notes}
-            onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-            placeholder="Additional notes about this event"
-            rows={3}
-            className="glass-input rounded-xl"
-          />
-        </div>
-      </div>
-
-      <div className="flex gap-3 pt-4">
-        <Button type="submit" disabled={isSubmitting} className="flex-1">
-          {isSubmitting ? 'Creating...' : 'Create Event'}
-        </Button>
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-      </div>
-    </form>
-  )
+      </form>
+    </div>
+  );
 }

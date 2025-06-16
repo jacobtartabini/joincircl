@@ -1,11 +1,12 @@
 
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { GlassModal } from "@/components/ui/GlassModal";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { GlassInput } from "@/components/ui/GlassInput";
+import { GlassTextarea } from "@/components/ui/GlassTextarea";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { GlassSelect, GlassSelectContent, GlassSelectItem, GlassSelectTrigger, GlassSelectValue } from "@/components/ui/GlassSelect";
+import { Calendar } from "lucide-react";
 
 interface EventFormData {
   event_name: string;
@@ -52,16 +53,19 @@ export function AddEventDialog({ isOpen, onOpenChange, onAdd }: AddEventDialogPr
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="glass-card max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-foreground">Add Career Event</DialogTitle>
-        </DialogHeader>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <GlassModal
+      open={isOpen}
+      onOpenChange={onOpenChange}
+      title="Add Career Event"
+      subtitle="Track networking events and career activities"
+      icon={Calendar}
+      maxWidth="max-w-md"
+    >
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="event_name">Event Name *</Label>
-            <Input
+            <GlassInput
               id="event_name"
               value={formData.event_name}
               onChange={(e) => handleInputChange('event_name', e.target.value)}
@@ -72,25 +76,25 @@ export function AddEventDialog({ isOpen, onOpenChange, onAdd }: AddEventDialogPr
 
           <div className="space-y-2">
             <Label htmlFor="event_type">Event Type</Label>
-            <Select value={formData.event_type} onValueChange={(value) => handleInputChange('event_type', value)}>
-              <SelectTrigger className="bg-white/40 dark:bg-white/5 border-white/30 dark:border-white/15 backdrop-blur-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="networking">Networking</SelectItem>
-                <SelectItem value="career fair">Career Fair</SelectItem>
-                <SelectItem value="conference">Conference</SelectItem>
-                <SelectItem value="workshop">Workshop</SelectItem>
-                <SelectItem value="meetup">Meetup</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-              </SelectContent>
-            </Select>
+            <GlassSelect value={formData.event_type} onValueChange={(value) => handleInputChange('event_type', value)}>
+              <GlassSelectTrigger>
+                <GlassSelectValue />
+              </GlassSelectTrigger>
+              <GlassSelectContent>
+                <GlassSelectItem value="networking">Networking</GlassSelectItem>
+                <GlassSelectItem value="career fair">Career Fair</GlassSelectItem>
+                <GlassSelectItem value="conference">Conference</GlassSelectItem>
+                <GlassSelectItem value="workshop">Workshop</GlassSelectItem>
+                <GlassSelectItem value="meetup">Meetup</GlassSelectItem>
+                <GlassSelectItem value="other">Other</GlassSelectItem>
+              </GlassSelectContent>
+            </GlassSelect>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="event_date">Event Date *</Label>
-              <Input
+              <GlassInput
                 id="event_date"
                 type="date"
                 value={formData.event_date}
@@ -101,7 +105,7 @@ export function AddEventDialog({ isOpen, onOpenChange, onAdd }: AddEventDialogPr
 
             <div className="space-y-2">
               <Label htmlFor="contacts_met">Contacts Met</Label>
-              <Input
+              <GlassInput
                 id="contacts_met"
                 type="number"
                 min="0"
@@ -113,7 +117,7 @@ export function AddEventDialog({ isOpen, onOpenChange, onAdd }: AddEventDialogPr
 
           <div className="space-y-2">
             <Label htmlFor="location">Location</Label>
-            <Input
+            <GlassInput
               id="location"
               value={formData.location}
               onChange={(e) => handleInputChange('location', e.target.value)}
@@ -123,29 +127,33 @@ export function AddEventDialog({ isOpen, onOpenChange, onAdd }: AddEventDialogPr
 
           <div className="space-y-2">
             <Label htmlFor="notes">Notes</Label>
-            <Textarea
+            <GlassTextarea
               id="notes"
               value={formData.notes}
               onChange={(e) => handleInputChange('notes', e.target.value)}
               placeholder="Key takeaways, follow-up actions, etc."
+              rows={3}
             />
           </div>
+        </div>
 
-          <div className="flex gap-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-            <Button type="submit" className="flex-1 glass-button">
-              Add Event
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+        <div className="flex gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            className="flex-1 rounded-full bg-white/20 border-white/30 backdrop-blur-sm hover:bg-white/30"
+          >
+            Cancel
+          </Button>
+          <Button 
+            type="submit"
+            className="flex-1 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0"
+          >
+            Add Event
+          </Button>
+        </div>
+      </form>
+    </GlassModal>
   );
 }
