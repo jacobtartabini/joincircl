@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useNotifications } from '@/hooks/use-notifications';
+import { useUnifiedNotifications } from '@/hooks/use-unified-notifications';
 import NotificationsList from './NotificationsList';
 import { Button } from '@/components/ui/button';
 import { Bell } from 'lucide-react';
@@ -12,7 +12,7 @@ const NotificationsContent = () => {
     clearAllNotifications, 
     hasUnread,
     markAllAsRead
-  } = useNotifications();
+  } = useUnifiedNotifications();
   const { toast } = useToast();
   
   const handleClearAll = () => {

@@ -1,61 +1,100 @@
 
-import { useNotifications } from '@/hooks/use-notifications';
-import NotificationItem from './NotificationItem';
+import React from 'react';
+import { useUnifiedNotifications } from '@/hooks/use-unified-notifications';
+import { Bell, Calendar, Users, Heart, Briefcase } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Trash2, CheckCheck } from 'lucide-react';
 
-export default function NotificationsList() {
-  const { 
-    notifications, 
-    clearNotification, 
-    toggleNotificationRead,
-    markAllAsRead,
-    clearAllNotifications 
-  } = useNotifications();
+const getNotificationIcon = (type: string) => {
+  switch (type) {
+    case 'follow_up':
+      return <Users className="h-4 w-4 text-blue-500" />;
+    case 'birthday_reminder':
+      return <Heart className="h-4 w-4 text-pink-500" />;
+    case 'keystone_reminder':
+      return <Calendar className="h-4 w-4 text-green-500" />;
+    case 'job_followup':
+      return <Briefcase className="h-4 w-4 text-purple-500" />;
+    case 'network_insight':
+      return <Users className="h-4 w-4 text-orange-500" />;
+    default:
+      return <Bell className="h-4 w-4 text-gray-500" />;
+  }
+};
+
+const NotificationsList = () => {
+  const { notifications, toggleNotificationRead, clearNotification } = useUnifiedNotifications();
 
   if (notifications.length === 0) {
     return (
-      <div className="text-center py-8">
-        <p className="text-muted-foreground">No notifications yet</p>
+      <div className="text-center py-8 text-muted-foreground">
+        No notifications to display
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      {/* Action buttons */}
-      <div className="flex gap-2 mb-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={markAllAsRead}
-          className="flex items-center gap-2"
+    <div className="space-y-3">
+      {notifications.map((notification) => (
+        <Card 
+          key={notification.id} 
+          className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
+            notification.read ? 'opacity-60' : 'border-l-4 border-l-blue-500'
+          }`}
+          onClick={() => toggleNotificationRead(notification.id)}
         >
-          <CheckCheck className="h-4 w-4" />
-          Mark all as read
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={clearAllNotifications}
-          className="flex items-center gap-2 text-red-500 hover:text-red-600"
-        >
-          <Trash2 className="h-4 w-4" />
-          Clear all
-        </Button>
-      </div>
-
-      {/* Notifications list */}
-      <div className="space-y-3">
-        {notifications.map((notification) => (
-          <NotificationItem
-            key={notification.id}
-            notification={notification}
-            onDismiss={clearNotification}
-            onToggleRead={toggleNotificationRead}
-          />
-        ))}
-      </div>
+          <CardContent className="p-4">
+            <div className="flex items-start justify-between">
+              <div className="flex items-start space-x-3 flex-1">
+                <div className="flex-shrink-0 mt-1">
+                  {getNotificationIcon(notification.type)}
+                </div>
+                
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <h4 className="font-medium text-gray-900 truncate">
+                      {notification.title}
+                    </h4>
+                    {!notification.read && (
+                      <Badge variant="secondary" className="text-xs">
+                        New
+                      </Badge>
+                    )}
+                  </div>
+                  
+                  <p className="text-sm text-gray-600 mb-2">
+                    {notification.message}
+                  </p>
+                  
+                  <span className="text-xs text-gray-500">
+                    {new Date(notification.timestamp).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </span>
+                </div>
+              </div>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  clearNotification(notification.id);
+                }}
+                className="ml-2 text-gray-400 hover:text-red-600"
+              >
+                ×
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
-}
+};
+
+export default NotificationsList;
