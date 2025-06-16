@@ -1,4 +1,5 @@
 
+
 import { Home, Circle, Briefcase, Settings, Atom } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -118,13 +119,13 @@ export default function FloatingNav() {
               ) : (
                 <Icon size={20} />
               )}
-              {(isSelected || !isMobile) && (
+              {isSelected && (
                 <span className={`overflow-hidden whitespace-nowrap ${
                   isArloTab && isSelected 
                     ? "bg-gradient-to-r from-[#0092ca] via-[#a21caf] to-[#ec4899] bg-clip-text text-transparent font-semibold"
                     : ""
-                } ${isMobile && !isSelected ? 'sr-only' : ''}`}>
-                  {isMobile && !isSelected ? '' : navTab.title}
+                }`}>
+                  {navTab.title}
                 </span>
               )}
             </Link>
@@ -134,3 +135,4 @@ export default function FloatingNav() {
     </div>
   );
 }
+
