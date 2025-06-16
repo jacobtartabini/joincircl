@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { GlassInput } from "@/components/ui/GlassInput";
@@ -248,7 +249,7 @@ export default function KeystoneForm({ keystone, contact, onSuccess, onCancel }:
           <Button
             type="submit"
             disabled={isLoading}
-            className="flex-1 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0"
+            className="flex-1 rounded-full bg-primary hover:bg-primary/90 text-white border-0"
           >
             {isLoading ? 'Saving...' : keystone ? 'Update Keystone' : 'Create Keystone'}
           </Button>
