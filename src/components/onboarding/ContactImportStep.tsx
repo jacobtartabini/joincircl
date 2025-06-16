@@ -113,14 +113,47 @@ export default function ContactImportStep({ onNext, onSkip }: ContactImportStepP
               console.warn('CSV validation errors:', errors);
             }
 
-            // Insert contacts into database
-            const contactsToInsert = validContacts.map(contact => ({
-              ...contact,
-              user_id: user?.id,
-              circle: 'outer',
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            }));
+            // Filter contacts to ensure required fields and proper typing
+            const contactsToInsert = validContacts
+              .filter(contact => contact.name && contact.name.trim()) // Ensure name is present
+              .map(contact => ({
+                name: contact.name!,
+                user_id: user?.id!,
+                circle: (contact.circle as "inner" | "middle" | "outer") || 'outer',
+                personal_email: contact.personal_email || null,
+                mobile_phone: contact.mobile_phone || null,
+                location: contact.location || null,
+                website: contact.website || null,
+                linkedin: contact.linkedin || null,
+                facebook: contact.facebook || null,
+                twitter: contact.twitter || null,
+                instagram: contact.instagram || null,
+                company_name: contact.company_name || null,
+                job_title: contact.job_title || null,
+                industry: contact.industry || null,
+                department: contact.department || null,
+                work_address: contact.work_address || null,
+                university: contact.university || null,
+                major: contact.major || null,
+                minor: contact.minor || null,
+                graduation_year: contact.graduation_year || null,
+                birthday: contact.birthday || null,
+                how_met: contact.how_met || null,
+                hobbies_interests: contact.hobbies_interests || null,
+                notes: contact.notes || null,
+                tags: contact.tags || null,
+                avatar_url: contact.avatar_url || null,
+                career_priority: contact.career_priority || false,
+                career_tags: contact.career_tags || null,
+                referral_potential: contact.referral_potential || null,
+                career_event_id: contact.career_event_id || null,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              }));
+
+            if (contactsToInsert.length === 0) {
+              throw new Error('No contacts with valid names found in CSV file');
+            }
 
             const { data: insertedContacts, error } = await supabase
               .from('contacts')
