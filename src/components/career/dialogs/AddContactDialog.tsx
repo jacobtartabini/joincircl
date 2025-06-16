@@ -1,13 +1,12 @@
+
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { GlassModal } from "@/components/ui/GlassModal";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { GlassInput } from "@/components/ui/GlassInput";
+import { GlassTextarea } from "@/components/ui/GlassTextarea";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { Checkbox } from "@/components/ui/checkbox";
+import { UserPlus } from "lucide-react";
 
 interface ContactFormData {
   name: string;
@@ -39,7 +38,6 @@ export function AddContactDialog({ isOpen, onOpenChange, onAdd }: AddContactDial
   });
 
   const [tagsInput, setTagsInput] = useState('');
-  const isMobile = useIsMobile();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,20 +62,21 @@ export function AddContactDialog({ isOpen, onOpenChange, onAdd }: AddContactDial
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  // Mobile: Use Sheet (slide-in from bottom with grab bar)
-  if (isMobile) {
-    return (
-      <Sheet open={isOpen} onOpenChange={onOpenChange}>
-        <SheetContent side="bottom" className="h-[95vh] overflow-auto pt-6 px-2">
-          {/* Grab bar */}
-          <div className="mx-auto -mt-1 mb-4 h-1.5 w-[60px] rounded-full bg-muted" />
-          <SheetHeader className="pb-4">
-            <SheetTitle>Add Career Contact</SheetTitle>
-          </SheetHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
+  return (
+    <GlassModal
+      open={isOpen}
+      onOpenChange={onOpenChange}
+      title="Add Career Contact"
+      subtitle="Add a new contact to your professional network"
+      icon={UserPlus}
+      maxWidth="max-w-lg"
+    >
+      <div className="max-h-[60vh] overflow-y-auto pr-2">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-3">
             <div className="space-y-2">
-              <Label htmlFor="name">Name *</Label>
-              <Input
+              <Label htmlFor="name" className="text-sm font-medium">Name *</Label>
+              <GlassInput
                 id="name"
                 value={formData.name}
                 onChange={(e) => handleInputChange('name', e.target.value)}
@@ -85,9 +84,10 @@ export function AddContactDialog({ isOpen, onOpenChange, onAdd }: AddContactDial
                 required
               />
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="personal_email">Email</Label>
-              <Input
+              <Label htmlFor="personal_email" className="text-sm font-medium">Email</Label>
+              <GlassInput
                 id="personal_email"
                 type="email"
                 value={formData.personal_email}
@@ -95,9 +95,10 @@ export function AddContactDialog({ isOpen, onOpenChange, onAdd }: AddContactDial
                 placeholder="email@example.com"
               />
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="mobile_phone">Phone</Label>
-              <Input
+              <Label htmlFor="mobile_phone" className="text-sm font-medium">Phone</Label>
+              <GlassInput
                 id="mobile_phone"
                 type="tel"
                 value={formData.mobile_phone}
@@ -105,10 +106,11 @@ export function AddContactDialog({ isOpen, onOpenChange, onAdd }: AddContactDial
                 placeholder="+1 (555) 123-4567"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+
+            <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label htmlFor="company_name">Company</Label>
-                <Input
+                <Label htmlFor="company_name" className="text-sm font-medium">Company</Label>
+                <GlassInput
                   id="company_name"
                   value={formData.company_name}
                   onChange={(e) => handleInputChange('company_name', e.target.value)}
@@ -116,8 +118,8 @@ export function AddContactDialog({ isOpen, onOpenChange, onAdd }: AddContactDial
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="job_title">Job Title</Label>
-                <Input
+                <Label htmlFor="job_title" className="text-sm font-medium">Job Title</Label>
+                <GlassInput
                   id="job_title"
                   value={formData.job_title}
                   onChange={(e) => handleInputChange('job_title', e.target.value)}
@@ -125,150 +127,57 @@ export function AddContactDialog({ isOpen, onOpenChange, onAdd }: AddContactDial
                 />
               </div>
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="career_tags">Career Tags</Label>
-              <Input
+              <Label htmlFor="career_tags" className="text-sm font-medium">Career Tags</Label>
+              <GlassInput
                 id="career_tags"
                 value={tagsInput}
                 onChange={(e) => setTagsInput(e.target.value)}
                 placeholder="networking, mentor, recruiter (comma separated)"
               />
             </div>
+
             <div className="flex items-center space-x-2">
-              <Switch
+              <Checkbox
                 id="career_priority"
                 checked={formData.career_priority}
                 onCheckedChange={(checked) => handleInputChange('career_priority', checked)}
               />
-              <Label htmlFor="career_priority">High Career Priority</Label>
+              <Label htmlFor="career_priority" className="text-sm font-medium">High Career Priority</Label>
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
+              <Label htmlFor="notes" className="text-sm font-medium">Notes</Label>
+              <GlassTextarea
                 id="notes"
                 value={formData.notes}
                 onChange={(e) => handleInputChange('notes', e.target.value)}
                 placeholder="Additional notes about this contact..."
+                rows={3}
+                className="resize-none"
               />
             </div>
-            <div className="flex gap-3 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-              <Button type="submit" className="flex-1 glass-button">
-                Add Contact
-              </Button>
-            </div>
-          </form>
-        </SheetContent>
-      </Sheet>
-    );
-  }
+          </div>
 
-  // Desktop fallback: Dialog as before
-  return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="glass-card max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-foreground">Add Career Contact</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Name *</Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
-              placeholder="Contact name"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="personal_email">Email</Label>
-            <Input
-              id="personal_email"
-              type="email"
-              value={formData.personal_email}
-              onChange={(e) => handleInputChange('personal_email', e.target.value)}
-              placeholder="email@example.com"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="mobile_phone">Phone</Label>
-            <Input
-              id="mobile_phone"
-              type="tel"
-              value={formData.mobile_phone}
-              onChange={(e) => handleInputChange('mobile_phone', e.target.value)}
-              placeholder="+1 (555) 123-4567"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="company_name">Company</Label>
-              <Input
-                id="company_name"
-                value={formData.company_name}
-                onChange={(e) => handleInputChange('company_name', e.target.value)}
-                placeholder="Company name"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="job_title">Job Title</Label>
-              <Input
-                id="job_title"
-                value={formData.job_title}
-                onChange={(e) => handleInputChange('job_title', e.target.value)}
-                placeholder="Job title"
-              />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="career_tags">Career Tags</Label>
-            <Input
-              id="career_tags"
-              value={tagsInput}
-              onChange={(e) => setTagsInput(e.target.value)}
-              placeholder="networking, mentor, recruiter (comma separated)"
-            />
-          </div>
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="career_priority"
-              checked={formData.career_priority}
-              onCheckedChange={(checked) => handleInputChange('career_priority', checked)}
-            />
-            <Label htmlFor="career_priority">High Career Priority</Label>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea
-              id="notes"
-              value={formData.notes}
-              onChange={(e) => handleInputChange('notes', e.target.value)}
-              placeholder="Additional notes about this contact..."
-            />
-          </div>
           <div className="flex gap-3 pt-4">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="flex-1"
+              className="flex-1 rounded-full bg-white/20 border-white/40 backdrop-blur-sm hover:bg-white/30"
             >
               Cancel
             </Button>
-            <Button type="submit" className="flex-1 glass-button">
+            <Button 
+              type="submit" 
+              className="flex-1 rounded-full bg-primary hover:bg-primary/90 text-white border-0"
+            >
               Add Contact
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </GlassModal>
   );
 }

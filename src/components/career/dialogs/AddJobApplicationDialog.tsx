@@ -9,7 +9,6 @@ import { GlassSelect, GlassSelectContent, GlassSelectItem, GlassSelectTrigger, G
 import { MultiContactSelector } from "@/components/ui/multi-contact-selector";
 import { useContacts } from "@/hooks/use-contacts";
 import { Contact } from "@/types/contact";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Briefcase } from "lucide-react";
 
 interface JobApplication {
@@ -77,14 +76,14 @@ export function AddJobApplicationDialog({
       title="Add Job Application"
       subtitle="Track your job application progress"
       icon={Briefcase}
-      maxWidth="max-w-md"
+      maxWidth="max-w-lg"
     >
-      <ScrollArea className="max-h-[calc(80vh-120px)]">
-        <form onSubmit={handleSubmit} className="space-y-4 pr-4">
-          <div className="grid grid-cols-1 gap-4">
+      <div className="max-h-[60vh] overflow-y-auto pr-2">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-3">
             <div className="space-y-2">
-              <Label htmlFor="job_title">
-                Job Title <span className="text-red-500">*</span>
+              <Label htmlFor="job_title" className="text-sm font-medium">
+                Job Title *
               </Label>
               <GlassInput
                 id="job_title"
@@ -97,8 +96,8 @@ export function AddJobApplicationDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="company_name">
-                Company <span className="text-red-500">*</span>
+              <Label htmlFor="company_name" className="text-sm font-medium">
+                Company *
               </Label>
               <GlassInput
                 id="company_name"
@@ -108,92 +107,102 @@ export function AddJobApplicationDialog({
                 required
               />
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="status">Status</Label>
-            <GlassSelect value={formData.status} onValueChange={value => handleInputChange('status', value)}>
-              <GlassSelectTrigger>
-                <GlassSelectValue />
-              </GlassSelectTrigger>
-              <GlassSelectContent>
-                <GlassSelectItem value="applied">Applied</GlassSelectItem>
-                <GlassSelectItem value="interviewing">Interviewing</GlassSelectItem>
-                <GlassSelectItem value="offer">Offer</GlassSelectItem>
-                <GlassSelectItem value="rejected">Rejected</GlassSelectItem>
-                <GlassSelectItem value="withdrawn">Withdrawn</GlassSelectItem>
-              </GlassSelectContent>
-            </GlassSelect>
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="status" className="text-sm font-medium">Status</Label>
+              <GlassSelect value={formData.status} onValueChange={value => handleInputChange('status', value)}>
+                <GlassSelectTrigger>
+                  <GlassSelectValue />
+                </GlassSelectTrigger>
+                <GlassSelectContent>
+                  <GlassSelectItem value="applied">Applied</GlassSelectItem>
+                  <GlassSelectItem value="interviewing">Interviewing</GlassSelectItem>
+                  <GlassSelectItem value="offer">Offer</GlassSelectItem>
+                  <GlassSelectItem value="rejected">Rejected</GlassSelectItem>
+                  <GlassSelectItem value="withdrawn">Withdrawn</GlassSelectItem>
+                </GlassSelectContent>
+              </GlassSelect>
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="applied_date">Applied Date</Label>
-            <GlassInput
-              id="applied_date"
-              type="date"
-              value={formData.applied_date || ''}
-              onChange={e => handleInputChange('applied_date', e.target.value)}
-            />
-          </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="applied_date" className="text-sm font-medium">Applied Date</Label>
+                <GlassInput
+                  id="applied_date"
+                  type="date"
+                  value={formData.applied_date || ''}
+                  onChange={e => handleInputChange('applied_date', e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="interview_date" className="text-sm font-medium">Interview Date</Label>
+                <GlassInput
+                  id="interview_date"
+                  type="date"
+                  value={formData.interview_date || ''}
+                  onChange={e => handleInputChange('interview_date', e.target.value)}
+                />
+              </div>
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="salary_range">Salary Range</Label>
-            <GlassInput
-              id="salary_range"
-              value={formData.salary_range || ''}
-              onChange={e => handleInputChange('salary_range', e.target.value)}
-              placeholder="e.g. $80k - $120k"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="job_url">Job URL</Label>
-            <GlassInput
-              id="job_url"
-              type="url"
-              value={formData.job_url || ''}
-              onChange={e => handleInputChange('job_url', e.target.value)}
-              placeholder="https://..."
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="job_description">Job Description</Label>
-            <GlassTextarea
-              id="job_description"
-              value={formData.job_description || ''}
-              onChange={e => handleInputChange('job_description', e.target.value)}
-              placeholder="Paste the full job description here..."
-              rows={4}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Interviewers</Label>
-            <div className="rounded-xl border border-white/30 bg-white/40 dark:bg-white/5 dark:border-white/15 backdrop-blur-sm p-3">
-              <MultiContactSelector
-                contacts={contacts}
-                selectedContacts={selectedInterviewers}
-                onSelectionChange={setSelectedInterviewers}
-                label=""
-                placeholder="Search for interviewer contacts..."
-                className="w-full bg-transparent border-0"
+            <div className="space-y-2">
+              <Label htmlFor="salary_range" className="text-sm font-medium">Salary Range</Label>
+              <GlassInput
+                id="salary_range"
+                value={formData.salary_range || ''}
+                onChange={e => handleInputChange('salary_range', e.target.value)}
+                placeholder="e.g. $80k - $120k"
               />
             </div>
-            <p className="text-xs text-muted-foreground">
-              Select contacts from your network who will be interviewing you for this position.
-            </p>
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <GlassTextarea
-              id="notes"
-              value={formData.notes || ''}
-              onChange={e => handleInputChange('notes', e.target.value)}
-              placeholder="Additional notes about this application..."
-              rows={3}
-            />
+            <div className="space-y-2">
+              <Label htmlFor="job_url" className="text-sm font-medium">Job URL</Label>
+              <GlassInput
+                id="job_url"
+                type="url"
+                value={formData.job_url || ''}
+                onChange={e => handleInputChange('job_url', e.target.value)}
+                placeholder="https://..."
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Interviewers</Label>
+              <div className="rounded-xl border-2 border-white/40 dark:border-white/25 bg-white/50 dark:bg-white/8 backdrop-blur-sm p-3">
+                <MultiContactSelector
+                  contacts={contacts}
+                  selectedContacts={selectedInterviewers}
+                  onSelectionChange={setSelectedInterviewers}
+                  label=""
+                  placeholder="Search for interviewer contacts..."
+                  className="w-full bg-transparent border-0"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="job_description" className="text-sm font-medium">Job Description</Label>
+              <GlassTextarea
+                id="job_description"
+                value={formData.job_description || ''}
+                onChange={e => handleInputChange('job_description', e.target.value)}
+                placeholder="Paste the full job description here..."
+                rows={3}
+                className="resize-none"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="notes" className="text-sm font-medium">Notes</Label>
+              <GlassTextarea
+                id="notes"
+                value={formData.notes || ''}
+                onChange={e => handleInputChange('notes', e.target.value)}
+                placeholder="Additional notes about this application..."
+                rows={3}
+                className="resize-none"
+              />
+            </div>
           </div>
 
           <div className="flex gap-3 pt-4">
@@ -201,19 +210,19 @@ export function AddJobApplicationDialog({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="flex-1 rounded-full bg-white/20 border-white/30 backdrop-blur-sm hover:bg-white/30"
+              className="flex-1 rounded-full bg-white/20 border-white/40 backdrop-blur-sm hover:bg-white/30"
             >
               Cancel
             </Button>
             <Button 
               type="submit" 
-              className="flex-1 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0"
+              className="flex-1 rounded-full bg-primary hover:bg-primary/90 text-white border-0"
             >
               Add Application
             </Button>
           </div>
         </form>
-      </ScrollArea>
+      </div>
     </GlassModal>
   );
 }
