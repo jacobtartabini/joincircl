@@ -2,6 +2,7 @@
 import { Home, Circle, Briefcase, Settings, Atom } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface NavTab {
   title: string;
@@ -17,6 +18,7 @@ type NavItem = NavTab | NavSeparator;
 
 export default function FloatingNav() {
   const location = useLocation();
+  const isMobile = useIsMobile();
   const [selectedTab, setSelectedTab] = useState<number | null>(null);
 
   const tabs: NavItem[] = [
@@ -68,8 +70,8 @@ export default function FloatingNav() {
   };
 
   return (
-    <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
-      <div className="glass-nav flex items-center gap-2 p-1 shadow-2xl rounded-full">
+    <div className={`fixed z-50 ${isMobile ? 'bottom-4 left-4 right-4' : 'bottom-6 left-1/2 transform -translate-x-1/2'}`}>
+      <div className={`glass-nav flex items-center gap-2 p-1 shadow-2xl rounded-full ${isMobile ? 'justify-around' : ''}`}>
         <svg width="0" height="0" style={{ position: 'absolute' }}>
           <defs>
             <linearGradient id="atom-gradient-nav" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -89,7 +91,7 @@ export default function FloatingNav() {
             return (
               <div 
                 key={`separator-${index}`} 
-                className="mx-1 h-[24px] w-[1.2px] bg-white/30 dark:bg-white/20" 
+                className={`mx-1 h-[24px] w-[1.2px] bg-white/30 dark:bg-white/20 ${isMobile ? 'hidden' : ''}`}
                 aria-hidden="true" 
               />
             );
@@ -108,7 +110,7 @@ export default function FloatingNav() {
                 isSelected 
                   ? "bg-white/30 dark:bg-white/20 text-primary gap-2 shadow-md"
                   : "text-muted-foreground hover:bg-white/20 dark:hover:bg-white/10 hover:text-foreground gap-0"
-              }`} 
+              } ${isMobile ? 'flex-1 justify-center' : ''}`} 
               onClick={() => handleTabChange(index)}
             >
               {isArloTab ? (
@@ -116,13 +118,13 @@ export default function FloatingNav() {
               ) : (
                 <Icon size={20} />
               )}
-              {isSelected && (
+              {(isSelected || !isMobile) && (
                 <span className={`overflow-hidden whitespace-nowrap ${
                   isArloTab && isSelected 
                     ? "bg-gradient-to-r from-[#0092ca] via-[#a21caf] to-[#ec4899] bg-clip-text text-transparent font-semibold"
                     : ""
-                }`}>
-                  {navTab.title}
+                } ${isMobile && !isSelected ? 'sr-only' : ''}`}>
+                  {isMobile && !isSelected ? '' : navTab.title}
                 </span>
               )}
             </Link>

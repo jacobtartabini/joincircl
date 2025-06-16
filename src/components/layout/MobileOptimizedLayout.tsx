@@ -1,7 +1,6 @@
 
 import { ReactNode } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import MobileNav from "./MobileNav";
 import FloatingNav from "./FloatingNav";
 import TopStatusBar from "./TopStatusBar";
 
@@ -26,7 +25,8 @@ export function MobileOptimizedLayout({
             {children}
           </div>
         </main>
-        <MobileNav />
+        {/* Use the same FloatingNav for mobile */}
+        <FloatingNav />
       </div>
     );
   }
