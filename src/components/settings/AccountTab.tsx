@@ -3,13 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertTriangle, Globe, LogOut, Loader2 } from "lucide-react";
+import { AlertTriangle, Globe, Moon, Sun, Monitor, LogOut, Loader2 } from "lucide-react";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { ThemeSelector } from "./ThemeSelector";
-
 const AccountTab = () => {
   const {
     preferences,
@@ -120,10 +118,9 @@ const AccountTab = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Language</label>
-              <Select
-                value={preferences?.language || 'en'}
-                onValueChange={(value) => updatePreferences({ language: value })}
-              >
+              <Select value={preferences?.language || 'en'} onValueChange={value => updatePreferences({
+              language: value
+            })}>
                 <SelectTrigger className="border-gray-200">
                   <SelectValue />
                 </SelectTrigger>
@@ -142,10 +139,9 @@ const AccountTab = () => {
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Timezone</label>
-              <Select
-                value={preferences?.timezone || 'America/New_York'}
-                onValueChange={(value) => updatePreferences({ timezone: value })}
-              >
+              <Select value={preferences?.timezone || 'America/New_York'} onValueChange={value => updatePreferences({
+              timezone: value
+            })}>
                 <SelectTrigger className="border-gray-200">
                   <SelectValue />
                 </SelectTrigger>
@@ -168,11 +164,32 @@ const AccountTab = () => {
             </div>
           </div>
 
-          <div className="space-y-4">
-            <ThemeSelector
-              value={preferences?.theme || 'system'}
-              onValueChange={(value) => updatePreferences({ theme: value })}
-            />
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Theme</label>
+            <div className="flex gap-2">
+              {[{
+              value: "light",
+              icon: Sun,
+              label: "Light"
+            }, {
+              value: "dark",
+              icon: Moon,
+              label: "Dark"
+            }, {
+              value: "system",
+              icon: Monitor,
+              label: "System"
+            }].map(({
+              value,
+              icon: Icon,
+              label
+            }) => <Button key={value} variant={preferences?.theme === value ? "default" : "outline"} size="sm" onClick={() => updatePreferences({
+              theme: value
+            })} className="flex items-center gap-2 rounded-full">
+                  <Icon className="h-4 w-4" />
+                  {label}
+                </Button>)}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -188,10 +205,9 @@ const AccountTab = () => {
               <label className="text-sm font-medium text-gray-900">Email Notifications</label>
               <p className="text-xs text-gray-500">Receive important updates via email</p>
             </div>
-            <Switch
-              checked={preferences?.email_notifications || false}
-              onCheckedChange={(checked) => updatePreferences({ email_notifications: checked })}
-            />
+            <Switch checked={preferences?.email_notifications || false} onCheckedChange={checked => updatePreferences({
+            email_notifications: checked
+          })} />
           </div>
 
           <div className="flex items-center justify-between">
@@ -199,10 +215,9 @@ const AccountTab = () => {
               <label className="text-sm font-medium text-gray-900">Push Notifications</label>
               <p className="text-xs text-gray-500">Get notified about activity in real-time</p>
             </div>
-            <Switch
-              checked={preferences?.push_notifications || false}
-              onCheckedChange={(checked) => updatePreferences({ push_notifications: checked })}
-            />
+            <Switch checked={preferences?.push_notifications || false} onCheckedChange={checked => updatePreferences({
+            push_notifications: checked
+          })} />
           </div>
 
           <div className="flex items-center justify-between">
@@ -210,10 +225,9 @@ const AccountTab = () => {
               <label className="text-sm font-medium text-gray-900">Marketing Emails</label>
               <p className="text-xs text-gray-500">Receive tips and product updates</p>
             </div>
-            <Switch
-              checked={preferences?.marketing_emails || false}
-              onCheckedChange={(checked) => updatePreferences({ marketing_emails: checked })}
-            />
+            <Switch checked={preferences?.marketing_emails || false} onCheckedChange={checked => updatePreferences({
+            marketing_emails: checked
+          })} />
           </div>
         </CardContent>
       </Card>
@@ -229,12 +243,7 @@ const AccountTab = () => {
               <label className="text-sm font-medium text-blue-900">Export Your Data</label>
               <p className="text-xs text-blue-700">Download all your account data</p>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleExportData}
-              className="border-blue-200 text-blue-700 rounded-full"
-            >
+            <Button variant="outline" size="sm" onClick={handleExportData} className="border-blue-200 text-blue-700 rounded-full">
               <Globe className="h-4 w-4 mr-2" />
               Export
             </Button>
@@ -245,18 +254,8 @@ const AccountTab = () => {
               <label className="text-sm font-medium text-gray-900">Sign Out</label>
               <p className="text-xs text-gray-500">Sign out of your account</p>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSignOut}
-              disabled={signingOut}
-              className="border-gray-200 text-gray-700 rounded-full"
-            >
-              {signingOut ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <LogOut className="h-4 w-4 mr-2" />
-              )}
+            <Button variant="outline" size="sm" onClick={handleSignOut} disabled={signingOut} className="border-gray-200 text-gray-700 rounded-full">
+              {signingOut ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <LogOut className="h-4 w-4 mr-2" />}
               Sign Out
             </Button>
           </div>
@@ -266,12 +265,7 @@ const AccountTab = () => {
               <label className="text-sm font-medium text-red-900">Delete Account</label>
               <p className="text-xs text-red-700">Permanently delete your account and data</p>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDeleteAccount}
-              className="border-red-200 text-red-700 rounded-full"
-            >
+            <Button variant="outline" size="sm" onClick={handleDeleteAccount} className="border-red-200 text-red-700 rounded-full">
               <AlertTriangle className="h-4 w-4 mr-2" />
               Delete
             </Button>
@@ -280,5 +274,4 @@ const AccountTab = () => {
       </Card>
     </div>;
 };
-
 export default AccountTab;
