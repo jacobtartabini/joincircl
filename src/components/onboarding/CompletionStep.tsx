@@ -2,6 +2,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Sparkles, Target, Plus, Users, Calendar, Brain, ArrowRight } from 'lucide-react';
+import { StandardModalHeader } from '@/components/ui/StandardModalHeader';
 
 interface CompletionStepProps {
   onComplete: () => void;
@@ -36,18 +37,15 @@ export default function CompletionStep({ onComplete }: CompletionStepProps) {
   ];
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8">
-      {/* Success Header */}
+    <div className="space-y-8">
+      {/* Consistent Success Header */}
       <div className="text-center space-y-6">
-        <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg glass-float">
-          <CheckCircle className="h-10 w-10 text-white" />
-        </div>
-        <div>
-          <h1 className="text-4xl font-bold gradient-text mb-3">Welcome to Circl! 🎉</h1>
-          <p className="text-lg text-muted-foreground mb-4">
-            You're all set up and ready to strengthen your relationships
-          </p>
-        </div>
+        <StandardModalHeader
+          icon={CheckCircle}
+          title="Welcome to Circl! 🎉"
+          subtitle="You're all set up and ready to strengthen your relationships"
+        />
+        
         <div className="glass-card inline-flex items-center gap-2 px-4 py-2">
           <Sparkles className="h-4 w-4 text-green-600" />
           <span className="text-sm font-medium text-green-700">Onboarding Complete</span>
@@ -71,7 +69,7 @@ export default function CompletionStep({ onComplete }: CompletionStepProps) {
             {nextSteps.map((step, index) => {
               const IconComponent = step.icon;
               return (
-                <div key={index} className="glass-card p-4 hover:shadow-lg transition-all glass-float group">
+                <div key={index} className="glass-card p-4 hover:shadow-lg transition-all glass-float group border border-white/20">
                   <div className="flex items-start gap-4">
                     <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${step.color} flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform`}>
                       <IconComponent className="h-6 w-6 text-white" />
