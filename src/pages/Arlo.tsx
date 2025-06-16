@@ -318,7 +318,7 @@ export default function Arlo() {
         </div>
 
         {/* Fixed Input Area */}
-        <div className="fixed bottom-24 left-0 right-0 glass-nav border-t p-4">
+        <div className="fixed bottom-32 left-0 right-0 glass-nav border-t p-4">
           <div className="flex items-end gap-3">
             <AutoExpandingTextarea
               placeholder="Ask Arlo about your relationships..."
@@ -452,8 +452,8 @@ export default function Arlo() {
           </div>
         </div>
 
-        {/* Fixed Input Area - positioned above floating nav with increased spacing */}
-        <div className="flex-shrink-0 glass-nav border-t px-6 py-4 mb-24">
+        {/* Fixed Input Area - positioned above floating nav with more spacing */}
+        <div className="flex-shrink-0 glass-nav border-t px-6 py-6 mb-32">
           <div className="max-w-3xl mx-auto">
             <div className="flex items-end gap-3">
               <AutoExpandingTextarea
