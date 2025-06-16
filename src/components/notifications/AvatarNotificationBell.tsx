@@ -155,7 +155,7 @@ export function AvatarNotificationBell({
 
           {/* Footer */}
           {recentNotifications.length > 0 && <div className="border-t border-gray-100 p-3">
-              <Button variant="ghost" size="sm" onClick={handleViewAllNotifications} className="w-full text-xs text-[#0daeec] hover:text-[#0daeec]/80 hover:bg-[#0daeec]/5 rounded-full">
+              <Button variant="ghost" size="sm" onClick={handleViewAllNotifications} className="w-full text-xs hover:bg-[#0daeec]/5 rounded-full text-inherit">
                 View all notifications
               </Button>
             </div>}
