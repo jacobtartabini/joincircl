@@ -3,7 +3,6 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 import { registerSW } from 'virtual:pwa-register'
-import { OfflineIndicator } from './components/ui/offline-indicator.tsx'
 
 // Register service worker with enhanced features
 const updateSW = registerSW({
@@ -125,10 +124,5 @@ if ('widgets' in window) {
   }).catch(e => console.warn('Widget registration failed:', e));
 }
 
-// Render the application with the offline indicator
-createRoot(document.getElementById("root")!).render(
-  <>
-    <App />
-    <OfflineIndicator />
-  </>
-);
+// Render the application
+createRoot(document.getElementById("root")!).render(<App />);
