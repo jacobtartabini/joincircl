@@ -200,7 +200,7 @@ export function EnhancedContactDetail({
           <h3 className="text-sm font-medium text-foreground">Tags</h3>
           <div className="flex flex-wrap gap-1">
             {contact.tags.slice(0, 6).map(tag => (
-              <Badge key={tag} variant="outline" className={getCircleColor(contact.circle)}>
+              <Badge key={tag} variant="outline">
                 {tag}
               </Badge>
             ))}
