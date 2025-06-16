@@ -14,7 +14,7 @@ export function GradientText({ children, className }: GradientTextProps) {
   return (
     <span className={cn("font-bold", className)}>
       <span className="text-black">Welcome back, </span>
-      <span className="bg-gradient-to-r from-blue-400 to-blue-800 bg-clip-text text-transparent font-bold">
+      <span className="bg-gradient-to-r from-[#0daeec] to-[#0891b2] bg-clip-text text-transparent font-bold">
         {firstName}
       </span>
     </span>
