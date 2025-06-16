@@ -8,14 +8,16 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useAuth } from "@/contexts/AuthContext";
 import { useUnifiedNotifications } from "@/hooks/use-unified-notifications";
 import { useNavigate } from "react-router-dom";
-import { User, ExternalLink } from "lucide-react";
+import { User, ExternalLink, Settings, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+
 interface AvatarNotificationBellProps {
   className?: string;
   size?: "sm" | "default" | "lg";
   showFullName?: boolean;
 }
+
 function Dot({
   className
 }: {
@@ -25,6 +27,7 @@ function Dot({
       <circle cx="3" cy="3" r="3" />
     </svg>;
 }
+
 export function AvatarNotificationBell({
   className,
   size = "default",
@@ -32,7 +35,8 @@ export function AvatarNotificationBell({
 }: AvatarNotificationBellProps) {
   const {
     user,
-    profile
+    profile,
+    logout
   } = useAuth();
   const {
     notifications,
@@ -42,31 +46,49 @@ export function AvatarNotificationBell({
   } = useUnifiedNotifications();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = React.useState(false);
+
   const sizeClasses = {
     sm: "h-8 w-8",
     default: "h-10 w-10",
     lg: "h-12 w-12"
   };
+
   const badgeSize = {
     sm: "min-w-4 h-4 text-[10px]",
     default: "min-w-5 h-5 text-xs",
     lg: "min-w-6 h-6 text-sm"
   };
+
   const handleNotificationClick = (notificationId: string) => {
     toggleNotificationRead(notificationId);
   };
+
   const handleViewAllNotifications = () => {
     setIsOpen(false);
     navigate('/notifications');
   };
+
   const handleMarkAllAsRead = () => {
     markAllAsRead();
   };
+
+  const handleSettings = () => {
+    setIsOpen(false);
+    navigate('/settings');
+  };
+
+  const handleLogOut = async () => {
+    setIsOpen(false);
+    await logout();
+    navigate('/auth');
+  };
+
   const displayName = profile?.full_name?.split(' ')[0] || 'User';
   const initials = profile?.full_name ? profile.full_name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U';
 
   // Get recent notifications (last 5)
   const recentNotifications = notifications.slice(0, 5);
+
   return <div className={cn("flex items-center gap-2", className)}>      
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
@@ -154,9 +176,17 @@ export function AvatarNotificationBell({
           </div>
 
           {/* Footer */}
-          {recentNotifications.length > 0 && <div className="border-t border-gray-100 p-3">
+          {recentNotifications.length > 0 && <div className="border-t border-gray-100 p-3 space-y-2">
               <Button variant="ghost" size="sm" onClick={handleViewAllNotifications} className="w-full text-xs hover:bg-[#0daeec]/5 rounded-full text-inherit">
                 View all notifications
+              </Button>
+              <Button variant="ghost" size="sm" onClick={handleSettings} className="w-full text-xs hover:bg-[#0daeec]/5 rounded-full text-inherit flex items-center gap-2">
+                <Settings className="h-3 w-3" />
+                Settings
+              </Button>
+              <Button variant="ghost" size="sm" onClick={handleLogOut} className="w-full text-xs hover:bg-[#0daeec]/5 rounded-full text-inherit flex items-center gap-2">
+                <LogOut className="h-3 w-3" />
+                Log Out
               </Button>
             </div>}
         </PopoverContent>
