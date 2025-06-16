@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Contact, Interaction } from "@/types/contact";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -9,7 +10,6 @@ import { MoreHorizontal, Phone, Mail, MapPin, Edit, Trash, MessageSquare, Calend
 import { formatDistanceToNow } from "date-fns";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { motion, AnimatePresence } from "framer-motion";
-import { GradientText } from "@/components/ui/gradient-text";
 
 interface EnhancedContactDetailProps {
   contact: Contact;
@@ -73,9 +73,9 @@ export function EnhancedContactDetail({
           </Avatar>
           
           <div className="flex-1 min-w-0">
-            <GradientText className="text-lg font-bold truncate">
+            <h2 className="text-lg font-bold text-foreground truncate bg-gradient-to-r from-[#0daeec] to-[#0891b2] bg-clip-text text-transparent">
               {contact.name}
-            </GradientText>
+            </h2>
             {contact.job_title && contact.company_name && (
               <p className="text-sm text-muted-foreground truncate">
                 {contact.job_title} at {contact.company_name}
