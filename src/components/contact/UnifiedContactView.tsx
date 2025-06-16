@@ -33,7 +33,6 @@ export function UnifiedContactView({
 }: UnifiedContactViewProps) {
   const [isAddInteractionOpen, setIsAddInteractionOpen] = useState(false);
   const [isAddKeystoneOpen, setIsAddKeystoneOpen] = useState(false);
-
   const getInteractionIcon = (type: string) => {
     switch (type.toLowerCase()) {
       case "meeting":
@@ -48,32 +47,24 @@ export function UnifiedContactView({
         return <Hash className="h-4 w-4 text-muted-foreground" />;
     }
   };
-
   const getCircleBadge = (circle: string) => {
     switch (circle) {
       case "inner":
-        return (
-          <Badge className="bg-[#2664EB] text-white hover:bg-[#1d4ed8] border-0">
+        return <Badge className="bg-[#2664EB] text-white hover:bg-[#1d4ed8] border-0">
             Inner
-          </Badge>
-        );
+          </Badge>;
       case "middle":
-        return (
-          <Badge className="bg-[#16A34A] text-white hover:bg-[#15803d] border-0">
+        return <Badge className="bg-[#16A34A] text-white hover:bg-[#15803d] border-0">
             Middle
-          </Badge>
-        );
+          </Badge>;
       case "outer":
-        return (
-          <Badge className="bg-[#9CA3AF] text-white hover:bg-[#6b7280] border-0">
+        return <Badge className="bg-[#9CA3AF] text-white hover:bg-[#6b7280] border-0">
             Outer
-          </Badge>
-        );
+          </Badge>;
       default:
         return null;
     }
   };
-
   const ContactInfoItem = ({
     icon: Icon,
     label,
@@ -154,19 +145,19 @@ export function UnifiedContactView({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <Button onClick={() => setIsAddInteractionOpen(true)} className="unified-button px-4 py-2 bg-[#0daeec] hover:bg-[#0daeec]/90 text-white rounded-lg">
+                  <Button onClick={() => setIsAddInteractionOpen(true)} className="unified-button px-4 py-2 bg-[#0daeec] hover:bg-[#0daeec]/90 text-white rounded-full">
                     <Plus className="h-4 w-4 mr-2" />
                     Add Interaction
                   </Button>
-                  <Button onClick={() => setIsAddKeystoneOpen(true)} variant="outline" className="unified-button px-4 py-2 rounded-lg">
+                  <Button onClick={() => setIsAddKeystoneOpen(true)} variant="outline" className="unified-button px-4 py-2 rounded-full">
                     <Plus className="h-4 w-4 mr-2" />
                     Add Event
                   </Button>
-                  <Button onClick={onEdit} variant="outline" className="unified-button px-4 py-2 rounded-lg">
+                  <Button onClick={onEdit} variant="outline" className="unified-button px-4 py-2 rounded-full">
                     <Edit className="h-4 w-4 mr-2" />
                     Edit
                   </Button>
-                  <Button onClick={onDelete} variant="outline" className="unified-button px-4 py-2 rounded-lg text-destructive hover:text-destructive border-destructive/20 hover:bg-destructive/10">
+                  <Button onClick={onDelete} variant="outline" className="unified-button px-4 py-2 text-destructive hover:text-destructive border-destructive/20 hover:bg-destructive/10 rounded-full">
                     <Trash className="h-4 w-4 mr-2" />
                     Delete
                   </Button>
