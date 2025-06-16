@@ -5,6 +5,7 @@ import { Bell, Calendar, Users, Heart, Briefcase } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 const getNotificationIcon = (type: string) => {
   switch (type) {
@@ -39,9 +40,12 @@ const NotificationsList = () => {
       {notifications.map((notification) => (
         <Card 
           key={notification.id} 
-          className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
-            notification.read ? 'opacity-60' : 'border-l-4 border-l-blue-500'
-          }`}
+          className={cn(
+            "cursor-pointer transition-all duration-200 hover:shadow-md",
+            notification.read 
+              ? "opacity-60 bg-gray-50/50" 
+              : "border-l-4 border-l-blue-500 shadow-sm"
+          )}
           onClick={() => toggleNotificationRead(notification.id)}
         >
           <CardContent className="p-4">
@@ -53,7 +57,12 @@ const NotificationsList = () => {
                 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center space-x-2 mb-1">
-                    <h4 className="font-medium text-gray-900 truncate">
+                    <h4 className={cn(
+                      "truncate",
+                      notification.read 
+                        ? "font-normal text-gray-600" 
+                        : "font-medium text-gray-900"
+                    )}>
                       {notification.title}
                     </h4>
                     {!notification.read && (
@@ -63,7 +72,10 @@ const NotificationsList = () => {
                     )}
                   </div>
                   
-                  <p className="text-sm text-gray-600 mb-2">
+                  <p className={cn(
+                    "text-sm mb-2",
+                    notification.read ? "text-gray-500" : "text-gray-600"
+                  )}>
                     {notification.message}
                   </p>
                   

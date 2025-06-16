@@ -3,7 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { X, Calendar, Users, TrendingUp, Lightbulb, Gift } from 'lucide-react';
+import { X, Calendar, Users, TrendingUp, Lightbulb, Gift, Briefcase } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Notification } from '@/types/notifications';
 
@@ -21,6 +21,8 @@ const notificationIcons = {
   ai_insight: Lightbulb,
   contact_update: Users,
   system: TrendingUp,
+  job_followup: Briefcase,
+  network_insight: Users,
 };
 
 const notificationColors = {
@@ -30,6 +32,8 @@ const notificationColors = {
   ai_insight: 'text-purple-600 bg-purple-50',
   contact_update: 'text-orange-600 bg-orange-50',
   system: 'text-gray-600 bg-gray-50',
+  job_followup: 'text-purple-600 bg-purple-50',
+  network_insight: 'text-orange-600 bg-orange-50',
 };
 
 export default function ModernNotificationItem({
@@ -56,8 +60,8 @@ export default function ModernNotificationItem({
       className={cn(
         "group relative p-4 glass-card-enhanced border-l-4 transition-all duration-200 hover:shadow-lg",
         notification.read 
-          ? "border-l-gray-200 opacity-75" 
-          : "border-l-[#0daeec] shadow-sm"
+          ? "border-l-gray-200 opacity-75 bg-gray-50/30" 
+          : "border-l-[#0daeec] shadow-sm bg-white"
       )}
     >
       <div className="flex items-start gap-4">
@@ -71,12 +75,17 @@ export default function ModernNotificationItem({
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
               <h3 className={cn(
-                "text-sm font-semibold text-foreground leading-tight mb-1",
-                !notification.read && "font-bold"
+                "text-sm leading-tight mb-1",
+                notification.read 
+                  ? "font-normal text-muted-foreground" 
+                  : "font-semibold text-foreground"
               )}>
                 {notification.title}
               </h3>
-              <p className="text-sm text-muted-foreground leading-relaxed mb-2">
+              <p className={cn(
+                "text-sm leading-relaxed mb-2",
+                notification.read ? "text-muted-foreground/80" : "text-muted-foreground"
+              )}>
                 {notification.message}
               </p>
               <div className="flex items-center gap-2">
