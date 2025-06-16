@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileHeader } from "./MobileHeader";
 import { AvatarNotificationBell } from "@/components/notifications/AvatarNotificationBell";
+import { CirclLogo } from "@/components/ui/CirclLogo";
 
 export function TopStatusBar() {
   const { user, profile } = useAuth();
@@ -14,6 +15,7 @@ export function TopStatusBar() {
     return (
       <div className="flex items-center justify-between py-2 md:py-3 px-4 border-b border-border">
         <div className="flex items-center space-x-3">
+          <CirclLogo size={20} />
           <h1 className="text-lg font-semibold text-foreground">Circl</h1>
         </div>
         <AvatarNotificationBell size="sm" />
@@ -23,8 +25,9 @@ export function TopStatusBar() {
 
   return (
     <div className="flex items-center justify-between py-2 md:py-3 px-4 border-b border-border">
-      {/* Left section - Circl wordmark */}
+      {/* Left section - Circl wordmark with logo */}
       <div className="flex items-center space-x-3">
+        <CirclLogo size={24} />
         <h1 className="text-xl font-semibold text-foreground">Circl</h1>
         <Badge variant="outline" className="hidden md:flex">
           Beta

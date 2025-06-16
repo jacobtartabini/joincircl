@@ -21,7 +21,7 @@ export function MobileOptimizedLayout({
     return (
       <div className="flex flex-col h-screen bg-background dark:bg-background overflow-hidden">
         <TopStatusBar />
-        <main className="flex-1 overflow-y-auto pb-20">
+        <main className="flex-1 overflow-y-auto pb-24">
           <div className="min-h-full">
             {children}
           </div>

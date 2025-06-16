@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useAuth } from "@/contexts/AuthContext";
-import { useRealNotifications } from "@/hooks/use-real-notifications";
+import { useUnifiedNotifications } from "@/hooks/use-unified-notifications";
 import { useNavigate } from "react-router-dom";
 import { User, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -41,7 +41,7 @@ export function AvatarNotificationBell({
   showFullName = false,
 }: AvatarNotificationBellProps) {
   const { user, profile } = useAuth();
-  const { notifications, unreadCount, markAllAsRead, toggleNotificationRead } = useRealNotifications();
+  const { notifications, unreadCount, markAllAsRead, toggleNotificationRead } = useUnifiedNotifications();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = React.useState(false);
 
