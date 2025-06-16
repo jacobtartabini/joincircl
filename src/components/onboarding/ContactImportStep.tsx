@@ -2,23 +2,43 @@
 import { useState, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Linkedin, Phone, Plus, Users, Upload, FileText, Loader2 } from 'lucide-react';
+import { Linkedin, Phone, Plus, Users, Upload, FileText, Loader2, ChevronRight, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { StandardModalHeader } from '@/components/ui/StandardModalHeader';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import Papa from 'papaparse';
 import { detectHeaders, validateCSVContacts, parseContactFromRow } from '@/services/csvImportService';
+import { CONTACT_FIELD_DEFS, getExample } from '@/services/csvFieldDefs';
+import { CSVMappingGroup } from '@/components/circles/CSVMappingGroup';
+import { CSVPreviewTable } from '@/components/circles/CSVPreviewTable';
 
 interface ContactImportStepProps {
   onNext: (data?: any) => void;
   onSkip: () => void;
 }
 
+const makeSampleCSV = (fields: string[]): string => {
+  const rows = [
+    fields.join(","),
+    fields.map(f => getExample(CONTACT_FIELD_DEFS.find(fd => fd.label === f)?.type as any)).join(","),
+    fields.map(f => getExample(CONTACT_FIELD_DEFS.find(fd => fd.label === f)?.type as any)).join(","),
+  ];
+  return rows.join("\n");
+};
+
+const BASIC_FIELDS = ["Name", "Email", "Phone", "Company", "Job Title"];
+const COMPREHENSIVE_FIELDS = CONTACT_FIELD_DEFS.filter(f => f.key !== "user_id").map(f => f.label);
+
 export default function ContactImportStep({ onNext, onSkip }: ContactImportStepProps) {
   const [selectedMethod, setSelectedMethod] = useState<string>('');
   const [uploading, setUploading] = useState(false);
   const [uploadedContacts, setUploadedContacts] = useState<number>(0);
+  const [csvStep, setCsvStep] = useState(0); // 0: upload, 1: map, 2: confirm
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [fileData, setFileData] = useState<any[]>([]);
+  const [headerMap, setHeaderMap] = useState<{ [target: string]: string }>({});
+  const [previewRows, setPreviewRows] = useState<any[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -76,102 +96,33 @@ export default function ContactImportStep({ onNext, onSkip }: ContactImportStepP
     }
 
     setUploading(true);
+    setFileName(file.name);
+    
     try {
       Papa.parse(file, {
         header: true,
-        complete: async (results) => {
+        skipEmptyLines: true,
+        complete: (results) => {
           try {
-            if (results.errors.length > 0) {
+            const { data, errors, meta } = results;
+            if (errors && errors.length > 0) {
               throw new Error('CSV parsing failed');
             }
 
-            const data = results.data;
-            if (!data || data.length === 0) {
+            const filtered = data.filter((row: any) =>
+              Object.values(row).some((v) => v && `${v}`.trim() !== "")
+            );
+            
+            if (filtered.length === 0) {
               throw new Error('No data found in CSV file');
             }
 
-            // Detect headers and map them
-            const fields = Object.keys(data[0] as any);
-            const headerMap = detectHeaders(fields);
-            
-            // Parse contacts from CSV data
-            const parsedContacts = data
-              .map(row => parseContactFromRow(row, headerMap))
-              .filter(contact => contact.name || contact.personal_email);
-
-            if (parsedContacts.length === 0) {
-              throw new Error('No valid contacts found in CSV file');
-            }
-
-            // Validate contacts
-            const { validContacts, errors } = validateCSVContacts(parsedContacts, [
-              { label: 'Name', required: false, key: 'name', type: 'text' },
-              { label: 'Email', required: false, key: 'personal_email', type: 'email' }
-            ]);
-
-            if (errors.length > 0) {
-              console.warn('CSV validation errors:', errors);
-            }
-
-            // Filter contacts to ensure required fields and proper typing
-            const contactsToInsert = validContacts
-              .filter(contact => contact.name && contact.name.trim()) // Ensure name is present
-              .map(contact => ({
-                name: contact.name!,
-                user_id: user?.id!,
-                circle: (contact.circle as "inner" | "middle" | "outer") || 'outer',
-                personal_email: contact.personal_email || null,
-                mobile_phone: contact.mobile_phone || null,
-                location: contact.location || null,
-                website: contact.website || null,
-                linkedin: contact.linkedin || null,
-                facebook: contact.facebook || null,
-                twitter: contact.twitter || null,
-                instagram: contact.instagram || null,
-                company_name: contact.company_name || null,
-                job_title: contact.job_title || null,
-                industry: contact.industry || null,
-                department: contact.department || null,
-                work_address: contact.work_address || null,
-                university: contact.university || null,
-                major: contact.major || null,
-                minor: contact.minor || null,
-                graduation_year: contact.graduation_year || null,
-                birthday: contact.birthday || null,
-                how_met: contact.how_met || null,
-                hobbies_interests: contact.hobbies_interests || null,
-                notes: contact.notes || null,
-                tags: contact.tags || null,
-                avatar_url: contact.avatar_url || null,
-                career_priority: contact.career_priority || false,
-                career_tags: contact.career_tags || null,
-                referral_potential: contact.referral_potential || null,
-                career_event_id: contact.career_event_id || null,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-              }));
-
-            if (contactsToInsert.length === 0) {
-              throw new Error('No contacts with valid names found in CSV file');
-            }
-
-            const { data: insertedContacts, error } = await supabase
-              .from('contacts')
-              .insert(contactsToInsert)
-              .select();
-
-            if (error) {
-              throw error;
-            }
-
-            const contactCount = insertedContacts?.length || 0;
-            setUploadedContacts(contactCount);
+            setFileData(filtered);
+            setPreviewRows(filtered.slice(0, 8));
+            setHeaderMap(detectHeaders(meta.fields || []));
             setSelectedMethod('csv');
+            setCsvStep(1); // Move to mapping step
             
-            toast({
-              title: 'Contacts uploaded successfully!',
-              description: `${contactCount} contacts were imported from your CSV file.`,
-            });
           } catch (error) {
             console.error('Error processing CSV:', error);
             toast({
@@ -204,6 +155,104 @@ export default function ContactImportStep({ onNext, onSkip }: ContactImportStepP
     }
   };
 
+  const updateMapping = (target: string, source: string) => {
+    setHeaderMap((curr) => ({ ...curr, [target]: source }));
+  };
+
+  const handleCsvImport = async () => {
+    if (!fileData.length || !user) {
+      toast({
+        title: 'Import failed',
+        description: 'No data to import or user not authenticated.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setUploading(true);
+    
+    try {
+      // Build contact objects based on mapping
+      const contacts = fileData.map((row) => parseContactFromRow(row, headerMap));
+
+      // Validate contacts
+      const { validContacts, errors } = validateCSVContacts(contacts, CONTACT_FIELD_DEFS);
+
+      if (errors.length > 0) {
+        console.warn('CSV validation errors:', errors);
+      }
+
+      // Filter contacts to ensure required fields and proper typing
+      const contactsToInsert = validContacts
+        .filter(contact => contact.name && contact.name.trim()) // Ensure name is present
+        .map(contact => ({
+          name: contact.name!,
+          user_id: user.id,
+          circle: (contact.circle as "inner" | "middle" | "outer") || 'outer',
+          personal_email: contact.personal_email || null,
+          mobile_phone: contact.mobile_phone || null,
+          location: contact.location || null,
+          website: contact.website || null,
+          linkedin: contact.linkedin || null,
+          facebook: contact.facebook || null,
+          twitter: contact.twitter || null,
+          instagram: contact.instagram || null,
+          company_name: contact.company_name || null,
+          job_title: contact.job_title || null,
+          industry: contact.industry || null,
+          department: contact.department || null,
+          work_address: contact.work_address || null,
+          university: contact.university || null,
+          major: contact.major || null,
+          minor: contact.minor || null,
+          graduation_year: contact.graduation_year || null,
+          birthday: contact.birthday || null,
+          how_met: contact.how_met || null,
+          hobbies_interests: contact.hobbies_interests || null,
+          notes: contact.notes || null,
+          tags: contact.tags || null,
+          avatar_url: contact.avatar_url || null,
+          career_priority: contact.career_priority || false,
+          career_tags: contact.career_tags || null,
+          referral_potential: contact.referral_potential || null,
+          career_event_id: contact.career_event_id || null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }));
+
+      if (contactsToInsert.length === 0) {
+        throw new Error('No contacts with valid names found in CSV file');
+      }
+
+      const { data: insertedContacts, error } = await supabase
+        .from('contacts')
+        .insert(contactsToInsert)
+        .select();
+
+      if (error) {
+        throw error;
+      }
+
+      const contactCount = insertedContacts?.length || 0;
+      setUploadedContacts(contactCount);
+      setCsvStep(2); // Move to confirmation step
+      
+      toast({
+        title: 'Contacts uploaded successfully!',
+        description: `${contactCount} contacts were imported from your CSV file.`,
+      });
+    } catch (error) {
+      console.error('Error importing CSV:', error);
+      toast({
+        title: 'Import failed',
+        description: 'There was an error importing your contacts. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleMethodSelect = (methodId: string) => {
     if (methodId === 'csv') {
       handleFileUpload();
@@ -220,6 +269,100 @@ export default function ContactImportStep({ onNext, onSkip }: ContactImportStepP
       method: selectedMethod,
       contactsImported: uploadedContacts 
     });
+  };
+
+  const renderCsvStep = () => {
+    if (csvStep === 1) {
+      // Mapping step
+      const uploadedHeaders = fileData.length > 0 && Object.keys(fileData[0]);
+      const groups = Array.from(new Set(CONTACT_FIELD_DEFS.map(f => f.group)));
+      const [allOpen, setAllOpen] = useState<string | null>(null);
+
+      return (
+        <Card className="glass-card-enhanced mt-6">
+          <CardContent className="p-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-lg">Map Your CSV Columns</h3>
+                <span className="text-sm text-muted-foreground">{fileName}</span>
+              </div>
+              
+              <div className="flex items-center gap-2 mb-2">
+                <button
+                  type="button"
+                  className="text-xs text-blue-500 hover:underline"
+                  onClick={() => setAllOpen("all")}
+                >Expand all</button>
+                <button
+                  type="button"
+                  className="text-xs text-blue-500 hover:underline"
+                  onClick={() => setAllOpen("none")}
+                >Collapse all</button>
+              </div>
+              
+              {groups.map(group =>
+                <CSVMappingGroup
+                  key={group}
+                  group={group}
+                  headerMap={headerMap}
+                  uploadedHeaders={uploadedHeaders || []}
+                  updateMapping={updateMapping}
+                  defaultOpen={allOpen === "all" || (allOpen === null && group === "Basic")}
+                />
+              )}
+              
+              <div className="mt-6">
+                <h4 className="font-medium text-sm mb-2">Preview ({previewRows.length} of {fileData.length} rows)</h4>
+                <CSVPreviewTable previewRows={previewRows} fileData={fileData} headerMap={headerMap} />
+              </div>
+              
+              <div className="flex gap-3 pt-4">
+                <Button variant="outline" onClick={() => setCsvStep(0)}>
+                  Back
+                </Button>
+                <Button 
+                  onClick={handleCsvImport}
+                  disabled={uploading}
+                  className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white"
+                >
+                  {uploading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Importing...
+                    </>
+                  ) : (
+                    'Import Contacts'
+                  )}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    if (csvStep === 2) {
+      // Confirmation step
+      return (
+        <Card className="glass-card-enhanced mt-6 border-green-200 bg-green-50/50">
+          <CardContent className="p-6">
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                <Upload className="h-8 w-8 text-green-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg text-green-800">Contacts Imported Successfully!</h3>
+                <p className="text-sm text-green-600 mt-1">
+                  {uploadedContacts} contacts have been added to your Circl
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    return null;
   };
 
   return (
@@ -239,62 +382,67 @@ export default function ContactImportStep({ onNext, onSkip }: ContactImportStepP
         subtitle="Start building your network in Circl by importing existing contacts"
       />
 
-      <div className="space-y-4">
-        {importMethods.map((method) => {
-          const IconComponent = method.icon;
-          const isSelected = selectedMethod === method.id;
-          
-          return (
-            <Card 
-              key={method.id}
-              className={`glass-card border-2 transition-all duration-200 cursor-pointer hover:shadow-md ${
-                isSelected 
-                  ? 'border-primary bg-primary/5 shadow-md' 
-                  : 'border-white/20 hover:border-white/30'
-              } ${method.comingSoon ? 'opacity-60 cursor-not-allowed' : ''}`}
-              onClick={() => !method.comingSoon && handleMethodSelect(method.id)}
-            >
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="flex-shrink-0">
-                    {uploading && method.id === 'csv' ? (
-                      <div className="w-12 h-12 flex items-center justify-center">
-                        <Loader2 className="h-8 w-8 text-primary animate-spin" />
+      {selectedMethod !== 'csv' || csvStep === 0 ? (
+        <div className="space-y-4">
+          {importMethods.map((method) => {
+            const IconComponent = method.icon;
+            const isSelected = selectedMethod === method.id;
+            
+            return (
+              <Card 
+                key={method.id}
+                className={`glass-card border-2 transition-all duration-200 cursor-pointer hover:shadow-md ${
+                  isSelected 
+                    ? 'border-primary bg-primary/5 shadow-md' 
+                    : 'border-white/20 hover:border-white/30'
+                } ${method.comingSoon ? 'opacity-60 cursor-not-allowed' : ''}`}
+                onClick={() => !method.comingSoon && handleMethodSelect(method.id)}
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="flex-shrink-0">
+                      {uploading && method.id === 'csv' ? (
+                        <div className="w-12 h-12 flex items-center justify-center">
+                          <Loader2 className="h-8 w-8 text-primary animate-spin" />
+                        </div>
+                      ) : (
+                        <IconComponent className={`h-8 w-8 ${method.iconColor}`} />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-semibold text-foreground">{method.title}</h3>
+                        {method.comingSoon && (
+                          <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded-full">
+                            Coming Soon
+                          </span>
+                        )}
+                        {isSelected && uploadedContacts > 0 && (
+                          <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                            {uploadedContacts} contacts imported
+                          </span>
+                        )}
                       </div>
-                    ) : (
-                      <IconComponent className={`h-8 w-8 ${method.iconColor}`} />
+                      <p className="text-sm text-muted-foreground">{method.description}</p>
+                    </div>
+                    {isSelected && !uploading && (
+                      <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                        <div className="w-2 h-2 bg-white rounded-full" />
+                      </div>
                     )}
                   </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-foreground">{method.title}</h3>
-                      {method.comingSoon && (
-                        <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded-full">
-                          Coming Soon
-                        </span>
-                      )}
-                      {isSelected && uploadedContacts > 0 && (
-                        <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
-                          {uploadedContacts} contacts imported
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground">{method.description}</p>
-                  </div>
-                  {isSelected && !uploading && (
-                    <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
-                      <div className="w-2 h-2 bg-white rounded-full" />
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      ) : null}
+
+      {/* CSV Upload Steps */}
+      {selectedMethod === 'csv' && renderCsvStep()}
 
       {/* CSV Upload Instructions */}
-      {selectedMethod === 'csv' && uploadedContacts === 0 && !uploading && (
+      {selectedMethod === 'csv' && csvStep === 0 && (
         <Card className="glass-card border-primary/20 bg-primary/5">
           <CardContent className="p-6">
             <div className="flex items-start gap-3">
@@ -308,6 +456,35 @@ export default function ContactImportStep({ onNext, onSkip }: ContactImportStepP
                   Name,Email,Phone<br/>
                   John Doe,john@example.com,+1234567890<br/>
                   Jane Smith,jane@example.com,+0987654321
+                </div>
+                <div className="mt-4 flex flex-wrap items-center gap-3">
+                  <Button variant="secondary" size="sm" onClick={() => {
+                    const blob = new Blob([makeSampleCSV(BASIC_FIELDS)], { type: "text/csv" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = "sample-basic-contacts.csv";
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }}>
+                    <Upload className="w-4 h-4 mr-1" />
+                    Download Basic Sample CSV
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={() => {
+                    const blob = new Blob([makeSampleCSV(COMPREHENSIVE_FIELDS)], { type: "text/csv" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = "sample-complete-contacts.csv";
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }}>
+                    <Upload className="w-4 h-4 mr-1" />
+                    Download Complete CSV
+                  </Button>
+                  <span className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Info className="w-4 h-4" /> Use "Complete" for advanced/array fields!
+                  </span>
                 </div>
               </div>
             </div>

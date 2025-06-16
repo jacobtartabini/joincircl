@@ -1,3 +1,4 @@
+
 import React, { useRef, useState } from "react";
 import Papa from "papaparse";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +12,8 @@ import { GlassModal } from "@/components/ui/GlassModal";
 import styles from "@/components/ui/glass.module.css";
 import { CSVMappingGroup } from "./CSVMappingGroup";
 import { CSVPreviewTable } from "./CSVPreviewTable";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Multi-template sample CSVs
 const makeSampleCSV = (fields: string[]): string => {
@@ -41,6 +44,7 @@ const Step = {
 export default function ImportContactsDialog({
   open, onOpenChange, onImportSuccess, refetchContacts
 }: ImportContactsDialogProps) {
+  const { user } = useAuth();
   const inputRef = useRef<HTMLInputElement>(null);
   const [step, setStep] = useState(0);
   const [dragging, setDragging] = useState(false);
@@ -98,8 +102,8 @@ export default function ImportContactsDialog({
 
   // --- Step 3: Import
   async function handleImport() {
-    if (!fileData.length) {
-      setValidationErr("No data to import.");
+    if (!fileData.length || !user) {
+      setValidationErr("No data to import or user not authenticated.");
       return;
     }
 
@@ -118,31 +122,77 @@ export default function ImportContactsDialog({
       );
       return;
     }
+    
     setLoading(true);
     setValidationErr(null);
     setImportResult(null);
 
     try {
-      const resp = await fetch("/api/contacts/import", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contacts: validContacts }),
-      });
-      if (resp.ok) {
-        const result = await resp.json();
-        setImportResult(result);
-        toast.success(`${result.successCount} contacts added`);
-        if (result.successCount > 0) {
-          refetchContacts();
-          onImportSuccess(result.successCount);
-        }
-      } else {
-        const err = await resp.json();
-        setValidationErr(err.message || "Failed to import contacts.");
-        setImportResult(null);
+      // Filter contacts to ensure required fields and proper typing
+      const contactsToInsert = validContacts
+        .filter(contact => contact.name && contact.name.trim()) // Ensure name is present
+        .map(contact => ({
+          name: contact.name!,
+          user_id: user.id,
+          circle: (contact.circle as "inner" | "middle" | "outer") || 'outer',
+          personal_email: contact.personal_email || null,
+          mobile_phone: contact.mobile_phone || null,
+          location: contact.location || null,
+          website: contact.website || null,
+          linkedin: contact.linkedin || null,
+          facebook: contact.facebook || null,
+          twitter: contact.twitter || null,
+          instagram: contact.instagram || null,
+          company_name: contact.company_name || null,
+          job_title: contact.job_title || null,
+          industry: contact.industry || null,
+          department: contact.department || null,
+          work_address: contact.work_address || null,
+          university: contact.university || null,
+          major: contact.major || null,
+          minor: contact.minor || null,
+          graduation_year: contact.graduation_year || null,
+          birthday: contact.birthday || null,
+          how_met: contact.how_met || null,
+          hobbies_interests: contact.hobbies_interests || null,
+          notes: contact.notes || null,
+          tags: contact.tags || null,
+          avatar_url: contact.avatar_url || null,
+          career_priority: contact.career_priority || false,
+          career_tags: contact.career_tags || null,
+          referral_potential: contact.referral_potential || null,
+          career_event_id: contact.career_event_id || null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }));
+
+      if (contactsToInsert.length === 0) {
+        throw new Error('No contacts with valid names found in CSV file');
       }
-    } catch (e) {
-      setValidationErr("Network error or server unavailable.");
+
+      const { data: insertedContacts, error } = await supabase
+        .from('contacts')
+        .insert(contactsToInsert)
+        .select();
+
+      if (error) {
+        throw error;
+      }
+
+      const result = {
+        successCount: insertedContacts?.length || 0,
+        failed: []
+      };
+      
+      setImportResult(result);
+      toast.success(`${result.successCount} contacts imported`);
+      if (result.successCount > 0) {
+        refetchContacts();
+        onImportSuccess(result.successCount);
+      }
+    } catch (error) {
+      console.error('Import error:', error);
+      setValidationErr("Failed to import contacts. Please try again.");
       setImportResult(null);
     }
     setLoading(false);
@@ -403,5 +453,3 @@ export default function ImportContactsDialog({
     </GlassModal>
   );
 }
-
-// File can be further split if grows too large.
