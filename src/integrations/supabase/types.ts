@@ -709,6 +709,8 @@ export type Database = {
           last_name: string | null
           location: string | null
           onboarding_completed: boolean | null
+          onboarding_completed_at: string | null
+          onboarding_step_completed: Json | null
           phone_number: string | null
           role: string | null
           updated_at: string | null
@@ -730,6 +732,8 @@ export type Database = {
           last_name?: string | null
           location?: string | null
           onboarding_completed?: boolean | null
+          onboarding_completed_at?: string | null
+          onboarding_step_completed?: Json | null
           phone_number?: string | null
           role?: string | null
           updated_at?: string | null
@@ -751,6 +755,8 @@ export type Database = {
           last_name?: string | null
           location?: string | null
           onboarding_completed?: boolean | null
+          onboarding_completed_at?: string | null
+          onboarding_step_completed?: Json | null
           phone_number?: string | null
           role?: string | null
           updated_at?: string | null

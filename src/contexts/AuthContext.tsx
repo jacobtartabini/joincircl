@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext } from 'react';
 import { AuthContextProps } from '@/types/auth';
 import { useAuthState } from '@/hooks/useAuthState';
@@ -154,6 +155,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     hasPermission,
     hasSeenTutorial,
     setHasSeenTutorial,
+    setProfile,
   };
 
   return (
