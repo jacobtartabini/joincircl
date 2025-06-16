@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -366,7 +365,7 @@ export default function Arlo() {
       />
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+      <div className="flex-1 flex flex-col min-h-0 overflow-hidden relative">
         {/* Header with refresh button in top right */}
         <div className="flex-shrink-0 glass-nav border-b px-6 py-4">
           <div className="flex items-center justify-end">
@@ -387,10 +386,11 @@ export default function Arlo() {
             className="h-full overflow-y-auto scrollbar-hide"
             style={{
               scrollbarWidth: 'none',
-              msOverflowStyle: 'none'
+              msOverflowStyle: 'none',
+              paddingBottom: '120px'
             }}
           >
-            <div className="max-w-3xl mx-auto px-6 pb-40">
+            <div className="max-w-3xl mx-auto px-6">
               {!activeConversation || activeConversation.messages.length <= 1 ? (
                 <div className="py-8">
                   <ConversationStarters onSelectPrompt={handlePromptSelect} />
@@ -453,8 +453,15 @@ export default function Arlo() {
           </div>
         </div>
 
-        {/* Fixed Input Area - positioned at bottom with proper spacing */}
-        <div className="absolute bottom-36 left-0 right-0 glass-nav border-t px-6 py-4">
+        {/* Fixed Input Area - adapts to sidebar width and positioned closer to nav */}
+        <div 
+          className="absolute bottom-28 glass-nav border-t px-6 py-4"
+          style={{
+            left: sidebarOpen ? '224px' : '48px',
+            right: 0,
+            transition: 'left 0.2s ease-in-out'
+          }}
+        >
           <div className="max-w-3xl mx-auto">
             <div className="flex items-end gap-3">
               <AutoExpandingTextarea
