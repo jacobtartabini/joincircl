@@ -1,6 +1,7 @@
 import { Phone, Mail, MapPin, Briefcase, Calendar, MessageSquare, Edit, Trash, Gift, GraduationCap, Facebook, Instagram, Linkedin, Globe, Building, Plus, Clock, Bell, FileText, Coffee, Hash } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Contact, Interaction, ContactMedia } from "@/types/contact";
 import { Keystone } from "@/types/keystone";
@@ -32,6 +33,7 @@ export function UnifiedContactView({
 }: UnifiedContactViewProps) {
   const [isAddInteractionOpen, setIsAddInteractionOpen] = useState(false);
   const [isAddKeystoneOpen, setIsAddKeystoneOpen] = useState(false);
+
   const getInteractionIcon = (type: string) => {
     switch (type.toLowerCase()) {
       case "meeting":
@@ -46,6 +48,32 @@ export function UnifiedContactView({
         return <Hash className="h-4 w-4 text-muted-foreground" />;
     }
   };
+
+  const getCircleBadge = (circle: string) => {
+    switch (circle) {
+      case "inner":
+        return (
+          <Badge className="bg-[#2664EB] text-white hover:bg-[#1d4ed8] border-0">
+            Inner
+          </Badge>
+        );
+      case "middle":
+        return (
+          <Badge className="bg-[#16A34A] text-white hover:bg-[#15803d] border-0">
+            Middle
+          </Badge>
+        );
+      case "outer":
+        return (
+          <Badge className="bg-[#9CA3AF] text-white hover:bg-[#6b7280] border-0">
+            Outer
+          </Badge>
+        );
+      default:
+        return null;
+    }
+  };
+
   const ContactInfoItem = ({
     icon: Icon,
     label,
@@ -121,9 +149,7 @@ export function UnifiedContactView({
                         <MapPin className="h-4 w-4" />
                         {contact.location}
                       </p>}
-                    <div className="inline-flex px-3 py-1 rounded-full text-sm font-medium bg-[#0daeec]/10 text-[#0daeec] border border-[#0daeec]/20">
-                      {contact.circle.charAt(0).toUpperCase() + contact.circle.slice(1)} Circle
-                    </div>
+                    {getCircleBadge(contact.circle)}
                   </div>
                 </div>
 
