@@ -56,10 +56,10 @@ export function GlassModal({
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent 
           side="bottom" 
-          className={`${styles.glass} h-[90vh] overflow-auto border-0 shadow-xl rounded-t-3xl p-0`}
+          className={`${styles.glass} h-[95vh] overflow-auto border-0 shadow-xl rounded-t-3xl p-0`}
         >
           <div className="mx-auto -mt-1 mb-4 h-1.5 w-[60px] rounded-full bg-muted" />
-          <div className="px-6 py-4">
+          <div className="px-6 py-4 h-full overflow-y-auto">
             {content}
           </div>
         </SheetContent>
@@ -69,8 +69,8 @@ export function GlassModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={`${styles.glass} ${maxWidth} ${className} border-0 shadow-xl rounded-3xl p-0 !overflow-visible`}>
-        <div className="px-8 py-6">
+      <DialogContent className={`${styles.glass} ${maxWidth} ${className} border-0 shadow-xl rounded-3xl p-0 max-h-[90vh] overflow-hidden`}>
+        <div className="px-8 py-6 h-full overflow-y-auto">
           {content}
         </div>
       </DialogContent>

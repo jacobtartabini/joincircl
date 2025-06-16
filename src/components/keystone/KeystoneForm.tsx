@@ -120,17 +120,17 @@ export default function KeystoneForm({ keystone, contact, onSuccess, onCancel }:
   const isLoading = createMutation.isPending || updateMutation.isPending;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
       <StandardModalHeader
         icon={Calendar}
         title={keystone ? 'Edit Keystone' : 'Create New Keystone'}
         subtitle="Plan and track important life events"
       />
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-3">
           <div className="space-y-2">
-            <Label htmlFor="title">Title *</Label>
+            <Label htmlFor="title" className="text-sm font-medium">Title *</Label>
             <GlassInput
               id="title"
               value={formData.title}
@@ -140,9 +140,9 @@ export default function KeystoneForm({ keystone, contact, onSuccess, onCancel }:
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="date">Date *</Label>
+              <Label htmlFor="date" className="text-sm font-medium">Date *</Label>
               <GlassInput
                 id="date"
                 type="date"
@@ -152,7 +152,7 @@ export default function KeystoneForm({ keystone, contact, onSuccess, onCancel }:
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="time">Time</Label>
+              <Label htmlFor="time" className="text-sm font-medium">Time</Label>
               <GlassInput
                 id="time"
                 type="time"
@@ -163,7 +163,7 @@ export default function KeystoneForm({ keystone, contact, onSuccess, onCancel }:
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="category">Category</Label>
+            <Label htmlFor="category" className="text-sm font-medium">Category</Label>
             <GlassSelect value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
               <GlassSelectTrigger>
                 <GlassSelectValue placeholder="Select a category" />
@@ -181,8 +181,8 @@ export default function KeystoneForm({ keystone, contact, onSuccess, onCancel }:
           </div>
 
           <div className="space-y-2">
-            <Label>Related Contact</Label>
-            <div className="rounded-xl border border-white/30 bg-white/40 dark:bg-white/5 dark:border-white/15 backdrop-blur-sm p-3">
+            <Label className="text-sm font-medium">Related Contact</Label>
+            <div className="rounded-xl border-2 border-white/40 dark:border-white/25 bg-white/50 dark:bg-white/8 backdrop-blur-sm p-3">
               <MultiContactSelector
                 contacts={contacts}
                 selectedContacts={selectedContacts}
@@ -201,12 +201,12 @@ export default function KeystoneForm({ keystone, contact, onSuccess, onCancel }:
                 checked={formData.is_recurring}
                 onCheckedChange={(checked) => handleInputChange('is_recurring', checked)}
               />
-              <Label htmlFor="is_recurring">Recurring event</Label>
+              <Label htmlFor="is_recurring" className="text-sm font-medium">Recurring event</Label>
             </div>
 
             {formData.is_recurring && (
               <div className="space-y-2">
-                <Label htmlFor="recurrence_frequency">Frequency</Label>
+                <Label htmlFor="recurrence_frequency" className="text-sm font-medium">Frequency</Label>
                 <GlassSelect value={formData.recurrence_frequency} onValueChange={(value) => handleInputChange('recurrence_frequency', value)}>
                   <GlassSelectTrigger>
                     <GlassSelectValue />
@@ -223,24 +223,25 @@ export default function KeystoneForm({ keystone, contact, onSuccess, onCancel }:
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
+            <Label htmlFor="notes" className="text-sm font-medium">Notes</Label>
             <GlassTextarea
               id="notes"
               value={formData.notes}
               onChange={(e) => handleInputChange('notes', e.target.value)}
               placeholder="Additional details about this keystone..."
               rows={3}
+              className="resize-none"
             />
           </div>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex gap-3 pt-4">
           <Button
             type="button"
             variant="outline"
             onClick={onCancel}
             disabled={isLoading}
-            className="flex-1 rounded-full bg-white/20 border-white/30 backdrop-blur-sm hover:bg-white/30"
+            className="flex-1 rounded-full bg-white/20 border-white/40 backdrop-blur-sm hover:bg-white/30"
           >
             Cancel
           </Button>
