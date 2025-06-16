@@ -1,3 +1,4 @@
+
 "use client";
 
 import { cn } from "@/lib/utils";
@@ -16,6 +17,7 @@ interface MultiContactSelectorProps {
   label?: string;
   placeholder?: string;
   className?: string;
+  maxSelection?: number;
 }
 
 export function MultiContactSelector({
@@ -24,7 +26,8 @@ export function MultiContactSelector({
   onSelectionChange,
   label = "Select contacts",
   placeholder = "Search contacts...",
-  className
+  className,
+  maxSelection
 }: MultiContactSelectorProps) {
   const id = useId();
   const [open, setOpen] = useState(false);
@@ -58,7 +61,13 @@ export function MultiContactSelector({
     if (isSelected) {
       onSelectionChange(selectedContacts.filter(c => c.id !== contact.id));
     } else {
-      onSelectionChange([...selectedContacts, contact]);
+      // Check max selection limit
+      if (maxSelection && selectedContacts.length >= maxSelection) {
+        // If we're at the limit, replace the first selected contact
+        onSelectionChange([...selectedContacts.slice(1), contact]);
+      } else {
+        onSelectionChange([...selectedContacts, contact]);
+      }
     }
   };
 
@@ -123,16 +132,20 @@ export function MultiContactSelector({
             <CommandGroup>
               {filteredContacts.map(contact => {
                 const isSelected = selectedContacts.some(c => c.id === contact.id);
+                const isDisabled = maxSelection && !isSelected && selectedContacts.length >= maxSelection;
+                
                 return (
                   <CommandItem
                     key={contact.id}
                     value={contact.id}
-                    onSelect={() => handleSelect(contact.id)}
+                    onSelect={() => !isDisabled && handleSelect(contact.id)}
                     className={cn(
                       "flex items-center justify-between cursor-pointer py-2 px-2",
-                      isSelected && "bg-accent text-accent-foreground"
+                      isSelected && "bg-accent text-accent-foreground",
+                      isDisabled && "opacity-50 cursor-not-allowed"
                     )}
                     aria-selected={isSelected}
+                    disabled={isDisabled}
                   >
                     <div className="flex items-center gap-2 flex-1 min-w-0">
                       <div className="flex flex-col min-w-0 flex-1">

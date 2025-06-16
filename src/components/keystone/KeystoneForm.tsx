@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { GlassInput } from "@/components/ui/GlassInput";
@@ -11,17 +10,19 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { keystoneService } from "@/services/keystoneService";
 import { contactService } from "@/services/contactService";
 import { useToast } from "@/hooks/use-toast";
-import { Contact, Keystone } from "@/types/keystone";
+import { Contact } from "@/types/contact";
+import { Keystone } from "@/types/keystone";
 import { StandardModalHeader } from "@/components/ui/StandardModalHeader";
 import { Calendar } from "lucide-react";
 
 interface KeystoneFormProps {
   keystone?: Keystone;
+  contact?: Contact;
   onSuccess: (keystone?: Keystone) => void;
   onCancel: () => void;
 }
 
-export default function KeystoneForm({ keystone, onSuccess, onCancel }: KeystoneFormProps) {
+export default function KeystoneForm({ keystone, contact, onSuccess, onCancel }: KeystoneFormProps) {
   const [selectedContacts, setSelectedContacts] = useState<Contact[]>([]);
   const [formData, setFormData] = useState({
     title: keystone?.title || '',
@@ -78,13 +79,17 @@ export default function KeystoneForm({ keystone, onSuccess, onCancel }: Keystone
   });
 
   useEffect(() => {
-    if (keystone?.contact_id && contacts.length > 0) {
-      const contact = contacts.find(c => c.id === keystone.contact_id);
-      if (contact) {
-        setSelectedContacts([contact]);
+    if (contact) {
+      // If a specific contact is passed, pre-select it
+      setSelectedContacts([contact]);
+    } else if (keystone?.contact_id && contacts.length > 0) {
+      // Otherwise, use the keystone's existing contact
+      const existingContact = contacts.find(c => c.id === keystone.contact_id);
+      if (existingContact) {
+        setSelectedContacts([existingContact]);
       }
     }
-  }, [keystone?.contact_id, contacts]);
+  }, [keystone?.contact_id, contacts, contact]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -182,7 +187,6 @@ export default function KeystoneForm({ keystone, onSuccess, onCancel }: Keystone
                 contacts={contacts}
                 selectedContacts={selectedContacts}
                 onSelectionChange={setSelectedContacts}
-                maxSelection={1}
                 label=""
                 placeholder="Search for a contact..."
                 className="w-full bg-transparent border-0"
