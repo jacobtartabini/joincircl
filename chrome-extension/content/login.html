@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login - Circl Sidebar</title>
+  <link rel="stylesheet" href="../sidebar.css" />
+</head>
+<body>
+  <div class="login-wrapper">
+    <h2>Login to Circl</h2>
+    <form id="login-form">
+      <input type="email" id="email" placeholder="Email" required />
+      <input type="password" id="password" placeholder="Password" required />
+      <button type="submit">Log In</button>
+    </form>
+    <div id="login-error" class="error-message"></div>
+  </div>
+
+  <script>
+    document.getElementById("login-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const errorDiv = document.getElementById("login-error");
+      errorDiv.textContent = "";
+
+      try {
+        // Mock authentication; replace with your real API call
+        const token = await new Promise((resolve, reject) => {
+          setTimeout(() => {
+            if (email === "user@example.com" && password === "password123") {
+              resolve("mock-token-123456");
+            } else {
+              reject(new Error("Invalid email or password"));
+            }
+          }, 1000);
+        });
+
+        // Save token and redirect to sidebar page
+        localStorage.setItem("authToken", token);
+        window.location.href = "../sidebar.html"; // Redirect back to sidebar
+      } catch (err) {
+        errorDiv.textContent = err.message;
+      }
+    });
+  </script>
+</body>
+</html>
