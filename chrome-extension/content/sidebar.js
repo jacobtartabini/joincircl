@@ -1,3 +1,13 @@
+// Check for authentication token on script load
+const token = localStorage.getItem("authToken");
+if (!token) {
+  // Redirect to login if token missing
+  window.location.href = "./content/login.html";
+} else {
+  // Optional: validate token or fetch user profile here
+  console.log("Authenticated with token:", token);
+}
+
 // Basic debounce helper
 function debounce(fn, delay = 200) {
   let t;
@@ -79,4 +89,10 @@ function renderKeystone(k) {
   div.textContent = `📅 ${k.title}`;
   div.onclick = () => console.log('Selected keystone', k.id);
   document.getElementById('resultsContainer').appendChild(div);
+}
+
+// Logout function to clear token and redirect to login
+function logout() {
+  localStorage.removeItem("authToken");
+  window.location.href = "./content/login.html";
 }
