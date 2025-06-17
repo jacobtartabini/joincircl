@@ -5,19 +5,31 @@ import { RecentContacts } from '@/components/home/RecentContacts';
 import UnifiedNetworkRecommendations from '@/components/home/UnifiedNetworkRecommendations';
 import { EnhancedNetworkAnalysis } from '@/components/home/EnhancedNetworkAnalysis';
 import { HomePageHeader } from './HomePageHeader';
+import { useNavigate } from 'react-router-dom';
 
 export default function MobileHomeContent() {
   const { 
     contacts, 
-    totalContactCount, // Use the accurate total count
+    totalContactCount,
     isLoading, 
     followUpStats, 
     getContactDistribution, 
-    getRecentContacts 
+    getRecentContacts,
+    fetchContacts
   } = useContacts();
+  
+  const navigate = useNavigate();
 
   const distribution = getContactDistribution();
   const recentContacts = getRecentContacts(3);
+
+  const handleContactChange = () => {
+    fetchContacts();
+  };
+
+  const handleAddContact = () => {
+    navigate('/contacts/new');
+  };
 
   return (
     <div className="min-h-screen bg-background dark:bg-background">
@@ -25,7 +37,7 @@ export default function MobileHomeContent() {
         <HomePageHeader />
         
         <DashboardStats 
-          totalContacts={totalContactCount} // Use server-provided total count
+          totalContacts={totalContactCount}
           distribution={distribution}
           followUpStats={followUpStats}
           isLoading={isLoading}
@@ -34,7 +46,12 @@ export default function MobileHomeContent() {
         <div className="space-y-6">
           <EnhancedNetworkAnalysis contacts={contacts} isLoading={isLoading} />
           <UnifiedNetworkRecommendations contacts={contacts} />
-          <RecentContacts contacts={recentContacts} isLoading={isLoading} />
+          <RecentContacts 
+            contacts={recentContacts} 
+            isLoading={isLoading}
+            onContactChange={handleContactChange}
+            onAddContact={handleAddContact}
+          />
         </div>
       </div>
     </div>
