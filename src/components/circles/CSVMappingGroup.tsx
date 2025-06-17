@@ -34,7 +34,7 @@ export function CSVMappingGroup({
         {open ? <ChevronDown className="w-4 h-4 mr-3" /> : <ChevronRight className="w-4 h-4 mr-3" />}
         <span className="text-sm uppercase tracking-wide font-semibold text-primary">{group} Fields</span>
         <div className="ml-auto text-xs text-muted-foreground">
-          {fields.filter(f => headerMap[f.label]).length} / {fields.length} mapped
+          {fields.filter(f => headerMap[f.label]).length} / {fields.length} mapped (all optional)
         </div>
       </button>
       
@@ -45,7 +45,7 @@ export function CSVMappingGroup({
               <div key={field.label} className="space-y-2">
                 <label className="flex items-center text-sm font-medium text-foreground">
                   {field.label}
-                  {field.required && <span className="ml-1 text-red-500">*</span>}
+                  <span className="ml-1 text-xs text-muted-foreground">(optional)</span>
                 </label>
                 
                 <select

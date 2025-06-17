@@ -1,4 +1,3 @@
-
 /**
  * All contact fields, label, type, and matching keys
  * Used for smarter header detection, mapping, and validation.
@@ -7,7 +6,7 @@
 export type ContactFieldDef = {
   label: string;
   key: string;
-  required?: boolean;
+  required?: boolean; // Not enforced for CSV imports
   type: "string" | "email" | "phone" | "date" | "number" | "array" | "boolean" | "circle" | "url";
   keys: string[]; // Alternative/synonyms for auto-mapping
   example?: string;
@@ -17,11 +16,11 @@ export type ContactFieldDef = {
 export const CONTACT_FIELD_DEFS: ContactFieldDef[] = [
   // --- Basic Info ---
   {
-    label: "Name", key: "name", required: true, type: "string", group: "Basic",
+    label: "Name", key: "name", type: "string", group: "Basic",
     keys: ["name", "full name"]
   },
   {
-    label: "Email", key: "personal_email", required: true, type: "email", group: "Basic",
+    label: "Email", key: "personal_email", type: "email", group: "Basic",
     keys: ["email", "e-mail", "personal_email"]
   },
   {
@@ -152,24 +151,26 @@ export const CONTACT_FIELD_DEFS: ContactFieldDef[] = [
 
 // Validate value for a given field type (per column)
 export function validateField(value: string, type: ContactFieldDef["type"]): boolean {
+  if (!value || value.trim() === "") return true; // Empty values are always valid for CSV import
+  
   switch (type) {
     case "email":
       return /^[^@]+@[^@]+\.[^@]+$/.test(value);
     case "url":
       // Allow empty, or http/https links
-      return !value || /^https?:\/\/.+/.test(value) || /^www\./.test(value);
+      return /^https?:\/\/.+/.test(value) || /^www\./.test(value);
     case "phone":
       // Accept any digit groups w/ optional +,-,space, (basic check)
-      return !value || /^[+()\d .-]{7,}$/.test(value);
+      return /^[+()\d .-]{7,}$/.test(value);
     case "number":
-      return !value || !isNaN(Number(value));
+      return !isNaN(Number(value));
     case "date":
       // Accept YYYY-MM-DD or similar
-      return !value || !isNaN(Date.parse(value));
+      return !isNaN(Date.parse(value));
     case "boolean":
       return /^(true|false|yes|no|1|0)?$/i.test(value);
     case "circle":
-      return !value || ["inner", "middle", "outer"].includes(value.toLowerCase());
+      return ["inner", "middle", "outer"].includes(value.toLowerCase());
     case "array":
       // Always OK, will parse as string[]
       return true;
@@ -181,19 +182,19 @@ export function validateField(value: string, type: ContactFieldDef["type"]): boo
 
 // Parse a value (string) to correct data type for backend insert
 export function parseField(value: string, type: ContactFieldDef["type"]) {
+  if (!value || value.trim() === "") return null;
+  
   switch (type) {
     case "email":
       return value.trim();
     case "url":
       // Normalize: add http if missing
-      if (!value) return "";
       return value.startsWith("http") ? value.trim() : "https://" + value.trim();
     case "phone":
       return value.trim();
     case "number":
-      return value ? Number(value) : undefined;
+      return Number(value);
     case "date":
-      if (!value) return null;
       const parsed = Date.parse(value);
       if (!isNaN(parsed)) return new Date(parsed).toISOString().slice(0, 10);
       return value;
@@ -201,13 +202,11 @@ export function parseField(value: string, type: ContactFieldDef["type"]) {
       // Accept true/false/yes/no/1/0
       return /^(true|yes|1)$/i.test(value);
     case "circle":
-      if (!value) return "outer";
       const v = value.toLowerCase();
       if (["inner", "middle", "outer"].includes(v)) return v;
       return "outer";
     case "array":
       // Split by comma, trim entries, filter empty
-      if (!value) return [];
       return value.split(",").map(v => v.trim()).filter(Boolean);
     case "string":
     default:
@@ -229,4 +228,3 @@ export function getExample(type: ContactFieldDef["type"]): string {
     default: return "Jane Doe";
   }
 }
-

@@ -1,3 +1,4 @@
+
 import { Contact } from "@/types/contact";
 import { CONTACT_FIELD_DEFS, validateField, parseField } from "./csvFieldDefs";
 
@@ -11,7 +12,7 @@ export function detectHeaders(fields: string[]): { [target: string]: string } {
   return mapping;
 }
 
-// Client-side validation of imported data per field type
+// Client-side validation of imported data per field type - NO REQUIRED FIELDS FOR CSV IMPORT
 export function validateCSVContacts(
   contacts: Partial<Contact>[],
   headers: { label: string; required?: boolean; key: string; type: string; }[]
@@ -22,26 +23,30 @@ export function validateCSVContacts(
 
   for (let i = 0; i < contacts.length; i++) {
     const c = contacts[i];
+    
+    // Skip required field validation for CSV imports - only validate data format
     for (const h of headers) {
       const value = c[h.key as keyof Contact] as any as string;
-      if (h.required && (!value || value === "")) {
-        errors.push({ row: i + 2, reason: `${h.label} is required.` });
-      }
-      if (value && !validateField(value, h.type as any)) {
-        errors.push({ row: i + 2, reason: `Invalid value for ${h.label}: ${value}` });
+      
+      // Only validate format if value exists, don't require any fields
+      if (value && value.trim() !== "" && !validateField(value, h.type as any)) {
+        errors.push({ row: i + 2, reason: `Invalid format for ${h.label}: ${value}` });
       }
     }
-    // Email: format + duplicates
-    if (c.personal_email && !/^[^@]+@[^@]+\.[^@]+$/.test(c.personal_email)) {
-      errors.push({ row: i + 2, reason: `Invalid email format: ${c.personal_email}` });
-    }
-    if (c.personal_email) {
-      const key = (c.personal_email as string).toLowerCase();
-      if (emailSet.has(key)) {
-        errors.push({ row: i + 2, reason: `Duplicate email: ${c.personal_email}` });
+    
+    // Email: format check (but not required) + duplicates
+    if (c.personal_email && c.personal_email.trim() !== "") {
+      if (!/^[^@]+@[^@]+\.[^@]+$/.test(c.personal_email)) {
+        errors.push({ row: i + 2, reason: `Invalid email format: ${c.personal_email}` });
+      } else {
+        const key = (c.personal_email as string).toLowerCase();
+        if (emailSet.has(key)) {
+          errors.push({ row: i + 2, reason: `Duplicate email: ${c.personal_email}` });
+        }
+        emailSet.add(key);
       }
-      emailSet.add(key);
     }
+    
     validContacts.push(c);
   }
   return { validContacts, errors };
@@ -57,7 +62,7 @@ export function getKeyByLabel(label: string): string {
 export function parseContactFromRow(row: any, headerMap: { [target: string]: string }) {
   const obj: any = {};
   for (const f of CONTACT_FIELD_DEFS) {
-    if (headerMap[f.label] && row[headerMap[f.label]] !== undefined) {
+    if (headerMap[f.label] && row[headerMap[f.label]] !== undefined && row[headerMap[f.label]] !== "") {
       obj[f.key] = parseField(row[headerMap[f.label]], f.type);
     }
   }

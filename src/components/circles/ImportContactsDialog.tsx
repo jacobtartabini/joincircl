@@ -1,4 +1,3 @@
-
 import React, { useRef, useState } from "react";
 import Papa from "papaparse";
 import { Badge } from "@/components/ui/badge";
@@ -112,12 +111,12 @@ export default function ImportContactsDialog({
       parseContactFromRow(row, headerMap)
     );
 
-    // Client-side validation using dynamic headers (all fields)
+    // Client-side validation - NO REQUIRED FIELDS for CSV import
     const { validContacts, errors } = validateCSVContacts(contacts, CONTACT_FIELD_DEFS);
 
     if (errors.length > 0) {
       setValidationErr(
-        `Please fix errors before import:\n` +
+        `Please fix format errors before import:\n` +
         errors.map((err) => `Row ${err.row}: ${err.reason}`).join("\n")
       );
       return;
@@ -128,11 +127,17 @@ export default function ImportContactsDialog({
     setImportResult(null);
 
     try {
-      // Filter contacts to ensure required fields and proper typing
+      // Filter contacts to ensure at least some data exists (but don't require name)
       const contactsToInsert = validContacts
-        .filter(contact => contact.name && contact.name.trim()) // Ensure name is present
+        .filter(contact => 
+          // At least one field must have content
+          Object.values(contact).some(value => 
+            value !== null && value !== undefined && 
+            (typeof value === 'string' ? value.trim() !== '' : true)
+          )
+        )
         .map(contact => ({
-          name: contact.name!,
+          name: contact.name || 'Imported Contact', // Provide default name if missing
           user_id: user.id,
           circle: (contact.circle as "inner" | "middle" | "outer") || 'outer',
           personal_email: contact.personal_email || null,
@@ -167,7 +172,7 @@ export default function ImportContactsDialog({
         }));
 
       if (contactsToInsert.length === 0) {
-        throw new Error('No contacts with valid names found in CSV file');
+        throw new Error('No valid contacts found in CSV file');
       }
 
       const { data: insertedContacts, error } = await supabase
@@ -221,7 +226,7 @@ export default function ImportContactsDialog({
         >
           <FileUp className="w-12 h-12 text-primary mb-2" />
           <span className="font-semibold text-lg text-foreground">Drop your CSV file here or <span className="underline text-primary">browse</span></span>
-          <span className="text-sm text-muted-foreground">Max 5,000 contacts • CSV only</span>
+          <span className="text-sm text-muted-foreground">Max 5,000 contacts • CSV only • No fields required</span>
           <input
             ref={inputRef}
             type="file"
@@ -259,7 +264,7 @@ export default function ImportContactsDialog({
           </Button>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Info className="w-4 h-4" />
-            Use "Complete" for advanced fields!
+            All fields are optional - map what you have!
           </div>
         </div>
         {validationErr &&
@@ -287,6 +292,13 @@ export default function ImportContactsDialog({
             <div className="glass-card px-3 py-1.5">
               <span className="text-sm text-muted-foreground">{fileName}</span>
             </div>
+          </div>
+          
+          <div className="mb-4 p-3 glass-card bg-blue-50/20 border-blue-200/50 rounded-lg">
+            <p className="text-sm text-blue-700">
+              <Info className="w-4 h-4 inline mr-2" />
+              All fields are optional! Map only the columns you want to import. Contacts without names will be labeled as "Imported Contact".
+            </p>
           </div>
           
           {/* Expand/collapse controls */}
@@ -370,7 +382,7 @@ export default function ImportContactsDialog({
           <div className="glass-card-enhanced p-6 mb-6">
             <h3 className="font-semibold text-lg text-foreground mb-2">Ready to Import</h3>
             <p className="text-muted-foreground mb-4">
-              {fileData.length} contacts will be imported to your Circl.
+              {fileData.length} contacts will be imported to your Circl. All fields are optional.
             </p>
             <Button
               onClick={handleImport}
