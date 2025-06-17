@@ -1,7 +1,7 @@
 
 import { useContacts } from '@/hooks/use-contacts';
 import { DashboardStats } from './DashboardStats';
-import { RecentContacts } from './RecentContacts';
+import { RecentContacts } from '@/components/home/RecentContacts';
 import UnifiedNetworkRecommendations from '@/components/home/UnifiedNetworkRecommendations';
 import { EnhancedNetworkAnalysis } from '@/components/home/EnhancedNetworkAnalysis';
 import { HomePageHeader } from './HomePageHeader';
