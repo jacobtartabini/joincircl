@@ -7,35 +7,36 @@
   <link rel="stylesheet" href="sidebar.css" />
 </head>
 <body>
-  <div id="sidebar">
-    <div class="top-bar">
-      <input type="text" placeholder="Search..." id="searchInput" />
-      <div class="action-buttons">
-        <button id="addContactBtn">➕ Add Contact</button>
-        <button id="addEventBtn">➕ Add Event</button>
+  <div class="sidebar-wrapper">
+    <!-- Header -->
+    <div class="sidebar-header">
+      <h1 class="sidebar-title">Circl</h1>
+      <p class="sidebar-subtitle">Your career hub</p>
+    </div>
+
+    <!-- Action Search Bar -->
+    <div class="action-search">
+      <div class="search-icon">
+        <svg width="16" height="16" fill="currentColor"><use href="#icon-search"/></svg>
       </div>
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="What would you like to do?"
+        class="search-input"
+      />
     </div>
 
-    <div class="section" id="circlesSection">
-      <h3>Circles</h3>
-      <div id="circlesList"></div>
-    </div>
-
-    <div class="section" id="keystonesSection">
-      <h3>Keystones</h3>
-      <div id="keystonesList"></div>
-    </div>
-
-    <div class="section" id="careerSection">
-      <h3>Career Hub</h3>
-      <p>Coming soon...</p>
-    </div>
-
-    <div class="section" id="arloSection">
-      <h3>Arlo Assistant</h3>
-      <input type="text" placeholder="Ask Arlo..." id="arloInput" />
-    </div>
+    <!-- Search Results -->
+    <div id="resultsContainer" class="results-panel"></div>
   </div>
+
+  <!-- Inline SVG icons (simplified for example) -->
+  <svg style="display: none;">
+    <symbol id="icon-search" viewBox="0 0 24 24">
+      <path d="M10 2a8 8 0 015.293 13.707l5 5a1 1 0 01-1.414 1.414l-5-5A8 8 0 1110 2zm0 2a6 6 0 100 12 6 6 0 000-12z"/>
+    </symbol>
+  </svg>
 
   <script src="sidebar.js"></script>
 </body>
