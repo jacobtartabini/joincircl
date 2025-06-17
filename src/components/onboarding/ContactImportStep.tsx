@@ -1,3 +1,4 @@
+
 import { useState, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -110,7 +111,7 @@ export default function ContactImportStep({ onNext, onSkip }: ContactImportStepP
         updated_at: new Date().toISOString()
       }));
 
-      const { data: insertedCont  acts, error } = await supabase
+      const { data: insertedContacts, error } = await supabase
         .from('contacts')
         .insert(contactsToInsert)
         .select();
