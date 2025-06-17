@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
   "name": "Circl Sidebar",
-  "description": "Quickly access your Circl contacts, events, and tools on any page.",
+  "description": "Quick access to your Circl dashboard.",
   "version": "1.0",
   "permissions": ["storage", "activeTab", "scripting"],
   "host_permissions": ["<all_urls>"],
   "action": {
-    "default_title": "Open Circl Sidebar"
+    "default_title": "Toggle Circl Sidebar"
   },
   "background": {
     "service_worker": "background.js"
