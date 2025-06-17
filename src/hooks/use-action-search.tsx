@@ -18,9 +18,9 @@ export function useActionSearch({
   const navigate = useNavigate();
 
   // Memoize the navigation handlers to prevent recreating functions
-  const handleNavigateToAI = useCallback(() => navigate('/ai-assistant'), [navigate]);
+  const handleNavigateToAI = useCallback(() => navigate('/arlo'), [navigate]);
   const handleNavigateToCircles = useCallback(() => navigate('/circles'), [navigate]);
-  const handleNavigateToCareer = useCallback(() => navigate('/career-hub'), [navigate]);
+  const handleNavigateToCareer = useCallback(() => navigate('/career'), [navigate]);
   const handleNavigateToEvents = useCallback(() => navigate('/events'), [navigate]);
   const handleNavigateToNotifications = useCallback(() => navigate('/notifications'), [navigate]);
   const handleNavigateToSettings = useCallback(() => navigate('/settings'), [navigate]);
