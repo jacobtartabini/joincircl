@@ -1,4 +1,3 @@
-
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCirclesState } from "./hooks/useCirclesState";
@@ -16,6 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Search, Plus, Filter, User, Phone, Mail, Edit, Trash } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { usePagination } from "@/hooks/use-pagination";
+import { ContactsPagination } from "@/components/ui/contacts-pagination";
 
 export default function MobileOptimizedCircles() {
   const navigate = useNavigate();
@@ -85,6 +86,27 @@ export default function MobileOptimizedCircles() {
       return 0;
     });
   }, [contacts, searchQuery, filterBy, tagFilter, sortBy]);
+
+  // Add pagination
+  const {
+    currentPage,
+    totalPages,
+    paginatedContacts,
+    goToPage,
+    hasNextPage,
+    hasPreviousPage,
+    totalContacts,
+    itemsPerPage,
+    resetToFirstPage,
+  } = usePagination({
+    contacts: filteredSortedContacts,
+    itemsPerPage: 100,
+  });
+
+  // Reset pagination when filters or search change
+  useEffect(() => {
+    resetToFirstPage();
+  }, [searchQuery, filterBy, tagFilter, sortBy, resetToFirstPage]);
   
   const getCircleColor = (circle: string) => {
     switch (circle) {
@@ -359,12 +381,24 @@ export default function MobileOptimizedCircles() {
                 </div>
               ))}
             </div>
-          ) : filteredSortedContacts.length > 0 ? (
-            <AnimatePresence mode="popLayout">
-              {filteredSortedContacts.map(contact => (
-                <SwipeableContactCard key={contact.id} contact={contact} />
-              ))}
-            </AnimatePresence>
+          ) : paginatedContacts.length > 0 ? (
+            <>
+              <AnimatePresence mode="popLayout">
+                {paginatedContacts.map(contact => (
+                  <SwipeableContactCard key={contact.id} contact={contact} />
+                ))}
+              </AnimatePresence>
+              
+              <ContactsPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={goToPage}
+                hasNextPage={hasNextPage}
+                hasPreviousPage={hasPreviousPage}
+                totalContacts={totalContacts}
+                itemsPerPage={itemsPerPage}
+              />
+            </>
           ) : (
             <div className="text-center py-12">
               <User className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
