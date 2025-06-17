@@ -1,4 +1,3 @@
-
 import { useState, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -105,8 +104,40 @@ export default function ContactImportStep({ onNext, onSkip }: ContactImportStepP
     setUploading(true);
     
     try {
+      // Ensure required fields are present and properly typed
       const contactsToInsert = validationResult.contacts.map(contact => ({
-        ...contact,
+        name: contact.name || 'Imported Contact', // Ensure name is always present
+        user_id: user.id, // Ensure user_id is always present
+        circle: (contact.circle as "inner" | "middle" | "outer") || 'outer',
+        personal_email: contact.personal_email || null,
+        emails: contact.emails || null,
+        mobile_phone: contact.mobile_phone || null,
+        location: contact.location || null,
+        website: contact.website || null,
+        linkedin: contact.linkedin || null,
+        facebook: contact.facebook || null,
+        twitter: contact.twitter || null,
+        instagram: contact.instagram || null,
+        company_name: contact.company_name || null,
+        job_title: contact.job_title || null,
+        industry: contact.industry || null,
+        department: contact.department || null,
+        work_address: contact.work_address || null,
+        university: contact.university || null,
+        major: contact.major || null,
+        minor: contact.minor || null,
+        graduation_year: contact.graduation_year || null,
+        birthday: contact.birthday || null,
+        how_met: contact.how_met || null,
+        hobbies_interests: contact.hobbies_interests || null,
+        notes: contact.notes || null,
+        tags: contact.tags || null,
+        avatar_url: contact.avatar_url || null,
+        career_priority: contact.career_priority || false,
+        career_tags: contact.career_tags || null,
+        referral_potential: contact.referral_potential || null,
+        career_event_id: contact.career_event_id || null,
+        last_contact: contact.last_contact || null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       }));
