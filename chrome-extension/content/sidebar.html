@@ -21,6 +21,14 @@
     <div class="sidebar-header">
       <h1 class="sidebar-title">Circl</h1>
       <p class="sidebar-subtitle">Your career hub</p>
+
+      <!-- User avatar container -->
+      <div class="user-avatar-container" id="userAvatarContainer" tabindex="0">
+        <img src="https://i.pravatar.cc/40" alt="User Avatar" class="user-avatar" />
+        <div class="avatar-popup" id="avatarPopup">
+          <button id="logoutBtn" class="logout-btn">Log Out</button>
+        </div>
+      </div>
     </div>
 
     <!-- Action Search Bar -->
@@ -48,5 +56,27 @@
   </svg>
 
   <script src="sidebar.js"></script>
+  <script>
+    // Toggle popup on avatar click
+    const avatarContainer = document.getElementById('userAvatarContainer');
+    const popup = document.getElementById('avatarPopup');
+
+    avatarContainer.addEventListener('click', () => {
+      popup.classList.toggle('visible');
+    });
+
+    // Hide popup if click outside
+    document.addEventListener('click', (e) => {
+      if (!avatarContainer.contains(e.target)) {
+        popup.classList.remove('visible');
+      }
+    });
+
+    // Logout button handler
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.removeItem('authToken');
+      window.location.href = './content/login.html';
+    });
+  </script>
 </body>
 </html>
