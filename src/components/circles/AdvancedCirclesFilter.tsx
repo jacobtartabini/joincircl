@@ -1,3 +1,4 @@
+
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,7 +16,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { ListFilter, Search, Plus, FileUp } from "lucide-react";
+import { ListFilter, Search, Plus } from "lucide-react";
 import { nanoid } from "nanoid";
 import { Input } from "@/components/ui/input";
 import { Contact } from "@/types/contact";
@@ -30,7 +31,6 @@ import Filters, {
   dateFilterOptions,
   DateRange,
 } from "@/components/ui/filters";
-import ImportContactsDialog from "./ImportContactsDialog";
 
 interface AdvancedCirclesFilterProps {
   searchQuery: string;
@@ -54,7 +54,6 @@ export function AdvancedCirclesFilter({
   const [filterPopoverOpen, setFilterPopoverOpen] = useState(false);
   const [selectedView, setSelectedView] = useState<FilterType | null>(null);
   const [commandInput, setCommandInput] = useState("");
-  const [importOpen, setImportOpen] = useState(false);
 
   // Generate dynamic filter options based on existing contact data
   const filterOptions = useMemo(() => {
@@ -272,17 +271,6 @@ export function AdvancedCirclesFilter({
         </Popover>
       </div>
 
-      {/* Import Contacts Button */}
-      <Button
-        variant="outline"
-        size="sm"
-        className="h-8 px-3 flex items-center gap-2 rounded-full border-gray-200 hover:border-[#0daeec] hover:bg-[#0daeec]/5 transition-colors"
-        onClick={() => setImportOpen(true)}
-      >
-        <FileUp className="h-3 w-3" />
-        <span className="text-xs font-medium">Import</span>
-      </Button>
-
       {/* Add Contact Button */}
       <Button
         onClick={onAddContact}
@@ -292,14 +280,6 @@ export function AdvancedCirclesFilter({
         <Plus className="h-3 w-3 mr-2" />
         <span className="text-xs font-medium">Add</span>
       </Button>
-
-      {/* Import Dialog */}
-      <ImportContactsDialog
-        open={importOpen}
-        onOpenChange={setImportOpen}
-        onImportSuccess={() => {}}
-        refetchContacts={refetchContacts}
-      />
     </div>
   );
 }
