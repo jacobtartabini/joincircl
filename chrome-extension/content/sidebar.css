@@ -24,6 +24,8 @@ body {
 .sidebar-header {
   margin-bottom: 16px;
   text-align: left;
+  position: relative;       /* Added for avatar positioning */
+  padding-right: 60px;      /* Added space for avatar */
 }
 
 .sidebar-title {
@@ -167,4 +169,56 @@ body {
   display: flex;
   justify-content: space-between;
   background-color: #f9fafb;
+}
+
+/* User avatar container */
+.user-avatar-container {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  cursor: pointer;
+  outline: none;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #333;
+  object-fit: cover;
+}
+
+/* Popup styling */
+.avatar-popup {
+  display: none;
+  position: absolute;
+  top: 50px;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  border-radius: 4px;
+  min-width: 100px;
+  z-index: 10;
+  padding: 8px;
+}
+
+.avatar-popup.visible {
+  display: block;
+}
+
+.logout-btn {
+  width: 100%;
+  background: #f44336;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  font-weight: 600;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.logout-btn:hover {
+  background: #d32f2f;
 }
