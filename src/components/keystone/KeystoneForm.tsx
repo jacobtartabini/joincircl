@@ -37,10 +37,12 @@ export default function KeystoneForm({ keystone, contact, onSuccess, onCancel }:
 
   const { toast } = useToast();
 
-  const { data: contacts = [] } = useQuery({
+  const { data: contactsResult = { contacts: [], totalCount: 0, totalPages: 0 } } = useQuery({
     queryKey: ['contacts'],
-    queryFn: contactService.getContacts
+    queryFn: () => contactService.getContacts({ itemsPerPage: 1000 }) // Get more contacts for selection
   });
+
+  const contacts = contactsResult.contacts;
 
   const createMutation = useMutation({
     mutationFn: keystoneService.createKeystone,

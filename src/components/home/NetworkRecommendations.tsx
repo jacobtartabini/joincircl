@@ -7,7 +7,9 @@ import { format, differenceInDays, differenceInMonths } from "date-fns";
 import { ArrowUpCircle, ArrowDownCircle, AlertCircle, RefreshCcw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { contactService } from "@/services/contactService";
+
 type RecommendationType = "reconnect" | "circle-upgrade" | "circle-downgrade" | "birthday-coming";
+
 interface Recommendation {
   type: RecommendationType;
   contact: Contact;
@@ -15,16 +17,19 @@ interface Recommendation {
   priority: number; // 1-10, 10 being highest
   actionLabel: string;
 }
+
 export default function NetworkRecommendations() {
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
   useEffect(() => {
     const generateRecommendations = async () => {
       setLoading(true);
       try {
-        // Load all contacts
-        const contacts = await contactService.getContacts();
+        // Load all contacts with pagination to get the full list
+        const result = await contactService.getContacts({ itemsPerPage: 1000 }); // Get more contacts for recommendations
+        const contacts = result.contacts;
         const allRecommendations: Recommendation[] = [];
 
         // Process each contact
@@ -48,8 +53,10 @@ export default function NetworkRecommendations() {
         setLoading(false);
       }
     };
+
     generateRecommendations();
   }, []);
+
   const analyzeContact = (contact: Contact, interactions: Interaction[]): Recommendation[] => {
     const recommendations: Recommendation[] = [];
     const today = new Date();
@@ -76,6 +83,7 @@ export default function NetworkRecommendations() {
       else {
         reconnectThreshold = 90;
       }
+
       if (daysSinceLastInteraction > reconnectThreshold) {
         recommendations.push({
           type: "reconnect",
@@ -135,6 +143,7 @@ export default function NetworkRecommendations() {
       if (nextBirthday < today) {
         nextBirthday.setFullYear(today.getFullYear() + 1);
       }
+
       const daysToBirthday = differenceInDays(nextBirthday, today);
       if (daysToBirthday <= 14) {
         recommendations.push({
@@ -146,8 +155,10 @@ export default function NetworkRecommendations() {
         });
       }
     }
+
     return recommendations;
   };
+
   const getIconForRecommendation = (type: RecommendationType) => {
     switch (type) {
       case "reconnect":
@@ -162,6 +173,7 @@ export default function NetworkRecommendations() {
         return null;
     }
   };
+
   const getBackgroundForRecommendation = (type: RecommendationType) => {
     switch (type) {
       case "reconnect":
@@ -176,18 +188,25 @@ export default function NetworkRecommendations() {
         return "bg-muted";
     }
   };
+
   const handleActionClick = (contact: Contact) => {
     navigate(`/contacts/${contact.id}`);
   };
-  return <Card>
+
+  return (
+    <Card>
       <CardHeader>
         <CardTitle className="text-lg font-medium">Network Recommendations</CardTitle>
       </CardHeader>
       <CardContent>
-        {loading ? <div className="flex items-center justify-center py-8">
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary"></div>
-          </div> : recommendations.length > 0 ? <div className="space-y-4">
-            {recommendations.map((rec, index) => <div key={`${rec.contact.id}-${index}`} className={`p-3 rounded-lg ${getBackgroundForRecommendation(rec.type)}`}>
+          </div>
+        ) : recommendations.length > 0 ? (
+          <div className="space-y-4">
+            {recommendations.map((rec, index) => (
+              <div key={`${rec.contact.id}-${index}`} className={`p-3 rounded-lg ${getBackgroundForRecommendation(rec.type)}`}>
                 <div className="flex items-start gap-3">
                   <div className="mt-1">{getIconForRecommendation(rec.type)}</div>
                   <div className="flex-1">
@@ -205,11 +224,16 @@ export default function NetworkRecommendations() {
                     </div>
                   </div>
                 </div>
-              </div>)}
-          </div> : <div className="text-center py-8 text-muted-foreground">
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-muted-foreground">
             <p>No recommendations right now.</p>
             <p className="text-sm mt-1">Add more contacts and log interactions to get personalized suggestions.</p>
-          </div>}
+          </div>
+        )}
       </CardContent>
-    </Card>;
+    </Card>
+  );
 }

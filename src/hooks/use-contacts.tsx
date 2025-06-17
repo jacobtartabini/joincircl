@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Contact } from "@/types/contact";
 import { contactService } from "@/services/contactService";
@@ -43,13 +44,14 @@ export const useContacts = () => {
       }
       
       console.log("[useContacts] Calling contactService.getContacts()...");
-      const data = await contactService.getContacts();
-      console.log("[useContacts] Received contacts data:", data?.length || 0, "contacts");
-      console.log("[useContacts] Sample contact:", data?.[0]);
+      const result = await contactService.getContacts({ itemsPerPage: 1000 }); // Get more contacts for home dashboard
+      const contactsData = result.contacts;
+      console.log("[useContacts] Received contacts data:", contactsData?.length || 0, "contacts");
+      console.log("[useContacts] Sample contact:", contactsData?.[0]);
       
-      setContacts(data);
-      calculateFollowUpStats(data);
-      return data;
+      setContacts(contactsData);
+      calculateFollowUpStats(contactsData);
+      return contactsData;
     } catch (error) {
       console.error("[useContacts] Error fetching contacts:", error);
       toast({
