@@ -20,12 +20,15 @@ export const duplicateContactService = {
    */
   async findDuplicates(): Promise<DuplicatePair[]> {
     try {
-      // Get all user contacts
-      const contacts = await contactService.getContacts();
+      // Get all user contacts - fix the data structure issue
+      const result = await contactService.getContacts({ itemsPerPage: 1000 });
+      const contacts = result.contacts || [];
+      
+      console.log('[duplicateContactService] Found contacts:', contacts.length);
       
       // Ensure contacts is an array before proceeding
-      if (!contacts || !Array.isArray(contacts)) {
-        console.error("No contacts found or contacts is not an array");
+      if (!Array.isArray(contacts) || contacts.length < 2) {
+        console.log('[duplicateContactService] Not enough contacts for duplicate detection');
         return [];
       }
       
@@ -57,10 +60,12 @@ export const duplicateContactService = {
         }
       }
       
+      console.log('[duplicateContactService] Found duplicates:', duplicates.length);
+      
       // Sort by score, highest first
       return duplicates.sort((a, b) => b.score - a.score);
     } catch (error) {
-      console.error("Error finding duplicates:", error);
+      console.error("[duplicateContactService] Error finding duplicates:", error);
       return [];
     }
   },
@@ -74,26 +79,26 @@ export const duplicateContactService = {
     let totalScore = 0;
     let totalWeight = 0;
     
-    // Name comparison (highest weight) - 0.3
-    const nameWeight = 0.3;
+    // Name comparison (highest weight) - 0.4
+    const nameWeight = 0.4;
     if (contact1.name && contact2.name) {
       const nameSimilarity = this.stringSimilarity(
-        contact1.name.toLowerCase(), 
-        contact2.name.toLowerCase()
+        contact1.name.toLowerCase().trim(), 
+        contact2.name.toLowerCase().trim()
       );
-      if (nameSimilarity > 0.8) {
+      if (nameSimilarity > 0.7) { // Lower threshold for name matching
         matchedOn.push('name');
         totalScore += nameSimilarity * nameWeight;
       }
       totalWeight += nameWeight;
     }
     
-    // Email comparison - 0.25
-    const emailWeight = 0.25;
+    // Email comparison - 0.3
+    const emailWeight = 0.3;
     if (contact1.personal_email && contact2.personal_email) {
       const emailSimilarity = this.stringSimilarity(
-        contact1.personal_email.toLowerCase(), 
-        contact2.personal_email.toLowerCase()
+        contact1.personal_email.toLowerCase().trim(), 
+        contact2.personal_email.toLowerCase().trim()
       );
       if (emailSimilarity > 0.9) {
         matchedOn.push('email');
@@ -102,69 +107,36 @@ export const duplicateContactService = {
       totalWeight += emailWeight;
     }
     
-    // Phone comparison - 0.25
-    const phoneWeight = 0.25;
+    // Phone comparison - 0.2
+    const phoneWeight = 0.2;
     if (contact1.mobile_phone && contact2.mobile_phone) {
       // Normalize phone numbers for comparison (remove non-digits)
       const phone1 = contact1.mobile_phone.replace(/\D/g, '');
       const phone2 = contact2.mobile_phone.replace(/\D/g, '');
       
-      const phoneSimilarity = this.stringSimilarity(phone1, phone2);
-      if (phoneSimilarity > 0.8) {
-        matchedOn.push('phone');
-        totalScore += phoneSimilarity * phoneWeight;
+      if (phone1.length >= 7 && phone2.length >= 7) { // Only compare if we have meaningful phone numbers
+        const phoneSimilarity = this.stringSimilarity(phone1, phone2);
+        if (phoneSimilarity > 0.8) {
+          matchedOn.push('phone');
+          totalScore += phoneSimilarity * phoneWeight;
+        }
       }
       totalWeight += phoneWeight;
     }
     
     // Company and job title - 0.1
     const workWeight = 0.1;
-    if (contact1.company_name && contact2.company_name && 
-        contact1.job_title && contact2.job_title) {
+    if (contact1.company_name && contact2.company_name) {
       const companySimilarity = this.stringSimilarity(
-        contact1.company_name.toLowerCase(), 
-        contact2.company_name.toLowerCase()
+        contact1.company_name.toLowerCase().trim(), 
+        contact2.company_name.toLowerCase().trim()
       );
       
-      const titleSimilarity = this.stringSimilarity(
-        contact1.job_title.toLowerCase(), 
-        contact2.job_title.toLowerCase()
-      );
-      
-      const workSimilarity = (companySimilarity + titleSimilarity) / 2;
-      
-      if (workSimilarity > 0.8) {
-        matchedOn.push('work');
-        totalScore += workSimilarity * workWeight;
+      if (companySimilarity > 0.8) {
+        matchedOn.push('company');
+        totalScore += companySimilarity * workWeight;
       }
       totalWeight += workWeight;
-    }
-    
-    // Social media handles comparison - 0.1
-    const socialWeight = 0.1;
-    let socialScore = 0;
-    let socialMatches = 0;
-    
-    // Check all social handles
-    const socialHandles = ['linkedin', 'facebook', 'twitter', 'instagram'];
-    for (const handle of socialHandles) {
-      if (contact1[handle] && contact2[handle]) {
-        const similarity = this.stringSimilarity(
-          contact1[handle].toLowerCase(), 
-          contact2[handle].toLowerCase()
-        );
-        if (similarity > 0.8) {
-          socialScore += similarity;
-          socialMatches++;
-        }
-      }
-    }
-    
-    if (socialMatches > 0) {
-      const avgSocialScore = socialScore / socialMatches;
-      matchedOn.push('social');
-      totalScore += avgSocialScore * socialWeight;
-      totalWeight += socialWeight;
     }
     
     // Normalize score by actual weights used
@@ -216,10 +188,6 @@ export const duplicateContactService = {
     return maxLength === 0 ? 1 : 1 - distance / maxLength;
   },
   
-  /**
-   * Merge two contacts into a single contact
-   * Returns the merged contact
-   */
   async mergeContacts(primaryId: string, secondaryId: string): Promise<Contact | null> {
     try {
       // Get both contacts
@@ -261,9 +229,6 @@ export const duplicateContactService = {
     }
   },
   
-  /**
-   * Combine data from two contacts, preferring the primary where there are conflicts
-   */
   combineContactData(primary: Contact, secondary: Contact): Partial<Contact> {
     const merged: Partial<Contact> = { ...primary };
     
@@ -322,11 +287,7 @@ export const duplicateContactService = {
     return merged;
   },
   
-  /**
-   * Undo a merge operation (for recently merged contacts)
-   * This would require storing merge history, not implemented in this version
-   */
-  async undoMerge(/* params */): Promise<boolean> {
+  async undoMerge(): Promise<boolean> {
     // This would require additional database tables and logic to track merge history
     // Not implemented in this simplified version
     return false;

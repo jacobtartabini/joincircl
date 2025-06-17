@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +19,7 @@ import { ListFilter, Search, Plus } from "lucide-react";
 import { nanoid } from "nanoid";
 import { Input } from "@/components/ui/input";
 import { Contact } from "@/types/contact";
+import { DuplicateDetectionButton } from "./DuplicateDetectionButton";
 import Filters, {
   AnimateChangeInHeight,
   Filter,
@@ -269,6 +269,11 @@ export function AdvancedCirclesFilter({
             </AnimateChangeInHeight>
           </PopoverContent>
         </Popover>
+        
+        {/* Add duplicate detection button for mobile */}
+        <div className="md:hidden">
+          <DuplicateDetectionButton />
+        </div>
       </div>
 
       {/* Add Contact Button */}

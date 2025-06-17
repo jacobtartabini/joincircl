@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Contact } from "@/types/contact";
 import { contactService } from "@/services/contactService";
@@ -44,8 +43,9 @@ export const useContacts = () => {
       }
       
       console.log("[useContacts] Calling contactService.getContacts()...");
-      const result = await contactService.getContacts({ itemsPerPage: 1000 }); // Get more contacts for home dashboard
-      const contactsData = result.contacts;
+      // Fix: Get the correct data structure from contactService
+      const result = await contactService.getContacts({ itemsPerPage: 1000 });
+      const contactsData = result.contacts || [];
       console.log("[useContacts] Received contacts data:", contactsData?.length || 0, "contacts");
       console.log("[useContacts] Sample contact:", contactsData?.[0]);
       

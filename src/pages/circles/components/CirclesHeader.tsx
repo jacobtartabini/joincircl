@@ -1,16 +1,15 @@
 
 import { Button } from "@/components/ui/button";
-import { Plus, Merge } from "lucide-react";
+import { Plus } from "lucide-react";
 import CircleImportButtons from "@/components/circles/CircleImportButtons";
+import { DuplicateDetectionButton } from "@/components/circles/DuplicateDetectionButton";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
-import { Link } from "react-router-dom";
 
 interface CirclesHeaderProps {
   onAddContact: () => void;
-  hasDuplicates?: boolean;
 }
 
-const CirclesHeader = ({ onAddContact, hasDuplicates = false }: CirclesHeaderProps) => {
+const CirclesHeader = ({ onAddContact }: CirclesHeaderProps) => {
   const isOnline = useOnlineStatus();
   
   return (
@@ -23,19 +22,8 @@ const CirclesHeader = ({ onAddContact, hasDuplicates = false }: CirclesHeaderPro
       </div>
       
       <div className="flex space-x-2">
-        {hasDuplicates && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="hidden md:flex rounded-md"
-            asChild
-          >
-            <Link to="/duplicates">
-              <Merge size={16} className="mr-2" /> 
-              Review Duplicates
-            </Link>
-          </Button>
-        )}
+        {/* Always show duplicate detection button */}
+        <DuplicateDetectionButton />
         
         <div className="hidden md:block">
           <CircleImportButtons onImportSuccess={() => {}} />
