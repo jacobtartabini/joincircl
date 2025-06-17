@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { contactService } from "@/services/contactService";
 import { Contact } from "@/types/contact";
 import { useToast } from "@/hooks/use-toast";
@@ -7,6 +7,9 @@ import { useToast } from "@/hooks/use-toast";
 export function useCirclesState() {
   const { toast } = useToast();
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [totalContacts, setTotalContacts] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -19,22 +22,23 @@ export function useCirclesState() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
 
-  useEffect(() => {
-    fetchContacts();
-  }, []);
-
-  const fetchContacts = async () => {
+  const fetchContacts = useCallback(async (page: number = 1, search: string = searchQuery) => {
     try {
       setIsLoading(true);
-      const data = await contactService.getContacts();
+      const result = await contactService.getContacts({
+        page,
+        itemsPerPage: 100,
+        searchQuery: search
+      });
       
-      // Ensure we have valid contacts array (never undefined)
-      const safeData = Array.isArray(data) ? data.filter(contact => contact !== null && contact !== undefined) : [];
-      setContacts(safeData);
+      setContacts(result.contacts);
+      setTotalContacts(result.totalCount);
+      setTotalPages(result.totalPages);
+      setCurrentPage(page);
       
       // Extract unique tags from all contacts with safe null checks
       const allTags = new Set<string>();
-      safeData.forEach(contact => {
+      result.contacts.forEach(contact => {
         if (contact && Array.isArray(contact.tags)) {
           contact.tags.forEach(tag => {
             if (tag && typeof tag === 'string') allTags.add(tag);
@@ -50,10 +54,34 @@ export function useCirclesState() {
         description: "Failed to load contacts. Please try again.",
         variant: "destructive",
       });
+      setContacts([]);
+      setTotalContacts(0);
+      setTotalPages(0);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [searchQuery, toast]);
+
+  // Debounced search effect
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchQuery !== "") {
+        fetchContacts(1, searchQuery);
+      } else {
+        fetchContacts(1, "");
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, fetchContacts]);
+
+  useEffect(() => {
+    fetchContacts(1);
+  }, []);
+
+  const handlePageChange = useCallback((page: number) => {
+    fetchContacts(page);
+  }, [fetchContacts]);
 
   const handleEditContact = (contact: Contact) => {
     setSelectedContact(contact);
@@ -70,8 +98,15 @@ export function useCirclesState() {
     setIsInsightsDialogOpen(true);
   };
 
+  const refreshContacts = useCallback(() => {
+    fetchContacts(currentPage);
+  }, [fetchContacts, currentPage]);
+
   return {
     contacts,
+    totalContacts,
+    totalPages,
+    currentPage,
     isLoading,
     searchQuery,
     setSearchQuery,
@@ -88,9 +123,10 @@ export function useCirclesState() {
     setIsInsightsDialogOpen,
     selectedContact,
     setSelectedContact,
-    fetchContacts,
+    fetchContacts: refreshContacts,
     handleEditContact,
     handleAddInteraction,
-    handleViewInsights
+    handleViewInsights,
+    handlePageChange
   };
 }

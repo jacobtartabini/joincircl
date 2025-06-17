@@ -15,7 +15,6 @@ import { Button } from "@/components/ui/button";
 import { Search, Plus, Filter, User, Phone, Mail, Edit, Trash } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { usePagination } from "@/hooks/use-pagination";
 import { ContactsPagination } from "@/components/ui/contacts-pagination";
 
 export default function MobileOptimizedCircles() {
@@ -34,6 +33,9 @@ export default function MobileOptimizedCircles() {
   
   const {
     contacts,
+    totalContacts,
+    totalPages,
+    currentPage,
     isLoading,
     searchQuery,
     setSearchQuery,
@@ -45,8 +47,10 @@ export default function MobileOptimizedCircles() {
     setIsInteractionDialogOpen,
     selectedContact,
     setSelectedContact,
-    fetchContacts
+    fetchContacts,
+    handlePageChange
   } = useCirclesState();
+  
   const [filterBy, setFilterBy] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<string>("name");
   const [showFilters, setShowFilters] = useState(false);
@@ -57,16 +61,10 @@ export default function MobileOptimizedCircles() {
     }
   }, [tagFilter]);
   
+  // Apply client-side filtering for circle and sorting (search is handled server-side)
   const filteredSortedContacts = useMemo(() => {
     if (!contacts) return [];
     let result = contacts.filter(contact => {
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        const matchesSearch = contact.name?.toLowerCase().includes(query) || 
-                             contact.personal_email?.toLowerCase().includes(query) || 
-                             contact.company_name?.toLowerCase().includes(query);
-        if (!matchesSearch) return false;
-      }
       const activeTagFilter = tagFilter || filterBy;
       if (activeTagFilter && activeTagFilter !== 'all') {
         if (!contact.tags || !contact.tags.includes(activeTagFilter)) {
@@ -85,28 +83,7 @@ export default function MobileOptimizedCircles() {
       }
       return 0;
     });
-  }, [contacts, searchQuery, filterBy, tagFilter, sortBy]);
-
-  // Add pagination
-  const {
-    currentPage,
-    totalPages,
-    paginatedContacts,
-    goToPage,
-    hasNextPage,
-    hasPreviousPage,
-    totalContacts,
-    itemsPerPage,
-    resetToFirstPage,
-  } = usePagination({
-    contacts: filteredSortedContacts,
-    itemsPerPage: 100,
-  });
-
-  // Reset pagination when filters or search change
-  useEffect(() => {
-    resetToFirstPage();
-  }, [searchQuery, filterBy, tagFilter, sortBy, resetToFirstPage]);
+  }, [contacts, filterBy, tagFilter, sortBy]);
   
   const getCircleColor = (circle: string) => {
     switch (circle) {
@@ -381,10 +358,10 @@ export default function MobileOptimizedCircles() {
                 </div>
               ))}
             </div>
-          ) : paginatedContacts.length > 0 ? (
+          ) : filteredSortedContacts.length > 0 ? (
             <>
               <AnimatePresence mode="popLayout">
-                {paginatedContacts.map(contact => (
+                {filteredSortedContacts.map(contact => (
                   <SwipeableContactCard key={contact.id} contact={contact} />
                 ))}
               </AnimatePresence>
@@ -392,11 +369,11 @@ export default function MobileOptimizedCircles() {
               <ContactsPagination
                 currentPage={currentPage}
                 totalPages={totalPages}
-                onPageChange={goToPage}
-                hasNextPage={hasNextPage}
-                hasPreviousPage={hasPreviousPage}
+                onPageChange={handlePageChange}
+                hasNextPage={currentPage < totalPages}
+                hasPreviousPage={currentPage > 1}
                 totalContacts={totalContacts}
-                itemsPerPage={itemsPerPage}
+                itemsPerPage={100}
               />
             </>
           ) : (

@@ -7,9 +7,12 @@ interface UsePaginationProps {
   itemsPerPage?: number;
 }
 
+// This hook is now simplified since server-side pagination handles most of the logic
+// It's kept for backward compatibility with existing components
 export function usePagination({ contacts, itemsPerPage = 100 }: UsePaginationProps) {
   const [currentPage, setCurrentPage] = useState(1);
 
+  // For client-side only pagination (fallback or offline mode)
   const totalPages = Math.ceil(contacts.length / itemsPerPage);
   
   const paginatedContacts = useMemo(() => {
@@ -32,7 +35,6 @@ export function usePagination({ contacts, itemsPerPage = 100 }: UsePaginationPro
     goToPage(currentPage + 1);
   };
 
-  // Reset to page 1 when contacts change significantly
   const resetToFirstPage = () => {
     setCurrentPage(1);
   };

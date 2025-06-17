@@ -18,7 +18,6 @@ import { cn } from "@/lib/utils";
 import { Filter } from "@/components/ui/filters";
 import { useAdvancedContactFilters } from "@/hooks/use-advanced-contact-filters";
 import { useContactDetail } from "@/hooks/useContactDetail";
-import { usePagination } from "@/hooks/use-pagination";
 import { ContactsPagination } from "@/components/ui/contacts-pagination";
 
 export default function RedesignedCircles() {
@@ -29,6 +28,9 @@ export default function RedesignedCircles() {
   
   const {
     contacts,
+    totalContacts,
+    totalPages,
+    currentPage,
     isLoading,
     searchQuery,
     setSearchQuery,
@@ -44,7 +46,8 @@ export default function RedesignedCircles() {
     setSelectedContact: setInitialSelectedContact,
     fetchContacts,
     handleAddInteraction,
-    handleViewInsights
+    handleViewInsights,
+    handlePageChange
   } = useCirclesState();
 
   // Local state for the selected contact (used in detail panel)
@@ -55,29 +58,8 @@ export default function RedesignedCircles() {
   // Get detailed contact data for the selected contact
   const { contact: detailedContact, interactions, loading: contactLoading } = useContactDetail(selectedContactId || undefined);
 
-  // Apply advanced filtering
-  const filteredSortedContacts = useAdvancedContactFilters(contacts || [], filters, searchQuery);
-
-  // Add pagination
-  const {
-    currentPage,
-    totalPages,
-    paginatedContacts,
-    goToPage,
-    hasNextPage,
-    hasPreviousPage,
-    totalContacts,
-    itemsPerPage,
-    resetToFirstPage,
-  } = usePagination({
-    contacts: filteredSortedContacts,
-    itemsPerPage: 100,
-  });
-
-  // Reset pagination when filters or search change
-  useEffect(() => {
-    resetToFirstPage();
-  }, [searchQuery, filters, resetToFirstPage]);
+  // Apply advanced filtering only on current page contacts (server handles search)
+  const filteredContacts = useAdvancedContactFilters(contacts || [], filters, '');
 
   // Set initial filter from URL params
   useEffect(() => {
@@ -166,7 +148,7 @@ export default function RedesignedCircles() {
             <ScrollArea className="h-full">
               <div className="p-4">
                 <CirclesList 
-                  contacts={paginatedContacts} 
+                  contacts={filteredContacts} 
                   isLoading={isLoading} 
                   onSelectContact={handleSelectContact} 
                   selectedContactId={selectedContactId} 
@@ -175,11 +157,11 @@ export default function RedesignedCircles() {
                 <ContactsPagination
                   currentPage={currentPage}
                   totalPages={totalPages}
-                  onPageChange={goToPage}
-                  hasNextPage={hasNextPage}
-                  hasPreviousPage={hasPreviousPage}
+                  onPageChange={handlePageChange}
+                  hasNextPage={currentPage < totalPages}
+                  hasPreviousPage={currentPage > 1}
                   totalContacts={totalContacts}
-                  itemsPerPage={itemsPerPage}
+                  itemsPerPage={100}
                 />
               </div>
             </ScrollArea>
@@ -288,7 +270,7 @@ export default function RedesignedCircles() {
               <ScrollArea className="h-full">
                 <div className="p-6 pt-4">
                   <CirclesList 
-                    contacts={paginatedContacts} 
+                    contacts={filteredContacts} 
                     isLoading={isLoading} 
                     onSelectContact={handleSelectContact} 
                     selectedContactId={selectedContactId} 
@@ -297,11 +279,11 @@ export default function RedesignedCircles() {
                   <ContactsPagination
                     currentPage={currentPage}
                     totalPages={totalPages}
-                    onPageChange={goToPage}
-                    hasNextPage={hasNextPage}
-                    hasPreviousPage={hasPreviousPage}
+                    onPageChange={handlePageChange}
+                    hasNextPage={currentPage < totalPages}
+                    hasPreviousPage={currentPage > 1}
                     totalContacts={totalContacts}
-                    itemsPerPage={itemsPerPage}
+                    itemsPerPage={100}
                   />
                 </div>
               </ScrollArea>

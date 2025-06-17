@@ -4,41 +4,107 @@ import { offlineStorage } from "./offlineStorage";
 import { v4 as uuidv4 } from "uuid";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 
+interface GetContactsOptions {
+  page?: number;
+  itemsPerPage?: number;
+  searchQuery?: string;
+  filters?: any[];
+}
+
+interface GetContactsResult {
+  contacts: Contact[];
+  totalCount: number;
+  totalPages: number;
+}
+
 export const contactService = {
-  async getContacts(): Promise<Contact[]> {
+  async getContacts(options: GetContactsOptions = {}): Promise<GetContactsResult> {
+    const { page = 1, itemsPerPage = 100, searchQuery = '', filters = [] } = options;
+    
     try {
       // Try to fetch from API first
       if (navigator.onLine) {
-        const { data, error } = await supabase
+        // Build the base query
+        let query = supabase
           .from("contacts")
-          .select("*")
-          .order("name");
-  
+          .select("*", { count: 'exact' });
+
+        // Apply search filter if provided
+        if (searchQuery) {
+          query = query.or(`name.ilike.%${searchQuery}%,personal_email.ilike.%${searchQuery}%,company_name.ilike.%${searchQuery}%`);
+        }
+
+        // Apply additional filters (implement based on your filter structure)
+        // This is a placeholder - you'll need to implement based on your actual filter logic
+        
+        // Apply pagination
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage - 1;
+        query = query.range(startIndex, endIndex);
+
+        // Order by name
+        query = query.order("name");
+
+        const { data, error, count } = await query;
+
         if (error) {
           throw new Error(error.message);
         }
-  
+
         // Cache the data for offline use
         if (data && data.length > 0) {
-          // Ensure proper typing for circle property
           const typedContacts = data.map(contact => ({
             ...contact,
             circle: contact.circle as "inner" | "middle" | "outer"
           })) as Contact[];
           
-          await offlineStorage.contacts.saveAll(typedContacts);
+          // Only cache first page to avoid overwhelming local storage
+          if (page === 1) {
+            await offlineStorage.contacts.saveAll(typedContacts);
+          }
         }
         
-        // Return typed contacts
-        return (data || []).map(contact => ({
+        const contacts = (data || []).map(contact => ({
           ...contact,
           circle: contact.circle as "inner" | "middle" | "outer"
         })) as Contact[];
+
+        const totalCount = count || 0;
+        const totalPages = Math.ceil(totalCount / itemsPerPage);
+
+        return {
+          contacts,
+          totalCount,
+          totalPages
+        };
       } else {
-        // Offline mode - get from local storage
+        // Offline mode - get from local storage with client-side pagination
         console.log("Offline: Loading contacts from local storage");
-        const contacts = await offlineStorage.contacts.getAll();
-        return contacts;
+        const allContacts = await offlineStorage.contacts.getAll();
+        
+        // Apply search filter client-side
+        let filteredContacts = allContacts;
+        if (searchQuery) {
+          const query = searchQuery.toLowerCase();
+          filteredContacts = allContacts.filter(contact =>
+            contact.name?.toLowerCase().includes(query) ||
+            contact.personal_email?.toLowerCase().includes(query) ||
+            contact.company_name?.toLowerCase().includes(query)
+          );
+        }
+
+        // Apply client-side pagination
+        const totalCount = filteredContacts.length;
+        const totalPages = Math.ceil(totalCount / itemsPerPage);
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const contacts = filteredContacts.slice(startIndex, endIndex);
+
+        return {
+          contacts,
+          totalCount,
+          totalPages
+        };
       }
     } catch (error) {
       console.error("Error in getContacts:", error);
@@ -46,11 +112,38 @@ export const contactService = {
       // If API call fails, try to load from local storage as fallback
       try {
         console.log("Falling back to local contacts data");
-        const contacts = await offlineStorage.contacts.getAll();
-        return contacts;
+        const allContacts = await offlineStorage.contacts.getAll();
+        
+        // Apply search filter client-side
+        let filteredContacts = allContacts;
+        if (searchQuery) {
+          const query = searchQuery.toLowerCase();
+          filteredContacts = allContacts.filter(contact =>
+            contact.name?.toLowerCase().includes(query) ||
+            contact.personal_email?.toLowerCase().includes(query) ||
+            contact.company_name?.toLowerCase().includes(query)
+          );
+        }
+
+        // Apply client-side pagination
+        const totalCount = filteredContacts.length;
+        const totalPages = Math.ceil(totalCount / itemsPerPage);
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const contacts = filteredContacts.slice(startIndex, endIndex);
+
+        return {
+          contacts,
+          totalCount,
+          totalPages
+        };
       } catch (offlineError) {
         console.error("Could not load contacts from offline storage:", offlineError);
-        return [];
+        return {
+          contacts: [],
+          totalCount: 0,
+          totalPages: 0
+        };
       }
     }
   },
