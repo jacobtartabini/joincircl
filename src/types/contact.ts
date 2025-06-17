@@ -8,6 +8,11 @@ export interface Contact {
   tags?: string[];
   avatar_url?: string;
   personal_email?: string;
+  emails?: Array<{
+    email: string;
+    type: 'personal' | 'work' | 'other';
+    isPrimary?: boolean;
+  }>;
   mobile_phone?: string;
   location?: string;
   website?: string;

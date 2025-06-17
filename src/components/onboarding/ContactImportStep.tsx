@@ -190,6 +190,7 @@ export default function ContactImportStep({ onNext, onSkip }: ContactImportStepP
           user_id: user.id,
           circle: (contact.circle as "inner" | "middle" | "outer") || 'outer',
           personal_email: contact.personal_email || null,
+          emails: contact.emails || null, // Include the new emails field
           mobile_phone: contact.mobile_phone || null,
           location: contact.location || null,
           website: contact.website || null,

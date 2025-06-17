@@ -1,3 +1,4 @@
+
 /**
  * All contact fields, label, type, and matching keys
  * Used for smarter header detection, mapping, and validation.
@@ -7,7 +8,7 @@ export type ContactFieldDef = {
   label: string;
   key: string;
   required?: boolean; // Not enforced for CSV imports
-  type: "string" | "email" | "phone" | "date" | "number" | "array" | "boolean" | "circle" | "url";
+  type: "string" | "email" | "phone" | "date" | "number" | "array" | "boolean" | "circle" | "url" | "emails";
   keys: string[]; // Alternative/synonyms for auto-mapping
   example?: string;
   group: "Basic" | "Professional" | "Education" | "Social" | "Personal" | "Career" | "Other";
@@ -22,6 +23,10 @@ export const CONTACT_FIELD_DEFS: ContactFieldDef[] = [
   {
     label: "Email", key: "personal_email", type: "email", group: "Basic",
     keys: ["email", "e-mail", "personal_email"]
+  },
+  {
+    label: "Emails", key: "emails", type: "emails", group: "Basic",
+    keys: ["emails", "email addresses", "all emails", "multiple emails"]
   },
   {
     label: "Phone", key: "mobile_phone", type: "phone", group: "Basic",
@@ -156,6 +161,11 @@ export function validateField(value: string, type: ContactFieldDef["type"]): boo
   switch (type) {
     case "email":
       return /^[^@]+@[^@]+\.[^@]+$/.test(value);
+    case "emails":
+      // For multiple emails, validate that at least one valid email exists
+      const emailRegex = /[^\s@]+@[^\s@]+\.[^\s@]+/g;
+      const matches = value.match(emailRegex);
+      return matches && matches.length > 0;
     case "url":
       // Allow empty, or http/https links
       return /^https?:\/\/.+/.test(value) || /^www\./.test(value);
@@ -186,6 +196,9 @@ export function parseField(value: string, type: ContactFieldDef["type"]) {
   
   switch (type) {
     case "email":
+      return value.trim();
+    case "emails":
+      // This will be handled by the email parser
       return value.trim();
     case "url":
       // Normalize: add http if missing
@@ -218,6 +231,7 @@ export function parseField(value: string, type: ContactFieldDef["type"]) {
 export function getExample(type: ContactFieldDef["type"]): string {
   switch (type) {
     case "email": return "janedoe@email.com";
+    case "emails": return "jane@personal.com, jane.doe@company.com, work: jane@corp.com";
     case "phone": return "+1-222-333-4444";
     case "url": return "https://linkedin.com/in/janedoe";
     case "date": return "2024-06-20";

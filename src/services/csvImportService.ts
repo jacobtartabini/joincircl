@@ -1,6 +1,7 @@
 
 import { Contact } from "@/types/contact";
 import { CONTACT_FIELD_DEFS, validateField, parseField } from "./csvFieldDefs";
+import { parseMultipleEmails, getPrimaryEmail, emailsToJsonb } from "./emailParser";
 
 // Map CSV columns to standardized keys (Name, Email, Phone, etc)
 export function detectHeaders(fields: string[]): { [target: string]: string } {
@@ -34,16 +35,37 @@ export function validateCSVContacts(
       }
     }
     
-    // Email: format check (but not required) + duplicates
-    if (c.personal_email && c.personal_email.trim() !== "") {
-      if (!/^[^@]+@[^@]+\.[^@]+$/.test(c.personal_email)) {
-        errors.push({ row: i + 2, reason: `Invalid email format: ${c.personal_email}` });
+    // Enhanced email validation for both single and multiple emails
+    const emailsData = c.emails as any;
+    const singleEmail = c.personal_email;
+    
+    // Check single email format and duplicates
+    if (singleEmail && singleEmail.trim() !== "") {
+      if (!/^[^@]+@[^@]+\.[^@]+$/.test(singleEmail)) {
+        errors.push({ row: i + 2, reason: `Invalid email format: ${singleEmail}` });
       } else {
-        const key = (c.personal_email as string).toLowerCase();
+        const key = singleEmail.toLowerCase();
         if (emailSet.has(key)) {
-          errors.push({ row: i + 2, reason: `Duplicate email: ${c.personal_email}` });
+          errors.push({ row: i + 2, reason: `Duplicate email: ${singleEmail}` });
         }
         emailSet.add(key);
+      }
+    }
+    
+    // Check multiple emails if present
+    if (emailsData && Array.isArray(emailsData)) {
+      for (const emailObj of emailsData) {
+        if (emailObj.email && emailObj.email.trim() !== "") {
+          if (!/^[^@]+@[^@]+\.[^@]+$/.test(emailObj.email)) {
+            errors.push({ row: i + 2, reason: `Invalid email format in emails array: ${emailObj.email}` });
+          } else {
+            const key = emailObj.email.toLowerCase();
+            if (emailSet.has(key)) {
+              errors.push({ row: i + 2, reason: `Duplicate email in emails array: ${emailObj.email}` });
+            }
+            emailSet.add(key);
+          }
+        }
       }
     }
     
@@ -61,10 +83,28 @@ export function getKeyByLabel(label: string): string {
 // Generate Contact object from a csv row + mapping
 export function parseContactFromRow(row: any, headerMap: { [target: string]: string }) {
   const obj: any = {};
+  
   for (const f of CONTACT_FIELD_DEFS) {
     if (headerMap[f.label] && row[headerMap[f.label]] !== undefined && row[headerMap[f.label]] !== "") {
-      obj[f.key] = parseField(row[headerMap[f.label]], f.type);
+      const rawValue = row[headerMap[f.label]];
+      
+      if (f.type === "emails") {
+        // Parse multiple emails using the email parser
+        const parsedEmails = parseMultipleEmails(rawValue);
+        if (parsedEmails.length > 0) {
+          obj[f.key] = emailsToJsonb(parsedEmails);
+          
+          // Also set the primary email as personal_email for backward compatibility
+          const primaryEmail = getPrimaryEmail(parsedEmails);
+          if (primaryEmail && !obj.personal_email) {
+            obj.personal_email = primaryEmail;
+          }
+        }
+      } else {
+        obj[f.key] = parseField(rawValue, f.type);
+      }
     }
   }
+  
   return obj as Partial<Contact>;
 }

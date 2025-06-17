@@ -236,6 +236,7 @@ export type Database = {
           company_name: string | null
           created_at: string | null
           department: string | null
+          emails: Json | null
           facebook: string | null
           graduation_year: number | null
           hobbies_interests: string | null
@@ -272,6 +273,7 @@ export type Database = {
           company_name?: string | null
           created_at?: string | null
           department?: string | null
+          emails?: Json | null
           facebook?: string | null
           graduation_year?: number | null
           hobbies_interests?: string | null
@@ -308,6 +310,7 @@ export type Database = {
           company_name?: string | null
           created_at?: string | null
           department?: string | null
+          emails?: Json | null
           facebook?: string | null
           graduation_year?: number | null
           hobbies_interests?: string | null
