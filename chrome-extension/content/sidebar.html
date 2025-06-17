@@ -1,23 +1,107 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Circl Sidebar</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Circl Extension</title>
   <link rel="stylesheet" href="sidebar.css" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f9f9fb;
+      color: #1d1d1f;
+    }
+
+    #container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .logo {
+      width: 60px;
+      height: 60px;
+    }
+
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.05);
+      width: 100%;
+      max-width: 320px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h2 {
+      margin-bottom: 8px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      font-size: 14px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #0a0f33;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .error {
+      color: red;
+      font-size: 13px;
+      margin-top: -10px;
+      margin-bottom: 10px;
+      display: none;
+    }
+
+    .alt {
+      font-size: 13px;
+      color: #555;
+      margin-top: 10px;
+    }
+  </style>
 </head>
 <body>
-  <div id="circl-sidebar-root">
-    <div class="header">Circl</div>
-    <nav>
-      <button onclick="switchTab('contacts')">Contacts</button>
-      <button onclick="switchTab('events')">Keystones</button>
-      <button onclick="switchTab('career')">Career Hub</button>
-      <button onclick="switchTab('arlo')">Arlo</button>
-      <button onclick="switchTab('add')">Add</button>
-    </nav>
-    <div id="content">
-      <!-- Tab content will go here -->
+  <div id="container">
+    <div class="card" id="login-card">
+      <img src="../icons/icon128.png" class="logo" alt="Circl Logo" />
+      <h2>Welcome back</h2>
+      <p style="margin-top: 0; font-size: 14px; text-align: center;">Sign in to your Circl account to continue</p>
+
+      <input type="email" id="email" placeholder="Email Address" />
+      <input type="password" id="password" placeholder="Password" />
+      <div class="error" id="login-error">Invalid credentials</div>
+      <button onclick="login()">Sign In</button>
+
+      <div class="alt">
+        Don’t have an account? <a href="https://app.joincircl.com/signup" target="_blank">Sign up</a>
+      </div>
+    </div>
+
+    <div class="card" id="user-card" style="display: none;">
+      <h2 id="welcome-msg">Welcome!</h2>
+      <p id="user-email"></p>
+      <button onclick="logout()">Log out</button>
     </div>
   </div>
+
   <script src="sidebar.js"></script>
 </body>
 </html>
