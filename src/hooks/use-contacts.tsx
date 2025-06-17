@@ -9,6 +9,7 @@ export const useContacts = () => {
   const { toast } = useToast();
   const { user, loading: isAuthLoading } = useAuth();
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [totalContactCount, setTotalContactCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [followUpStats, setFollowUpStats] = useState({
     due: 0,
@@ -28,6 +29,7 @@ export const useContacts = () => {
       console.log("[useContacts] No user; skipping contact fetch and setting empty state.");
       setIsLoading(false);
       setContacts([]);
+      setTotalContactCount(0);
     }
   }, [user, isAuthLoading]);
 
@@ -39,6 +41,7 @@ export const useContacts = () => {
       if (!user) {
         console.log("[useContacts] Tried to fetch contacts with no user!");
         setContacts([]);
+        setTotalContactCount(0);
         setIsLoading(false);
         return [];
       }
@@ -47,9 +50,10 @@ export const useContacts = () => {
       const result = await contactService.getContacts({ itemsPerPage: 1000 }); // Get more contacts for home dashboard
       const contactsData = result.contacts;
       console.log("[useContacts] Received contacts data:", contactsData?.length || 0, "contacts");
-      console.log("[useContacts] Sample contact:", contactsData?.[0]);
+      console.log("[useContacts] Total count from server:", result.totalCount);
       
       setContacts(contactsData);
+      setTotalContactCount(result.totalCount); // Use the server-provided total count
       calculateFollowUpStats(contactsData);
       return contactsData;
     } catch (error) {
@@ -60,6 +64,7 @@ export const useContacts = () => {
         variant: "destructive",
       });
       setContacts([]);
+      setTotalContactCount(0);
       return [];
     } finally {
       setIsLoading(false);
@@ -70,6 +75,7 @@ export const useContacts = () => {
     try {
       const newContact = await contactService.createContact(contactData);
       setContacts(prev => [newContact, ...prev]);
+      setTotalContactCount(prev => prev + 1); // Increment total count
       calculateFollowUpStats([newContact, ...contacts]);
       return newContact;
     } catch (error) {
@@ -143,10 +149,11 @@ export const useContacts = () => {
       .slice(0, limit);
   };
 
-  console.log("[useContacts] Returning state - contacts:", contacts?.length || 0, "isLoading:", isLoading);
+  console.log("[useContacts] Returning state - contacts:", contacts?.length || 0, "totalCount:", totalContactCount, "isLoading:", isLoading);
 
   return {
     contacts,
+    totalContactCount, // Export the total count for homepage
     isLoading,
     followUpStats,
     getContactDistribution,

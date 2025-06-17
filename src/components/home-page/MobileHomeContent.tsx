@@ -1,231 +1,42 @@
-import React, { useState, useCallback } from 'react';
+
 import { useContacts } from '@/hooks/use-contacts';
-import { useKeystones } from '@/hooks/use-keystones';
-import { useActionSearch } from '@/hooks/use-action-search';
-import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
-import { ActionSearchBar } from '@/components/ui/action-search-bar';
-import { Button } from '@/components/ui/button';
-import { Plus, Calendar, Users, TrendingUp } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import ContactForm from '@/components/contact/ContactForm';
-import KeystoneForm from '@/components/keystone/KeystoneForm';
-import { KeystoneDetailDialog } from '@/components/keystone/KeystoneDetailDialog';
-import { Badge } from '@/components/ui/badge';
-import type { Keystone } from '@/types/keystone';
+import { DashboardStats } from './DashboardStats';
+import { RecentContacts } from './RecentContacts';
+import UnifiedNetworkRecommendations from '@/components/home/UnifiedNetworkRecommendations';
+import { EnhancedNetworkAnalysis } from '@/components/home/EnhancedNetworkAnalysis';
+import { HomePageHeader } from './HomePageHeader';
 
-const MobileHomeContent: React.FC = () => {
-  const navigate = useNavigate();
-  const {
-    contacts,
-    followUpStats
+export default function MobileHomeContent() {
+  const { 
+    contacts, 
+    totalContactCount, // Use the accurate total count
+    isLoading, 
+    followUpStats, 
+    getContactDistribution, 
+    getRecentContacts 
   } = useContacts();
-  const { keystones } = useKeystones();
-  const [isAddContactSheetOpen, setIsAddContactSheetOpen] = useState(false);
-  const [isAddKeystoneSheetOpen, setIsAddKeystoneSheetOpen] = useState(false);
-  const [selectedKeystone, setSelectedKeystone] = useState<Keystone | null>(null);
-  const [isKeystoneDetailOpen, setIsKeystoneDetailOpen] = useState(false);
 
-  // Debug logging for component render
-  console.log('[MobileHomeContent] Render - contacts:', contacts?.length, 'keystones:', keystones?.length);
-
-  // Memoize callback functions to prevent re-renders
-  const handleAddContact = useCallback(() => {
-    console.log('Add contact triggered');
-    setIsAddContactSheetOpen(true);
-  }, []);
-
-  const handleAddKeystone = useCallback(() => {
-    console.log('Add keystone triggered');
-    setIsAddKeystoneSheetOpen(true);
-  }, []);
-
-  const handleAddInteraction = useCallback(() => {
-    console.log('Add interaction triggered');
-    // For now, navigate to circles where they can select a contact
-    navigate('/circles');
-  }, [navigate]);
-
-  const handleKeystoneSelect = useCallback((keystone: Keystone) => {
-    console.log('Keystone selected:', keystone.title);
-    setSelectedKeystone(keystone);
-    setIsKeystoneDetailOpen(true);
-  }, []);
-
-  const { actions } = useActionSearch({
-    onAddContact: handleAddContact,
-    onAddKeystone: handleAddKeystone,
-    onAddInteraction: handleAddInteraction,
-  });
-
-  // Enable keyboard shortcuts
-  useKeyboardShortcuts({
-    onAddContact: handleAddContact,
-    onAddKeystone: handleAddKeystone,
-    onAddInteraction: handleAddInteraction,
-  });
-
-  const handleContactFormSuccess = useCallback(() => {
-    setIsAddContactSheetOpen(false);
-  }, []);
-
-  const handleKeystoneFormSuccess = useCallback(() => {
-    setIsAddKeystoneSheetOpen(false);
-  }, []);
-
-  // Quick stats for minimal display
-  const stats = [{
-    label: "Contacts",
-    value: contacts?.length || 0,
-    icon: Users,
-    color: "bg-blue-50 text-blue-600"
-  }, {
-    label: "Follow-ups",
-    value: followUpStats?.due || 0,
-    icon: Calendar,
-    color: "bg-orange-50 text-orange-600"
-  }, {
-    label: "Inner Circle",
-    value: contacts?.filter(c => c.circle === 'inner').length || 0,
-    icon: TrendingUp,
-    color: "bg-green-50 text-green-600"
-  }];
+  const distribution = getContactDistribution();
+  const recentContacts = getRecentContacts(3);
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Main Content */}
-      <div className="px-4 pt-6 pb-8 space-y-6">
-        {/* Action Search Bar */}
-        <div className="space-y-4">
-          <ActionSearchBar 
-            actions={actions}
-            contacts={contacts || []}
-            keystones={keystones || []}
-            onKeystoneSelect={handleKeystoneSelect}
-            placeholder="What would you like to do?"
-            className="w-full"
-          />
+    <div className="min-h-screen bg-background dark:bg-background">
+      <div className="container mx-auto p-4 space-y-6">
+        <HomePageHeader />
+        
+        <DashboardStats 
+          totalContacts={totalContactCount} // Use server-provided total count
+          distribution={distribution}
+          followUpStats={followUpStats}
+          isLoading={isLoading}
+        />
+        
+        <div className="space-y-6">
+          <EnhancedNetworkAnalysis contacts={contacts} isLoading={isLoading} />
+          <UnifiedNetworkRecommendations contacts={contacts} />
+          <RecentContacts contacts={recentContacts} isLoading={isLoading} />
         </div>
-
-        {/* Quick Actions */}
-        <div className="flex gap-3">
-          <Button 
-            onClick={() => setIsAddContactSheetOpen(true)} 
-            className="flex-1 h-12 bg-black text-white hover:bg-gray-800 font-medium rounded-full"
-          >
-            <Plus className="h-5 w-5 mr-2" />
-            Add Contact
-          </Button>
-          <Button 
-            onClick={() => setIsAddKeystoneSheetOpen(true)} 
-            variant="outline" 
-            className="flex-1 h-12 border-gray-200 hover:bg-gray-50 font-medium rounded-full"
-          >
-            <Calendar className="h-5 w-5 mr-2" />
-            Add Event
-          </Button>
-        </div>
-
-        {/* Quick Stats */}
-        <div className="grid grid-cols-3 gap-3">
-          {stats.map((stat, index) => (
-            <div key={index} className="bg-gray-50 rounded-2xl p-4 text-center">
-              <div className={`inline-flex items-center justify-center w-10 h-10 rounded-full ${stat.color} mb-2`}>
-                <stat.icon className="h-5 w-5" />
-              </div>
-              <div className="text-2xl font-semibold text-gray-900">{stat.value}</div>
-              <div className="text-xs text-gray-600 font-medium">{stat.label}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Quick Filters */}
-        <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-gray-900">Quick Access</h3>
-          <div className="flex gap-2 overflow-x-auto pb-1">
-            <Badge 
-              variant="secondary" 
-              className="bg-gray-100 text-gray-700 px-4 py-2 rounded-full whitespace-nowrap cursor-pointer hover:bg-gray-200 transition-colors" 
-              onClick={() => navigate('/circles')}
-            >
-              <Users className="h-4 w-4 mr-1" />
-              All Contacts
-            </Badge>
-            <Badge 
-              variant="secondary" 
-              className="bg-gray-100 text-gray-700 px-4 py-2 rounded-full whitespace-nowrap cursor-pointer hover:bg-gray-200 transition-colors" 
-              onClick={() => navigate('/keystones')}
-            >
-              <Calendar className="h-4 w-4 mr-1" />
-              Upcoming Events
-            </Badge>
-            <Badge 
-              variant="secondary" 
-              className="bg-gray-100 text-gray-700 px-4 py-2 rounded-full whitespace-nowrap cursor-pointer hover:bg-gray-200 transition-colors" 
-              onClick={() => navigate('/circles?circle=inner')}
-            >
-              <TrendingUp className="h-4 w-4 mr-1" />
-              Inner Circle
-            </Badge>
-          </div>
-        </div>
-
-        {/* Recent Activity Preview */}
-        {followUpStats?.due > 0 && (
-          <div className="bg-orange-50 rounded-2xl p-4 border border-orange-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-semibold text-orange-900">Follow-ups Due</h4>
-                <p className="text-sm text-orange-700">You have {followUpStats.due} pending follow-ups</p>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => navigate('/circles')} 
-                className="text-orange-700 hover:bg-orange-100 rounded-full"
-              >
-                View
-              </Button>
-            </div>
-          </div>
-        )}
       </div>
-
-      {/* Add Contact Sheet */}
-      <Sheet open={isAddContactSheetOpen} onOpenChange={setIsAddContactSheetOpen}>
-        <SheetContent side="bottom" className="h-[90vh] overflow-auto pt-6">
-          <div className="mx-auto -mt-1 mb-4 h-1.5 w-[60px] rounded-full bg-muted" />
-          <SheetHeader className="mb-4">
-            <SheetTitle>Add Contact</SheetTitle>
-            <SheetDescription>Add a new contact to your network</SheetDescription>
-          </SheetHeader>
-          <ContactForm onSuccess={handleContactFormSuccess} onCancel={() => setIsAddContactSheetOpen(false)} />
-        </SheetContent>
-      </Sheet>
-
-      {/* Add Keystone Sheet */}
-      <Sheet open={isAddKeystoneSheetOpen} onOpenChange={setIsAddKeystoneSheetOpen}>
-        <SheetContent side="bottom" className="h-[90vh] overflow-auto pt-6">
-          <div className="mx-auto -mt-1 mb-4 h-1.5 w-[60px] rounded-full bg-muted" />
-          <SheetHeader className="mb-4">
-            <SheetTitle>Add Event</SheetTitle>
-            <SheetDescription>Add a new important date or event</SheetDescription>
-          </SheetHeader>
-          <KeystoneForm onSuccess={handleKeystoneFormSuccess} onCancel={() => setIsAddKeystoneSheetOpen(false)} />
-        </SheetContent>
-      </Sheet>
-
-      {/* Keystone Detail Dialog */}
-      <KeystoneDetailDialog
-        keystone={selectedKeystone}
-        isOpen={isKeystoneDetailOpen}
-        onClose={() => {
-          setIsKeystoneDetailOpen(false);
-          setSelectedKeystone(null);
-        }}
-      />
     </div>
   );
-};
-
-export default MobileHomeContent;
+}
