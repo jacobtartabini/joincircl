@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -17,6 +16,7 @@ const Duplicates = () => {
     isLoading,
     fetchDuplicates,
     handleMergeContacts,
+    handleIgnoreDuplicate,
     selectedDuplicate,
     isCompareDialogOpen,
     setIsCompareDialogOpen,
@@ -77,6 +77,7 @@ const Duplicates = () => {
                 duplicatePair={pair}
                 onMerge={handleMergeContacts}
                 onCompare={openCompareDialog}
+                onIgnore={handleIgnoreDuplicate}
               />
             ))}
           </div>

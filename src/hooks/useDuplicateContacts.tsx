@@ -65,6 +65,21 @@ export const useDuplicateContacts = () => {
       return null;
     }
   }, [toast]);
+
+  const handleIgnoreDuplicate = useCallback((duplicatePair: DuplicatePair) => {
+    // Remove the pair from the list
+    setDuplicatePairs(prev => 
+      prev.filter(pair => 
+        !(pair.contact1.id === duplicatePair.contact1.id && pair.contact2.id === duplicatePair.contact2.id) &&
+        !(pair.contact1.id === duplicatePair.contact2.id && pair.contact2.id === duplicatePair.contact1.id)
+      )
+    );
+    
+    // Show confirmation toast
+    toast({
+      description: "Duplicate suggestion ignored",
+    });
+  }, [toast]);
   
   const openCompareDialog = useCallback((duplicate: DuplicatePair) => {
     setSelectedDuplicate(duplicate);
@@ -76,6 +91,7 @@ export const useDuplicateContacts = () => {
     isLoading,
     fetchDuplicates,
     handleMergeContacts,
+    handleIgnoreDuplicate,
     selectedDuplicate,
     setSelectedDuplicate,
     isCompareDialogOpen,

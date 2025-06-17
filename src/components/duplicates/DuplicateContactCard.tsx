@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, AlertCircle, ChevronRight } from "lucide-react";
+import { Check, AlertCircle, ChevronRight, X } from "lucide-react";
 import { Contact } from "@/types/contact";
 import { ContactAvatar } from "@/components/ui/contact-avatar";
 import { cn } from "@/lib/utils";
@@ -13,15 +13,18 @@ interface DuplicateContactCardProps {
   duplicatePair: DuplicatePair;
   onMerge: (primaryId: string, secondaryId: string) => Promise<Contact | null>;
   onCompare: (duplicatePair: DuplicatePair) => void;
+  onIgnore: (duplicatePair: DuplicatePair) => void;
 }
 
 export const DuplicateContactCard = ({ 
   duplicatePair,
   onMerge,
-  onCompare
+  onCompare,
+  onIgnore
 }: DuplicateContactCardProps) => {
   const { contact1, contact2, score, matchedOn, isHighConfidence } = duplicatePair;
   const [isMerging, setIsMerging] = useState(false);
+  const [isIgnoring, setIsIgnoring] = useState(false);
   
   const confidenceLabel = isHighConfidence 
     ? "High confidence match" 
@@ -36,6 +39,11 @@ export const DuplicateContactCard = ({
     } finally {
       setIsMerging(false);
     }
+  };
+
+  const handleIgnore = () => {
+    setIsIgnoring(true);
+    onIgnore(duplicatePair);
   };
   
   return (
@@ -105,10 +113,21 @@ export const DuplicateContactCard = ({
           
           <div className="flex justify-between space-x-2">
             <Button 
+              variant="ghost" 
+              size="sm" 
+              className="flex-1 text-gray-600 hover:text-gray-800 hover:bg-gray-100"
+              onClick={handleIgnore}
+              disabled={isIgnoring || isMerging}
+            >
+              <X size={14} className="mr-1" />
+              {isIgnoring ? "Ignoring..." : "Not a Duplicate"}
+            </Button>
+            <Button 
               variant="outline" 
               size="sm" 
               className="flex-1"
               onClick={() => onCompare(duplicatePair)}
+              disabled={isMerging || isIgnoring}
             >
               Compare
             </Button>
@@ -117,7 +136,7 @@ export const DuplicateContactCard = ({
               size="sm" 
               className={cn("flex-1", isHighConfidence ? "bg-green-600 hover:bg-green-700" : "")}
               onClick={handleMerge}
-              disabled={isMerging}
+              disabled={isMerging || isIgnoring}
             >
               {isMerging ? "Merging..." : "Merge Contacts"}
             </Button>
