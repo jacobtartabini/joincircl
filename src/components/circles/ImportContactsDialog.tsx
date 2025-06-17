@@ -190,6 +190,7 @@ export default function ImportContactsDialog({
         refetchContacts();
         onImportSuccess(result.successCount);
       }
+      setStep(2);
     } catch (error) {
       console.error('Import error:', error);
       setValidationErr("Failed to import contacts. Please try again.");
@@ -203,7 +204,7 @@ export default function ImportContactsDialog({
     return (
       <div>
         <div
-          className={`${styles["glass-upload"]} ${dragging ? styles.dragging : ""} flex flex-col items-center py-8 gap-3 transition cursor-pointer`}
+          className={`glass-card-enhanced border-2 border-dashed ${dragging ? 'border-primary/60 bg-primary/5' : 'border-white/30'} flex flex-col items-center py-12 gap-4 transition-all cursor-pointer hover:border-primary/40 hover:bg-white/20`}
           tabIndex={0}
           role="button"
           onClick={() => inputRef.current?.click()}
@@ -218,9 +219,9 @@ export default function ImportContactsDialog({
           onDragLeave={() => setDragging(false)}
           aria-label="Drag and drop CSV file here, or click to browse"
         >
-          <FileUp className="w-10 h-10 text-blue-500 mb-2" />
-          <span className="font-semibold text-md">Drag & drop a CSV file here or <span className="underline text-blue-500">browse</span></span>
-          <span className="text-xs text-gray-500 mb-1">Max 5,000 contacts • CSV only</span>
+          <FileUp className="w-12 h-12 text-primary mb-2" />
+          <span className="font-semibold text-lg text-foreground">Drop your CSV file here or <span className="underline text-primary">browse</span></span>
+          <span className="text-sm text-muted-foreground">Max 5,000 contacts • CSV only</span>
           <input
             ref={inputRef}
             type="file"
@@ -231,8 +232,8 @@ export default function ImportContactsDialog({
             }}
           />
         </div>
-        <div className="mt-5 flex flex-wrap items-center gap-3">
-          <Button variant="secondary" size="sm" onClick={() => {
+        <div className="mt-6 flex flex-wrap items-center gap-4">
+          <Button variant="secondary" size="sm" className="glass-button" onClick={() => {
             const blob = new Blob([makeSampleCSV(BASIC_FIELDS)], { type: "text/csv" });
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
@@ -241,10 +242,10 @@ export default function ImportContactsDialog({
             a.click();
             URL.revokeObjectURL(url);
           }}>
-            <Upload className="w-4 h-4 mr-1" />
-            Download Basic Sample CSV
+            <Upload className="w-4 h-4 mr-2" />
+            Download Basic Sample
           </Button>
-          <Button variant="secondary" size="sm" onClick={() => {
+          <Button variant="secondary" size="sm" className="glass-button" onClick={() => {
             const blob = new Blob([makeSampleCSV(COMPREHENSIVE_FIELDS)], { type: "text/csv" });
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
@@ -253,15 +254,18 @@ export default function ImportContactsDialog({
             a.click();
             URL.revokeObjectURL(url);
           }}>
-            <Upload className="w-4 h-4 mr-1" />
-            Download Complete CSV
+            <Upload className="w-4 h-4 mr-2" />
+            Download Complete Sample
           </Button>
-          <span className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Info className="w-4 h-4" /> Use "Complete" for advanced/array fields!
-          </span>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Info className="w-4 h-4" />
+            Use "Complete" for advanced fields!
+          </div>
         </div>
         {validationErr &&
-          <div className="text-red-700 mt-6 bg-red-50 border border-red-200 rounded-md p-3 text-xs">{validationErr}</div>
+          <div className="glass-card mt-6 border-red-200/50 bg-red-50/20 p-4">
+            <div className="text-red-700 text-sm">{validationErr}</div>
+          </div>
         }
       </div>
     );
@@ -277,42 +281,58 @@ export default function ImportContactsDialog({
 
     return (
       <div>
-        <div className={`${styles["glass-mapping"]} mb-4`}>
-          <div className="font-semibold text-base mb-1 flex items-center gap-2">
-            Map your CSV columns
-            <span className="ml-auto whitespace-nowrap text-xs text-gray-500">{fileName}</span>
+        <div className="glass-card-enhanced mb-6 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-lg text-foreground">Map Your CSV Columns</h3>
+            <div className="glass-card px-3 py-1.5">
+              <span className="text-sm text-muted-foreground">{fileName}</span>
+            </div>
           </div>
+          
           {/* Expand/collapse controls */}
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-4 mb-4">
             <button
               type="button"
-              className="text-xs text-blue-500 hover:underline"
+              className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
               onClick={() => setAllOpen("all")}
-            >Expand all</button>
+            >
+              Expand all
+            </button>
             <button
               type="button"
-              className="text-xs text-blue-500 hover:underline"
+              className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
               onClick={() => setAllOpen("none")}
-            >Collapse all</button>
+            >
+              Collapse all
+            </button>
           </div>
+          
           {/* Collapsible Mapping Groups */}
-          {groups.map(group =>
-            <CSVMappingGroup
-              key={group}
-              group={group}
-              headerMap={headerMap}
-              uploadedHeaders={uploadedHeaders || []}
-              updateMapping={updateMapping}
-              defaultOpen={allOpen === "all" || (allOpen === null && group === "Basic")}
-            />
-          )}
+          <div className="space-y-3">
+            {groups.map(group =>
+              <CSVMappingGroup
+                key={group}
+                group={group}
+                headerMap={headerMap}
+                uploadedHeaders={uploadedHeaders || []}
+                updateMapping={updateMapping}
+                defaultOpen={allOpen === "all" || (allOpen === null && group === "Basic")}
+              />
+            )}
+          </div>
         </div>
-        <div>
-          <span className="font-medium text-sm">Preview ({previewRows.length} of {fileData.length} rows)</span>
+        
+        <div className="glass-card-enhanced p-6">
+          <h4 className="font-semibold text-base mb-4 text-foreground">
+            Preview ({previewRows.length} of {fileData.length} rows)
+          </h4>
           <CSVPreviewTable previewRows={previewRows} fileData={fileData} headerMap={headerMap} />
         </div>
+        
         {validationErr &&
-          <div className="text-red-700 mt-5 bg-red-50 border border-red-200 rounded-md p-3 text-xs whitespace-pre-line">{validationErr}</div>
+          <div className="glass-card mt-6 border-red-200/50 bg-red-50/20 p-4">
+            <div className="text-red-700 text-sm whitespace-pre-line">{validationErr}</div>
+          </div>
         }
       </div>
     );
@@ -322,49 +342,51 @@ export default function ImportContactsDialog({
   function ConfirmImportSection() {
     return (
       <div>
-        {importResult ?
-          <div className="mb-4 p-4 rounded-xl bg-green-50 border border-green-200">
-            <div className="font-medium text-green-700 text-sm flex items-center">
-              <CheckCircle className="w-4 h-4 mr-1" /> {importResult.successCount} contacts imported.
+        {importResult ? (
+          <div className="glass-card-enhanced border-green-200/50 bg-green-50/20 p-6 mb-6">
+            <div className="flex items-center gap-3 mb-4">
+              <CheckCircle className="w-8 h-8 text-green-600" />
+              <div>
+                <h3 className="font-semibold text-lg text-green-800">Import Complete!</h3>
+                <p className="text-green-700">{importResult.successCount} contacts imported successfully</p>
+              </div>
             </div>
             {importResult.failed?.length > 0 && (
-              <details className="mt-2 text-xs bg-red-50 border border-red-200 rounded px-3 py-2">
-                <summary className="cursor-pointer font-medium mb-2">{importResult.failed.length} failed to import (expand)</summary>
-                <ul>
-                  {importResult.failed.map((fail: any, i: number) => (
-                    <li key={i}>Row {fail.row}: {fail.reason}</li>
-                  ))}
-                </ul>
+              <details className="mt-4">
+                <summary className="cursor-pointer font-medium text-red-700 mb-2">
+                  {importResult.failed.length} failed to import (click to expand)
+                </summary>
+                <div className="glass-card bg-red-50/20 border-red-200/50 p-3 rounded-lg">
+                  <ul className="text-sm text-red-600 space-y-1">
+                    {importResult.failed.map((fail: any, i: number) => (
+                      <li key={i}>Row {fail.row}: {fail.reason}</li>
+                    ))}
+                  </ul>
+                </div>
               </details>
             )}
           </div>
-          : null
-        }
+        ) : (
+          <div className="glass-card-enhanced p-6 mb-6">
+            <h3 className="font-semibold text-lg text-foreground mb-2">Ready to Import</h3>
+            <p className="text-muted-foreground mb-4">
+              {fileData.length} contacts will be imported to your Circl.
+            </p>
+            <Button
+              onClick={handleImport}
+              disabled={loading}
+              className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white px-8"
+            >
+              {loading ? "Importing..." : `Import ${fileData.length} Contacts`}
+            </Button>
+          </div>
+        )}
+        
         {validationErr &&
-          <div className="text-red-700 mb-4 bg-red-50 border border-red-200 rounded-md p-3 text-xs whitespace-pre-line">
-            {validationErr}
+          <div className="glass-card border-red-200/50 bg-red-50/20 p-4 mb-6">
+            <div className="text-red-700 text-sm whitespace-pre-line">{validationErr}</div>
           </div>
         }
-        <div className="flex flex-col sm:flex-row gap-3">
-          {/* Step Back/Edit Mapping */}
-          <Button variant="outline" onClick={() => setStep(1)}>
-            Back
-          </Button>
-          {/* Step Forward */}
-          <Button
-            className={styles["glass-btn"]}
-            onClick={handleImport}
-            disabled={loading}
-          >
-            {loading ? "Importing..." : "Import Contacts"}
-          </Button>
-          <Button
-            variant="ghost"
-            className="ml-auto text-muted-foreground"
-            onClick={() => { onOpenChange(false); resetAll(); }}>
-            Close
-          </Button>
-        </div>
       </div>
     );
   }
@@ -377,77 +399,79 @@ export default function ImportContactsDialog({
   ][step];
 
   // Title for each step
-  const stepTitles = ["Upload CSV", "Map Columns & Preview", "Import & Results"];
+  const stepTitles = ["Upload CSV", "Map Columns", "Import Contacts"];
 
-  // Stepper display (slimmer)
+  // Stepper display with glassmorphic design
   function Stepper() {
-    const steps = stepTitles;
     return (
-      <div className="flex items-center justify-center gap-3 mb-4 mt-1">
+      <div className="flex items-center justify-center gap-2 mb-8">
         {stepTitles.map((title, idx) => (
           <React.Fragment key={title}>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col items-center gap-2">
               <div
-                className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm ${
-                  idx <= step ? "bg-blue-500 text-white" : "bg-gray-300 text-gray-600"
+                className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm transition-all ${
+                  idx < step ? "bg-primary text-white shadow-lg" :
+                  idx === step ? "bg-primary/20 text-primary border-2 border-primary/40" :
+                  "glass-card text-muted-foreground"
                 }`}
               >
-                {idx + 1}
+                {idx < step ? <CheckCircle className="w-5 h-5" /> : idx + 1}
               </div>
-              <span className="text-[11px] font-medium">{title}</span>
+              <span className={`text-xs font-medium ${idx <= step ? 'text-foreground' : 'text-muted-foreground'}`}>
+                {title}
+              </span>
             </div>
-            {idx < stepTitles.length - 1 && <ChevronRight className="w-4 h-4 text-gray-300" />}
+            {idx < stepTitles.length - 1 && (
+              <div className={`h-px w-8 mx-2 mt-[-20px] ${idx < step ? 'bg-primary' : 'bg-border'}`} />
+            )}
           </React.Fragment>
         ))}
       </div>
     );
   }
 
-  // Responsive dialog content wrapper
-  // - On small screens: max-w-full, modal nearly full-screen, content scrolls
-  // - On desktop: max-w-4xl, modal fits content, content has max-h
   return (
     <GlassModal
       open={open}
       onOpenChange={o => { onOpenChange(o); if (!o) resetAll(); }}
       title="Import Contacts from CSV"
-      // Responsively control width
-      maxWidth="w-full max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl"
+      maxWidth="w-full max-w-4xl"
     >
-      {/* Responsive modal body: use flex-col and responsive padding, ensure content scrolls not modal */}
-      <div
-        className="
-          flex flex-col
-          min-h-[clamp(350px,60vh,680px)] max-h-[90vh]
-          w-full
-          overflow-hidden
-          p-2 sm:p-3 md:p-4
-        "
-        style={{ minHeight: "clamp(350px,60vh,680px)", maxHeight: "90vh" }}
-      >
+      <div className="min-h-[500px] max-h-[80vh] overflow-hidden flex flex-col">
         <Stepper />
-        {/* Responsive content section */}
-        <div className="flex-1 min-h-0 max-h-full overflow-auto rounded-lg">
+        
+        <div className="flex-1 overflow-auto">
           {currentStepContent}
         </div>
-        <div className="flex gap-3 mt-7 flex-wrap items-center justify-end">
-          {step > 0 && step < 2 &&
-            <Button variant="outline" onClick={() => setStep(step - 1)}>
+        
+        {/* Navigation buttons */}
+        <div className="flex gap-3 mt-6 pt-6 border-t border-white/20">
+          {step > 0 && step < 2 && (
+            <Button 
+              variant="outline" 
+              onClick={() => setStep(step - 1)}
+              className="glass-button"
+            >
               Back
             </Button>
-          }
-          {step === 1 &&
-            <Button className={styles["glass-btn"]} onClick={() => setStep(2)}>
-              Continue
+          )}
+          
+          {step === 1 && (
+            <Button 
+              onClick={() => setStep(2)}
+              className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white"
+            >
+              Continue to Import
             </Button>
-          }
-          {step < 1 &&
-            <Button
-              variant="ghost"
-              className="ml-auto text-muted-foreground"
-              onClick={() => { onOpenChange(false); resetAll(); }}
-            >Close</Button>
-          }
+          )}
+          
+          <Button
+            variant="ghost"
+            className="ml-auto glass-button"
+            onClick={() => { onOpenChange(false); resetAll(); }}
+          >
+            {importResult ? 'Done' : 'Cancel'}
+          </Button>
         </div>
       </div>
     </GlassModal>

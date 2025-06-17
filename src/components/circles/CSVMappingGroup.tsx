@@ -23,39 +23,47 @@ export function CSVMappingGroup({
   if (!fields.length) return null;
 
   return (
-    <div className="mb-2 rounded-xl border bg-white/70 shadow-sm">
+    <div className="glass-card border border-white/30 rounded-xl overflow-hidden">
       <button
         type="button"
-        className="w-full flex items-center px-3 py-2 focus:outline-none cursor-pointer"
+        className="w-full flex items-center px-4 py-3 hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40 rounded-t-xl"
         onClick={() => setOpen(o => !o)}
         aria-expanded={open}
         aria-controls={`csv-group-${group}`}
       >
-        {open ? <ChevronDown className="w-4 h-4 mr-2" /> : <ChevronRight className="w-4 h-4 mr-2" />}
-        <span className="text-xs uppercase tracking-wide font-semibold text-blue-500">{group} Fields</span>
+        {open ? <ChevronDown className="w-4 h-4 mr-3" /> : <ChevronRight className="w-4 h-4 mr-3" />}
+        <span className="text-sm uppercase tracking-wide font-semibold text-primary">{group} Fields</span>
+        <div className="ml-auto text-xs text-muted-foreground">
+          {fields.filter(f => headerMap[f.label]).length} / {fields.length} mapped
+        </div>
       </button>
+      
       {open && (
-        <div id={`csv-group-${group}`} className="px-3 pb-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {fields.map(field =>
-              <div key={field.label} className="flex flex-col">
-                <span className="text-sm font-medium mb-1 flex items-center">
+        <div id={`csv-group-${group}`} className="px-4 pb-4 border-t border-white/20">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+            {fields.map(field => (
+              <div key={field.label} className="space-y-2">
+                <label className="flex items-center text-sm font-medium text-foreground">
                   {field.label}
                   {field.required && <span className="ml-1 text-red-500">*</span>}
-                </span>
+                </label>
+                
                 <select
-                  className="rounded border border-gray-200 px-2 py-1 text-sm bg-white bg-opacity-90 focus:ring-2 focus:ring-blue-300"
+                  className="w-full glass-input text-sm focus:ring-2 focus:ring-primary/40 focus:border-primary/60"
                   value={headerMap[field.label] || ""}
                   onChange={e => updateMapping(field.label, e.target.value)}
                 >
-                  <option value="">Unmapped</option>
-                  {uploadedHeaders.map(h =>
+                  <option value="">Select column...</option>
+                  {uploadedHeaders.map(h => (
                     <option key={h} value={h}>{h}</option>
-                  )}
+                  ))}
                 </select>
-                <span className="text-xs text-gray-400 mt-0.5">e.g. <span className="italic">{getExample(field.type)}</span></span>
+                
+                <div className="text-xs text-muted-foreground">
+                  Example: <span className="italic font-medium">{getExample(field.type)}</span>
+                </div>
               </div>
-            )}
+            ))}
           </div>
         </div>
       )}
