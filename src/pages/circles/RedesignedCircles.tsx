@@ -1,4 +1,3 @@
-
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCirclesState } from "./hooks/useCirclesState";
@@ -108,6 +107,13 @@ export default function RedesignedCircles() {
       setSelectedContactId(null);
       setInitialSelectedContact(null);
     }, 300);
+  };
+
+  // Handle view more action from contact detail panel
+  const handleViewMore = () => {
+    if (detailedContact) {
+      navigate(`/contact/${detailedContact.id}`);
+    }
   };
 
   // Handle edit action from contact detail panel
@@ -316,26 +322,26 @@ export default function RedesignedCircles() {
             </div>
           </div>
           
-          {/* Contact Details Panel - Animated slide-in */}
-          <div className={cn(
-            "w-80 xl:w-96 flex-shrink-0 bg-card dark:bg-card shadow-lg border-l border-border dark:border-border overflow-hidden transition-all duration-300 ease-out",
-            isPanelVisible && detailedContact 
-              ? "translate-x-0 opacity-100" 
-              : "translate-x-full opacity-0 pointer-events-none"
-          )}>
-            {detailedContact && (
+          {/* Contact Details Panel - Only render when contact is selected */}
+          {detailedContact && (
+            <div className={cn(
+              "w-80 xl:w-96 flex-shrink-0 bg-card dark:bg-card shadow-lg border-l border-border dark:border-border overflow-hidden transition-all duration-300 ease-out",
+              isPanelVisible 
+                ? "translate-x-0 opacity-100" 
+                : "translate-x-full opacity-0 pointer-events-none"
+            )}>
               <div className="h-full flex flex-col">
-                {/* Close button */}
+                {/* Header with View More button */}
                 <div className="flex-shrink-0 p-4 border-b border-border dark:border-border">
                   <div className="flex items-center justify-between">
                     <h3 className="text-lg font-semibold">Contact Details</h3>
                     <Button
-                      variant="ghost"
+                      variant="default"
                       size="sm"
-                      onClick={handleClosePanel}
-                      className="h-8 w-8 p-0 hover:bg-muted"
+                      onClick={handleViewMore}
+                      className="h-8 px-3"
                     >
-                      <X className="h-4 w-4" />
+                      View More
                     </Button>
                   </div>
                 </div>
@@ -351,8 +357,8 @@ export default function RedesignedCircles() {
                   />
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
       
