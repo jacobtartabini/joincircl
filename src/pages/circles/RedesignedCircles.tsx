@@ -1,3 +1,4 @@
+
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCirclesState } from "./hooks/useCirclesState";
@@ -13,12 +14,13 @@ import { InteractionDialog } from "./dialogs/InteractionDialog";
 import { InsightsDialog } from "./dialogs/InsightsDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Circle } from "lucide-react";
+import { Circle, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Filter } from "@/components/ui/filters";
 import { useAdvancedContactFilters } from "@/hooks/use-advanced-contact-filters";
 import { useContactDetail } from "@/hooks/useContactDetail";
 import { ContactsPagination } from "@/components/ui/contacts-pagination";
+import { Button } from "@/components/ui/button";
 
 export default function RedesignedCircles() {
   const navigate = useNavigate();
@@ -54,6 +56,7 @@ export default function RedesignedCircles() {
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [showMobileDetail, setShowMobileDetail] = useState(false);
   const [filters, setFilters] = useState<Filter[]>([]);
+  const [isPanelVisible, setIsPanelVisible] = useState(false);
 
   // Get detailed contact data for the selected contact
   const { contact: detailedContact, interactions, loading: contactLoading } = useContactDetail(selectedContactId || undefined);
@@ -69,10 +72,23 @@ export default function RedesignedCircles() {
     }
   }, [tagFilter]);
 
-  // Handle selecting a contact - updated for mobile
+  // Handle selecting a contact - updated for mobile and toggle functionality
   const handleSelectContact = (contact: Contact) => {
+    // If clicking the same contact, toggle the panel
+    if (selectedContactId === contact.id && isPanelVisible) {
+      setIsPanelVisible(false);
+      // Delay clearing the selected contact to allow exit animation
+      setTimeout(() => {
+        setSelectedContactId(null);
+        setInitialSelectedContact(null);
+      }, 300);
+      return;
+    }
+
     setSelectedContactId(contact.id);
     setInitialSelectedContact(contact);
+    setIsPanelVisible(true);
+    
     if (isMobile) {
       setShowMobileDetail(true);
     }
@@ -82,6 +98,16 @@ export default function RedesignedCircles() {
   const handleCloseMobileDetail = () => {
     setShowMobileDetail(false);
     setSelectedContactId(null);
+    setIsPanelVisible(false);
+  };
+
+  // Handle closing desktop panel
+  const handleClosePanel = () => {
+    setIsPanelVisible(false);
+    setTimeout(() => {
+      setSelectedContactId(null);
+      setInitialSelectedContact(null);
+    }, 300);
   };
 
   // Handle edit action from contact detail panel
@@ -220,8 +246,8 @@ export default function RedesignedCircles() {
         <div className="flex-1 flex overflow-hidden">
           {/* Contact List Panel */}
           <div className={cn(
-            "flex flex-col bg-card dark:bg-card border-r border-border dark:border-border shadow-sm overflow-hidden min-w-0",
-            detailedContact ? "flex-1 max-w-none" : "flex-1 max-w-full"
+            "flex flex-col bg-card dark:bg-card border-r border-border dark:border-border shadow-sm overflow-hidden min-w-0 transition-all duration-300 ease-out",
+            isPanelVisible && detailedContact ? "flex-1 max-w-none" : "flex-1 max-w-full"
           )}>
             {/* Header */}
             <div className="flex-shrink-0 border-b border-border dark:border-border bg-card dark:bg-card">
@@ -290,18 +316,43 @@ export default function RedesignedCircles() {
             </div>
           </div>
           
-          {/* Contact Details Panel - Only show when contact is selected */}
-          {detailedContact && (
-            <div className="w-80 xl:w-96 flex-shrink-0 bg-card dark:bg-card shadow-sm border-l border-border dark:border-border overflow-hidden">
-              <EnhancedContactDetail 
-                contact={detailedContact} 
-                interactions={interactions} 
-                onEdit={handleEditContact} 
-                onDelete={handleDeleteContact} 
-                onViewAll={handleViewAllDetails} 
-              />
-            </div>
-          )}
+          {/* Contact Details Panel - Animated slide-in */}
+          <div className={cn(
+            "w-80 xl:w-96 flex-shrink-0 bg-card dark:bg-card shadow-lg border-l border-border dark:border-border overflow-hidden transition-all duration-300 ease-out",
+            isPanelVisible && detailedContact 
+              ? "translate-x-0 opacity-100" 
+              : "translate-x-full opacity-0 pointer-events-none"
+          )}>
+            {detailedContact && (
+              <div className="h-full flex flex-col">
+                {/* Close button */}
+                <div className="flex-shrink-0 p-4 border-b border-border dark:border-border">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold">Contact Details</h3>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleClosePanel}
+                      className="h-8 w-8 p-0 hover:bg-muted"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* Contact detail content */}
+                <div className="flex-1 overflow-hidden">
+                  <EnhancedContactDetail 
+                    contact={detailedContact} 
+                    interactions={interactions} 
+                    onEdit={handleEditContact} 
+                    onDelete={handleDeleteContact} 
+                    onViewAll={handleViewAllDetails} 
+                  />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
       
