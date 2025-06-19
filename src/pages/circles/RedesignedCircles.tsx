@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCirclesState } from "./hooks/useCirclesState";
 import { CirclesList } from "@/components/circles/CirclesList";
 import { AdvancedCirclesFilter } from "@/components/circles/AdvancedCirclesFilter";
-import { EnhancedContactDetail } from "@/components/contact/EnhancedContactDetail";
+import { StreamlinedContactPanel } from "@/components/contact/StreamlinedContactPanel";
 import { SyncContactsButton } from "@/components/circles/SyncContactsButton";
 import { DuplicateDetectionButton } from "@/components/circles/DuplicateDetectionButton";
 import { Contact } from "@/types/contact";
@@ -13,13 +13,12 @@ import { InteractionDialog } from "./dialogs/InteractionDialog";
 import { InsightsDialog } from "./dialogs/InsightsDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Circle, X } from "lucide-react";
+import { Circle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Filter } from "@/components/ui/filters";
 import { useAdvancedContactFilters } from "@/hooks/use-advanced-contact-filters";
 import { useContactDetail } from "@/hooks/useContactDetail";
 import { ContactsPagination } from "@/components/ui/contacts-pagination";
-import { Button } from "@/components/ui/button";
 
 export default function RedesignedCircles() {
   const navigate = useNavigate();
@@ -58,7 +57,7 @@ export default function RedesignedCircles() {
   const [isPanelVisible, setIsPanelVisible] = useState(false);
 
   // Get detailed contact data for the selected contact
-  const { contact: detailedContact, interactions, loading: contactLoading } = useContactDetail(selectedContactId || undefined);
+  const { contact: detailedContact, interactions, keystones, contactMedia, loading: contactLoading } = useContactDetail(selectedContactId || undefined);
 
   // Apply advanced filtering only on current page contacts (server handles search)
   const filteredContacts = useAdvancedContactFilters(contacts || [], filters, '');
@@ -203,12 +202,14 @@ export default function RedesignedCircles() {
         {/* Mobile Detail Panel */}
         {detailedContact && showMobileDetail && (
           <div className="fixed inset-0 z-50">
-            <EnhancedContactDetail 
+            <StreamlinedContactPanel 
               contact={detailedContact} 
               interactions={interactions} 
+              keystones={keystones}
+              contactMedia={contactMedia}
               onEdit={handleEditContact} 
               onDelete={handleDeleteContact} 
-              onViewAll={handleViewAllDetails} 
+              onViewMore={handleViewAllDetails} 
             />
           </div>
         )}
@@ -330,33 +331,15 @@ export default function RedesignedCircles() {
                 ? "translate-x-0 opacity-100" 
                 : "translate-x-full opacity-0 pointer-events-none"
             )}>
-              <div className="h-full flex flex-col">
-                {/* Header with View More button */}
-                <div className="flex-shrink-0 p-4 border-b border-border dark:border-border">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold">Contact Details</h3>
-                    <Button
-                      variant="default"
-                      size="sm"
-                      onClick={handleViewMore}
-                      className="h-8 px-3"
-                    >
-                      View More
-                    </Button>
-                  </div>
-                </div>
-                
-                {/* Contact detail content */}
-                <div className="flex-1 overflow-hidden">
-                  <EnhancedContactDetail 
-                    contact={detailedContact} 
-                    interactions={interactions} 
-                    onEdit={handleEditContact} 
-                    onDelete={handleDeleteContact} 
-                    onViewAll={handleViewAllDetails} 
-                  />
-                </div>
-              </div>
+              <StreamlinedContactPanel 
+                contact={detailedContact} 
+                interactions={interactions} 
+                keystones={keystones}
+                contactMedia={contactMedia}
+                onEdit={handleEditContact} 
+                onDelete={handleDeleteContact} 
+                onViewMore={handleViewMore} 
+              />
             </div>
           )}
         </div>
