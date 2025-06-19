@@ -9,6 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ContactTimeline } from "./ContactTimeline";
+import { ContactLocationMap } from "./ContactLocationMap";
 import { 
   Phone, 
   Mail, 
@@ -182,6 +183,24 @@ export function StreamlinedContactPanel({
                           </a>
                         </div>
                       )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Location with Map */}
+                {contact.location && (
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-medium text-foreground">Location</h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 text-sm">
+                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-foreground">{contact.location}</span>
+                      </div>
+                      <ContactLocationMap 
+                        location={contact.location} 
+                        height="150px"
+                        className="w-full"
+                      />
                     </div>
                   </div>
                 )}

@@ -1,3 +1,4 @@
+
 import { Contact } from "@/types/contact";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { CircleBadge, getCircleName } from "@/components/ui/circle-badge";
@@ -6,6 +7,7 @@ import { format } from "date-fns";
 import { Calendar, Mail, Phone, MapPin, Briefcase, GraduationCap, Instagram, Twitter } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { ContactLocationMap } from "./ContactLocationMap";
 
 interface ContactInfoProps {
   contact: Contact;
@@ -70,10 +72,21 @@ export default function ContactInfo({ contact }: ContactInfoProps) {
               <span>{contact.mobile_phone}</span>
             </div>}
           
-          {contact.location && <div className="flex items-center gap-2">
-              <MapPin size={18} className="text-muted-foreground" />
-              <span>{contact.location}</span>
-            </div>}
+          {contact.location && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <MapPin size={18} className="text-muted-foreground" />
+                <span>{contact.location}</span>
+              </div>
+              <div className="ml-6">
+                <ContactLocationMap 
+                  location={contact.location} 
+                  height="250px"
+                  className="w-full"
+                />
+              </div>
+            </div>
+          )}
           
           {contact.last_contact && <div className="flex items-center gap-2">
               <Calendar size={18} className="text-muted-foreground" />
