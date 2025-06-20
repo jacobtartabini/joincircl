@@ -15,8 +15,8 @@ interface UnifiedContactViewProps {
   contactMedia: ContactMedia[];
   onEdit: () => void;
   onDelete: () => void;
-  onKeystoneAdded: () => void;
-  onInteractionAdded: () => void;
+  onKeystoneAdded: () => Promise<void>;
+  onInteractionAdded: () => Promise<void>;
 }
 
 export function UnifiedContactView({

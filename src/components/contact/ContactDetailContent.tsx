@@ -12,8 +12,8 @@ interface ContactDetailContentProps {
   interactions: Interaction[];
   keystones: Keystone[];
   contactMedia: ContactMedia[];
-  onKeystoneAdded: () => void;
-  onInteractionAdded: () => void;
+  onKeystoneAdded: () => Promise<void>;
+  onInteractionAdded: () => Promise<void>;
 }
 
 export default function ContactDetailContent({
