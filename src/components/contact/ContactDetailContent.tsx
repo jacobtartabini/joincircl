@@ -1,18 +1,19 @@
 
+import React from 'react';
 import { Contact, Interaction, ContactMedia } from "@/types/contact";
 import { Keystone } from "@/types/keystone";
-import { calculateConnectionStrength } from "@/utils/connectionStrength";
-import ContactDetailLeftColumn from "@/components/contact/ContactDetailLeftColumn";
-import ContactDetailRightColumn from "@/components/contact/ContactDetailRightColumn";
-import { ContactRecommendations } from "@/components/contact/ContactRecommendations";
+import ContactInfo from "./ContactInfo";
+import ContactInteractions from "./ContactInteractions";
+import ContactKeystones from "./ContactKeystones";
+import ContactMediaSection from "./ContactMediaSection";
 
 interface ContactDetailContentProps {
   contact: Contact;
   interactions: Interaction[];
   keystones: Keystone[];
   contactMedia: ContactMedia[];
-  onKeystoneAdded: () => Promise<void>;
-  onInteractionAdded: () => Promise<void>;
+  onKeystoneAdded: () => void;
+  onInteractionAdded: () => void;
 }
 
 export default function ContactDetailContent({
@@ -23,35 +24,30 @@ export default function ContactDetailContent({
   onKeystoneAdded,
   onInteractionAdded
 }: ContactDetailContentProps) {
-  // Ensure we have valid data before calculating connection strength
-  const safeInteractions = Array.isArray(interactions) ? interactions : [];
-  const connectionStrength = contact ? calculateConnectionStrength(contact, safeInteractions) : undefined;
-
   return (
-    <div className="space-y-6">
-      {/* AI Recommendations */}
-      <ContactRecommendations contact={contact} />
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* Left column - Contact Information (includes map) */}
+      <div className="lg:col-span-1">
+        <ContactInfo contact={contact} />
+      </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Left column (2/3 width) */}
-        <div className="md:col-span-2">
-          <ContactDetailLeftColumn
-            contact={contact}
-            interactions={safeInteractions}
-            keystones={keystones}
-            contactMedia={contactMedia}
-            onKeystoneAdded={onKeystoneAdded}
-            onInteractionAdded={onInteractionAdded}
-          />
-        </div>
+      {/* Right column - Interactions and Keystones */}
+      <div className="lg:col-span-2 space-y-6">
+        <ContactInteractions 
+          contactId={contact.id}
+          interactions={interactions}
+          onInteractionAdded={onInteractionAdded}
+        />
         
-        {/* Right column (1/3 width) */}
-        <div>
-          <ContactDetailRightColumn 
-            connectionStrength={connectionStrength} 
-            contactId={contact.id} 
-          />
-        </div>
+        <ContactKeystones 
+          contactId={contact.id}
+          keystones={keystones}
+          onKeystoneAdded={onKeystoneAdded}
+        />
+        
+        {contactMedia.length > 0 && (
+          <ContactMediaSection media={contactMedia} />
+        )}
       </div>
     </div>
   );
