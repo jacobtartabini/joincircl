@@ -19,18 +19,13 @@ export function ContactLocationMap({
   const map = useRef<mapboxgl.Map | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [mapboxToken, setMapboxToken] = useState<string>('');
 
-  // Get Mapbox token from environment variables
-  useEffect(() => {
-    const token = import.meta.env.VITE_MAPBOX_TOKEN || '';
-    setMapboxToken(token);
-    console.log('Mapbox token available:', !!token);
-  }, []);
+  // Use your public Mapbox token directly
+  const mapboxToken = 'pk.eyJ1IjoiamFjb2J0YXJ0YWJpbmkiLCJhIjoiY21jNHFiNGJqMGk0bDJvcHpqMG14MWI4eSJ9.prmjtbXfU8a3Xbcg2oSpQQ';
 
   useEffect(() => {
-    if (!location || !mapContainer.current || !mapboxToken) {
-      console.log('Map not loading:', { location: !!location, container: !!mapContainer.current, token: !!mapboxToken });
+    if (!location || !mapContainer.current) {
+      console.log('Map not loading:', { location: !!location, container: !!mapContainer.current });
       return;
     }
 
@@ -102,27 +97,11 @@ export function ContactLocationMap({
         map.current.remove();
       }
     };
-  }, [location, mapboxToken]);
+  }, [location]);
 
   // If no location provided
   if (!location) {
     return null;
-  }
-
-  // If no Mapbox token
-  if (!mapboxToken) {
-    return (
-      <div className={`${className} border border-border rounded-lg p-4 bg-muted/50`} style={{ height }}>
-        <div className="flex items-center justify-center h-full text-center">
-          <div>
-            <MapPin className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">
-              Map requires Mapbox configuration
-            </p>
-          </div>
-        </div>
-      </div>
-    );
   }
 
   return (
