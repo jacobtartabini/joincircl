@@ -46,7 +46,7 @@ export default function ContactDetailContent({
         />
         
         {contactMedia.length > 0 && (
-          <ContactMediaSection media={contactMedia} />
+          <ContactMediaSection contactId={contact.id} contactMedia={contactMedia} />
         )}
       </div>
     </div>

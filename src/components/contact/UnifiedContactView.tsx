@@ -5,7 +5,7 @@ import { Keystone } from "@/types/keystone";
 import ContactInfo from "./ContactInfo";
 import ContactInteractions from "./ContactInteractions";
 import ContactKeystones from "./ContactKeystones";
-import ContactMedia from "./ContactMediaSection";
+import ContactMediaSection from "./ContactMediaSection";
 import ContactDetailHeader from "./ContactDetailHeader";
 
 interface UnifiedContactViewProps {
@@ -59,7 +59,7 @@ export function UnifiedContactView({
             />
             
             {contactMedia.length > 0 && (
-              <ContactMedia media={contactMedia} />
+              <ContactMediaSection contactId={contact.id} contactMedia={contactMedia} />
             )}
           </div>
         </div>
