@@ -235,13 +235,13 @@ export default defineConfig(({ mode }) => ({
         clientsClaim: true,
         skipWaiting: true,
       },
-      // Configure custom service worker
+      // Configure with InjectManifest for more control
       strategies: 'injectManifest',
       srcDir: 'src',
       filename: 'sw.js',
       injectManifest: {
-        // Increase the maximum file size limit to 4 MB to handle large bundles
-        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024, // 4 MB
+        // Increase the maximum file size limit to 8 MB to handle large bundles with mapbox
+        maximumFileSizeToCacheInBytes: 8 * 1024 * 1024, // 8 MB
       },
       // Enable push notifications
       devOptions: {

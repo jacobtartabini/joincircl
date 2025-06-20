@@ -21,19 +21,22 @@ export function ContactLocationMap({
   const [error, setError] = useState<string | null>(null);
   const [mapboxToken, setMapboxToken] = useState<string>('');
 
-  // Simple check for Mapbox token
+  // Get Mapbox token from environment variables
   useEffect(() => {
-    // In a real app, this would come from environment variables or user input
-    // For now, we'll check if the user has set one
-    const token = process.env.VITE_MAPBOX_TOKEN || '';
+    const token = import.meta.env.VITE_MAPBOX_TOKEN || '';
     setMapboxToken(token);
+    console.log('Mapbox token available:', !!token);
   }, []);
 
   useEffect(() => {
-    if (!location || !mapContainer.current || !mapboxToken) return;
+    if (!location || !mapContainer.current || !mapboxToken) {
+      console.log('Map not loading:', { location: !!location, container: !!mapContainer.current, token: !!mapboxToken });
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
+    console.log('Initializing map for location:', location);
 
     // Initialize map
     mapboxgl.accessToken = mapboxToken;
@@ -50,6 +53,7 @@ export function ContactLocationMap({
       fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(location)}.json?access_token=${mapboxToken}&limit=1`)
         .then(response => response.json())
         .then(data => {
+          console.log('Geocoding response:', data);
           if (data.features && data.features.length > 0) {
             const [lng, lat] = data.features[0].center;
             const placeName = data.features[0].place_name;
@@ -78,7 +82,8 @@ export function ContactLocationMap({
             setIsLoading(false);
           }
         })
-        .catch(() => {
+        .catch((err) => {
+          console.error('Geocoding error:', err);
           setError('Failed to load map');
           setIsLoading(false);
         });
@@ -87,6 +92,7 @@ export function ContactLocationMap({
       map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
     } catch (err) {
+      console.error('Map initialization error:', err);
       setError('Failed to initialize map');
       setIsLoading(false);
     }

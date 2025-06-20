@@ -1,4 +1,3 @@
-
 import { Contact } from "@/types/contact";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { CircleBadge, getCircleName } from "@/components/ui/circle-badge";
