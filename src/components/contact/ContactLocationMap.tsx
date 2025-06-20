@@ -20,17 +20,11 @@ export function ContactLocationMap({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  // For demo purposes, using a mock token. In production, this should come from environment variables
-  const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN || 'pk.demo_token';
+  // Using your provided Mapbox public token
+  const mapboxToken = 'pk.eyJ1IjoiamFjb2J0YXJ0YWJpbmkiLCJhIjoiY21jNHFiNGJqMGk0bDJvcHpqMG14MWI4eSJ9.prmjtbXfU8a3Xbcg2oSpQQ';
 
   useEffect(() => {
     if (!location || !mapContainer.current) return;
-
-    // If no real token, show fallback
-    if (mapboxToken === 'pk.demo_token') {
-      setError('Mapbox token required');
-      return;
-    }
 
     setIsLoading(true);
     setError(null);
@@ -106,21 +100,16 @@ export function ContactLocationMap({
     return null;
   }
 
-  // If no Mapbox token or error
-  if (mapboxToken === 'pk.demo_token' || error) {
+  // If error
+  if (error) {
     return (
       <div className={`${className} border border-border rounded-lg p-4 bg-muted/50`} style={{ height }}>
         <div className="flex items-center justify-center h-full text-center">
           <div>
             <MapPin className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">
-              {error || 'Map requires Mapbox configuration'}
+              {error}
             </p>
-            {mapboxToken === 'pk.demo_token' && (
-              <p className="text-xs text-muted-foreground mt-1">
-                Set VITE_MAPBOX_TOKEN environment variable
-              </p>
-            )}
           </div>
         </div>
       </div>
