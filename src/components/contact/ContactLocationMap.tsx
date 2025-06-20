@@ -19,21 +19,26 @@ export function ContactLocationMap({
   const map = useRef<mapboxgl.Map | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
-  // Using your provided Mapbox public token
-  const mapboxToken = 'pk.eyJ1IjoiamFjb2J0YXJ0YWJpbmkiLCJhIjoiY21jNHFiNGJqMGk0bDJvcHpqMG14MWI4eSJ9.prmjtbXfU8a3Xbcg2oSpQQ';
+  const [mapboxToken, setMapboxToken] = useState<string>('');
+
+  // Simple check for Mapbox token
+  useEffect(() => {
+    // In a real app, this would come from environment variables or user input
+    // For now, we'll check if the user has set one
+    const token = process.env.VITE_MAPBOX_TOKEN || '';
+    setMapboxToken(token);
+  }, []);
 
   useEffect(() => {
-    if (!location || !mapContainer.current) return;
+    if (!location || !mapContainer.current || !mapboxToken) return;
 
     setIsLoading(true);
     setError(null);
 
-    try {
-      // Set access token
-      mapboxgl.accessToken = mapboxToken;
+    // Initialize map
+    mapboxgl.accessToken = mapboxToken;
 
-      // Initialize map
+    try {
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/light-v11',
@@ -42,9 +47,7 @@ export function ContactLocationMap({
       });
 
       // Geocode the location
-      const geocodeUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(location)}.json?access_token=${mapboxToken}&limit=1`;
-      
-      fetch(geocodeUrl)
+      fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(location)}.json?access_token=${mapboxToken}&limit=1`)
         .then(response => response.json())
         .then(data => {
           if (data.features && data.features.length > 0) {
@@ -100,15 +103,15 @@ export function ContactLocationMap({
     return null;
   }
 
-  // If error
-  if (error) {
+  // If no Mapbox token
+  if (!mapboxToken) {
     return (
       <div className={`${className} border border-border rounded-lg p-4 bg-muted/50`} style={{ height }}>
         <div className="flex items-center justify-center h-full text-center">
           <div>
             <MapPin className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">
-              {error}
+              Map requires Mapbox configuration
             </p>
           </div>
         </div>
@@ -127,10 +130,19 @@ export function ContactLocationMap({
         </div>
       )}
       
+      {error && (
+        <div className="flex items-center justify-center h-full text-center">
+          <div>
+            <MapPin className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">{error}</p>
+          </div>
+        </div>
+      )}
+      
       <div 
         ref={mapContainer} 
         className="w-full h-full"
-        style={{ display: isLoading ? 'none' : 'block' }}
+        style={{ display: isLoading || error ? 'none' : 'block' }}
       />
     </div>
   );
