@@ -53,8 +53,8 @@ export function UnifiedContactView({
             />
             
             <ContactKeystones 
-              contactId={contact.id}
               keystones={keystones}
+              contact={contact}
               onKeystoneAdded={onKeystoneAdded}
             />
             

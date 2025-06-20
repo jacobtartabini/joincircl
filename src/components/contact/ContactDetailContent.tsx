@@ -40,8 +40,8 @@ export default function ContactDetailContent({
         />
         
         <ContactKeystones 
-          contactId={contact.id}
           keystones={keystones}
+          contact={contact}
           onKeystoneAdded={onKeystoneAdded}
         />
         
