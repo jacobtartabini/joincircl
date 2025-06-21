@@ -7,11 +7,14 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Link, Navigate } from "react-router-dom";
 import { CheckCircle } from "lucide-react";
+import { Checkbox } from "@/components/ui/radix-checkbox";
+
 export default function SignUp() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSignupComplete, setIsSignupComplete] = useState(false);
   const {
@@ -28,6 +31,7 @@ export default function SignUp() {
   if (user) {
     return <Navigate to="/" replace />;
   }
+  
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName || !email || !password || !confirmPassword) {
@@ -46,6 +50,14 @@ export default function SignUp() {
       });
       return;
     }
+    if (!acceptTerms) {
+      toast({
+        title: "Terms and Conditions",
+        description: "Please accept the terms and conditions to continue",
+        variant: "destructive"
+      });
+      return;
+    }
     setIsLoading(true);
     try {
       await signUp(email, password, fullName);
@@ -58,6 +70,7 @@ export default function SignUp() {
       setIsLoading(false);
     }
   };
+
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
@@ -152,7 +165,27 @@ export default function SignUp() {
                 <Label htmlFor="confirmPassword" className="text-sm font-semibold text-gray-700">Confirm Password</Label>
                 <Input id="confirmPassword" type="password" placeholder="••••••••" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} disabled={isLoading} required className="h-12 border-gray-200 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 transition-all duration-200 rounded-full" />
               </div>
-              <Button type="submit" disabled={isLoading} className="w-full h-12 bg-gray-900 hover:bg-gray-800 text-white transition-all duration-200 shadow-lg hover:shadow-xl font-semibold rounded-full">
+              
+              <div className="flex items-start space-x-3 pt-2">
+                <Checkbox 
+                  id="terms" 
+                  checked={acceptTerms}
+                  onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
+                  disabled={isLoading}
+                />
+                <label htmlFor="terms" className="text-sm leading-relaxed text-gray-700 select-none cursor-pointer">
+                  I agree to the{" "}
+                  <Link to="/terms" className="text-gray-900 hover:underline font-semibold">
+                    Terms and Conditions
+                  </Link>{" "}
+                  and{" "}
+                  <Link to="/privacy" className="text-gray-900 hover:underline font-semibold">
+                    Privacy Policy
+                  </Link>
+                </label>
+              </div>
+              
+              <Button type="submit" disabled={isLoading || !acceptTerms} className="w-full h-12 bg-gray-900 hover:bg-gray-800 text-white transition-all duration-200 shadow-lg hover:shadow-xl font-semibold rounded-full">
                 {isLoading ? "Creating account..." : "Sign Up"}
               </Button>
             </form>
