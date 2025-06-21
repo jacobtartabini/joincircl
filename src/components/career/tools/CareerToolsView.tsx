@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { ToolCard } from "./ToolCard";
 import { 
   FileText, 
@@ -140,6 +140,7 @@ const modals: Partial<Record<ToolKey, React.ComponentType<{ onClose: () => void 
 
 export function CareerToolsView({ onAddApplication }: CareerToolsViewProps) {
   const [activeModal, setActiveModal] = useState<ToolKey | null>(null);
+  const [bookmarkedTools, setBookmarkedTools] = useState<Set<ToolKey>>(new Set());
   const navigate = useNavigate();
 
   const handleToolClick = (tool: { key: ToolKey; hasPage?: boolean }) => {
@@ -158,16 +159,42 @@ export function CareerToolsView({ onAddApplication }: CareerToolsViewProps) {
     }
   };
 
+  const handleBookmarkChange = (toolKey: ToolKey, bookmarked: boolean) => {
+    setBookmarkedTools(prev => {
+      const newSet = new Set(prev);
+      if (bookmarked) {
+        newSet.add(toolKey);
+      } else {
+        newSet.delete(toolKey);
+      }
+      return newSet;
+    });
+  };
+
+  // Sort tools with bookmarked ones first
+  const sortedTools = useMemo(() => {
+    return [...TOOLS].sort((a, b) => {
+      const aBookmarked = bookmarkedTools.has(a.key);
+      const bBookmarked = bookmarkedTools.has(b.key);
+      
+      if (aBookmarked && !bBookmarked) return -1;
+      if (!aBookmarked && bBookmarked) return 1;
+      return 0;
+    });
+  }, [bookmarkedTools]);
+
   return (
     <div>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {TOOLS.map(tool => (
+        {sortedTools.map(tool => (
           <ToolCard
             key={tool.key}
             icon={tool.icon}
             title={tool.title}
             description={tool.description}
             onClick={() => handleToolClick(tool)}
+            isBookmarked={bookmarkedTools.has(tool.key)}
+            onBookmarkChange={(bookmarked) => handleBookmarkChange(tool.key, bookmarked)}
           />
         ))}
       </div>
