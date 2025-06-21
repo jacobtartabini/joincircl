@@ -15,14 +15,31 @@ export function ContactTimelineHeader({
   keystoneCount
 }: ContactTimelineHeaderProps) {
   return (
-    <div className="pb-8 border-b border-gray-100">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-light text-gray-900">
-          {contact.name}'s Timeline
-        </h1>
-        <p className="text-sm text-gray-500">
-          {totalEvents} events • {interactionCount} interactions • {keystoneCount} keystones
-        </p>
+    <div className="p-4 border-b border-border bg-card">
+      <div className="space-y-3">
+        <div>
+          <h2 className="text-lg font-semibold text-foreground">
+            Activity Timeline
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Recent activity with {contact.name}
+          </p>
+        </div>
+        
+        <div className="flex items-center gap-4 text-xs">
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded-full bg-primary"></div>
+            <span className="text-muted-foreground">{totalEvents} total events</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+            <span className="text-muted-foreground">{interactionCount} interactions</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+            <span className="text-muted-foreground">{keystoneCount} keystones</span>
+          </div>
+        </div>
       </div>
     </div>
   );
