@@ -10,9 +10,17 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "glass-card glass-float transition-all duration-200",
+      "glass-card glass-float p-6",
       className
     )}
+    style={{
+      background: 'rgba(255, 255, 255, 0.15)',
+      backdropFilter: 'blur(20px)',
+      border: '1px solid rgba(255, 255, 255, 0.2)',
+      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.4)',
+      borderRadius: '24px',
+      transitionTimingFunction: 'cubic-bezier(0.175, 0.885, 0.32, 2.2)',
+    }}
     {...props}
   />
 ))

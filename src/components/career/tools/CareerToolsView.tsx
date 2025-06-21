@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from "react";
 import { ToolCard } from "./ToolCard";
 import { 
@@ -17,6 +16,7 @@ import {
   MessageCircle
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { GlassFilter } from "@/components/ui/liquid-glass";
 
 // Tool components for modals only
 import { LinkedInMessageGeneratorTool } from "./LinkedInMessageGeneratorTool";
@@ -184,27 +184,39 @@ export function CareerToolsView({ onAddApplication }: CareerToolsViewProps) {
   }, [bookmarkedTools]);
 
   return (
-    <div>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {sortedTools.map(tool => (
-          <ToolCard
-            key={tool.key}
-            icon={tool.icon}
-            title={tool.title}
-            description={tool.description}
-            onClick={() => handleToolClick(tool)}
-            isBookmarked={bookmarkedTools.has(tool.key)}
-            onBookmarkChange={(bookmarked) => handleBookmarkChange(tool.key, bookmarked)}
-          />
-        ))}
+    <>
+      <GlassFilter />
+      <div 
+        className="relative"
+        style={{
+          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
+          borderRadius: '32px',
+          padding: '24px',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+        }}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {sortedTools.map(tool => (
+            <ToolCard
+              key={tool.key}
+              icon={tool.icon}
+              title={tool.title}
+              description={tool.description}
+              onClick={() => handleToolClick(tool)}
+              isBookmarked={bookmarkedTools.has(tool.key)}
+              onBookmarkChange={(bookmarked) => handleBookmarkChange(tool.key, bookmarked)}
+            />
+          ))}
+        </div>
+        
+        {activeModal && (() => {
+          const ModalComp = modals[activeModal];
+          return ModalComp ? (
+            <ModalComp onClose={() => setActiveModal(null)} />
+          ) : null;
+        })()}
       </div>
-      
-      {activeModal && (() => {
-        const ModalComp = modals[activeModal];
-        return ModalComp ? (
-          <ModalComp onClose={() => setActiveModal(null)} />
-        ) : null;
-      })()}
-    </div>
+    </>
   );
 }

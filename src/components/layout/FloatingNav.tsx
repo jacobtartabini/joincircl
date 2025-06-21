@@ -1,9 +1,9 @@
 
-
 import { Home, Circle, Briefcase, Settings, Atom } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { GlassFilter } from "@/components/ui/liquid-glass";
 
 interface NavTab {
   title: string;
@@ -71,68 +71,86 @@ export default function FloatingNav() {
   };
 
   return (
-    <div className={`fixed z-50 ${isMobile ? 'bottom-4 left-4 right-4' : 'bottom-6 left-1/2 transform -translate-x-1/2'}`}>
-      <div className={`glass-nav flex items-center gap-2 p-1 shadow-2xl rounded-full ${isMobile ? 'justify-around' : ''}`}>
-        <svg width="0" height="0" style={{ position: 'absolute' }}>
-          <defs>
-            <linearGradient id="atom-gradient-nav" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#3b82f6" />
-              <stop offset="50%" stopColor="#a21caf" />
-              <stop offset="100%" stopColor="#ec4899" />
-            </linearGradient>
-            <linearGradient id="arlo-text-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#0092ca" />
-              <stop offset="50%" stopColor="#a21caf" />
-              <stop offset="100%" stopColor="#ec4899" />
-            </linearGradient>
-          </defs>
-        </svg>
-        {tabs.map((tab, index) => {
-          if ('type' in tab && tab.type === "separator") {
+    <>
+      <GlassFilter />
+      <div className={`fixed z-50 ${isMobile ? 'bottom-4 left-4 right-4' : 'bottom-6 left-1/2 transform -translate-x-1/2'}`}>
+        <div 
+          className={`glass-nav flex items-center gap-2 p-2 rounded-3xl ${isMobile ? 'justify-around' : ''}`}
+          style={{
+            background: 'rgba(255, 255, 255, 0.8)',
+            backdropFilter: 'blur(25px)',
+            border: '1px solid rgba(255, 255, 255, 0.3)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.5)',
+            transitionTimingFunction: 'cubic-bezier(0.175, 0.885, 0.32, 2.2)',
+          }}
+        >
+          <svg width="0" height="0" style={{ position: 'absolute' }}>
+            <defs>
+              <linearGradient id="atom-gradient-nav" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#3b82f6" />
+                <stop offset="50%" stopColor="#a21caf" />
+                <stop offset="100%" stopColor="#ec4899" />
+              </linearGradient>
+              <linearGradient id="arlo-text-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#0092ca" />
+                <stop offset="50%" stopColor="#a21caf" />
+                <stop offset="100%" stopColor="#ec4899" />
+              </linearGradient>
+            </defs>
+          </svg>
+          {tabs.map((tab, index) => {
+            if ('type' in tab && tab.type === "separator") {
+              return (
+                <div 
+                  key={`separator-${index}`} 
+                  className={`mx-1 h-[24px] w-[1.2px] bg-white/30 dark:bg-white/20 ${isMobile ? 'hidden' : ''}`}
+                  aria-hidden="true" 
+                />
+              );
+            }
+
+            const navTab = tab as NavTab;
+            const Icon = navTab.icon;
+            const isSelected = selectedTab === index;
+            const isArloTab = navTab.title === "Arlo";
+
             return (
-              <div 
-                key={`separator-${index}`} 
-                className={`mx-1 h-[24px] w-[1.2px] bg-white/30 dark:bg-white/20 ${isMobile ? 'hidden' : ''}`}
-                aria-hidden="true" 
-              />
+              <Link 
+                key={navTab.title} 
+                to={navTab.path} 
+                className={`glass-nav-item relative flex items-center px-4 py-3 text-sm font-medium transition-all duration-700 ${
+                  isSelected 
+                    ? "bg-white/30 text-primary gap-2 rounded-2xl"
+                    : "text-muted-foreground hover:text-foreground gap-0 rounded-2xl"
+                } ${isMobile ? 'flex-1 justify-center' : ''}`} 
+                onClick={() => handleTabChange(index)}
+                style={{
+                  backdropFilter: isSelected ? 'blur(15px)' : 'none',
+                  boxShadow: isSelected 
+                    ? '0 4px 16px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.3)' 
+                    : 'none',
+                  transitionTimingFunction: 'cubic-bezier(0.175, 0.885, 0.32, 2.2)',
+                }}
+              >
+                {isArloTab ? (
+                  <Icon size={20} stroke="url(#atom-gradient-nav)" strokeWidth="2" />
+                ) : (
+                  <Icon size={20} />
+                )}
+                {isSelected && (
+                  <span className={`overflow-hidden whitespace-nowrap transition-all duration-700 ${
+                    isArloTab && isSelected 
+                      ? "bg-gradient-to-r from-[#0092ca] via-[#a21caf] to-[#ec4899] bg-clip-text text-transparent font-semibold"
+                      : ""
+                  }`}>
+                    {navTab.title}
+                  </span>
+                )}
+              </Link>
             );
-          }
-
-          const navTab = tab as NavTab;
-          const Icon = navTab.icon;
-          const isSelected = selectedTab === index;
-          const isArloTab = navTab.title === "Arlo";
-
-          return (
-            <Link 
-              key={navTab.title} 
-              to={navTab.path} 
-              className={`relative flex items-center rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${
-                isSelected 
-                  ? "bg-white/30 dark:bg-white/20 text-primary gap-2 shadow-md"
-                  : "text-muted-foreground hover:bg-white/20 dark:hover:bg-white/10 hover:text-foreground gap-0"
-              } ${isMobile ? 'flex-1 justify-center' : ''}`} 
-              onClick={() => handleTabChange(index)}
-            >
-              {isArloTab ? (
-                <Icon size={20} stroke="url(#atom-gradient-nav)" strokeWidth="2" />
-              ) : (
-                <Icon size={20} />
-              )}
-              {isSelected && (
-                <span className={`overflow-hidden whitespace-nowrap ${
-                  isArloTab && isSelected 
-                    ? "bg-gradient-to-r from-[#0092ca] via-[#a21caf] to-[#ec4899] bg-clip-text text-transparent font-semibold"
-                    : ""
-                }`}>
-                  {navTab.title}
-                </span>
-              )}
-            </Link>
-          );
-        })}
+          })}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
-
