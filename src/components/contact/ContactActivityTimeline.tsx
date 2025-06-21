@@ -79,29 +79,25 @@ export function ContactActivityTimeline({ contact }: ContactActivityTimelineProp
       }
 
       // TODO: Add social media integration data
-      // This would pull from social platforms when integrations are available
-      // For now, we'll add some placeholder social data if the contact has social profiles
       if (contact.twitter) {
-        // This is where you'd fetch real Twitter data
         items.push({
           id: `social-twitter-${contact.id}`,
           type: "social",
           title: "Recent Twitter Activity",
           description: "Check their latest posts and updates",
-          date: new Date(Date.now() - 86400000 * 2).toISOString(), // 2 days ago
+          date: new Date(Date.now() - 86400000 * 2).toISOString(),
           source: "twitter",
           url: `https://twitter.com/${contact.twitter}`
         });
       }
 
       if (contact.linkedin) {
-        // This is where you'd fetch real LinkedIn data
         items.push({
           id: `social-linkedin-${contact.id}`,
           type: "social",
           title: "LinkedIn Profile Update",
           description: "View their professional updates and posts",
-          date: new Date(Date.now() - 86400000 * 5).toISOString(), // 5 days ago
+          date: new Date(Date.now() - 86400000 * 5).toISOString(),
           source: "linkedin",
           url: contact.linkedin
         });
@@ -110,7 +106,7 @@ export function ContactActivityTimeline({ contact }: ContactActivityTimelineProp
       // Sort by date (most recent first)
       items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       
-      setTimelineItems(items.slice(0, 15)); // Limit to 15 most recent items
+      setTimelineItems(items.slice(0, 15));
     } catch (error) {
       console.error("Error fetching contact timeline:", error);
     } finally {
@@ -125,39 +121,39 @@ export function ContactActivityTimeline({ contact }: ContactActivityTimelineProp
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
     if (diffDays === 1) return "Yesterday";
-    if (diffDays < 7) return `${diffDays} days ago`;
-    if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
-    if (diffDays < 365) return `${Math.ceil(diffDays / 30)} months ago`;
-    return date.toLocaleDateString();
+    if (diffDays < 7) return `${diffDays}d ago`;
+    if (diffDays < 30) return `${Math.ceil(diffDays / 7)}w ago`;
+    if (diffDays < 365) return `${Math.ceil(diffDays / 30)}m ago`;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
   const getIcon = (item: TimelineItem) => {
     switch (item.type) {
       case "keystone":
-        return <Calendar className="h-4 w-4" />;
+        return <Calendar className="h-3 w-3" />;
       case "interaction":
-        return <MessageSquare className="h-4 w-4" />;
+        return <MessageSquare className="h-3 w-3" />;
       case "social":
-        if (item.source === "twitter") return <Twitter className="h-4 w-4" />;
-        if (item.source === "linkedin") return <Linkedin className="h-4 w-4" />;
-        return <Users className="h-4 w-4" />;
+        if (item.source === "twitter") return <Twitter className="h-3 w-3" />;
+        if (item.source === "linkedin") return <Linkedin className="h-3 w-3" />;
+        return <Users className="h-3 w-3" />;
       default:
-        return <MessageSquare className="h-4 w-4" />;
+        return <MessageSquare className="h-3 w-3" />;
     }
   };
 
   const getItemColor = (item: TimelineItem) => {
     switch (item.type) {
       case "keystone":
-        return "bg-blue-100 text-blue-700 border-blue-200";
+        return "bg-blue-50 text-blue-600 border-blue-100";
       case "interaction":
-        return "bg-green-100 text-green-700 border-green-200";
+        return "bg-green-50 text-green-600 border-green-100";
       case "social":
-        if (item.source === "twitter") return "bg-cyan-100 text-cyan-700 border-cyan-200";
-        if (item.source === "linkedin") return "bg-blue-100 text-blue-700 border-blue-200";
-        return "bg-purple-100 text-purple-700 border-purple-200";
+        if (item.source === "twitter") return "bg-cyan-50 text-cyan-600 border-cyan-100";
+        if (item.source === "linkedin") return "bg-blue-50 text-blue-600 border-blue-100";
+        return "bg-purple-50 text-purple-600 border-purple-100";
       default:
-        return "bg-gray-100 text-gray-700 border-gray-200";
+        return "bg-gray-50 text-gray-600 border-gray-100";
     }
   };
 
@@ -165,15 +161,15 @@ export function ContactActivityTimeline({ contact }: ContactActivityTimelineProp
     return (
       <Card className="unified-card h-full">
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            Recent Timeline
+          <CardTitle className="text-base font-medium flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            Timeline
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 text-muted-foreground">
-            <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
-            <p>Select a contact to view their activity timeline</p>
+            <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <p className="text-sm">Select a contact to view timeline</p>
           </div>
         </CardContent>
       </Card>
@@ -183,73 +179,73 @@ export function ContactActivityTimeline({ contact }: ContactActivityTimelineProp
   return (
     <Card className="unified-card h-full">
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg font-semibold flex items-center gap-2">
-          <Calendar className="h-5 w-5" />
-          Recent Timeline
+        <CardTitle className="text-base font-medium flex items-center gap-2">
+          <Calendar className="h-4 w-4" />
+          Timeline
         </CardTitle>
-        <p className="text-sm text-muted-foreground mt-1">
-          Activity and interactions with {contact.name}
+        <p className="text-xs text-muted-foreground mt-1 truncate">
+          Recent activity with {contact.name}
         </p>
       </CardHeader>
       <CardContent className="p-0">
-        <ScrollArea className="h-[400px] px-6">
+        <ScrollArea className="h-[350px] px-4">
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
             </div>
           ) : timelineItems.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No recent activity found</p>
-              <p className="text-xs">Interactions and keystones will appear here</p>
+              <MessageSquare className="h-6 w-6 mx-auto mb-2 opacity-50" />
+              <p className="text-xs">No recent activity</p>
             </div>
           ) : (
-            <div className="space-y-4 pb-4">
+            <div className="space-y-3 pb-4">
               {timelineItems.map((item, index) => (
-                <div key={item.id} className="flex gap-3">
-                  {/* Timeline line */}
-                  <div className="flex flex-col items-center">
-                    <div className={`p-2 rounded-full border ${getItemColor(item)}`}>
+                <div key={item.id} className="flex gap-2">
+                  {/* Timeline indicator */}
+                  <div className="flex flex-col items-center flex-shrink-0">
+                    <div className={`p-1.5 rounded-full border ${getItemColor(item)}`}>
                       {getIcon(item)}
                     </div>
                     {index < timelineItems.length - 1 && (
-                      <div className="w-px h-8 bg-border mt-2" />
+                      <div className="w-px h-6 bg-border mt-1" />
                     )}
                   </div>
 
                   {/* Content */}
-                  <div className="flex-1 min-w-0 pb-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h4 className="font-medium text-sm text-foreground line-clamp-1">
+                  <div className="flex-1 min-w-0 pb-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-xs text-foreground truncate">
                           {item.title}
                         </h4>
                         {item.description && (
-                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">
                             {item.description}
                           </p>
                         )}
-                        <div className="flex items-center gap-2 mt-2">
-                          <span className="text-xs text-muted-foreground">
-                            {formatDate(item.date)}
-                          </span>
-                          {item.category && (
-                            <Badge variant="outline" className="text-xs px-1 py-0">
-                              {item.category}
-                            </Badge>
-                          )}
-                          {item.url && (
-                            <a
-                              href={item.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-xs text-primary hover:underline flex items-center gap-1"
-                            >
-                              View <ExternalLink className="h-3 w-3" />
-                            </a>
-                          )}
-                        </div>
                       </div>
+                      <span className="text-xs text-muted-foreground flex-shrink-0">
+                        {formatDate(item.date)}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center gap-1.5 mt-1.5">
+                      {item.category && (
+                        <Badge variant="outline" className="text-xs px-1.5 py-0 h-5">
+                          {item.category}
+                        </Badge>
+                      )}
+                      {item.url && (
+                        <a
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-primary hover:underline flex items-center gap-1"
+                        >
+                          View <ExternalLink className="h-2.5 w-2.5" />
+                        </a>
+                      )}
                     </div>
                   </div>
                 </div>
