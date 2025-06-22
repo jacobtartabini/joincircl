@@ -105,8 +105,11 @@ export default function KeystoneForm({ keystone, contact, onSuccess, onCancel }:
       contact_id: selectedContacts[0]?.id || null,
       is_recurring: formData.is_recurring,
       recurrence_frequency: formData.is_recurring ? formData.recurrence_frequency : undefined,
+      recurring_days: formData.is_recurring && selectedDays.size > 0 ? Array.from(selectedDays) : undefined,
       notes: formData.notes || undefined
     };
+
+    console.log('Submitting keystone with recurring days:', keystoneData.recurring_days);
 
     if (keystone) {
       updateMutation.mutate({ id: keystone.id, data: keystoneData });

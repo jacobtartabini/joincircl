@@ -139,9 +139,14 @@ export const RecurringScheduler: React.FC<ComponentProps> = ({
           </select>
         </div>
 
-        {repeatInterval === 'weekly' && (
+        {/* Show day selector for daily, weekly, and monthly */}
+        {(repeatInterval === 'daily' || repeatInterval === 'weekly' || repeatInterval === 'monthly') && (
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Days of week</label>
+            <label className="text-sm font-medium text-foreground">
+              {repeatInterval === 'daily' && 'Days to repeat'}
+              {repeatInterval === 'weekly' && 'Days of week'}
+              {repeatInterval === 'monthly' && 'Days of month'}
+            </label>
             <div 
               className="glass-input rounded-xl p-3 transition-all duration-500"
               style={{
