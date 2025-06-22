@@ -13,6 +13,7 @@ import {
   motion as framerMotion,
   useMotionValue as framerUseMotionValue,
   useSpring as framerUseSpring,
+  Easing,
 } from "framer-motion"
 import useMeasure from "react-use-measure"
 
@@ -26,7 +27,7 @@ interface ExpandableContextType {
   expandDirection: "vertical" | "horizontal" | "both"
   expandBehavior: "replace" | "push"
   transitionDuration: number
-  easeType: string
+  easeType: Easing
   initialDelay: number
   onExpandEnd?: () => void
   onCollapseEnd?: () => void
@@ -51,7 +52,7 @@ interface ExpandableProps extends ExpandablePropsBase {
   expanded?: boolean
   onToggle?: () => void
   transitionDuration?: number
-  easeType?: string
+  easeType?: Easing
   expandDirection?: "vertical" | "horizontal" | "both"
   expandBehavior?: "replace" | "push"
   initialDelay?: number
@@ -110,12 +111,10 @@ export const Component = React.forwardRef<HTMLDivElement, ExpandableProps>(
         <framerMotion.div
           ref={ref}
           initial={false}
-          animate={{
-            transition: {
-              duration: transitionDuration,
-              ease: easeType,
-              delay: initialDelay,
-            },
+          transition={{
+            duration: transitionDuration,
+            ease: easeType,
+            delay: initialDelay,
           }}
           {...props}
         >
