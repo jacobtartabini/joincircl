@@ -3,30 +3,43 @@ import { useState, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { FullScreenCalendar } from '@/components/ui/fullscreen-calendar'
 import { EventsHeader } from '@/components/events/EventsHeader'
-import { EventForm } from '@/components/events/EventForm'
+import KeystoneForm from '@/components/keystone/KeystoneForm'
 import { useEvents } from '@/hooks/useEvents'
 import { useContacts } from '@/hooks/use-contacts'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
-import { format, parseISO, isSameDay } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 
 export default function Events() {
   const [searchParams] = useSearchParams()
   const contactId = searchParams.get('contact')
   const isMobile = useIsMobile()
-  const [isEventFormOpen, setIsEventFormOpen] = useState(false)
+  const [isKeystoneFormOpen, setIsKeystoneFormOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
   
   const { events, isLoading, refetch } = useEvents({ contact_id: contactId || undefined })
   const { contacts } = useContacts()
   
   const filteredContact = contactId ? contacts.find(c => c.id === contactId) : undefined
 
+  // Filter events based on search query
+  const filteredEvents = useMemo(() => {
+    if (!searchQuery.trim()) return events
+    
+    const query = searchQuery.toLowerCase()
+    return events.filter(event => 
+      event.title.toLowerCase().includes(query) ||
+      event.notes?.toLowerCase().includes(query) ||
+      event.contact_names?.some(name => name.toLowerCase().includes(query))
+    )
+  }, [events, searchQuery])
+
   // Transform events for calendar component
   const calendarData = useMemo(() => {
     const eventsByDay = new Map()
     
-    events.forEach(event => {
+    filteredEvents.forEach(event => {
       const dayKey = format(parseISO(event.date), 'yyyy-MM-dd')
       
       if (!eventsByDay.has(dayKey)) {
@@ -47,14 +60,14 @@ export default function Events() {
     })
     
     return Array.from(eventsByDay.values())
-  }, [events])
+  }, [filteredEvents])
 
-  const handleNewEvent = () => {
-    setIsEventFormOpen(true)
+  const handleNewKeystone = () => {
+    setIsKeystoneFormOpen(true)
   }
 
-  const handleEventFormSuccess = () => {
-    setIsEventFormOpen(false)
+  const handleKeystoneFormSuccess = () => {
+    setIsKeystoneFormOpen(false)
     refetch()
   }
 
@@ -65,52 +78,56 @@ export default function Events() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen glass-card-enhanced">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     )
   }
 
-  const eventFormContent = (
-    <EventForm 
-      onSuccess={handleEventFormSuccess}
-      onCancel={() => setIsEventFormOpen(false)}
-      preselectedContactId={contactId || undefined}
+  const keystoneFormContent = (
+    <KeystoneForm 
+      onSuccess={handleKeystoneFormSuccess}
+      onCancel={() => setIsKeystoneFormOpen(false)}
+      contact={filteredContact}
     />
   )
 
   return (
-    <div className="min-h-screen refined-web-theme">
+    <div className="min-h-screen glass-background">
       <div className="max-w-7xl mx-auto flex flex-col h-screen">
         <EventsHeader 
-          onNewEvent={handleNewEvent}
+          onNewEvent={handleNewKeystone}
           filteredContactName={filteredContact?.name}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
         />
         
-        <div className="flex-1 overflow-hidden">
-          <FullScreenCalendar 
-            data={calendarData}
-            onNewEvent={handleNewEvent}
-            onEventClick={handleEventClick}
-          />
+        <div className="flex-1 overflow-hidden p-6 pt-0">
+          <div className="h-full glass-card-enhanced rounded-3xl overflow-hidden border border-white/20">
+            <FullScreenCalendar 
+              data={calendarData}
+              onNewEvent={handleNewKeystone}
+              onEventClick={handleEventClick}
+            />
+          </div>
         </div>
       </div>
 
-      {/* Event Form Dialogs */}
+      {/* Keystone Form Dialogs */}
       {isMobile ? (
-        <Sheet open={isEventFormOpen} onOpenChange={setIsEventFormOpen}>
-          <SheetContent side="bottom" className="h-[90vh] overflow-auto pt-6 glass-card-enhanced">
+        <Sheet open={isKeystoneFormOpen} onOpenChange={setIsKeystoneFormOpen}>
+          <SheetContent side="bottom" className="h-[90vh] overflow-auto pt-6 glass-card-enhanced border-white/20">
             <div className="mx-auto -mt-1 mb-4 h-1.5 w-[60px] rounded-full bg-white/30" />
             <SheetHeader className="mb-4">
-              <SheetTitle className="text-foreground">Create Event</SheetTitle>
+              <SheetTitle className="text-foreground">Create New Keystone</SheetTitle>
             </SheetHeader>
-            {eventFormContent}
+            {keystoneFormContent}
           </SheetContent>
         </Sheet>
       ) : (
-        <Dialog open={isEventFormOpen} onOpenChange={setIsEventFormOpen}>
-          <DialogContent className="sm:max-w-xl glass-card-enhanced border-white/20 dark:border-white/15">
-            {eventFormContent}
+        <Dialog open={isKeystoneFormOpen} onOpenChange={setIsKeystoneFormOpen}>
+          <DialogContent className="sm:max-w-xl glass-card-enhanced border-white/20">
+            {keystoneFormContent}
           </DialogContent>
         </Dialog>
       )}
