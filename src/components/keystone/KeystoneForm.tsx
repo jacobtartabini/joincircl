@@ -1,12 +1,11 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { GlassInput } from "@/components/ui/GlassInput";
 import { GlassTextarea } from "@/components/ui/GlassTextarea";
 import { Label } from "@/components/ui/label";
 import { GlassSelect, GlassSelectContent, GlassSelectItem, GlassSelectTrigger, GlassSelectValue } from "@/components/ui/GlassSelect";
-import { Checkbox } from "@/components/ui/checkbox";
 import { MultiContactSelector } from "@/components/ui/multi-contact-selector";
+import { RecurringScheduler } from "@/components/ui/scheduler";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { keystoneService } from "@/services/keystoneService";
 import { contactService } from "@/services/contactService";
@@ -25,6 +24,7 @@ interface KeystoneFormProps {
 
 export default function KeystoneForm({ keystone, contact, onSuccess, onCancel }: KeystoneFormProps) {
   const [selectedContacts, setSelectedContacts] = useState<Contact[]>([]);
+  const [selectedDays, setSelectedDays] = useState<Set<string>>(new Set());
   const [formData, setFormData] = useState({
     title: keystone?.title || '',
     date: keystone?.date ? new Date(keystone.date).toISOString().split('T')[0] : '',
@@ -35,11 +35,12 @@ export default function KeystoneForm({ keystone, contact, onSuccess, onCancel }:
     recurrence_frequency: keystone?.recurrence_frequency || 'monthly'
   });
 
+  const daysOfWeek = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
   const { toast } = useToast();
 
   const { data: contactsResult = { contacts: [], totalCount: 0, totalPages: 0 } } = useQuery({
     queryKey: ['contacts'],
-    queryFn: () => contactService.getContacts({ itemsPerPage: 1000 }) // Get more contacts for selection
+    queryFn: () => contactService.getContacts({ itemsPerPage: 1000 })
   });
 
   const contacts = contactsResult.contacts;
@@ -83,10 +84,8 @@ export default function KeystoneForm({ keystone, contact, onSuccess, onCancel }:
 
   useEffect(() => {
     if (contact) {
-      // If a specific contact is passed, pre-select it
       setSelectedContacts([contact]);
     } else if (keystone?.contact_id && contacts.length > 0) {
-      // Otherwise, use the keystone's existing contact
       const existingContact = contacts.find(c => c.id === keystone.contact_id);
       if (existingContact) {
         setSelectedContacts([existingContact]);
@@ -118,6 +117,10 @@ export default function KeystoneForm({ keystone, contact, onSuccess, onCancel }:
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const toggleRecurring = () => {
+    setFormData(prev => ({ ...prev, is_recurring: !prev.is_recurring }));
   };
 
   const isLoading = createMutation.isPending || updateMutation.isPending;
@@ -197,33 +200,15 @@ export default function KeystoneForm({ keystone, contact, onSuccess, onCancel }:
             </div>
           </div>
 
-          <div className="space-y-3">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="is_recurring"
-                checked={formData.is_recurring}
-                onCheckedChange={(checked) => handleInputChange('is_recurring', checked)}
-              />
-              <Label htmlFor="is_recurring" className="text-sm font-medium">Recurring event</Label>
-            </div>
-
-            {formData.is_recurring && (
-              <div className="space-y-2">
-                <Label htmlFor="recurrence_frequency" className="text-sm font-medium">Frequency</Label>
-                <GlassSelect value={formData.recurrence_frequency} onValueChange={(value) => handleInputChange('recurrence_frequency', value)}>
-                  <GlassSelectTrigger>
-                    <GlassSelectValue />
-                  </GlassSelectTrigger>
-                  <GlassSelectContent>
-                    <GlassSelectItem value="daily">Daily</GlassSelectItem>
-                    <GlassSelectItem value="weekly">Weekly</GlassSelectItem>
-                    <GlassSelectItem value="monthly">Monthly</GlassSelectItem>
-                    <GlassSelectItem value="yearly">Yearly</GlassSelectItem>
-                  </GlassSelectContent>
-                </GlassSelect>
-              </div>
-            )}
-          </div>
+          <RecurringScheduler
+            isRepeating={formData.is_recurring}
+            toggleRepeating={toggleRecurring}
+            repeatInterval={formData.recurrence_frequency}
+            setRepeatInterval={(interval) => handleInputChange('recurrence_frequency', interval)}
+            daysOfWeek={daysOfWeek}
+            selectedDays={selectedDays}
+            onDaysChange={setSelectedDays}
+          />
 
           <div className="space-y-2">
             <Label htmlFor="notes" className="text-sm font-medium">Notes</Label>
