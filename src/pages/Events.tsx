@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -38,6 +37,9 @@ import {
   X,
   Check,
   ChevronsUpDown,
+  Calendar,
+  Video,
+  MessageSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -50,12 +52,18 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { PopoverClose } from "@radix-ui/react-popover";
-import { useEvents } from '@/hooks/useEvents';
-import { useSearchParams } from 'react-router-dom';
-import { useContacts } from '@/hooks/use-contacts';
-import KeystoneForm from '@/components/keystone/KeystoneForm';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { 
+  Component, 
+  ExpandableCard, 
+  ExpandableCardContent, 
+  ExpandableCardFooter, 
+  ExpandableCardHeader, 
+  ExpandableContent, 
+  ExpandableTrigger 
+} from "@/components/ui/expandable";
 
 // Utility function
 function useDebounce<T>(value: T, delay: number = 500): T {
@@ -96,6 +104,43 @@ interface SearchResult {
 type CalendarView = "month" | "week" | "day" | "year";
 type LayoutView = "calendar" | "grid";
 
+// Sample data
+const sampleKeystones: Keystone[] = [
+  {
+    id: "1",
+    title: "Q1 Planning Session",
+    description: "Strategic planning for the first quarter",
+    date: new Date(2025, 0, 15),
+    time: "10:00 AM",
+    location: "Conference Room A",
+    attendees: ["John Doe", "Jane Smith"],
+    type: "meeting",
+    color: "#3b82f6",
+  },
+  {
+    id: "2",
+    title: "Product Launch",
+    description: "Launch of the new product line",
+    date: new Date(2025, 0, 22),
+    time: "2:00 PM",
+    location: "Main Auditorium",
+    attendees: ["Marketing Team", "Product Team"],
+    type: "event",
+    color: "#10b981",
+  },
+  {
+    id: "3",
+    title: "Budget Review",
+    description: "Annual budget review meeting",
+    date: new Date(2025, 0, 8),
+    time: "9:00 AM",
+    location: "Executive Boardroom",
+    attendees: ["CFO", "Department Heads"],
+    type: "meeting",
+    color: "#f59e0b",
+  },
+];
+
 // Search Component
 function KeystoneSearchBar() {
   const [query, setQuery] = useState("");
@@ -103,7 +148,6 @@ function KeystoneSearchBar() {
   const [isFocused, setIsFocused] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const debouncedQuery = useDebounce(query, 200);
-  const { events } = useEvents();
 
   useEffect(() => {
     if (!isFocused) {
@@ -112,45 +156,22 @@ function KeystoneSearchBar() {
     }
 
     if (!debouncedQuery) {
-      const keystones = events.map(event => ({
-        id: event.id,
-        title: event.title,
-        description: event.notes || '',
-        date: new Date(event.date),
-        time: event.time || '9:00 AM',
-        location: '',
-        attendees: event.contact_names || [],
-        type: 'event' as const,
-        color: '#3b82f6'
-      }));
-      setResult({ keystones, interactions: [], contacts: [] });
+      setResult({ keystones: sampleKeystones, interactions: [], contacts: [] });
       return;
     }
 
     setIsLoading(true);
     const normalizedQuery = debouncedQuery.toLowerCase().trim();
-    const filteredKeystones = events
-      .filter((event) => {
-        const searchableText = `${event.title} ${event.notes || ""} ${event.contact_names?.join(" ") || ""}`.toLowerCase();
-        return searchableText.includes(normalizedQuery);
-      })
-      .map(event => ({
-        id: event.id,
-        title: event.title,
-        description: event.notes || '',
-        date: new Date(event.date),
-        time: event.time || '9:00 AM',
-        location: '',
-        attendees: event.contact_names || [],
-        type: 'event' as const,
-        color: '#3b82f6'
-      }));
+    const filteredKeystones = sampleKeystones.filter((keystone) => {
+      const searchableText = `${keystone.title} ${keystone.description} ${keystone.location || ""} ${keystone.attendees?.join(" ") || ""}`.toLowerCase();
+      return searchableText.includes(normalizedQuery);
+    });
 
     setTimeout(() => {
       setResult({ keystones: filteredKeystones, interactions: [], contacts: [] });
       setIsLoading(false);
     }, 300);
-  }, [debouncedQuery, isFocused, events]);
+  }, [debouncedQuery, isFocused]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);
@@ -305,7 +326,7 @@ function CalendarViewSelector({
           size="sm"
           onClick={() => onViewChange(viewOption.value)}
           className={cn(
-            "rounded-none px-4 py-2 text-sm transition-colors duration-200",
+            "rounded-full px-4 py-2 text-sm transition-colors duration-200",
             view === viewOption.value ? "bg-primary text-primary-foreground hover:bg-primary/90" : "hover:bg-accent hover:text-accent-foreground"
           )}
         >
@@ -338,7 +359,7 @@ function LayoutViewSelector({
           size="sm"
           onClick={() => onLayoutChange(layoutOption.value)}
           className={cn(
-            "rounded-none px-4 py-2 text-sm transition-colors duration-200 gap-2",
+            "rounded-full px-4 py-2 text-sm transition-colors duration-200 gap-2",
             layout === layoutOption.value ? "bg-primary text-primary-foreground hover:bg-primary/90" : "hover:bg-accent hover:text-accent-foreground"
           )}
         >
@@ -395,6 +416,190 @@ function KeystoneDetailDialog({
             </div>
           )}
         </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// Create Keystone Dialog
+function CreateKeystoneDialog({
+  open,
+  onOpenChange,
+  initialDate,
+  onSave,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  initialDate: Date | null;
+  onSave: (keystone: Keystone) => void;
+}) {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [date, setDate] = useState<Date | undefined>(initialDate || undefined);
+  const [time, setTime] = useState("09:00 AM");
+  const [location, setLocation] = useState("");
+  const [type, setType] = useState<Keystone['type']>('event');
+  const [color, setColor] = useState("#3b82f6");
+
+  useEffect(() => {
+    if (initialDate) {
+      setDate(initialDate);
+    }
+  }, [initialDate]);
+
+  const handleSave = () => {
+    if (!title || !date || !time) {
+      alert("Title, date, and time are required.");
+      return;
+    }
+
+    const newKeystone: Keystone = {
+      id: Date.now().toString(),
+      title,
+      description,
+      date,
+      time,
+      location: location || undefined,
+      type,
+      color,
+    };
+    onSave(newKeystone);
+    onOpenChange(false);
+    // Reset form
+    setTitle("");
+    setDescription("");
+    setDate(undefined);
+    setTime("09:00 AM");
+    setLocation("");
+    setType('event');
+    setColor("#3b82f6");
+  };
+
+  const keystoneTypes: { value: Keystone['type']; label: string; color: string }[] = [
+    { value: "meeting", label: "Meeting", color: "#3b82f6" },
+    { value: "event", label: "Event", color: "#10b981" },
+    { value: "deadline", label: "Deadline", color: "#ef4444" },
+    { value: "milestone", label: "Milestone", color: "#f59e0b" },
+  ];
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg rounded-lg">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold">Create New Keystone</DialogTitle>
+          <DialogDescription className="text-muted-foreground">
+            Add a new event, meeting, or deadline to your calendar.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="title" className="text-right">
+              Title
+            </Label>
+            <Input
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="col-span-3 rounded-md focus-visible:ring-offset-0 focus-visible:ring-primary"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="description" className="text-right">
+              Description
+            </Label>
+            <Textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="col-span-3 rounded-md focus-visible:ring-offset-0 focus-visible:ring-primary"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="date" className="text-right">
+              Date
+            </Label>
+            <Input
+              id="date"
+              type="date"
+              value={date ? format(date, "yyyy-MM-dd") : ""}
+              onChange={(e) => setDate(e.target.value ? parse(e.target.value, "yyyy-MM-dd", new Date()) : undefined)}
+              className="col-span-3 rounded-md focus-visible:ring-offset-0 focus-visible:ring-primary"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="time" className="text-right">
+              Time
+            </Label>
+            <Input
+              id="time"
+              type="time"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+              className="col-span-3 rounded-md focus-visible:ring-offset-0 focus-visible:ring-primary"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="location" className="text-right">
+              Location
+            </Label>
+            <Input
+              id="location"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              className="col-span-3 rounded-md focus-visible:ring-offset-0 focus-visible:ring-primary"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="type" className="text-right">
+              Type
+            </Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  className="col-span-3 justify-between rounded-md"
+                >
+                  {keystoneTypes.find((t) => t.value === type)?.label || "Select type..."}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[200px] p-0 rounded-md">
+                <Command className="rounded-md">
+                  <CommandInput placeholder="Search type..." className="rounded-md" />
+                  <CommandEmpty>No type found.</CommandEmpty>
+                  <CommandList>
+                    <CommandGroup>
+                      {keystoneTypes.map((t) => (
+                        <CommandItem
+                          key={t.value}
+                          value={t.label}
+                          onSelect={() => {
+                            setType(t.value);
+                            setColor(t.color);
+                          }}
+                          className="rounded-md"
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              type === t.value ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {t.label}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="rounded-full">Cancel</Button>
+          <Button onClick={handleSave} className="rounded-full">Save Keystone</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
@@ -776,7 +981,7 @@ function CalendarGrid({
   }
 }
 
-// Grid View Component
+// Enhanced Grid View Component with Expandable Cards
 function GridView({
   keystones,
   onKeystoneClick,
@@ -785,90 +990,177 @@ function GridView({
   onKeystoneClick: (keystone: Keystone) => void;
 }) {
   return (
-    <div className="p-6 space-y-6 bg-background rounded-xl shadow-sm border border-border h-full overflow-auto">
-      <h2 className="text-2xl font-bold text-foreground">All Keystones</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {keystones.map((keystone) => (
-          <motion.div
-            key={keystone.id}
-            className="p-5 border border-border rounded-xl cursor-pointer bg-card hover:bg-accent hover:border-primary transition-all duration-300 shadow-sm"
-            onClick={() => onKeystoneClick(keystone)}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            whileHover={{ scale: 1.02, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
-          >
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-3 h-3 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: keystone.color }}
-                />
-                <h3 className="font-semibold text-lg text-card-foreground truncate">{keystone.title}</h3>
-              </div>
-              <p className="text-sm text-muted-foreground line-clamp-2">{keystone.description}</p>
-              <div className="text-xs text-muted-foreground flex items-center gap-2">
-                <ClockIcon className="w-3.5 h-3.5 flex-shrink-0" />
-                <span>{format(keystone.date, "MMM d, yyyy")} at {keystone.time}</span>
-              </div>
-              {keystone.location && (
-                <div className="text-xs text-muted-foreground flex items-center gap-2">
-                  <MapPinIcon className="w-3.5 h-3.5 flex-shrink-0" />
-                  <span className="truncate">{keystone.location}</span>
-                </div>
+    <TooltipProvider>
+      <div className="p-6 space-y-6 bg-background rounded-xl shadow-sm border border-border h-full overflow-auto">
+        <h2 className="text-2xl font-bold text-foreground">All Keystones</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {keystones.map((keystone) => (
+            <Component
+              key={keystone.id}
+              expandDirection="both"
+              expandBehavior="replace"
+              initialDelay={0.1}
+            >
+              {({ isExpanded }) => (
+                <ExpandableTrigger>
+                  <ExpandableCard
+                    className="w-full relative"
+                    collapsedSize={{ width: 320, height: 240 }}
+                    expandedSize={{ width: 420, height: 400 }}
+                    hoverToExpand={false}
+                    expandDelay={200}
+                    collapseDelay={500}
+                  >
+                    <ExpandableCardHeader className="p-4">
+                      <div className="flex justify-between items-start w-full">
+                        <div className="flex-1">
+                          <Badge
+                            variant="secondary"
+                            className={cn(
+                              "mb-2 text-xs",
+                              keystone.type === "meeting" && "bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-100",
+                              keystone.type === "event" && "bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-100",
+                              keystone.type === "deadline" && "bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-100",
+                              keystone.type === "milestone" && "bg-yellow-100 text-yellow-600 dark:bg-yellow-900 dark:text-yellow-100"
+                            )}
+                          >
+                            {keystone.type.charAt(0).toUpperCase() + keystone.type.slice(1)}
+                          </Badge>
+                          <h3 className="font-semibold text-lg text-gray-800 dark:text-white leading-tight">
+                            {keystone.title}
+                          </h3>
+                        </div>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              size="icon" 
+                              variant="outline" 
+                              className="h-8 w-8 flex-shrink-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onKeystoneClick(keystone);
+                              }}
+                            >
+                              <Calendar className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>View Details</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </ExpandableCardHeader>
+
+                    <ExpandableCardContent className="p-4 pt-0">
+                      <div className="flex flex-col space-y-3">
+                        <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                          <ClockIcon className="h-4 w-4 mr-2 flex-shrink-0" />
+                          <span>{format(keystone.date, "MMM d, yyyy")} at {keystone.time}</span>
+                        </div>
+
+                        {keystone.location && (
+                          <ExpandableContent preset="blur-md">
+                            <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                              <MapPinIcon className="h-4 w-4 mr-2 flex-shrink-0" />
+                              <span className="truncate">{keystone.location}</span>
+                            </div>
+                          </ExpandableContent>
+                        )}
+
+                        <ExpandableContent preset="slide-up" stagger staggerChildren={0.1}>
+                          <p className="text-sm text-gray-700 dark:text-gray-200 line-clamp-2 mb-3">
+                            {keystone.description}
+                          </p>
+
+                          {keystone.attendees && keystone.attendees.length > 0 && (
+                            <div className="mb-4">
+                              <h4 className="font-medium text-sm text-gray-800 dark:text-gray-100 mb-2 flex items-center">
+                                <UsersIcon className="h-4 w-4 mr-2" />
+                                Attendees:
+                              </h4>
+                              <div className="flex -space-x-2 overflow-hidden">
+                                {keystone.attendees.slice(0, 4).map((name, index) => (
+                                  <Tooltip key={index}>
+                                    <TooltipTrigger asChild>
+                                      <Avatar className="border-2 border-white dark:border-gray-800 w-8 h-8">
+                                        <AvatarImage
+                                          src={`/placeholder.svg?height=32&width=32&text=${name[0]}`}
+                                          alt={name}
+                                        />
+                                        <AvatarFallback className="text-xs">{name[0]}</AvatarFallback>
+                                      </Avatar>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>{name}</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                ))}
+                                {keystone.attendees.length > 4 && (
+                                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 border-2 border-white dark:border-gray-800 text-xs font-medium text-gray-600 dark:text-gray-300">
+                                    +{keystone.attendees.length - 4}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {isExpanded && (
+                            <div className="space-y-2">
+                              <Button className="w-full" style={{ backgroundColor: keystone.color }}>
+                                <Video className="h-4 w-4 mr-2" />
+                                Join Meeting
+                              </Button>
+                              <Button variant="outline" className="w-full">
+                                <MessageSquare className="h-4 w-4 mr-2" />
+                                Open Chat
+                              </Button>
+                            </div>
+                          )}
+                        </ExpandableContent>
+                      </div>
+                    </ExpandableCardContent>
+
+                    {isExpanded && (
+                      <ExpandableContent preset="slide-up">
+                        <ExpandableCardFooter className="p-4 pt-2">
+                          <div className="flex items-center justify-between w-full text-sm text-gray-600 dark:text-gray-300">
+                            <span className="flex items-center">
+                              <div 
+                                className="w-2 h-2 rounded-full mr-2" 
+                                style={{ backgroundColor: keystone.color }}
+                              />
+                              {keystone.type}
+                            </span>
+                            <span>Next: Tomorrow</span>
+                          </div>
+                        </ExpandableCardFooter>
+                      </ExpandableContent>
+                    )}
+                  </ExpandableCard>
+                </ExpandableTrigger>
               )}
+            </Component>
+          ))}
+          {keystones.length === 0 && (
+            <div className="col-span-full text-center text-muted-foreground py-10">
+              No keystones to display.
             </div>
-          </motion.div>
-        ))}
-        {keystones.length === 0 && (
-          <div className="col-span-full text-center text-muted-foreground py-10">
-            No keystones to display.
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 }
 
 // Main Events Page Component
-export default function Events() {
-  const [searchParams] = useSearchParams();
-  const contactId = searchParams.get('contact');
-  const isMobile = useIsMobile();
+function EventsPage() {
   const [calendarView, setCalendarView] = useState<CalendarView>("month");
   const [layoutView, setLayoutView] = useState<LayoutView>("calendar");
   const [selectedKeystone, setSelectedKeystone] = useState<Keystone | null>(null);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
-  const [isKeystoneFormOpen, setIsKeystoneFormOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [initialCreateDate, setInitialCreateDate] = useState<Date | null>(null);
-
-  const { events, isLoading, refetch } = useEvents({ contact_id: contactId || undefined });
-  const { contacts } = useContacts();
-
-  const filteredContact = contactId ? contacts.find(c => c.id === contactId) : undefined;
-
-  // Transform events to keystones
-  const keystones: Keystone[] = events.map(event => ({
-    id: event.id,
-    title: event.title,
-    description: event.notes || '',
-    date: new Date(event.date),
-    time: event.time || '9:00 AM',
-    location: '',
-    attendees: event.contact_names || [],
-    type: 'event' as const,
-    color: getEventTypeColor(event.type)
-  }));
-
-  function getEventTypeColor(type: string): string {
-    switch (type) {
-      case 'keystone': return '#3b82f6';
-      case 'interaction': return '#10b981';
-      case 'birthday': return '#f59e0b';
-      case 'sync': return '#8b5cf6';
-      default: return '#6b7280';
-    }
-  }
+  const [keystones, setKeystones] = useState<Keystone[]>(sampleKeystones);
 
   const handleKeystoneClick = (keystone: Keystone) => {
     setSelectedKeystone(keystone);
@@ -877,13 +1169,11 @@ export default function Events() {
 
   const handleDayDoubleClick = (date: Date) => {
     setInitialCreateDate(date);
-    setIsKeystoneFormOpen(true);
+    setCreateDialogOpen(true);
   };
 
-  const handleKeystoneFormSuccess = () => {
-    setIsKeystoneFormOpen(false);
-    setInitialCreateDate(null);
-    refetch();
+  const handleSaveNewKeystone = (newKeystone: Keystone) => {
+    setKeystones((prev) => [...prev, newKeystone].sort((a, b) => a.date.getTime() - b.date.getTime()));
   };
 
   const renderContent = () => {
@@ -911,39 +1201,13 @@ export default function Events() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <motion.div 
-          className="flex flex-col items-center gap-4"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className="animate-spin rounded-full h-12 w-12 border-2 border-primary border-t-transparent"></div>
-          <p className="text-sm text-muted-foreground">Loading events...</p>
-        </motion.div>
-      </div>
-    );
-  }
-
-  const keystoneFormContent = (
-    <KeystoneForm 
-      onSuccess={handleKeystoneFormSuccess}
-      onCancel={() => setIsKeystoneFormOpen(false)}
-      contact={filteredContact}
-    />
-  );
-
   return (
     <div className="h-screen flex flex-col bg-background text-foreground font-sans">
       {/* Header */}
       <div className="border-b border-border p-4 sm:p-6 bg-card shadow-sm">
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full lg:w-auto">
-            <h1 className="text-3xl font-extrabold text-card-foreground tracking-tight">
-              {filteredContact ? `${filteredContact.name}'s Events` : 'Events'}
-            </h1>
+            <h1 className="text-3xl font-extrabold text-card-foreground tracking-tight">Events</h1>
             <div className="w-full sm:w-auto flex-grow">
               <KeystoneSearchBar />
             </div>
@@ -957,7 +1221,7 @@ export default function Events() {
               className="rounded-full px-5 py-2.5 text-sm font-medium shadow-md hover:shadow-lg transition-all duration-200 gap-2"
               onClick={() => {
                 setInitialCreateDate(null);
-                setIsKeystoneFormOpen(true);
+                setCreateDialogOpen(true);
               }}
             >
               <PlusCircleIcon className="w-4 h-4" />
@@ -979,43 +1243,15 @@ export default function Events() {
         onOpenChange={setDetailDialogOpen}
       />
 
-      {/* Keystone Form Dialogs */}
-      <AnimatePresence>
-        {isMobile ? (
-          <Sheet open={isKeystoneFormOpen} onOpenChange={setIsKeystoneFormOpen}>
-            <SheetContent 
-              side="bottom" 
-              className="h-[90vh] overflow-auto pt-6 bg-white/95 backdrop-blur-xl border-white/30"
-            >
-              <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: 20, opacity: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <div className="mx-auto -mt-1 mb-4 h-1.5 w-[60px] rounded-full bg-white/40" />
-                <SheetHeader className="mb-4">
-                  <SheetTitle className="text-foreground">Create New Keystone</SheetTitle>
-                </SheetHeader>
-                {keystoneFormContent}
-              </motion.div>
-            </SheetContent>
-          </Sheet>
-        ) : (
-          <Dialog open={isKeystoneFormOpen} onOpenChange={setIsKeystoneFormOpen}>
-            <DialogContent className="sm:max-w-xl bg-white/95 backdrop-blur-xl border-white/30 rounded-2xl">
-              <motion.div
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.95, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                {keystoneFormContent}
-              </motion.div>
-            </DialogContent>
-          </Dialog>
-        )}
-      </AnimatePresence>
+      {/* Create Keystone Dialog */}
+      <CreateKeystoneDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        initialDate={initialCreateDate}
+        onSave={handleSaveNewKeystone}
+      />
     </div>
   );
 }
+
+export default EventsPage;
