@@ -188,7 +188,7 @@ export function TagsInput({
                     addTag(suggestion);
                   }
                 }}
-                disabled={hasReachedMax || tagObjects.find(t => t.id === suggestion.id)}
+                disabled={hasReachedMax || Boolean(tagObjects.find(t => t.id === suggestion.id))}
                 className="h-8 px-3 py-1 text-xs rounded-full glass-button transition-all duration-300"
                 style={{
                   background: 'rgba(255, 255, 255, 0.1)',
