@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -34,7 +35,7 @@ import Contact from "@/pages/Contact";
 import Arlo from "@/pages/Arlo";
 import CareerHub from "@/pages/CareerHub";
 import Events from "@/pages/Events";
-import EventsPage from '@/pages/EventsPage'
+import { EventsPage } from '@/pages/EventsPage'
 
 // Career tool pages
 import ResumeReviewer from "@/pages/career/ResumeReviewer";
