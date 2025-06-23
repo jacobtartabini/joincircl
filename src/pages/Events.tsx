@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { useEvents } from '@/hooks/useEvents'
 import { UnifiedEvent } from '@/types/events'
 import { format, parseISO } from 'date-fns'
+import { FullScreenCalendar } from '@/components/ui/fullscreen-calendar'
 
 const EventCard = ({ event, isExpanded, onToggle }: { 
   event: UnifiedEvent
@@ -159,10 +160,24 @@ const EventCard = ({ event, isExpanded, onToggle }: {
 const Events = () => {
   const { events, isLoading, error } = useEvents()
   const [expandedEventId, setExpandedEventId] = useState<string | null>(null)
+  const [view, setView] = useState<'calendar' | 'grid'>('calendar')
 
   const handleEventToggle = (eventId: string) => {
     setExpandedEventId(expandedEventId === eventId ? null : eventId)
   }
+
+  // Transform events for calendar view
+  const calendarData = events.map(event => ({
+    day: parseISO(event.date),
+    events: [{
+      id: event.id,
+      name: event.title,
+      time: event.time || format(parseISO(event.date), 'HH:mm'),
+      datetime: event.date,
+      type: event.type,
+      contact_names: event.contact_names
+    }]
+  }))
 
   if (isLoading) {
     return (
@@ -199,38 +214,70 @@ const Events = () => {
             {events.length} {events.length === 1 ? 'event' : 'events'} in your timeline
           </p>
         </div>
-        <Button>
-          <Plus className="w-4 h-4 mr-2" />
-          Add Event
-        </Button>
-      </div>
-
-      {events.length === 0 ? (
-        <div className="text-center py-12">
-          <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No events yet</h3>
-          <p className="text-gray-600 mb-6">Start by adding your first keystone or interaction.</p>
+        <div className="flex items-center gap-4">
+          <div className="flex bg-gray-100 rounded-lg p-1">
+            <Button
+              variant={view === 'calendar' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setView('calendar')}
+              className="rounded-md"
+            >
+              Calendar
+            </Button>
+            <Button
+              variant={view === 'grid' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setView('grid')}
+              className="rounded-md"
+            >
+              Grid
+            </Button>
+          </div>
           <Button>
             <Plus className="w-4 h-4 mr-2" />
-            Add Your First Event
+            Add Event
           </Button>
         </div>
+      </div>
+
+      {view === 'calendar' ? (
+        <div className="h-[calc(100vh-200px)] rounded-lg overflow-hidden">
+          <FullScreenCalendar 
+            data={calendarData}
+            onNewEvent={() => console.log('Add new event')}
+            onEventClick={(event) => console.log('Event clicked:', event)}
+          />
+        </div>
       ) : (
-        <motion.div 
-          layout
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4"
-        >
-          <AnimatePresence>
-            {events.map((event) => (
-              <EventCard
-                key={event.id}
-                event={event}
-                isExpanded={expandedEventId === event.id}
-                onToggle={() => handleEventToggle(event.id)}
-              />
-            ))}
-          </AnimatePresence>
-        </motion.div>
+        <>
+          {events.length === 0 ? (
+            <div className="text-center py-12">
+              <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No events yet</h3>
+              <p className="text-gray-600 mb-6">Start by adding your first keystone or interaction.</p>
+              <Button>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Your First Event
+              </Button>
+            </div>
+          ) : (
+            <motion.div 
+              layout
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4"
+            >
+              <AnimatePresence>
+                {events.map((event) => (
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    isExpanded={expandedEventId === event.id}
+                    onToggle={() => handleEventToggle(event.id)}
+                  />
+                ))}
+              </AnimatePresence>
+            </motion.div>
+          )}
+        </>
       )}
     </div>
   )
