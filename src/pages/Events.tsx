@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Calendar, Grid, Plus, Search, Filter } from 'lucide-react';
@@ -7,11 +8,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEvents } from '@/hooks/useEvents';
 import { format } from 'date-fns';
+import { FullCalendar } from '@/components/calendar/FullCalendar';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import KeystoneForm from '@/components/keystone/KeystoneForm';
 
 export default function Events() {
   const [view, setView] = useState<'calendar' | 'grid'>('calendar');
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
+  const [isCreateEventOpen, setIsCreateEventOpen] = useState(false);
   
   const { events, isLoading } = useEvents();
 
@@ -54,58 +59,6 @@ export default function Events() {
     }
   };
 
-  // Calendar component (keeping exactly as it was)
-  const CalendarView = () => (
-    <div className="h-full bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-      <div className="p-6">
-        <div className="grid grid-cols-7 gap-4 mb-6">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-            <div key={day} className="text-center font-medium text-gray-500 dark:text-gray-400 py-2">
-              {day}
-            </div>
-          ))}
-        </div>
-        
-        <div className="grid grid-cols-7 gap-4">
-          {Array.from({ length: 35 }, (_, i) => {
-            const day = i - 6;
-            const isCurrentMonth = day > 0 && day <= 31;
-            const isToday = day === 15;
-            const hasEvent = [3, 7, 12, 18, 25].includes(day);
-            
-            return (
-              <div
-                key={i}
-                className={`
-                  min-h-[100px] p-2 border border-gray-100 dark:border-gray-800 rounded-lg
-                  ${isCurrentMonth ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800'}
-                  ${isToday ? 'ring-2 ring-blue-500' : ''}
-                  hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer
-                `}
-              >
-                <div className={`text-sm font-medium ${isCurrentMonth ? 'text-gray-900 dark:text-gray-100' : 'text-gray-400'}`}>
-                  {isCurrentMonth ? day : ''}
-                </div>
-                {hasEvent && isCurrentMonth && (
-                  <div className="mt-1">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full mb-1"></div>
-                    <div className="text-xs text-gray-600 dark:text-gray-300 truncate">
-                      {day === 3 && 'Team Meeting'}
-                      {day === 7 && 'Product Launch'}
-                      {day === 12 && 'Client Call'}
-                      {day === 18 && 'Workshop'}
-                      {day === 25 && 'Review Session'}
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -116,7 +69,11 @@ export default function Events() {
         </div>
         
         <div className="flex items-center gap-3">
-          <Button size="sm" className="gap-2">
+          <Button 
+            size="sm" 
+            className="gap-2"
+            onClick={() => setIsCreateEventOpen(true)}
+          >
             <Plus className="h-4 w-4" />
             Add Event
           </Button>
@@ -146,26 +103,30 @@ export default function Events() {
           </Button>
         </div>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <div className="relative flex-1 sm:flex-none">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search events..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-full sm:w-64"
-            />
+        {view === 'grid' && (
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <div className="relative flex-1 sm:flex-none">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search events..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 w-full sm:w-64"
+              />
+            </div>
+            <Button variant="outline" size="sm" className="gap-2">
+              <Filter className="h-4 w-4" />
+              Filter
+            </Button>
           </div>
-          <Button variant="outline" size="sm" className="gap-2">
-            <Filter className="h-4 w-4" />
-            Filter
-          </Button>
-        </div>
+        )}
       </div>
 
       {/* Content */}
       {view === 'calendar' ? (
-        <CalendarView />
+        <div className="h-[calc(100vh-16rem)]">
+          <FullCalendar />
+        </div>
       ) : (
         <div className="space-y-4">
           {isLoading ? (
@@ -285,6 +246,16 @@ export default function Events() {
           )}
         </div>
       )}
+
+      {/* Create Event Dialog */}
+      <Dialog open={isCreateEventOpen} onOpenChange={setIsCreateEventOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <KeystoneForm
+            onSuccess={() => setIsCreateEventOpen(false)}
+            onCancel={() => setIsCreateEventOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
