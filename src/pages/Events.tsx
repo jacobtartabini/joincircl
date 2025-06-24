@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEvents } from '@/hooks/useEvents';
 import { format } from 'date-fns';
-import { FullCalendar } from '@/components/ui/fullscreen-calendar';
+import { FullScreenCalendar } from '@/components/ui/fullscreen-calendar';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import KeystoneForm from '@/components/keystone/KeystoneForm';
 import { ActionSearchBar } from '@/components/ui/action-search-bar';
@@ -48,7 +48,7 @@ export default function Events() {
     format(new Date(event.date), 'PPP').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Transform events data for FullCalendar component
+  // Transform events data for FullScreenCalendar component
   const calendarData = events.map(event => ({
     day: new Date(event.date),
     events: [{
@@ -193,7 +193,7 @@ export default function Events() {
       {/* Content */}
       {view === 'calendar' ? (
         <div className="min-h-0 flex-1">
-          <FullCalendar 
+          <FullScreenCalendar 
             data={calendarData} 
             onNewEvent={handleNewEvent}
             onEventClick={(event) => console.log('Event clicked:', event)} 
