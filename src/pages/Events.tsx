@@ -7,17 +7,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEvents } from '@/hooks/useEvents';
 import { format } from 'date-fns';
-import { FullCalendar } from '@/components/calendar/FullCalendar';
+import { FullScreenCalendar } from '@/components/ui/fullscreen-calendar';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import KeystoneForm from '@/components/keystone/KeystoneForm';
 import { ActionSearchBar } from '@/components/ui/action-search-bar';
 import { useContacts } from '@/hooks/use-contacts';
 import { useKeystones } from '@/hooks/use-keystones';
+
 export default function Events() {
   const [view, setView] = useState<'calendar' | 'grid'>('calendar');
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
   const [isCreateEventOpen, setIsCreateEventOpen] = useState(false);
+  const [prefilledEventData, setPrefilledEventData] = useState<{
+    date?: string;
+    time?: string;
+    endDate?: string;
+    endTime?: string;
+  }>({});
+
   const {
     events,
     isLoading
@@ -28,9 +36,18 @@ export default function Events() {
   const {
     keystones
   } = useKeystones();
-  const filteredEvents = events.filter(event => event.title.toLowerCase().includes(searchTerm.toLowerCase()) || event.notes?.toLowerCase().includes(searchTerm.toLowerCase()) || event.contact_names?.some(name => name.toLowerCase().includes(searchTerm.toLowerCase())) || event.category?.toLowerCase().includes(searchTerm.toLowerCase()) || event.type.toLowerCase().includes(searchTerm.toLowerCase()) || event.source.toLowerCase().includes(searchTerm.toLowerCase()) || format(new Date(event.date), 'PPP').toLowerCase().includes(searchTerm.toLowerCase()));
 
-  // Transform events data for FullCalendar component
+  const filteredEvents = events.filter(event => 
+    event.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    event.notes?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    event.contact_names?.some(name => name.toLowerCase().includes(searchTerm.toLowerCase())) || 
+    event.category?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    event.type.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    event.source.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    format(new Date(event.date), 'PPP').toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Transform events data for FullScreenCalendar component
   const calendarData = events.map(event => ({
     day: new Date(event.date),
     events: [{
@@ -42,6 +59,17 @@ export default function Events() {
       contact_names: event.contact_names
     }]
   }));
+
+  const handleNewEventWithData = (eventData: { date?: string; time?: string; endDate?: string; endTime?: string }) => {
+    setPrefilledEventData(eventData);
+    setIsCreateEventOpen(true);
+  };
+
+  const handleCreateEventClose = () => {
+    setIsCreateEventOpen(false);
+    setPrefilledEventData({});
+  };
+
   const getEventTypeColor = (type: string) => {
     switch (type) {
       case 'keystone':
@@ -58,6 +86,7 @@ export default function Events() {
         return 'bg-gray-500';
     }
   };
+
   const getEventTypeBadgeVariant = (type: string) => {
     switch (type) {
       case 'keystone':
@@ -75,7 +104,6 @@ export default function Events() {
     }
   };
 
-  // Actions for the search bar
   const searchActions = [{
     id: 'add-event',
     label: 'Add New Event',
@@ -98,7 +126,9 @@ export default function Events() {
     handler: () => setView('grid'),
     category: 'Views'
   }];
-  return <div className="p-6 space-y-6">
+
+  return (
+    <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -108,7 +138,12 @@ export default function Events() {
         
         <div className="flex items-center gap-3">
           <div className="w-80">
-            <ActionSearchBar actions={searchActions} contacts={contacts} keystones={keystones} placeholder="Search events, contacts, or actions..." />
+            <ActionSearchBar 
+              actions={searchActions} 
+              contacts={contacts} 
+              keystones={keystones} 
+              placeholder="Search events, contacts, or actions..." 
+            />
           </div>
           <Button size="sm" className="gap-2" onClick={() => setIsCreateEventOpen(true)}>
             <Plus className="h-4 w-4" />
@@ -120,23 +155,51 @@ export default function Events() {
       {/* Controls */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-2">
-          <Button variant={view === 'calendar' ? 'default' : 'outline'} size="sm" onClick={() => setView('calendar')} className="gap-2">
+          <Button 
+            variant={view === 'calendar' ? 'default' : 'outline'} 
+            size="sm" 
+            onClick={() => setView('calendar')} 
+            className="gap-2"
+          >
             <Calendar className="h-4 w-4" />
             Calendar
           </Button>
-          <Button variant={view === 'grid' ? 'default' : 'outline'} size="sm" onClick={() => setView('grid')} className="gap-2">
+          <Button 
+            variant={view === 'grid' ? 'default' : 'outline'} 
+            size="sm" 
+            onClick={() => setView('grid')} 
+            className="gap-2"
+          >
             <Grid className="h-4 w-4" />
             Grid
           </Button>
         </div>
 
-        {view === 'grid'}
+        {view === 'grid' && (
+          <div className="relative w-full sm:w-80">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Search events..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        )}
       </div>
 
       {/* Content */}
-      {view === 'calendar' ? <div className="h-[calc(100vh-16rem)]">
-          <FullCalendar data={calendarData} onNewEvent={() => setIsCreateEventOpen(true)} onEventClick={event => console.log('Event clicked:', event)} />
-        </div> : <div className="space-y-4">
+      {view === 'calendar' ? (
+        <div className="w-full">
+          <FullScreenCalendar 
+            data={calendarData} 
+            onNewEvent={() => setIsCreateEventOpen(true)}
+            onNewEventWithData={handleNewEventWithData}
+            onEventClick={(event) => console.log('Event clicked:', event)} 
+          />
+        </div>
+      ) : (
+        <div className="space-y-4">
           {isLoading ? <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {Array.from({
           length: 6
@@ -230,13 +293,19 @@ export default function Events() {
           {!isLoading && filteredEvents.length === 0 && <div className="text-center py-12">
               <p className="text-gray-500 dark:text-gray-400">No events found.</p>
             </div>}
-        </div>}
+        </div>
+      )}
 
       {/* Create Event Dialog */}
-      <Dialog open={isCreateEventOpen} onOpenChange={setIsCreateEventOpen}>
+      <Dialog open={isCreateEventOpen} onOpenChange={handleCreateEventClose}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <KeystoneForm onSuccess={() => setIsCreateEventOpen(false)} onCancel={() => setIsCreateEventOpen(false)} />
+          <KeystoneForm 
+            onSuccess={handleCreateEventClose} 
+            onCancel={handleCreateEventClose}
+            prefilledData={prefilledEventData}
+          />
         </DialogContent>
       </Dialog>
-    </div>;
+    </div>
+  );
 }

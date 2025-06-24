@@ -20,17 +20,24 @@ interface KeystoneFormProps {
   contact?: Contact;
   onSuccess: (keystone?: Keystone) => void;
   onCancel: () => void;
+  prefilledData?: {
+    date?: string;
+    time?: string;
+    endDate?: string;
+    endTime?: string;
+  };
 }
 
-export default function KeystoneForm({ keystone, contact, onSuccess, onCancel }: KeystoneFormProps) {
+export default function KeystoneForm({ keystone, contact, onSuccess, onCancel, prefilledData }: KeystoneFormProps) {
   const [selectedContacts, setSelectedContacts] = useState<Contact[]>([]);
   const [selectedDays, setSelectedDays] = useState<Set<string>>(new Set());
   const [formData, setFormData] = useState({
     title: keystone?.title || '',
-    date: keystone?.date ? new Date(keystone.date).toISOString().split('T')[0] : '',
-    time: keystone?.date ? new Date(keystone.date).toTimeString().slice(0, 5) : '',
+    date: keystone?.date ? new Date(keystone.date).toISOString().split('T')[0] : (prefilledData?.date || ''),
+    time: keystone?.date ? new Date(keystone.date).toTimeString().slice(0, 5) : (prefilledData?.time || ''),
     category: keystone?.category || '',
-    notes: keystone?.notes || '',
+    notes: keystone?.notes || (prefilledData?.endDate && prefilledData.endDate !== prefilledData.date ? 
+      `Event spans from ${prefilledData.date} ${prefilledData.time || '09:00'} to ${prefilledData.endDate} ${prefilledData.endTime || '10:00'}` : ''),
     is_recurring: keystone?.is_recurring || false,
     recurrence_frequency: keystone?.recurrence_frequency || 'monthly'
   });

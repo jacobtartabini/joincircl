@@ -46,6 +46,7 @@ interface CalendarData {
 interface FullScreenCalendarProps {
   data: CalendarData[]
   onNewEvent?: () => void
+  onNewEventWithData?: (data: { date?: string; time?: string; endDate?: string; endTime?: string }) => void
   onEventClick?: (event: Event) => void
 }
 
@@ -67,12 +68,18 @@ const eventTypeColors = {
   calendar: "bg-orange-500/20 border-orange-500/30 text-orange-700 dark:text-orange-300",
 }
 
-export function FullScreenCalendar({ data, onNewEvent, onEventClick }: FullScreenCalendarProps) {
+export function FullScreenCalendar({ data, onNewEvent, onNewEventWithData, onEventClick }: FullScreenCalendarProps) {
   const today = startOfToday()
   const [selectedDay, setSelectedDay] = React.useState(today)
   const [currentMonth, setCurrentMonth] = React.useState(
     format(today, "MMM-yyyy"),
   )
+  const [isDragging, setIsDragging] = React.useState(false)
+  const [dragStart, setDragStart] = React.useState<Date | null>(null)
+  const [dragEnd, setDragEnd] = React.useState<Date | null>(null)
+  const [dragStartTime, setDragStartTime] = React.useState<string | null>(null)
+  const [dragEndTime, setDragEndTime] = React.useState<string | null>(null)
+
   const firstDayCurrentMonth = parse(currentMonth, "MMM-yyyy", new Date())
   const isMobile = useIsMobile()
 
@@ -96,8 +103,80 @@ export function FullScreenCalendar({ data, onNewEvent, onEventClick }: FullScree
     setSelectedDay(today)
   }
 
+  // Handle double-click on day
+  const handleDayDoubleClick = (day: Date) => {
+    const dateStr = format(day, 'yyyy-MM-dd')
+    const timeStr = format(new Date(), 'HH:mm')
+    
+    if (onNewEventWithData) {
+      onNewEventWithData({
+        date: dateStr,
+        time: timeStr
+      })
+    } else {
+      onNewEvent?.()
+    }
+  }
+
+  // Handle mouse down for drag start
+  const handleMouseDown = (day: Date, event: React.MouseEvent) => {
+    if (event.detail === 2) return // Ignore if it's a double-click
+    
+    setIsDragging(true)
+    setDragStart(day)
+    setDragEnd(day)
+  }
+
+  // Handle mouse move for drag
+  const handleMouseMove = (day: Date) => {
+    if (isDragging && dragStart) {
+      setDragEnd(day)
+    }
+  }
+
+  // Handle mouse up for drag end
+  const handleMouseUp = () => {
+    if (isDragging && dragStart && dragEnd && onNewEventWithData) {
+      const startDate = dragStart <= dragEnd ? dragStart : dragEnd
+      const endDate = dragStart <= dragEnd ? dragEnd : dragStart
+      
+      onNewEventWithData({
+        date: format(startDate, 'yyyy-MM-dd'),
+        time: '09:00', // Default start time
+        endDate: format(endDate, 'yyyy-MM-dd'),
+        endTime: '10:00' // Default end time
+      })
+    }
+    
+    setIsDragging(false)
+    setDragStart(null)
+    setDragEnd(null)
+  }
+
+  // Check if day is in drag selection
+  const isDayInDragSelection = (day: Date) => {
+    if (!isDragging || !dragStart || !dragEnd) return false
+    
+    const startDate = dragStart <= dragEnd ? dragStart : dragEnd
+    const endDate = dragStart <= dragEnd ? dragEnd : dragStart
+    
+    return day >= startDate && day <= endDate
+  }
+
+  // Add global mouse up listener to handle drag end even when mouse leaves component
+  React.useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      if (isDragging) {
+        handleMouseUp()
+      }
+    }
+
+    document.addEventListener('mouseup', handleGlobalMouseUp)
+    return () => document.removeEventListener('mouseup', handleGlobalMouseUp)
+  }, [isDragging, dragStart, dragEnd])
+
   return (
-    <div className="flex flex-1 flex-col h-full">
+    <div className="flex flex-1 flex-col w-full min-h-0">
       {/* Calendar Header */}
       <motion.div 
         className="flex flex-col space-y-4 p-6 md:flex-row md:items-center md:justify-between md:space-y-0 lg:flex-none border-b border-white/10 bg-white/5 backdrop-blur-sm"
@@ -196,11 +275,11 @@ export function FullScreenCalendar({ data, onNewEvent, onEventClick }: FullScree
         </motion.div>
       </motion.div>
 
-      {/* Calendar Grid */}
-      <div className="lg:flex lg:flex-auto lg:flex-col flex-1">
+      {/* Calendar Grid - Made fully responsive */}
+      <div className="flex flex-col flex-1 w-full overflow-visible">
         {/* Week Days Header */}
         <motion.div 
-          className="grid grid-cols-7 border-b border-white/10 text-center text-xs font-semibold leading-6 lg:flex-none bg-white/5"
+          className="grid grid-cols-7 border-b border-white/10 text-center text-xs font-semibold leading-6 bg-white/5 shrink-0"
           initial={{ y: -5, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.4, delay: 0.4 }}
@@ -218,10 +297,11 @@ export function FullScreenCalendar({ data, onNewEvent, onEventClick }: FullScree
           ))}
         </motion.div>
 
-        {/* Calendar Days */}
-        <div className="flex text-xs leading-6 lg:flex-auto flex-1">
+        {/* Calendar Days - Desktop */}
+        <div className="hidden lg:block flex-1 w-full">
           <motion.div 
-            className="hidden w-full lg:grid lg:grid-cols-7 lg:grid-rows-5"
+            className="grid grid-cols-7 auto-rows-fr min-h-0"
+            style={{ minHeight: 'calc(100vh - 300px)' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.6 }}
@@ -229,15 +309,18 @@ export function FullScreenCalendar({ data, onNewEvent, onEventClick }: FullScree
             {days.map((day, dayIdx) => (
               <motion.div
                 key={dayIdx}
-                onClick={() => setSelectedDay(day)}
+                onDoubleClick={() => handleDayDoubleClick(day)}
+                onMouseDown={(e) => handleMouseDown(day, e)}
+                onMouseMove={() => handleMouseMove(day)}
                 className={cn(
                   dayIdx === 0 && colStartClasses[getDay(day)],
                   !isEqual(day, selectedDay) &&
                     !isToday(day) &&
                     !isSameMonth(day, firstDayCurrentMonth) &&
                     "bg-accent/10 text-muted-foreground/60",
-                  "relative flex flex-col border-b border-r border-white/10 hover:bg-white/10 focus:z-10 cursor-pointer transition-all duration-300",
+                  "relative flex flex-col border-b border-r border-white/10 hover:bg-white/10 focus:z-10 cursor-pointer transition-all duration-300 min-h-32",
                   !isEqual(day, selectedDay) && "hover:bg-white/10",
+                  isDayInDragSelection(day) && "bg-primary/20 border-primary/40",
                 )}
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -247,6 +330,7 @@ export function FullScreenCalendar({ data, onNewEvent, onEventClick }: FullScree
                 <header className="flex items-center justify-between p-3">
                   <motion.button
                     type="button"
+                    onClick={() => setSelectedDay(day)}
                     className={cn(
                       isEqual(day, selectedDay) && "text-primary-foreground",
                       !isEqual(day, selectedDay) &&
@@ -275,7 +359,7 @@ export function FullScreenCalendar({ data, onNewEvent, onEventClick }: FullScree
                     </time>
                   </motion.button>
                 </header>
-                <div className="flex-1 p-3 space-y-1">
+                <div className="flex-1 p-3 space-y-1 overflow-y-auto">
                   <AnimatePresence>
                     {data
                       .filter((event) => isSameDay(event.day, day))
@@ -329,85 +413,87 @@ export function FullScreenCalendar({ data, onNewEvent, onEventClick }: FullScree
               </motion.div>
             ))}
           </motion.div>
-
-          {/* Mobile calendar grid */}
-          <motion.div 
-            className="isolate grid w-full grid-cols-7 grid-rows-5 lg:hidden"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.6 }}
-          >
-            {days.map((day, dayIdx) => (
-              <motion.button
-                onClick={() => setSelectedDay(day)}
-                key={dayIdx}
-                type="button"
-                className={cn(
-                  isEqual(day, selectedDay) && "text-primary-foreground",
-                  !isEqual(day, selectedDay) &&
-                    !isToday(day) &&
-                    isSameMonth(day, firstDayCurrentMonth) &&
-                    "text-foreground",
-                  !isEqual(day, selectedDay) &&
-                    !isToday(day) &&
-                    !isSameMonth(day, firstDayCurrentMonth) &&
-                    "text-muted-foreground/60",
-                  (isEqual(day, selectedDay) || isToday(day)) &&
-                    "font-semibold",
-                  "flex h-14 flex-col border-b border-r border-white/10 px-3 py-2 hover:bg-white/10 focus:z-10 transition-all duration-200",
-                )}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: 0.6 + dayIdx * 0.02 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <time
-                  dateTime={format(day, "yyyy-MM-dd")}
-                  className={cn(
-                    "ml-auto flex size-6 items-center justify-center rounded-full transition-all duration-200",
-                    isEqual(day, selectedDay) &&
-                      isToday(day) &&
-                      "bg-primary text-primary-foreground shadow-lg",
-                    isEqual(day, selectedDay) &&
-                      !isToday(day) &&
-                      "bg-primary text-primary-foreground shadow-md",
-                  )}
-                >
-                  {format(day, "d")}
-                </time>
-                {data.filter((date) => isSameDay(date.day, day)).length > 0 && (
-                  <div>
-                    {data
-                      .filter((date) => isSameDay(date.day, day))
-                      .map((date) => (
-                        <div
-                          key={date.day.toString()}
-                          className="-mx-0.5 mt-auto flex flex-wrap-reverse"
-                        >
-                          {date.events.slice(0, 3).map((event) => (
-                            <motion.span
-                              key={event.id}
-                              className={cn(
-                                "mx-0.5 mt-1 h-1.5 w-1.5 rounded-full",
-                                event.type === 'keystone' && "bg-blue-500",
-                                event.type === 'interaction' && "bg-green-500",
-                                event.type === 'birthday' && "bg-pink-500",
-                                event.type === 'sync' && "bg-purple-500",
-                                event.type === 'calendar' && "bg-orange-500",
-                              )}
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              transition={{ duration: 0.2 }}
-                            />
-                          ))}
-                        </div>
-                      ))}
-                  </div>
-                )}
-              </motion.button>
-            ))}
-          </motion.div>
         </div>
+
+        {/* Mobile calendar grid */}
+        <motion.div 
+          className="lg:hidden grid grid-cols-7 auto-rows-fr gap-0"
+          style={{ minHeight: 'calc(100vh - 300px)' }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.6 }}
+        >
+          {days.map((day, dayIdx) => (
+            <motion.button
+              onClick={() => setSelectedDay(day)}
+              onDoubleClick={() => handleDayDoubleClick(day)}
+              key={dayIdx}
+              type="button"
+              className={cn(
+                isEqual(day, selectedDay) && "text-primary-foreground",
+                !isEqual(day, selectedDay) &&
+                  !isToday(day) &&
+                  isSameMonth(day, firstDayCurrentMonth) &&
+                  "text-foreground",
+                !isEqual(day, selectedDay) &&
+                  !isToday(day) &&
+                  !isSameMonth(day, firstDayCurrentMonth) &&
+                  "text-muted-foreground/60",
+                (isEqual(day, selectedDay) || isToday(day)) &&
+                  "font-semibold",
+                "flex flex-col border-b border-r border-white/10 px-3 py-2 hover:bg-white/10 focus:z-10 transition-all duration-200 min-h-20",
+              )}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, delay: 0.6 + dayIdx * 0.02 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <time
+                dateTime={format(day, "yyyy-MM-dd")}
+                className={cn(
+                  "ml-auto flex size-6 items-center justify-center rounded-full transition-all duration-200 text-sm",
+                  isEqual(day, selectedDay) &&
+                    isToday(day) &&
+                    "bg-primary text-primary-foreground shadow-lg",
+                  isEqual(day, selectedDay) &&
+                    !isToday(day) &&
+                    "bg-primary text-primary-foreground shadow-md",
+                )}
+              >
+                {format(day, "d")}
+              </time>
+              {data.filter((date) => isSameDay(date.day, day)).length > 0 && (
+                <div className="flex-1 flex items-end">
+                  {data
+                    .filter((date) => isSameDay(date.day, day))
+                    .map((date) => (
+                      <div
+                        key={date.day.toString()}
+                        className="-mx-0.5 mt-auto flex flex-wrap-reverse"
+                      >
+                        {date.events.slice(0, 3).map((event) => (
+                          <motion.span
+                            key={event.id}
+                            className={cn(
+                              "mx-0.5 mt-1 h-1.5 w-1.5 rounded-full",
+                              event.type === 'keystone' && "bg-blue-500",
+                              event.type === 'interaction' && "bg-green-500",
+                              event.type === 'birthday' && "bg-pink-500",
+                              event.type === 'sync' && "bg-purple-500",
+                              event.type === 'calendar' && "bg-orange-500",
+                            )}
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ duration: 0.2 }}
+                          />
+                        ))}
+                      </div>
+                    ))}
+                </div>
+              )}
+            </motion.button>
+          ))}
+        </motion.div>
       </div>
     </div>
   )
