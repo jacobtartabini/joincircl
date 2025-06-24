@@ -14,70 +14,26 @@ import { Contact } from "@/types/contact";
 import { Keystone } from "@/types/keystone";
 import { StandardModalHeader } from "@/components/ui/StandardModalHeader";
 import { Calendar } from "lucide-react";
-import { format } from "date-fns";
 
 interface KeystoneFormProps {
   keystone?: Keystone;
   contact?: Contact;
-  prefilledData?: {
-    date?: Date;
-    startTime?: Date;
-    endTime?: Date;
-  };
   onSuccess: (keystone?: Keystone) => void;
   onCancel: () => void;
 }
 
-export default function KeystoneForm({ 
-  keystone, 
-  contact, 
-  prefilledData,
-  onSuccess, 
-  onCancel 
-}: KeystoneFormProps) {
+export default function KeystoneForm({ keystone, contact, onSuccess, onCancel }: KeystoneFormProps) {
   const [selectedContacts, setSelectedContacts] = useState<Contact[]>([]);
   const [selectedDays, setSelectedDays] = useState<Set<string>>(new Set());
-  
-  // Initialize form data with prefilled values if provided
-  const getInitialFormData = () => {
-    const baseData = {
-      title: keystone?.title || '',
-      date: keystone?.date ? new Date(keystone.date).toISOString().split('T')[0] : '',
-      time: keystone?.date ? new Date(keystone.date).toTimeString().slice(0, 5) : '',
-      category: keystone?.category || '',
-      notes: keystone?.notes || '',
-      is_recurring: keystone?.is_recurring || false,
-      recurrence_frequency: keystone?.recurrence_frequency || 'monthly'
-    };
-
-    // Apply prefilled data if provided
-    if (prefilledData?.date) {
-      baseData.date = format(prefilledData.date, 'yyyy-MM-dd');
-    }
-    if (prefilledData?.startTime) {
-      baseData.time = format(prefilledData.startTime, 'HH:mm');
-    }
-    
-    return baseData;
-  };
-
-  const [formData, setFormData] = useState(getInitialFormData);
-
-  // Update form data when prefilled data changes
-  useEffect(() => {
-    if (prefilledData) {
-      setFormData(prev => {
-        const updated = { ...prev };
-        if (prefilledData.date) {
-          updated.date = format(prefilledData.date, 'yyyy-MM-dd');
-        }
-        if (prefilledData.startTime) {
-          updated.time = format(prefilledData.startTime, 'HH:mm');
-        }
-        return updated;
-      });
-    }
-  }, [prefilledData]);
+  const [formData, setFormData] = useState({
+    title: keystone?.title || '',
+    date: keystone?.date ? new Date(keystone.date).toISOString().split('T')[0] : '',
+    time: keystone?.date ? new Date(keystone.date).toTimeString().slice(0, 5) : '',
+    category: keystone?.category || '',
+    notes: keystone?.notes || '',
+    is_recurring: keystone?.is_recurring || false,
+    recurrence_frequency: keystone?.recurrence_frequency || 'monthly'
+  });
 
   const daysOfWeek = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
   const { toast } = useToast();
