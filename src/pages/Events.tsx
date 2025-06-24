@@ -11,6 +11,9 @@ import { format } from 'date-fns';
 import { FullCalendar } from '@/components/calendar/FullCalendar';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import KeystoneForm from '@/components/keystone/KeystoneForm';
+import { ActionSearchBar } from '@/components/ui/action-search-bar';
+import { useContacts } from '@/hooks/useContacts';
+import { useKeystones } from '@/hooks/useKeystones';
 
 export default function Events() {
   const [view, setView] = useState<'calendar' | 'grid'>('calendar');
@@ -19,10 +22,17 @@ export default function Events() {
   const [isCreateEventOpen, setIsCreateEventOpen] = useState(false);
   
   const { events, isLoading } = useEvents();
+  const { contacts } = useContacts();
+  const { keystones } = useKeystones();
 
   const filteredEvents = events.filter(event =>
     event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    event.notes?.toLowerCase().includes(searchTerm.toLowerCase())
+    event.notes?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    event.contact_names?.some(name => name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    event.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    event.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    event.source.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    format(new Date(event.date), 'PPP').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getEventTypeColor = (type: string) => {
@@ -59,6 +69,34 @@ export default function Events() {
     }
   };
 
+  // Actions for the search bar
+  const searchActions = [
+    {
+      id: 'add-event',
+      label: 'Add New Event',
+      icon: <Plus className="h-4 w-4" />,
+      description: 'Create a new event or keystone',
+      handler: () => setIsCreateEventOpen(true),
+      category: 'Actions'
+    },
+    {
+      id: 'calendar-view',
+      label: 'Switch to Calendar View',
+      icon: <Calendar className="h-4 w-4" />,
+      description: 'View events in calendar format',
+      handler: () => setView('calendar'),
+      category: 'Views'
+    },
+    {
+      id: 'grid-view',
+      label: 'Switch to Grid View',
+      icon: <Grid className="h-4 w-4" />,
+      description: 'View events in grid format',
+      handler: () => setView('grid'),
+      category: 'Views'
+    }
+  ];
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -69,6 +107,14 @@ export default function Events() {
         </div>
         
         <div className="flex items-center gap-3">
+          <div className="w-80">
+            <ActionSearchBar 
+              actions={searchActions}
+              contacts={contacts}
+              keystones={keystones}
+              placeholder="Search events, contacts, or actions..."
+            />
+          </div>
           <Button 
             size="sm" 
             className="gap-2"
