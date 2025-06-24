@@ -20,19 +20,20 @@ export default function Events() {
   const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
   const [isCreateEventOpen, setIsCreateEventOpen] = useState(false);
   const [prefilledEventData, setPrefilledEventData] = useState<{
-    date?: string;
-    time?: string;
-    endDate?: string;
-    endTime?: string;
+    date?: Date;
+    startTime?: Date;
+    endTime?: Date;
   }>({});
 
   const {
     events,
     isLoading
   } = useEvents();
+  
   const {
     contacts
   } = useContacts();
+  
   const {
     keystones
   } = useKeystones();
@@ -59,16 +60,6 @@ export default function Events() {
       contact_names: event.contact_names
     }]
   }));
-
-  const handleNewEventWithData = (eventData: { date?: string; time?: string; endDate?: string; endTime?: string }) => {
-    setPrefilledEventData(eventData);
-    setIsCreateEventOpen(true);
-  };
-
-  const handleCreateEventClose = () => {
-    setIsCreateEventOpen(false);
-    setPrefilledEventData({});
-  };
 
   const getEventTypeColor = (type: string) => {
     switch (type) {
@@ -104,28 +95,39 @@ export default function Events() {
     }
   };
 
-  const searchActions = [{
-    id: 'add-event',
-    label: 'Add New Event',
-    icon: <Plus className="h-4 w-4" />,
-    description: 'Create a new event or keystone',
-    handler: () => setIsCreateEventOpen(true),
-    category: 'Actions'
-  }, {
-    id: 'calendar-view',
-    label: 'Switch to Calendar View',
-    icon: <Calendar className="h-4 w-4" />,
-    description: 'View events in calendar format',
-    handler: () => setView('calendar'),
-    category: 'Views'
-  }, {
-    id: 'grid-view',
-    label: 'Switch to Grid View',
-    icon: <Grid className="h-4 w-4" />,
-    description: 'View events in grid format',
-    handler: () => setView('grid'),
-    category: 'Views'
-  }];
+  // Enhanced handler for new events with date/time pre-population
+  const handleNewEvent = (date?: Date, startTime?: Date, endTime?: Date) => {
+    setPrefilledEventData({ date, startTime, endTime });
+    setIsCreateEventOpen(true);
+  };
+
+  // Actions for the search bar
+  const searchActions = [
+    {
+      id: 'add-event',
+      label: 'Add New Event',
+      icon: <Plus className="h-4 w-4" />,
+      description: 'Create a new event or keystone',
+      handler: () => handleNewEvent(),
+      category: 'Actions'
+    },
+    {
+      id: 'calendar-view',
+      label: 'Switch to Calendar View',
+      icon: <Calendar className="h-4 w-4" />,
+      description: 'View events in calendar format',
+      handler: () => setView('calendar'),
+      category: 'Views'
+    },
+    {
+      id: 'grid-view',
+      label: 'Switch to Grid View',
+      icon: <Grid className="h-4 w-4" />,
+      description: 'View events in grid format',
+      handler: () => setView('grid'),
+      category: 'Views'
+    }
+  ];
 
   return (
     <div className="p-6 space-y-6">
@@ -145,7 +147,7 @@ export default function Events() {
               placeholder="Search events, contacts, or actions..." 
             />
           </div>
-          <Button size="sm" className="gap-2" onClick={() => setIsCreateEventOpen(true)}>
+          <Button size="sm" className="gap-2" onClick={() => handleNewEvent()}>
             <Plus className="h-4 w-4" />
             Add Event
           </Button>
@@ -176,13 +178,13 @@ export default function Events() {
         </div>
 
         {view === 'grid' && (
-          <div className="relative w-full sm:w-80">
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder="Search events..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 w-80"
             />
           </div>
         )}
@@ -190,20 +192,19 @@ export default function Events() {
 
       {/* Content */}
       {view === 'calendar' ? (
-        <div className="w-full">
+        <div className="min-h-0 flex-1">
           <FullScreenCalendar 
             data={calendarData} 
-            onNewEvent={() => setIsCreateEventOpen(true)}
-            onNewEventWithData={handleNewEventWithData}
+            onNewEvent={handleNewEvent}
             onEventClick={(event) => console.log('Event clicked:', event)} 
           />
         </div>
       ) : (
         <div className="space-y-4">
-          {isLoading ? <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              {Array.from({
-          length: 6
-        }).map((_, i) => <Card key={i} className="animate-pulse">
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Card key={i} className="animate-pulse">
                   <CardHeader className="pb-3">
                     <div className="h-4 bg-gray-200 rounded w-3/4"></div>
                     <div className="h-3 bg-gray-200 rounded w-1/2"></div>
@@ -212,22 +213,26 @@ export default function Events() {
                     <div className="h-3 bg-gray-200 rounded w-full mb-2"></div>
                     <div className="h-3 bg-gray-200 rounded w-2/3"></div>
                   </CardContent>
-                </Card>)}
-            </div> : <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4" layout>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4" layout>
               <AnimatePresence>
-                {filteredEvents.map(event => <motion.div key={event.id} layout initial={{
-            opacity: 0,
-            scale: 0.9
-          }} animate={{
-            opacity: 1,
-            scale: 1
-          }} exit={{
-            opacity: 0,
-            scale: 0.9
-          }} transition={{
-            duration: 0.2
-          }} className={expandedEvent === event.id ? 'col-span-full' : ''}>
-                    <Card className="cursor-pointer hover:shadow-md transition-all duration-200 h-fit" onClick={() => setExpandedEvent(expandedEvent === event.id ? null : event.id)}>
+                {filteredEvents.map((event) => (
+                  <motion.div
+                    key={event.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.2 }}
+                    className={expandedEvent === event.id ? 'col-span-full' : ''}
+                  >
+                    <Card 
+                      className="cursor-pointer hover:shadow-md transition-all duration-200 h-fit" 
+                      onClick={() => setExpandedEvent(expandedEvent === event.id ? null : event.id)}
+                    >
                       <CardHeader className="pb-3">
                         <div className="flex items-start justify-between gap-2">
                           <CardTitle className="text-lg font-semibold line-clamp-2">
@@ -244,65 +249,92 @@ export default function Events() {
                       </CardHeader>
                       
                       <CardContent className="pt-0">
-                        {event.contact_names && event.contact_names.length > 0 && <div className="flex flex-wrap gap-1 mb-3">
-                            {event.contact_names.map((name, idx) => <Badge key={idx} variant="outline" className="text-xs">
+                        {event.contact_names && event.contact_names.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mb-3">
+                            {event.contact_names.map((name, idx) => (
+                              <Badge key={idx} variant="outline" className="text-xs">
                                 {name}
-                              </Badge>)}
-                          </div>}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
                         
-                        {event.notes && <p className={`text-sm text-gray-600 dark:text-gray-300 ${expandedEvent === event.id ? '' : 'line-clamp-2'}`}>
+                        {event.notes && (
+                          <p className={`text-sm text-gray-600 dark:text-gray-300 ${expandedEvent === event.id ? '' : 'line-clamp-2'}`}>
                             {event.notes}
-                          </p>}
+                          </p>
+                        )}
                         
-                        <motion.div initial={false} animate={expandedEvent === event.id ? {
-                  opacity: 1,
-                  height: 'auto'
-                } : {
-                  opacity: 0,
-                  height: 0
-                }} transition={{
-                  duration: 0.2
-                }} className="overflow-hidden">
-                          {expandedEvent === event.id && <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
+                        <motion.div
+                          initial={false}
+                          animate={expandedEvent === event.id 
+                            ? { opacity: 1, height: 'auto' } 
+                            : { opacity: 0, height: 0 }
+                          }
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden"
+                        >
+                          {expandedEvent === event.id && (
+                            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
                               <div className="flex items-center gap-2">
                                 <span className="text-sm font-medium">Source:</span>
                                 <Badge variant="secondary" className="text-xs">
                                   {event.source}
                                 </Badge>
                               </div>
-                              {event.category && <div className="flex items-center gap-2">
+                              {event.category && (
+                                <div className="flex items-center gap-2">
                                   <span className="text-sm font-medium">Category:</span>
                                   <span className="text-sm text-gray-600 dark:text-gray-300">
                                     {event.category}
                                   </span>
-                                </div>}
-                              {event.is_recurring && <div className="flex items-center gap-2">
+                                </div>
+                              )}
+                              {event.is_recurring && (
+                                <div className="flex items-center gap-2">
                                   <span className="text-sm font-medium">Recurring:</span>
                                   <Badge variant="outline" className="text-xs">
                                     Yes
                                   </Badge>
-                                </div>}
-                            </div>}
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </motion.div>
                       </CardContent>
                     </Card>
-                  </motion.div>)}
+                  </motion.div>
+                ))}
               </AnimatePresence>
-            </motion.div>}
+            </motion.div>
+          )}
           
-          {!isLoading && filteredEvents.length === 0 && <div className="text-center py-12">
+          {!isLoading && filteredEvents.length === 0 && (
+            <div className="text-center py-12">
               <p className="text-gray-500 dark:text-gray-400">No events found.</p>
-            </div>}
+            </div>
+          )}
         </div>
       )}
 
-      {/* Create Event Dialog */}
-      <Dialog open={isCreateEventOpen} onOpenChange={handleCreateEventClose}>
+      {/* Create Event Dialog with Enhanced KeystoneForm */}
+      <Dialog open={isCreateEventOpen} onOpenChange={(open) => {
+        setIsCreateEventOpen(open);
+        if (!open) {
+          setPrefilledEventData({});
+        }
+      }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <KeystoneForm 
-            onSuccess={handleCreateEventClose} 
-            onCancel={handleCreateEventClose}
             prefilledData={prefilledEventData}
+            onSuccess={() => {
+              setIsCreateEventOpen(false);
+              setPrefilledEventData({});
+            }} 
+            onCancel={() => {
+              setIsCreateEventOpen(false);
+              setPrefilledEventData({});
+            }} 
           />
         </DialogContent>
       </Dialog>
