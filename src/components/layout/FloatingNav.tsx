@@ -1,5 +1,5 @@
 
-import { Home, Circle, Briefcase, Settings, Atom } from "lucide-react";
+import { Home, Circle, Briefcase, Calendar, Atom } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -47,9 +47,9 @@ export default function FloatingNav() {
       type: "separator" as const
     },
     {
-      title: "Settings",
-      icon: Settings,
-      path: "/settings"
+      title: "Events",
+      icon: Calendar,
+      path: "/events"
     }
   ];
 
@@ -75,7 +75,7 @@ export default function FloatingNav() {
       <GlassFilter />
       <div className={`fixed z-50 ${isMobile ? 'bottom-4 left-4 right-4' : 'bottom-6 left-1/2 transform -translate-x-1/2'}`}>
         <div 
-          className={`glass-nav flex items-center gap-2 p-2 rounded-3xl ${isMobile ? 'justify-around' : ''}`}
+          className={`glass-nav flex items-center gap-2 p-3 rounded-full ${isMobile ? 'justify-around' : ''}`}
           style={{
             background: 'rgba(255, 255, 255, 0.8)',
             backdropFilter: 'blur(25px)',
@@ -120,8 +120,8 @@ export default function FloatingNav() {
                 to={navTab.path} 
                 className={`glass-nav-item relative flex items-center px-4 py-3 text-sm font-medium transition-all duration-700 ${
                   isSelected 
-                    ? "bg-white/30 text-primary gap-2 rounded-2xl"
-                    : "text-muted-foreground hover:text-foreground gap-0 rounded-2xl"
+                    ? "bg-white/30 text-primary gap-2 rounded-full"
+                    : "text-muted-foreground hover:text-foreground gap-0 rounded-full"
                 } ${isMobile ? 'flex-1 justify-center' : ''}`} 
                 onClick={() => handleTabChange(index)}
                 style={{
