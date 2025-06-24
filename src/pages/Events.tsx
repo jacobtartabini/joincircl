@@ -34,6 +34,19 @@ export default function Events() {
     format(new Date(event.date), 'PPP').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Transform events data for FullCalendar component
+  const calendarData = events.map(event => ({
+    day: new Date(event.date),
+    events: [{
+      id: event.id,
+      name: event.title,
+      time: event.time || format(new Date(event.date), 'HH:mm'),
+      datetime: event.date,
+      type: event.type as 'keystone' | 'interaction' | 'birthday' | 'sync' | 'calendar',
+      contact_names: event.contact_names
+    }]
+  }));
+
   const getEventTypeColor = (type: string) => {
     switch (type) {
       case 'keystone':
@@ -170,7 +183,11 @@ export default function Events() {
       {/* Content */}
       {view === 'calendar' ? (
         <div className="h-[calc(100vh-16rem)]">
-          <FullCalendar />
+          <FullCalendar 
+            data={calendarData}
+            onNewEvent={() => setIsCreateEventOpen(true)}
+            onEventClick={(event) => console.log('Event clicked:', event)}
+          />
         </div>
       ) : (
         <div className="space-y-4">
