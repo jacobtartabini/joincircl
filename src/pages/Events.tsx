@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Calendar, Grid, Plus, Search, Filter } from 'lucide-react';
@@ -12,8 +11,8 @@ import { FullCalendar } from '@/components/calendar/FullCalendar';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import KeystoneForm from '@/components/keystone/KeystoneForm';
 import { ActionSearchBar } from '@/components/ui/action-search-bar';
-import { useContacts } from '@/hooks/useContacts';
-import { useKeystones } from '@/hooks/useKeystones';
+import { useContacts } from '@/hooks/use-contacts';
+import { useKeystones } from '@/hooks/use-keystones';
 
 export default function Events() {
   const [view, setView] = useState<'calendar' | 'grid'>('calendar');
