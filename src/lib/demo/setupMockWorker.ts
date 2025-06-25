@@ -8,12 +8,18 @@ export const mockWorker = setupWorker(...mockHandlers);
 export const initializeDemoMode = async () => {
   // Only setup MSW in demo routes
   if (typeof window !== 'undefined' && window.location.pathname.startsWith('/demo')) {
-    await mockWorker.start({
-      onUnhandledRequest: 'bypass',
-      quiet: true
-    });
+    console.log('Initializing demo mode for path:', window.location.pathname);
     
-    demoMockStore.initialize();
-    console.log('Demo mode initialized with MSW');
+    try {
+      await mockWorker.start({
+        onUnhandledRequest: 'bypass',
+        quiet: true
+      });
+      
+      demoMockStore.initialize();
+      console.log('Demo mode initialized successfully with MSW');
+    } catch (error) {
+      console.error('Failed to initialize demo mode:', error);
+    }
   }
 };
