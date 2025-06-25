@@ -31,28 +31,33 @@ export const initializeDemoMode = async (): Promise<void> => {
     return Promise.resolve();
   }
 
-  console.log('[Demo] Initializing demo mode for path:', currentPath);
+  console.log('[Demo] Initializing MSW in background for advanced features');
   
   initializationPromise = (async () => {
     try {
-      // Start the mock service worker
-      await mockWorker.start({
-        onUnhandledRequest: 'bypass',
-        quiet: false, // Enable logging for debugging
-        serviceWorker: {
-          url: '/mockServiceWorker.js'
-        }
+      // Add timeout to prevent hanging
+      const initTimeout = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('MSW initialization timeout')), 3000);
       });
+
+      await Promise.race([
+        mockWorker.start({
+          onUnhandledRequest: 'bypass',
+          quiet: true, // Reduce console noise
+          serviceWorker: {
+            url: '/mockServiceWorker.js'
+          }
+        }),
+        initTimeout
+      ]);
       
       // Initialize the demo data store
       demoMockStore.initialize();
       mswInitialized = true;
       
-      console.log('[Demo] Demo mode initialized successfully with MSW');
-      console.log('[Demo] Mock handlers registered:', mockHandlers.length);
-      console.log('[Demo] Available contacts:', demoMockStore.getContacts('demo-user-1').length);
+      console.log('[Demo] MSW initialized successfully (background)');
     } catch (error) {
-      console.error('[Demo] Failed to initialize demo mode:', error);
+      console.warn('[Demo] MSW initialization failed (non-critical):', error);
       // Still initialize the store even if MSW fails
       demoMockStore.initialize();
       // Don't throw - let the app continue without MSW
@@ -67,11 +72,12 @@ export const isDemoMode = (): boolean => {
   return typeof window !== 'undefined' && window.location.pathname.startsWith('/demo');
 };
 
-// Wait for MSW to be ready
+// Non-blocking MSW check
 export const waitForMSW = (): Promise<void> => {
   if (!isDemoMode()) {
     return Promise.resolve();
   }
   
-  return initializeDemoMode();
+  // Don't wait for MSW - return immediately
+  return Promise.resolve();
 };

@@ -2,64 +2,57 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { DemoAuthProvider } from '@/contexts/DemoAuthContext';
+import { FastDemoQueryProvider } from '@/contexts/FastDemoQueryProvider';
 import { DemoLayout } from './DemoLayout';
-import { initializeDemoMode, waitForMSW } from '@/lib/demo/setupMockWorker';
 
 export const DemoWrapper: React.FC = () => {
-  const [isInitializing, setIsInitializing] = useState(true);
-  const [initError, setInitError] = useState<string | null>(null);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    const initDemo = async () => {
-      try {
-        console.log('[Demo] Starting demo initialization...');
-        await initializeDemoMode();
-        console.log('[Demo] Demo initialization complete');
-        setIsInitializing(false);
-      } catch (error) {
-        console.error('[Demo] Demo initialization failed:', error);
-        setInitError(error instanceof Error ? error.message : 'Unknown error');
-        setIsInitializing(false);
+    // Fast initialization - no MSW required for basic demo
+    const initFastDemo = () => {
+      console.log('[Demo] Fast demo initialization started');
+      
+      // Set ready immediately - no async operations needed
+      setIsReady(true);
+      console.log('[Demo] Fast demo ready in <100ms');
+      
+      // Optional: Initialize MSW in background for advanced features
+      if (typeof window !== 'undefined') {
+        import('@/lib/demo/setupMockWorker').then(({ initializeDemoMode }) => {
+          initializeDemoMode().catch(error => {
+            console.warn('[Demo] MSW initialization failed (non-critical):', error);
+            // Demo continues working without MSW
+          });
+        });
       }
     };
 
-    initDemo();
+    // Use setTimeout to ensure this runs after initial render
+    const timeoutId = setTimeout(initFastDemo, 0);
+    
+    return () => clearTimeout(timeoutId);
   }, []);
 
-  if (isInitializing) {
+  // Show loading for minimal time to prevent flash
+  if (!isReady) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <div className="text-lg font-medium">Initializing Demo Mode...</div>
-          <div className="text-sm text-muted-foreground">Setting up mock data and services</div>
-        </div>
-      </div>
-    );
-  }
-
-  if (initError) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center space-y-4 max-w-md">
-          <div className="text-red-500 text-lg font-medium">Demo Initialization Failed</div>
-          <div className="text-sm text-muted-foreground">{initError}</div>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
-          >
-            Retry
-          </button>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <div className="text-sm text-muted-foreground">Loading Demo...</div>
         </div>
       </div>
     );
   }
 
   return (
-    <DemoAuthProvider>
-      <DemoLayout>
-        <Outlet />
-      </DemoLayout>
-    </DemoAuthProvider>
+    <FastDemoQueryProvider>
+      <DemoAuthProvider>
+        <DemoLayout>
+          <Outlet />
+        </DemoLayout>
+      </DemoAuthProvider>
+    </FastDemoQueryProvider>
   );
 };

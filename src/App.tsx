@@ -49,19 +49,36 @@ import OfferComparison from "@/pages/career/OfferComparison";
 import SkillGapAnalysis from "@/pages/career/SkillGapAnalysis";
 
 import { AuthProvider } from "@/contexts/AuthContext";
-import { DemoAuthProvider } from "@/contexts/DemoAuthContext";
-import { DemoLayout } from "@/components/demo/DemoLayout";
 import { DemoWrapper } from "@/components/demo/DemoWrapper";
 import { useEffect } from "react";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes
+    },
+  },
+});
 
 function App() {
   useEffect(() => {
-    // Pre-initialize MSW if we're starting on a demo route
+    // Pre-initialize demo resources if we're starting on a demo route
     if (window.location.pathname.startsWith('/demo')) {
+      console.log('[Demo] Pre-initializing demo resources...');
+      
+      // Pre-load demo data in background (non-blocking)
+      import('@/lib/demo/fastDemoStore').then(({ fastDemoStore }) => {
+        // Trigger data loading
+        fastDemoStore.getContacts();
+        console.log('[Demo] Demo data pre-loaded');
+      });
+      
+      // Start MSW in background (non-blocking)
       import('@/lib/demo/setupMockWorker').then(({ initializeDemoMode }) => {
-        initializeDemoMode().catch(console.error);
+        initializeDemoMode().catch(() => {
+          // Ignore MSW failures - demo works without it
+        });
       });
     }
   }, []);
@@ -74,7 +91,7 @@ function App() {
         <BrowserRouter>
           <AuthErrorBoundary>
             <Routes>
-              {/* Demo routes - self-contained sandbox */}
+              {/* Demo routes - self-contained sandbox with fast loading */}
               <Route path="/demo" element={<DemoWrapper />}>
                 <Route index element={<Home />} />
                 <Route path="circles" element={<Circles />} />
