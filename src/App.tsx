@@ -51,26 +51,19 @@ import SkillGapAnalysis from "@/pages/career/SkillGapAnalysis";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { DemoAuthProvider } from "@/contexts/DemoAuthContext";
 import { DemoLayout } from "@/components/demo/DemoLayout";
-import { initializeDemoMode } from "@/lib/demo/setupMockWorker";
+import { DemoWrapper } from "@/components/demo/DemoWrapper";
 import { useEffect } from "react";
 
 const queryClient = new QueryClient();
 
-// Demo wrapper component
-const DemoWrapper = () => {
-  return (
-    <DemoAuthProvider>
-      <DemoLayout>
-        <Outlet />
-      </DemoLayout>
-    </DemoAuthProvider>
-  );
-};
-
 function App() {
   useEffect(() => {
-    // Initialize demo mode if on demo routes
-    initializeDemoMode();
+    // Pre-initialize MSW if we're starting on a demo route
+    if (window.location.pathname.startsWith('/demo')) {
+      import('@/lib/demo/setupMockWorker').then(({ initializeDemoMode }) => {
+        initializeDemoMode().catch(console.error);
+      });
+    }
   }, []);
 
   return (
@@ -100,6 +93,7 @@ function App() {
                 <Route path="career/offerCompare" element={<OfferComparison />} />
                 <Route path="career/skillGap" element={<SkillGapAnalysis />} />
                 <Route path="notifications" element={<Notifications />} />
+                <Route path="settings" element={<Settings />} />
               </Route>
 
               {/* Regular production routes */}
