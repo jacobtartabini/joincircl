@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -49,90 +48,192 @@ import OfferComparison from "@/pages/career/OfferComparison";
 import SkillGapAnalysis from "@/pages/career/SkillGapAnalysis";
 
 import { AuthProvider } from "@/contexts/AuthContext";
+import { DemoAuthProvider } from "@/contexts/DemoAuthContext";
+import { DemoLayout } from "@/components/demo/DemoLayout";
+import { initializeDemoMode } from "@/lib/demo/setupMockWorker";
+import { useEffect } from "react";
 
 const queryClient = new QueryClient();
 
 function App() {
+  useEffect(() => {
+    // Initialize demo mode if on demo routes
+    initializeDemoMode();
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AuthErrorBoundary>
-              <Routes>
-                {/* Public routes with clean URLs */}
-                <Route path="/signin" element={<SignIn />} />
-                <Route path="/signup" element={<SignUp />} />
-                <Route path="/forgot" element={<ForgotPassword />} />
-                <Route path="/reset" element={<ResetPassword />} />
-                <Route path="/auth/callback" element={<UnifiedAuthCallbackHandler />} />
-                <Route path="/auth/google/callback" element={<UnifiedAuthCallbackHandler />} />
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthErrorBoundary>
+            <Routes>
+              {/* Demo routes - self-contained sandbox */}
+              <Route path="/demo/*" element={
+                <DemoAuthProvider>
+                  <Routes>
+                    <Route path="/" element={
+                      <DemoLayout>
+                        <Home />
+                      </DemoLayout>
+                    } />
+                    <Route path="/circles" element={
+                      <DemoLayout>
+                        <Circles />
+                      </DemoLayout>
+                    } />
+                    <Route path="/contact/:id" element={
+                      <DemoLayout>
+                        <RedesignedContactDetail />
+                      </DemoLayout>
+                    } />
+                    <Route path="/events" element={
+                      <DemoLayout>
+                        <Events />
+                      </DemoLayout>
+                    } />
+                    <Route path="/arlo" element={
+                      <DemoLayout>
+                        <Arlo />
+                      </DemoLayout>
+                    } />
+                    <Route path="/career" element={
+                      <DemoLayout>
+                        <CareerHub />
+                      </DemoLayout>
+                    } />
+                    <Route path="/career/resume" element={
+                      <DemoLayout>
+                        <ResumeReviewer />
+                      </DemoLayout>
+                    } />
+                    <Route path="/career/coverLetter" element={
+                      <DemoLayout>
+                        <CoverLetterGenerator />
+                      </DemoLayout>
+                    } />
+                    <Route path="/career/jobAnalyzer" element={
+                      <DemoLayout>
+                        <JobAnalyzer />
+                      </DemoLayout>
+                    } />
+                    <Route path="/career/networkDiscovery" element={
+                      <DemoLayout>
+                        <NetworkDiscovery />
+                      </DemoLayout>
+                    } />
+                    <Route path="/career/interviewerResearch" element={
+                      <DemoLayout>
+                        <InterviewerResearch />
+                      </DemoLayout>
+                    } />
+                    <Route path="/career/companyResearch" element={
+                      <DemoLayout>
+                        <CompanyResearch />
+                      </DemoLayout>
+                    } />
+                    <Route path="/career/mockInterview" element={
+                      <DemoLayout>
+                        <MockInterview />
+                      </DemoLayout>
+                    } />
+                    <Route path="/career/followUp" element={
+                      <DemoLayout>
+                        <FollowUpGenerator />
+                      </DemoLayout>
+                    } />
+                    <Route path="/career/offerCompare" element={
+                      <DemoLayout>
+                        <OfferComparison />
+                      </DemoLayout>
+                    } />
+                    <Route path="/career/skillGap" element={
+                      <DemoLayout>
+                        <SkillGapAnalysis />
+                      </DemoLayout>
+                    } />
+                    <Route path="/notifications" element={
+                      <DemoLayout>
+                        <Notifications />
+                      </DemoLayout>
+                    } />
+                  </Routes>
+                </DemoAuthProvider>
+              } />
 
-                {/* Onboarding route - protected but separate from main layout */}
-                <Route
-                  path="/onboarding"
-                  element={
-                    <RequireAuth>
-                      <Onboarding />
-                    </RequireAuth>
-                  }
-                />
+              {/* Regular production routes */}
+              <Route path="/signin" element={<SignIn />} />
+              <Route path="/signup" element={<SignUp />} />
+              <Route path="/forgot" element={<ForgotPassword />} />
+              <Route path="/reset" element={<ResetPassword />} />
+              <Route path="/auth/callback" element={<UnifiedAuthCallbackHandler />} />
+              <Route path="/auth/google/callback" element={<UnifiedAuthCallbackHandler />} />
 
-                {/* Protected routes */}
-                <Route
-                  element={
+              {/* Onboarding route - protected but separate from main layout */}
+              <Route
+                path="/onboarding"
+                element={
+                  <RequireAuth>
+                    <Onboarding />
+                  </RequireAuth>
+                }
+              />
+
+              {/* Protected routes */}
+              <Route
+                element={
+                  <AuthProvider>
                     <RequireAuth>
                       <MainLayout>
                         <Outlet />
                       </MainLayout>
                     </RequireAuth>
-                  }
-                >
-                  <Route path="/" element={<Home />} />
-                  
-                  {/* Core application routes - using the mobile-aware Circles component */}
-                  <Route path="/circles" element={<Circles />} />
-                  <Route path="/contact/:id" element={<RedesignedContactDetail />} />
-                  <Route path="/events" element={<Events />} />
-                  <Route path="/arlo" element={<Arlo />} />
-                  <Route path="/notifications" element={<Notifications />} />
-                  
-                  {/* Career Hub and tools */}
-                  <Route path="/career" element={<CareerHub />} />
-                  <Route path="/career/resume" element={<ResumeReviewer />} />
-                  <Route path="/career/coverLetter" element={<CoverLetterGenerator />} />
-                  <Route path="/career/jobAnalyzer" element={<JobAnalyzer />} />
-                  <Route path="/career/networkDiscovery" element={<NetworkDiscovery />} />
-                  <Route path="/career/interviewerResearch" element={<InterviewerResearch />} />
-                  <Route path="/career/companyResearch" element={<CompanyResearch />} />
-                  <Route path="/career/mockInterview" element={<MockInterview />} />
-                  <Route path="/career/followUp" element={<FollowUpGenerator />} />
-                  <Route path="/career/offerCompare" element={<OfferComparison />} />
-                  <Route path="/career/skillGap" element={<SkillGapAnalysis />} />
-                  
-                  {/* Settings and management */}
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/duplicates" element={<Duplicates />} />
-                  
-                  {/* Support and information */}
-                  <Route path="/help" element={<Help />} />
-                  <Route path="/contact" element={<Contact />} />
-                  <Route path="/bugs" element={<Bugs />} />
-                  <Route path="/legal" element={<Legal />} />
-                  <Route path="/security" element={<SecurityGuide />} />
-                  
-                  {/* PWA functionality */}
-                  <Route path="/share-target" element={<ShareTarget />} />
-                </Route>
+                  </AuthProvider>
+                }
+              >
+                <Route path="/" element={<Home />} />
                 
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </AuthErrorBoundary>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
+                {/* Core application routes - using the mobile-aware Circles component */}
+                <Route path="/circles" element={<Circles />} />
+                <Route path="/contact/:id" element={<RedesignedContactDetail />} />
+                <Route path="/events" element={<Events />} />
+                <Route path="/arlo" element={<Arlo />} />
+                <Route path="/notifications" element={<Notifications />} />
+                
+                {/* Career Hub and tools */}
+                <Route path="/career" element={<CareerHub />} />
+                <Route path="/career/resume" element={<ResumeReviewer />} />
+                <Route path="/career/coverLetter" element={<CoverLetterGenerator />} />
+                <Route path="/career/jobAnalyzer" element={<JobAnalyzer />} />
+                <Route path="/career/networkDiscovery" element={<NetworkDiscovery />} />
+                <Route path="/career/interviewerResearch" element={<InterviewerResearch />} />
+                <Route path="/career/companyResearch" element={<CompanyResearch />} />
+                <Route path="/career/mockInterview" element={<MockInterview />} />
+                <Route path="/career/followUp" element={<FollowUpGenerator />} />
+                <Route path="/career/offerCompare" element={<OfferComparison />} />
+                <Route path="/career/skillGap" element={<SkillGapAnalysis />} />
+                
+                {/* Settings and management */}
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/duplicates" element={<Duplicates />} />
+                
+                {/* Support and information */}
+                <Route path="/help" element={<Help />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/bugs" element={<Bugs />} />
+                <Route path="/legal" element={<Legal />} />
+                <Route path="/security" element={<SecurityGuide />} />
+                
+                {/* PWA functionality */}
+                <Route path="/share-target" element={<ShareTarget />} />
+              </Route>
+              
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthErrorBoundary>
+        </BrowserRouter>
+      </TooltipProvider>
     </QueryClientProvider>
   );
 }
