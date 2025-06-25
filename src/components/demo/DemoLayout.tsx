@@ -9,13 +9,13 @@ interface DemoLayoutProps {
 
 export const DemoLayout: React.FC<DemoLayoutProps> = ({ children }) => {
   return (
-    <>
+    <div className="min-h-screen">
       <DemoBanner />
-      <div className="pt-12"> {/* Add padding to account for banner height */}
+      <div className="pt-[60px]"> {/* Add more padding to account for banner height */}
         <MainLayout>
           {children}
         </MainLayout>
       </div>
-    </>
+    </div>
   );
 };

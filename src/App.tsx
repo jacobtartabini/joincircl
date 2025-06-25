@@ -56,6 +56,17 @@ import { useEffect } from "react";
 
 const queryClient = new QueryClient();
 
+// Demo wrapper component
+const DemoWrapper = () => {
+  return (
+    <DemoAuthProvider>
+      <DemoLayout>
+        <Outlet />
+      </DemoLayout>
+    </DemoAuthProvider>
+  );
+};
+
 function App() {
   useEffect(() => {
     // Initialize demo mode if on demo routes
@@ -71,97 +82,25 @@ function App() {
           <AuthErrorBoundary>
             <Routes>
               {/* Demo routes - self-contained sandbox */}
-              <Route path="/demo/*" element={
-                <DemoAuthProvider>
-                  <Routes>
-                    <Route path="/" element={
-                      <DemoLayout>
-                        <Home />
-                      </DemoLayout>
-                    } />
-                    <Route path="/circles" element={
-                      <DemoLayout>
-                        <Circles />
-                      </DemoLayout>
-                    } />
-                    <Route path="/contact/:id" element={
-                      <DemoLayout>
-                        <RedesignedContactDetail />
-                      </DemoLayout>
-                    } />
-                    <Route path="/events" element={
-                      <DemoLayout>
-                        <Events />
-                      </DemoLayout>
-                    } />
-                    <Route path="/arlo" element={
-                      <DemoLayout>
-                        <Arlo />
-                      </DemoLayout>
-                    } />
-                    <Route path="/career" element={
-                      <DemoLayout>
-                        <CareerHub />
-                      </DemoLayout>
-                    } />
-                    <Route path="/career/resume" element={
-                      <DemoLayout>
-                        <ResumeReviewer />
-                      </DemoLayout>
-                    } />
-                    <Route path="/career/coverLetter" element={
-                      <DemoLayout>
-                        <CoverLetterGenerator />
-                      </DemoLayout>
-                    } />
-                    <Route path="/career/jobAnalyzer" element={
-                      <DemoLayout>
-                        <JobAnalyzer />
-                      </DemoLayout>
-                    } />
-                    <Route path="/career/networkDiscovery" element={
-                      <DemoLayout>
-                        <NetworkDiscovery />
-                      </DemoLayout>
-                    } />
-                    <Route path="/career/interviewerResearch" element={
-                      <DemoLayout>
-                        <InterviewerResearch />
-                      </DemoLayout>
-                    } />
-                    <Route path="/career/companyResearch" element={
-                      <DemoLayout>
-                        <CompanyResearch />
-                      </DemoLayout>
-                    } />
-                    <Route path="/career/mockInterview" element={
-                      <DemoLayout>
-                        <MockInterview />
-                      </DemoLayout>
-                    } />
-                    <Route path="/career/followUp" element={
-                      <DemoLayout>
-                        <FollowUpGenerator />
-                      </DemoLayout>
-                    } />
-                    <Route path="/career/offerCompare" element={
-                      <DemoLayout>
-                        <OfferComparison />
-                      </DemoLayout>
-                    } />
-                    <Route path="/career/skillGap" element={
-                      <DemoLayout>
-                        <SkillGapAnalysis />
-                      </DemoLayout>
-                    } />
-                    <Route path="/notifications" element={
-                      <DemoLayout>
-                        <Notifications />
-                      </DemoLayout>
-                    } />
-                  </Routes>
-                </DemoAuthProvider>
-              } />
+              <Route path="/demo" element={<DemoWrapper />}>
+                <Route index element={<Home />} />
+                <Route path="circles" element={<Circles />} />
+                <Route path="contact/:id" element={<RedesignedContactDetail />} />
+                <Route path="events" element={<Events />} />
+                <Route path="arlo" element={<Arlo />} />
+                <Route path="career" element={<CareerHub />} />
+                <Route path="career/resume" element={<ResumeReviewer />} />
+                <Route path="career/coverLetter" element={<CoverLetterGenerator />} />
+                <Route path="career/jobAnalyzer" element={<JobAnalyzer />} />
+                <Route path="career/networkDiscovery" element={<NetworkDiscovery />} />
+                <Route path="career/interviewerResearch" element={<InterviewerResearch />} />
+                <Route path="career/companyResearch" element={<CompanyResearch />} />
+                <Route path="career/mockInterview" element={<MockInterview />} />
+                <Route path="career/followUp" element={<FollowUpGenerator />} />
+                <Route path="career/offerCompare" element={<OfferComparison />} />
+                <Route path="career/skillGap" element={<SkillGapAnalysis />} />
+                <Route path="notifications" element={<Notifications />} />
+              </Route>
 
               {/* Regular production routes */}
               <Route path="/signin" element={<SignIn />} />
