@@ -175,9 +175,11 @@ function App() {
               <Route
                 path="/onboarding"
                 element={
-                  <RequireAuth>
-                    <Onboarding />
-                  </RequireAuth>
+                  <AuthProvider>
+                    <RequireAuth>
+                      <Onboarding />
+                    </RequireAuth>
+                  </AuthProvider>
                 }
               />
 
