@@ -9,14 +9,20 @@ interface DemoAuthProviderProps {
 }
 
 export const DemoAuthProvider: React.FC<DemoAuthProviderProps> = ({ children }) => {
-  // Mock demo user
+  // Mock demo user with all required Supabase User properties
   const demoUser = {
     id: 'demo-user-1',
     email: 'demo@circl.com',
     created_at: '2024-01-01T00:00:00Z',
     updated_at: '2024-01-01T00:00:00Z',
     aud: 'authenticated',
-    role: 'authenticated'
+    role: 'authenticated',
+    app_metadata: {},
+    user_metadata: {
+      full_name: 'Demo User'
+    },
+    identities: [],
+    factors: []
   };
 
   const demoSession = {
@@ -38,7 +44,18 @@ export const DemoAuthProvider: React.FC<DemoAuthProviderProps> = ({ children }) 
     has_seen_tutorial: true,
     onboarding_completed: true,
     onboarding_completed_at: '2024-01-01T00:00:00Z',
-    onboarding_step_completed: {}
+    onboarding_step_completed: {},
+    first_name: 'Demo',
+    last_name: 'User',
+    phone_number: null,
+    location: null,
+    company_name: null,
+    job_title: null,
+    bio: null,
+    role: null,
+    how_heard_about_us: null,
+    goals: null,
+    additional_notes: null
   };
 
   const contextValue: AuthContextProps = {
@@ -46,8 +63,8 @@ export const DemoAuthProvider: React.FC<DemoAuthProviderProps> = ({ children }) 
     session: demoSession,
     profile: demoProfile,
     loading: false,
-    signIn: async () => ({ data: null, error: null }),
-    signInWithMagicLink: async () => ({ data: null, error: null }),
+    signIn: async () => ({ error: null }),
+    signInWithMagicLink: async () => ({ error: null }),
     signUp: async () => ({ data: null, error: null }),
     signOut: async () => {},
     updateProfile: async () => {},

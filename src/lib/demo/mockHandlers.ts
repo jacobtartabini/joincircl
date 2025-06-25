@@ -19,9 +19,9 @@ export const mockHandlers = [
   }),
 
   http.post(`${SUPABASE_URL}/rest/v1/contacts`, async ({ request }) => {
-    const contactData = await request.json();
+    const contactData = await request.json() as any;
     const newContact = demoMockStore.createContact({
-      ...contactData,
+      ...(contactData || {}),
       user_id: 'demo-user-1'
     });
     
@@ -36,10 +36,10 @@ export const mockHandlers = [
   http.patch(`${SUPABASE_URL}/rest/v1/contacts`, async ({ request }) => {
     const url = new URL(request.url);
     const id = url.searchParams.get('id')?.replace('eq.', '');
-    const updates = await request.json();
+    const updates = await request.json() as any;
     
     if (id) {
-      const updatedContact = demoMockStore.updateContact(id, updates);
+      const updatedContact = demoMockStore.updateContact(id, updates || {});
       return HttpResponse.json([updatedContact]);
     }
     
@@ -53,9 +53,9 @@ export const mockHandlers = [
   }),
 
   http.post(`${SUPABASE_URL}/rest/v1/events`, async ({ request }) => {
-    const eventData = await request.json();
+    const eventData = await request.json() as any;
     const newEvent = demoMockStore.createEvent({
-      ...eventData,
+      ...(eventData || {}),
       user_id: 'demo-user-1'
     });
     
@@ -71,9 +71,9 @@ export const mockHandlers = [
   }),
 
   http.post(`${SUPABASE_URL}/rest/v1/keystones`, async ({ request }) => {
-    const keystoneData = await request.json();
+    const keystoneData = await request.json() as any;
     const newKeystone = demoMockStore.createKeystone({
-      ...keystoneData,
+      ...(keystoneData || {}),
       user_id: 'demo-user-1'
     });
     
@@ -89,9 +89,9 @@ export const mockHandlers = [
   }),
 
   http.post(`${SUPABASE_URL}/rest/v1/job_applications`, async ({ request }) => {
-    const appData = await request.json();
+    const appData = await request.json() as any;
     const newApp = demoMockStore.createJobApplication({
-      ...appData,
+      ...(appData || {}),
       user_id: 'demo-user-1'
     });
     
@@ -107,9 +107,9 @@ export const mockHandlers = [
   }),
 
   http.post(`${SUPABASE_URL}/rest/v1/conversations`, async ({ request }) => {
-    const convData = await request.json();
+    const convData = await request.json() as any;
     const newConv = demoMockStore.createConversation({
-      ...convData,
+      ...(convData || {}),
       user_id: 'demo-user-1'
     });
     
@@ -121,10 +121,10 @@ export const mockHandlers = [
   http.patch(`${SUPABASE_URL}/rest/v1/conversations`, async ({ request }) => {
     const url = new URL(request.url);
     const id = url.searchParams.get('id')?.replace('eq.', '');
-    const updates = await request.json();
+    const updates = await request.json() as any;
     
     if (id) {
-      const updatedConv = demoMockStore.updateConversation(id, updates);
+      const updatedConv = demoMockStore.updateConversation(id, updates || {});
       return HttpResponse.json([updatedConv]);
     }
     
