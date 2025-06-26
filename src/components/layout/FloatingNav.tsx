@@ -73,9 +73,9 @@ export default function FloatingNav() {
   return (
     <>
       <GlassFilter />
-      <div className={`fixed z-50 ${isMobile ? 'bottom-6 left-3 right-3' : 'bottom-4 left-1/2 transform -translate-x-1/2'}`}>
+      <div className={`fixed z-50 ${isMobile ? 'bottom-8 left-2 right-2' : 'bottom-4 left-1/2 transform -translate-x-1/2'}`}>
         <div 
-          className={`glass-nav flex items-center gap-1 rounded-full ${isMobile ? 'justify-around px-2 py-2' : 'px-2 py-1.5'}`}
+          className={`glass-nav flex items-center gap-1 rounded-full ${isMobile ? 'justify-around px-1.5 py-1.5' : 'px-2 py-1.5'}`}
           style={{
             background: 'rgba(255, 255, 255, 0.8)',
             backdropFilter: 'blur(25px)',
@@ -103,7 +103,7 @@ export default function FloatingNav() {
               return (
                 <div 
                   key={`separator-${index}`} 
-                  className={`mx-0.5 h-[20px] w-[1px] bg-white/30 dark:bg-white/20 ${isMobile ? 'hidden' : ''}`}
+                  className={`mx-0.5 h-[18px] w-[1px] bg-white/30 dark:bg-white/20 ${isMobile ? 'hidden' : ''}`}
                   aria-hidden="true" 
                 />
               );
@@ -118,34 +118,35 @@ export default function FloatingNav() {
               <Link 
                 key={navTab.title} 
                 to={navTab.path} 
-                className={`glass-nav-item relative flex items-center transition-all duration-700 ${
+                className={`glass-nav-item relative flex items-center transition-all duration-500 ease-out ${
                   isSelected 
-                    ? `bg-white/30 text-primary gap-${isMobile ? '1' : '2'} rounded-full`
-                    : "text-muted-foreground hover:text-foreground gap-0 rounded-full"
-                } ${isMobile ? 'flex-1 justify-center px-2 py-2' : 'px-3 py-1.5'}`} 
+                    ? `bg-white/40 text-primary shadow-sm ${isMobile ? 'gap-1 rounded-xl' : 'gap-2 rounded-full'}`
+                    : `text-muted-foreground hover:text-foreground hover:bg-white/20 gap-0 ${isMobile ? 'rounded-xl' : 'rounded-full'}`
+                } ${isMobile ? 'flex-1 justify-center px-2 py-2 min-w-0' : 'px-3 py-1.5'}`} 
                 onClick={() => handleTabChange(index)}
                 style={{
                   backdropFilter: isSelected ? 'blur(15px)' : 'none',
                   boxShadow: isSelected 
-                    ? '0 4px 16px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.3)' 
+                    ? '0 2px 8px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.4)' 
                     : 'none',
                   transitionTimingFunction: 'cubic-bezier(0.175, 0.885, 0.32, 2.2)',
+                  transform: isSelected && isMobile ? 'scale(1.02)' : 'scale(1)',
                 }}
               >
                 {isArloTab ? (
-                  <Icon size={isMobile ? 16 : 18} stroke="url(#atom-gradient-nav)" strokeWidth="2" />
+                  <Icon size={isMobile ? 15 : 18} stroke="url(#atom-gradient-nav)" strokeWidth="2.5" />
                 ) : (
-                  <Icon size={isMobile ? 16 : 18} />
+                  <Icon size={isMobile ? 15 : 18} strokeWidth={isSelected ? 2.5 : 2} />
                 )}
                 {isSelected && (
-                  <span className={`overflow-hidden whitespace-nowrap transition-all duration-700 ${
-                    isMobile ? 'text-xs' : 'text-sm'
+                  <span className={`overflow-hidden whitespace-nowrap transition-all duration-500 ease-out ${
+                    isMobile ? 'text-xs font-medium max-w-16' : 'text-sm'
                   } ${
                     isArloTab && isSelected 
                       ? "bg-gradient-to-r from-[#0092ca] via-[#a21caf] to-[#ec4899] bg-clip-text text-transparent font-semibold"
-                      : ""
+                      : "font-medium"
                   }`}>
-                    {navTab.title}
+                    {isMobile && navTab.title.length > 6 ? navTab.title.slice(0, 6) : navTab.title}
                   </span>
                 )}
               </Link>
