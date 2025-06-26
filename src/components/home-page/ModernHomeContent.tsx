@@ -1,7 +1,7 @@
 import React from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useContacts } from '@/hooks/use-contacts';
-import { useKeystones } from '@/hooks/use-keystones';
+import { useDemoContacts } from '@/hooks/use-demo-contacts';
+import { useDemoKeystones } from '@/hooks/use-demo-keystones';
 import { useActionSearch } from '@/hooks/use-action-search';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { ActionSearchBar } from '@/components/ui/action-search-bar';
@@ -18,6 +18,7 @@ import KeystoneForm from '../keystone/KeystoneForm';
 import EnhancedNetworkRecommendations from '../home/EnhancedNetworkRecommendations';
 import { KeystoneDetailDialog } from '../keystone/KeystoneDetailDialog';
 import type { Keystone } from '@/types/keystone';
+
 const ModernHomeContent: React.FC = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -25,10 +26,10 @@ const ModernHomeContent: React.FC = () => {
     contacts,
     isLoading,
     followUpStats
-  } = useContacts();
+  } = useDemoContacts();
   const {
     keystones
-  } = useKeystones();
+  } = useDemoKeystones();
   const [isAddContactDialogOpen, setIsAddContactDialogOpen] = useState(false);
   const [isAddKeystoneDialogOpen, setIsAddKeystoneDialogOpen] = useState(false);
   const [selectedKeystone, setSelectedKeystone] = useState<Keystone | null>(null);
