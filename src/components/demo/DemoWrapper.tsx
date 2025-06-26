@@ -2,16 +2,19 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { DemoAuthProvider } from '@/contexts/DemoAuthContext';
+import { AuthProvider } from '@/contexts/AuthContext';
 import { FastDemoQueryProvider } from '@/contexts/FastDemoQueryProvider';
 import { DemoLayout } from './DemoLayout';
 
 export const DemoWrapper: React.FC = () => {
   const [isReady, setIsReady] = useState(false);
+  const useRealAuth = import.meta.env.VITE_USE_REAL_AUTH === 'true';
 
   useEffect(() => {
     // Fast initialization - no MSW required for basic demo
     const initFastDemo = () => {
       console.log('[Demo] Fast demo initialization started');
+      console.log('[Demo] Using real auth:', useRealAuth);
       
       // Set ready immediately - no async operations needed
       setIsReady(true);
@@ -32,7 +35,7 @@ export const DemoWrapper: React.FC = () => {
     const timeoutId = setTimeout(initFastDemo, 0);
     
     return () => clearTimeout(timeoutId);
-  }, []);
+  }, [useRealAuth]);
 
   // Show loading for minimal time to prevent flash
   if (!isReady) {
@@ -46,13 +49,16 @@ export const DemoWrapper: React.FC = () => {
     );
   }
 
+  // Choose auth provider based on environment variable
+  const AuthContextProvider = useRealAuth ? AuthProvider : DemoAuthProvider;
+
   return (
     <FastDemoQueryProvider>
-      <DemoAuthProvider>
+      <AuthContextProvider>
         <DemoLayout>
           <Outlet />
         </DemoLayout>
-      </DemoAuthProvider>
+      </AuthContextProvider>
     </FastDemoQueryProvider>
   );
 };

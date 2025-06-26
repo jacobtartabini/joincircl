@@ -6,68 +6,42 @@ import { useDemoAuth } from '@/contexts/DemoAuthContext';
 export const useDemoOrRealAuth = () => {
   const location = useLocation();
   const isDemo = location.pathname.startsWith('/demo');
+  const useRealAuth = import.meta.env.VITE_USE_REAL_AUTH === 'true';
   
-  if (isDemo) {
-    // Always return demo auth data for demo routes
-    return {
-      user: {
-        id: 'demo-user-1',
-        email: 'demo@circl.com',
-        created_at: '2024-01-01T00:00:00Z',
-        updated_at: '2024-01-01T00:00:00Z',
-        aud: 'authenticated',
-        role: 'authenticated',
-        app_metadata: {},
-        user_metadata: { full_name: 'Demo User' },
-        identities: [],
-        factors: []
-      },
-      session: null,
-      profile: {
-        id: 'demo-user-1',
-        email: 'demo@circl.com',
-        full_name: 'Demo User',
-        avatar_url: null,
-        created_at: '2024-01-01T00:00:00Z',
-        updated_at: '2024-01-01T00:00:00Z',
-        has_seen_tutorial: true,
-        onboarding_completed: true,
-        onboarding_completed_at: '2024-01-01T00:00:00Z',
-        onboarding_step_completed: {},
-        first_name: 'Demo',
-        last_name: 'User',
-        phone_number: null,
-        location: null,
-        company_name: null,
-        job_title: null,
-        bio: null,
-        role: null,
-        how_heard_about_us: null,
-        goals: null,
-        additional_notes: null
-      },
-      loading: false,
-      signIn: async () => ({ error: null }),
-      signInWithMagicLink: async () => ({ error: null }),
-      signUp: async () => ({ data: null, error: null }),
-      signOut: async () => {},
-      updateProfile: async () => {},
-      deleteAccount: async () => {},
-      signInWithGoogle: async () => {},
-      signInWithLinkedIn: async () => {},
-      hasPermission: () => true,
-      hasSeenTutorial: true,
-      setHasSeenTutorial: () => {},
-      setProfile: () => {}
-    };
+  if (isDemo && !useRealAuth) {
+    // Use demo auth for demo routes unless explicitly configured to use real auth
+    return useDemoAuth();
   } else {
-    // Use real auth for non-demo routes
+    // Use real auth for non-demo routes or when VITE_USE_REAL_AUTH is true
     try {
       const realAuth = useAuth();
       return realAuth;
     } catch (error) {
       console.error('[Auth] Failed to get real auth context:', error);
-      return { user: null, loading: false };
+      // Fallback to demo auth if real auth fails
+      if (isDemo) {
+        console.warn('[Auth] Falling back to demo auth');
+        return useDemoAuth();
+      }
+      // For non-demo routes, return minimal auth state to prevent crashes
+      return { 
+        user: null, 
+        loading: false,
+        session: null,
+        profile: null,
+        signIn: async () => ({ error: null }),
+        signInWithMagicLink: async () => ({ error: null }),
+        signUp: async () => ({ data: null, error: null }),
+        signOut: async () => {},
+        updateProfile: async () => {},
+        deleteAccount: async () => {},
+        signInWithGoogle: async () => {},
+        signInWithLinkedIn: async () => {},
+        hasPermission: () => false,
+        hasSeenTutorial: false,
+        setHasSeenTutorial: () => {},
+        setProfile: () => {}
+      };
     }
   }
 };
