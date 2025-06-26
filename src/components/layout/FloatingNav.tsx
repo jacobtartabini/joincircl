@@ -73,9 +73,9 @@ export default function FloatingNav() {
   return (
     <>
       <GlassFilter />
-      <div className={`fixed z-50 ${isMobile ? 'bottom-4 left-4 right-4' : 'bottom-6 left-1/2 transform -translate-x-1/2'}`}>
+      <div className={`fixed z-50 ${isMobile ? 'bottom-6 left-3 right-3' : 'bottom-4 left-1/2 transform -translate-x-1/2'}`}>
         <div 
-          className={`glass-nav flex items-center gap-2 p-3 rounded-full ${isMobile ? 'justify-around' : ''}`}
+          className={`glass-nav flex items-center gap-1 rounded-full ${isMobile ? 'justify-around px-2 py-2' : 'px-2 py-1.5'}`}
           style={{
             background: 'rgba(255, 255, 255, 0.8)',
             backdropFilter: 'blur(25px)',
@@ -103,7 +103,7 @@ export default function FloatingNav() {
               return (
                 <div 
                   key={`separator-${index}`} 
-                  className={`mx-1 h-[24px] w-[1.2px] bg-white/30 dark:bg-white/20 ${isMobile ? 'hidden' : ''}`}
+                  className={`mx-0.5 h-[20px] w-[1px] bg-white/30 dark:bg-white/20 ${isMobile ? 'hidden' : ''}`}
                   aria-hidden="true" 
                 />
               );
@@ -118,11 +118,11 @@ export default function FloatingNav() {
               <Link 
                 key={navTab.title} 
                 to={navTab.path} 
-                className={`glass-nav-item relative flex items-center px-4 py-3 text-sm font-medium transition-all duration-700 ${
+                className={`glass-nav-item relative flex items-center transition-all duration-700 ${
                   isSelected 
-                    ? "bg-white/30 text-primary gap-2 rounded-full"
+                    ? `bg-white/30 text-primary gap-${isMobile ? '1' : '2'} rounded-full`
                     : "text-muted-foreground hover:text-foreground gap-0 rounded-full"
-                } ${isMobile ? 'flex-1 justify-center' : ''}`} 
+                } ${isMobile ? 'flex-1 justify-center px-2 py-2' : 'px-3 py-1.5'}`} 
                 onClick={() => handleTabChange(index)}
                 style={{
                   backdropFilter: isSelected ? 'blur(15px)' : 'none',
@@ -133,12 +133,14 @@ export default function FloatingNav() {
                 }}
               >
                 {isArloTab ? (
-                  <Icon size={20} stroke="url(#atom-gradient-nav)" strokeWidth="2" />
+                  <Icon size={isMobile ? 16 : 18} stroke="url(#atom-gradient-nav)" strokeWidth="2" />
                 ) : (
-                  <Icon size={20} />
+                  <Icon size={isMobile ? 16 : 18} />
                 )}
                 {isSelected && (
                   <span className={`overflow-hidden whitespace-nowrap transition-all duration-700 ${
+                    isMobile ? 'text-xs' : 'text-sm'
+                  } ${
                     isArloTab && isSelected 
                       ? "bg-gradient-to-r from-[#0092ca] via-[#a21caf] to-[#ec4899] bg-clip-text text-transparent font-semibold"
                       : ""
