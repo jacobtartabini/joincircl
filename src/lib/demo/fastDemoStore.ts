@@ -1,5 +1,7 @@
 
 import demoData from '@/fixtures/demoData.json';
+import type { Contact } from '@/types/contact';
+import type { Keystone } from '@/types/keystone';
 
 // Fast demo store that works without MSW - loads instantly
 class FastDemoStore {
@@ -11,21 +13,43 @@ class FastDemoStore {
     conversations: [...demoData.conversations]
   };
 
-  // Immediate synchronous data access
-  getContacts() {
-    return this.data.contacts.filter(contact => contact.user_id === 'demo-user-1');
+  // Type the contacts properly to match Contact interface
+  private typeContact(contact: any): Contact {
+    return {
+      ...contact,
+      circle: contact.circle as "inner" | "middle" | "outer",
+      updated_at: contact.updated_at || contact.created_at
+    };
   }
 
-  getContact(id: string) {
-    return this.data.contacts.find(contact => contact.id === id);
+  // Type the keystones properly to match Keystone interface
+  private typeKeystone(keystone: any): Keystone {
+    return {
+      ...keystone,
+      updated_at: keystone.updated_at || keystone.created_at
+    };
+  }
+
+  // Immediate synchronous data access
+  getContacts(): Contact[] {
+    return this.data.contacts
+      .filter(contact => contact.user_id === 'demo-user-1')
+      .map(contact => this.typeContact(contact));
+  }
+
+  getContact(id: string): Contact | undefined {
+    const contact = this.data.contacts.find(contact => contact.id === id);
+    return contact ? this.typeContact(contact) : undefined;
   }
 
   getEvents() {
     return this.data.events.filter(event => event.user_id === 'demo-user-1');
   }
 
-  getKeystones() {
-    return this.data.keystones.filter(keystone => keystone.user_id === 'demo-user-1');
+  getKeystones(): Keystone[] {
+    return this.data.keystones
+      .filter(keystone => keystone.user_id === 'demo-user-1')
+      .map(keystone => this.typeKeystone(keystone));
   }
 
   getJobApplications() {
@@ -37,7 +61,7 @@ class FastDemoStore {
   }
 
   // Optimistic updates - immediately return success
-  createContact(contactData: any) {
+  createContact(contactData: any): Contact {
     const newContact = {
       ...contactData,
       id: `contact-${Date.now()}`,
@@ -46,10 +70,10 @@ class FastDemoStore {
       updated_at: new Date().toISOString()
     };
     this.data.contacts.push(newContact);
-    return newContact;
+    return this.typeContact(newContact);
   }
 
-  updateContact(id: string, updates: any) {
+  updateContact(id: string, updates: any): Contact | null {
     const index = this.data.contacts.findIndex(contact => contact.id === id);
     if (index !== -1) {
       this.data.contacts[index] = {
@@ -57,7 +81,7 @@ class FastDemoStore {
         ...updates,
         updated_at: new Date().toISOString()
       };
-      return this.data.contacts[index];
+      return this.typeContact(this.data.contacts[index]);
     }
     return null;
   }

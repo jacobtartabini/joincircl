@@ -1,11 +1,13 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { fastDemoStore } from '@/lib/demo/fastDemoStore';
+import type { Contact } from '@/types/contact';
+import type { Keystone } from '@/types/keystone';
 
 export const useFastDemoContacts = () => {
   return useQuery({
     queryKey: ['demo-contacts'],
-    queryFn: () => fastDemoStore.getContacts(),
+    queryFn: (): Contact[] => fastDemoStore.getContacts(),
     staleTime: Infinity,
     gcTime: Infinity
   });
@@ -23,7 +25,7 @@ export const useFastDemoEvents = () => {
 export const useFastDemoKeystones = () => {
   return useQuery({
     queryKey: ['demo-keystones'],
-    queryFn: () => fastDemoStore.getKeystones(),
+    queryFn: (): Keystone[] => fastDemoStore.getKeystones(),
     staleTime: Infinity,
     gcTime: Infinity
   });
@@ -41,7 +43,7 @@ export const useFastDemoJobApplications = () => {
 export const useFastDemoContact = (id: string) => {
   return useQuery({
     queryKey: ['demo-contact', id],
-    queryFn: () => fastDemoStore.getContact(id),
+    queryFn: (): Contact | undefined => fastDemoStore.getContact(id),
     staleTime: Infinity,
     gcTime: Infinity,
     enabled: !!id
