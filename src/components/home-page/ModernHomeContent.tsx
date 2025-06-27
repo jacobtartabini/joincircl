@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useDemoContacts } from '@/hooks/use-demo-contacts';
@@ -99,17 +100,35 @@ const ModernHomeContent: React.FC = () => {
         </div>
 
         <div className="space-y-4">
-          <ActionSearchBar actions={actions} contacts={contacts || []} keystones={keystones || []} onKeystoneSelect={handleKeystoneSelect} placeholder="What would you like to do today?" className="max-w-2xl" />
-          
-          <div className="flex gap-3">
-            <Button onClick={() => setIsAddContactDialogOpen(true)} className="px-6 py-2 text-white bg-gradient-to-r from-[#0daeec]/90 to-[#0daeec]/70 hover:from-[#0daeec] hover:to-[#0daeec]/90 border-[#0daeec]/30 rounded-full">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Contact
-            </Button>
-            <Button onClick={() => setIsAddKeystoneDialogOpen(true)} variant="outline" className="px-6 py-2 rounded-full">
-              <Calendar className="h-4 w-4 mr-2" />
-              Add Event
-            </Button>
+          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+            <div className="flex-1">
+              <ActionSearchBar 
+                actions={actions} 
+                contacts={contacts || []} 
+                keystones={keystones || []} 
+                onKeystoneSelect={handleKeystoneSelect} 
+                placeholder="What would you like to do today?" 
+                className="w-full" 
+              />
+            </div>
+            
+            <div className="flex gap-3 w-full md:w-auto">
+              <Button 
+                onClick={() => setIsAddContactDialogOpen(true)} 
+                className="flex-1 md:flex-none px-6 py-2 text-white bg-gradient-to-r from-[#0daeec]/90 to-[#0daeec]/70 hover:from-[#0daeec]/95 hover:to-[#0daeec]/80 border-[#0daeec]/30 rounded-full transition-all duration-200"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Contact
+              </Button>
+              <Button 
+                onClick={() => setIsAddKeystoneDialogOpen(true)} 
+                variant="outline" 
+                className="flex-1 md:flex-none px-6 py-2 rounded-full"
+              >
+                <Calendar className="h-4 w-4 mr-2" />
+                Add Event
+              </Button>
+            </div>
           </div>
         </div>
 
