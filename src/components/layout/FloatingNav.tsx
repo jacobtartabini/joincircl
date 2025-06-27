@@ -103,7 +103,7 @@ export default function FloatingNav() {
               return (
                 <div 
                   key={`separator-${index}`} 
-                  className={`mx-0.5 h-[18px] w-[1px] bg-white/30 dark:bg-white/20 ${isMobile ? 'hidden' : ''}`}
+                  className={`h-[18px] w-[1px] bg-white/30 dark:bg-white/20 ${isMobile ? 'hidden' : ''}`}
                   aria-hidden="true" 
                 />
               );
