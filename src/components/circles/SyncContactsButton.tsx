@@ -20,7 +20,11 @@ export function SyncContactsButton({ onContactsImported }: SyncContactsButtonPro
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="h-12 px-4 flex items-center gap-2 rounded-full border-gray-200 hover:bg-gray-50 transition-all duration-200"
+          >
             <Upload className="h-4 w-4" />
             Import
             <ChevronDown className="h-3 w-3" />
