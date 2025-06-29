@@ -1,6 +1,4 @@
 
-import { supabase } from '@/integrations/supabase/client';
-
 export type SecurityEventType = 
   | 'login_attempt'
   | 'login_success'
@@ -34,28 +32,20 @@ export class SecurityAuditLogger {
   static async logSecurityEvent(event: SecurityEvent) {
     try {
       const clientInfo = this.getClientInfo();
-      const { data: { user } } = await supabase.auth.getUser();
       
       const auditEntry = {
-        user_id: user?.id || null,
         event_type: event.event_type,
         event_details: event.event_details || {},
         ip_address: event.ip_address || clientInfo.ip_address,
-        user_agent: event.user_agent || clientInfo.user_agent
+        user_agent: event.user_agent || clientInfo.user_agent,
+        timestamp: new Date().toISOString()
       };
 
       // Log to console for development
       console.log('[Security Audit]', auditEntry);
 
       // For now, just log to console since security_audit_logs table doesn't exist yet
-      // Once the table is properly created, this will work:
-      // const { error } = await supabase
-      //   .from('security_audit_logs')
-      //   .insert([auditEntry]);
-
-      // if (error) {
-      //   console.error('Failed to log security event:', error);
-      // }
+      // Once the table is properly created, this will work with the database
       
     } catch (error) {
       console.error('Security audit logging failed:', error);

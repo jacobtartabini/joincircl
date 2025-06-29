@@ -1,25 +1,14 @@
 
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { SessionManager } from '@/services/security/sessionManager';
 import { RateLimiter } from '@/services/security/simpleRateLimiter';
 import { AuditLogger } from '@/services/security/simpleAuditLogger';
 import { useToast } from '@/hooks/use-toast';
-import { ToastAction } from '@/components/ui/toast';
 
 export const useSecureAuth = () => {
   const auth = useAuth();
   const { toast } = useToast();
   const [sessionWarningShown, setSessionWarningShown] = useState(false);
-
-  useEffect(() => {
-    // Initialize session management
-    SessionManager.initializeSession();
-
-    return () => {
-      SessionManager.terminateSession();
-    };
-  }, []);
 
   const secureSignIn = async (email: string, password: string) => {
     const identifier = email.toLowerCase();
@@ -89,7 +78,6 @@ export const useSecureAuth = () => {
       });
     }
     
-    await SessionManager.terminateSession();
     await auth.signOut();
   };
 
