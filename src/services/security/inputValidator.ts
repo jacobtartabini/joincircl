@@ -1,116 +1,76 @@
 
+import DOMPurify from 'dompurify';
+
 export class InputValidator {
-  // Email validation with enhanced security
-  static validateEmail(email: string): { isValid: boolean; error?: string } {
-    if (!email || typeof email !== 'string') {
-      return { isValid: false, error: 'Email is required' };
-    }
-
-    const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-    
-    if (!emailRegex.test(email)) {
-      return { isValid: false, error: 'Invalid email format' };
-    }
-
-    if (email.length > 254) {
-      return { isValid: false, error: 'Email too long' };
-    }
-
-    return { isValid: true };
+  // Email validation
+  static isValidEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email) && email.length <= 254;
   }
 
   // Phone number validation
-  static validatePhoneNumber(phone: string): { isValid: boolean; error?: string } {
-    if (!phone) return { isValid: true }; // Optional field
-
-    // Remove all non-digit characters for validation
-    const digitsOnly = phone.replace(/\D/g, '');
-    
-    if (digitsOnly.length < 10 || digitsOnly.length > 15) {
-      return { isValid: false, error: 'Phone number must be between 10-15 digits' };
-    }
-
-    return { isValid: true };
+  static isValidPhoneNumber(phone: string): boolean {
+    const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
+    return phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ''));
   }
 
   // URL validation
-  static validateUrl(url: string): { isValid: boolean; error?: string } {
-    if (!url) return { isValid: true }; // Optional field
-
+  static isValidUrl(url: string): boolean {
     try {
       const urlObj = new URL(url);
-      const allowedProtocols = ['http:', 'https:'];
-      
-      if (!allowedProtocols.includes(urlObj.protocol)) {
-        return { isValid: false, error: 'Only HTTP and HTTPS URLs are allowed' };
-      }
-
-      return { isValid: true };
+      return ['http:', 'https:'].includes(urlObj.protocol);
     } catch {
-      return { isValid: false, error: 'Invalid URL format' };
+      return false;
     }
   }
 
-  // Text sanitization to prevent XSS
+  // Sanitize HTML content
+  static sanitizeHtml(content: string): string {
+    return DOMPurify.sanitize(content, {
+      ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'p', 'br'],
+      ALLOWED_ATTR: []
+    });
+  }
+
+  // Sanitize text input
   static sanitizeText(text: string): string {
     if (!text || typeof text !== 'string') return '';
     
     return text
-      .replace(/[<>]/g, '') // Remove potential HTML tags
-      .replace(/javascript:/gi, '') // Remove javascript: protocols
-      .replace(/on\w+=/gi, '') // Remove event handlers
       .trim()
-      .slice(0, 10000); // Limit length
+      .replace(/[<>]/g, '') // Remove potential HTML tags
+      .substring(0, 1000); // Limit length
   }
 
   // Validate contact data
-  static validateContactData(data: any): { isValid: boolean; errors: string[]; sanitizedData: any } {
+  static validateContactData(data: any): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
-    const sanitizedData = { ...data };
 
-    // Validate required fields
-    if (!data.name || typeof data.name !== 'string' || data.name.trim().length === 0) {
+    if (!data.name || data.name.length < 1) {
       errors.push('Name is required');
-    } else {
-      sanitizedData.name = this.sanitizeText(data.name);
     }
 
-    // Validate email if provided
-    if (data.personal_email) {
-      const emailValidation = this.validateEmail(data.personal_email);
-      if (!emailValidation.isValid) {
-        errors.push(emailValidation.error!);
-      }
+    if (data.name && data.name.length > 100) {
+      errors.push('Name must be less than 100 characters');
     }
 
-    // Validate phone if provided
-    if (data.mobile_phone) {
-      const phoneValidation = this.validatePhoneNumber(data.mobile_phone);
-      if (!phoneValidation.isValid) {
-        errors.push(phoneValidation.error!);
-      }
+    if (data.personal_email && !this.isValidEmail(data.personal_email)) {
+      errors.push('Invalid email format');
     }
 
-    // Validate URLs
-    const urlFields = ['website', 'linkedin', 'facebook', 'instagram', 'twitter'];
-    urlFields.forEach(field => {
-      if (data[field]) {
-        const urlValidation = this.validateUrl(data[field]);
-        if (!urlValidation.isValid) {
-          errors.push(`${field}: ${urlValidation.error}`);
-        }
-      }
-    });
+    if (data.mobile_phone && !this.isValidPhoneNumber(data.mobile_phone)) {
+      errors.push('Invalid phone number format');
+    }
 
-    // Sanitize text fields
-    const textFields = ['notes', 'company_name', 'job_title', 'location', 'industry', 'department', 'university', 'major', 'minor', 'how_met', 'hobbies_interests'];
-    textFields.forEach(field => {
-      if (data[field]) {
-        sanitizedData[field] = this.sanitizeText(data[field]);
-      }
-    });
+    if (data.website && !this.isValidUrl(data.website)) {
+      errors.push('Invalid website URL');
+    }
 
-    // Validate circle value
+    if (data.linkedin && !this.isValidUrl(data.linkedin)) {
+      errors.push('Invalid LinkedIn URL');
+    }
+
+    // Validate circle
     const validCircles = ['inner', 'middle', 'outer'];
     if (data.circle && !validCircles.includes(data.circle)) {
       errors.push('Invalid circle value');
@@ -118,8 +78,56 @@ export class InputValidator {
 
     return {
       isValid: errors.length === 0,
-      errors,
-      sanitizedData
+      errors
     };
+  }
+
+  // Validate keystone data
+  static validateKeystoneData(data: any): { isValid: boolean; errors: string[] } {
+    const errors: string[] = [];
+
+    if (!data.title || data.title.length < 1) {
+      errors.push('Title is required');
+    }
+
+    if (data.title && data.title.length > 200) {
+      errors.push('Title must be less than 200 characters');
+    }
+
+    if (!data.date) {
+      errors.push('Date is required');
+    }
+
+    if (data.date && isNaN(new Date(data.date).getTime())) {
+      errors.push('Invalid date format');
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  }
+
+  // Rate limiting check
+  static checkRateLimit(key: string, maxRequests: number = 10, windowMs: number = 60000): boolean {
+    if (typeof window === 'undefined') return true;
+
+    const now = Date.now();
+    const windowStart = now - windowMs;
+    
+    let requests = JSON.parse(localStorage.getItem(`rate_limit_${key}`) || '[]');
+    
+    // Remove old requests outside the window
+    requests = requests.filter((timestamp: number) => timestamp > windowStart);
+    
+    if (requests.length >= maxRequests) {
+      return false; // Rate limit exceeded
+    }
+
+    // Add current request
+    requests.push(now);
+    localStorage.setItem(`rate_limit_${key}`, JSON.stringify(requests));
+    
+    return true;
   }
 }

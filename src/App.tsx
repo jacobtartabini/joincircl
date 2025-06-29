@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -51,6 +50,9 @@ import SkillGapAnalysis from "@/pages/career/SkillGapAnalysis";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { DemoWrapper } from "@/components/demo/DemoWrapper";
 import { useEffect } from "react";
+import { SecurityProvider } from './components/security/SecurityProvider';
+import { EnhancedSecureHeaders } from './components/security/EnhancedSecureHeaders';
+import FloatingNav from './components/FloatingNav';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -85,11 +87,12 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
+      <SecurityProvider>
+        <EnhancedSecureHeaders />
         <BrowserRouter>
-          <AuthErrorBoundary>
+          <div className="min-h-screen bg-background font-sans antialiased">
+            <Toaster />
+            <Sonner />
             <Routes>
               {/* Demo routes - self-contained sandbox with fast loading */}
               <Route path="/demo" element={<DemoWrapper />}>
@@ -184,9 +187,10 @@ function App() {
               
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </AuthErrorBoundary>
+            <FloatingNav />
+          </div>
         </BrowserRouter>
-      </TooltipProvider>
+      </SecurityProvider>
     </QueryClientProvider>
   );
 }
