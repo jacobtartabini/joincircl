@@ -43,8 +43,9 @@ export class InputValidator {
   }
 
   // Validate contact data
-  static validateContactData(data: any): { isValid: boolean; errors: string[] } {
+  static validateContactData(data: any): { isValid: boolean; errors: string[]; sanitizedData: any } {
     const errors: string[] = [];
+    const sanitizedData = { ...data };
 
     if (!data.name || data.name.length < 1) {
       errors.push('Name is required');
@@ -76,9 +77,17 @@ export class InputValidator {
       errors.push('Invalid circle value');
     }
 
+    // Sanitize text fields
+    Object.keys(sanitizedData).forEach(key => {
+      if (typeof sanitizedData[key] === 'string') {
+        sanitizedData[key] = this.sanitizeText(sanitizedData[key]);
+      }
+    });
+
     return {
       isValid: errors.length === 0,
-      errors
+      errors,
+      sanitizedData
     };
   }
 

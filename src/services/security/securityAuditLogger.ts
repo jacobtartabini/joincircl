@@ -47,14 +47,15 @@ export class SecurityAuditLogger {
       // Log to console for development
       console.log('[Security Audit]', auditEntry);
 
-      // Insert into audit logs table
-      const { error } = await supabase
-        .from('security_audit_logs')
-        .insert([auditEntry]);
+      // For now, just log to console since security_audit_logs table doesn't exist yet
+      // Once the table is properly created, this will work:
+      // const { error } = await supabase
+      //   .from('security_audit_logs')
+      //   .insert([auditEntry]);
 
-      if (error) {
-        console.error('Failed to log security event:', error);
-      }
+      // if (error) {
+      //   console.error('Failed to log security event:', error);
+      // }
       
     } catch (error) {
       console.error('Security audit logging failed:', error);

@@ -1,73 +1,11 @@
 
 export class SecurityHeaders {
-  // Content Security Policy
-  static getCSPHeader(): string {
-    const directives = [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://ubxepyzyzctzwsxxzjot.supabase.co",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "font-src 'self' https://fonts.gstatic.com",
-      "img-src 'self' data: blob: https: https://ubxepyzyzctzwsxxzjot.supabase.co",
-      "connect-src 'self' https://ubxepyzyzctzwsxxzjot.supabase.co wss://ubxepyzyzctzwsxxzjot.supabase.co",
-      "media-src 'self' https://ubxepyzyzctzwsxxzjot.supabase.co",
-      "object-src 'none'",
-      "base-uri 'self'",
-      "form-action 'self'",
-      "frame-ancestors 'none'",
-      "upgrade-insecure-requests"
-    ];
-    
-    return directives.join('; ');
-  }
-
-  // Security headers for API responses
   static getSecurityHeaders(): Record<string, string> {
     return {
       'X-Content-Type-Options': 'nosniff',
       'X-Frame-Options': 'DENY',
       'X-XSS-Protection': '1; mode=block',
       'Referrer-Policy': 'strict-origin-when-cross-origin',
-      'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
-      'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
-      'Content-Security-Policy': this.getCSPHeader()
-    };
-  }
-
-  // Apply security headers to fetch requests
-  static applyToFetch(headers: HeadersInit = {}): HeadersInit {
-    return {
-      ...headers,
-      ...this.getSecurityHeaders()
-    };
-  }
-
-  // Validate response headers for security
-  static validateResponseHeaders(response: Response): { secure: boolean; issues: string[] } {
-    const issues: string[] = [];
-    const headers = response.headers;
-
-    // Check for required security headers
-    const requiredHeaders = [
-      'x-content-type-options',
-      'x-frame-options',
-      'strict-transport-security'
-    ];
-
-    requiredHeaders.forEach(header => {
-      if (!headers.get(header)) {
-        issues.push(`Missing security header: ${header}`);
-      }
-    });
-
-    // Check for insecure values
-    const xFrameOptions = headers.get('x-frame-options');
-    if (xFrameOptions && !['DENY', 'SAMEORIGIN'].includes(xFrameOptions.toUpperCase())) {
-      issues.push('Insecure X-Frame-Options value');
-    }
-
-    return {
-      secure: issues.length === 0,
-      issues
     };
   }
 }

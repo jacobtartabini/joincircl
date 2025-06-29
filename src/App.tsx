@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -52,7 +53,7 @@ import { DemoWrapper } from "@/components/demo/DemoWrapper";
 import { useEffect } from "react";
 import { SecurityProvider } from './components/security/SecurityProvider';
 import { EnhancedSecureHeaders } from './components/security/EnhancedSecureHeaders';
-import FloatingNav from './components/FloatingNav';
+import FloatingNav from './components/layout/FloatingNav';
 
 const queryClient = new QueryClient({
   defaultOptions: {

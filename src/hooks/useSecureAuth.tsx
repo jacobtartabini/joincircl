@@ -1,8 +1,9 @@
+
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { SessionManager } from '@/services/security/sessionManager';
-import { RateLimiter } from '@/services/security/rateLimiter';
-import { AuditLogger } from '@/services/security/auditLogger';
+import { RateLimiter } from '@/services/security/simpleRateLimiter';
+import { AuditLogger } from '@/services/security/simpleAuditLogger';
 import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
 
@@ -13,47 +14,12 @@ export const useSecureAuth = () => {
 
   useEffect(() => {
     // Initialize session management
-    SessionManager.init(
-      // Warning callback
-      () => {
-        if (!sessionWarningShown) {
-          setSessionWarningShown(true);
-          toast({
-            title: "Session Expiring",
-            description: "Your session will expire in 5 minutes due to inactivity. Click here to extend it.",
-            duration: 30000,
-            action: (
-              <ToastAction 
-                altText="Extend Session"
-                onClick={() => {
-                  SessionManager.extendSession();
-                  setSessionWarningShown(false);
-                  toast({
-                    title: "Session Extended",
-                    description: "Your session has been extended."
-                  });
-                }}
-              >
-                Extend Session
-              </ToastAction>
-            )
-          });
-        }
-      },
-      // Timeout callback
-      () => {
-        toast({
-          title: "Session Expired",
-          description: "You have been logged out due to inactivity.",
-          variant: "destructive",
-        });
-      }
-    );
+    SessionManager.initializeSession();
 
     return () => {
-      SessionManager.cleanup();
+      SessionManager.terminateSession();
     };
-  }, [sessionWarningShown, toast]);
+  }, []);
 
   const secureSignIn = async (email: string, password: string) => {
     const identifier = email.toLowerCase();
@@ -74,13 +40,12 @@ export const useSecureAuth = () => {
       } else {
         RateLimiter.recordSuccess(identifier, 'auth');
         await AuditLogger.logAuthEvent('auth_signin', { 
-          email, 
-          device_fingerprint: SessionManager.getDeviceFingerprint() 
+          email
         });
       }
       
       return result;
-    } catch (error) {
+    } catch (error: any) {
       await AuditLogger.logAuthEvent('auth_failed', { email }, false, error.message);
       throw error;
     }
@@ -105,13 +70,12 @@ export const useSecureAuth = () => {
       } else {
         RateLimiter.recordSuccess(identifier, 'auth');
         await AuditLogger.logAuthEvent('auth_signup', { 
-          email,
-          device_fingerprint: SessionManager.getDeviceFingerprint()
+          email
         });
       }
       
       return result;
-    } catch (error) {
+    } catch (error: any) {
       await AuditLogger.logAuthEvent('auth_failed', { email }, false, error.message);
       throw error;
     }
@@ -125,7 +89,7 @@ export const useSecureAuth = () => {
       });
     }
     
-    SessionManager.clearSecureSession();
+    await SessionManager.terminateSession();
     await auth.signOut();
   };
 
