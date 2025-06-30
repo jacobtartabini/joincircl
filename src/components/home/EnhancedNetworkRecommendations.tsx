@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Brain, Users, RefreshCw, Loader2, ArrowRight } from "lucide-react";
-import { Contact, Interaction } from "@/types/contact";
+import { Atom, Users, RefreshCw, Loader2, ArrowRight, MessageCircle, User, Calendar } from "lucide-react";
+import { Contact } from "@/types/contact";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -12,79 +12,87 @@ import { contactService } from "@/services/contactService";
 interface NetworkRecommendationsProps {
   contacts: Contact[];
 }
-
 interface Recommendation {
-  type: 'reach_out' | 'follow_up' | 'strengthen' | 'birthday' | 'reconnect';
+  id: string;
+  type: 'reach_out' | 'follow_up' | 'strengthen' | 'birthday' | 'reconnect' | 'networking_opportunity';
   contact: Contact;
   suggestion: string;
   priority: 'high' | 'medium' | 'low';
   actionLabel: string;
+  reasoning: string;
+  createdAt: Date;
 }
-
-export default function EnhancedNetworkRecommendations({ contacts }: NetworkRecommendationsProps) {
+export default function EnhancedNetworkRecommendations({
+  contacts
+}: NetworkRecommendationsProps) {
   const navigate = useNavigate();
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-
-  const generateRecommendations = async () => {
+  useEffect(() => {
+    loadPersistedRecommendations();
+  }, [contacts.length]);
+  const loadPersistedRecommendations = () => {
+    const stored = localStorage.getItem('networkRecommendations');
+    const lastUpdate = localStorage.getItem('recommendationsLastUpdate');
+    if (stored && lastUpdate) {
+      const storedDate = new Date(lastUpdate);
+      const daysSinceUpdate = (Date.now() - storedDate.getTime()) / (1000 * 60 * 60 * 24);
+      if (daysSinceUpdate < 1) {
+        setRecommendations(JSON.parse(stored).map((rec: any) => ({
+          ...rec,
+          createdAt: new Date(rec.createdAt)
+        })));
+        setLastUpdated(storedDate);
+        return;
+      }
+    }
+    if (contacts.length > 0) {
+      generateEnhancedRecommendations();
+    }
+  };
+  const generateEnhancedRecommendations = async () => {
     if (contacts.length === 0) return;
-    
     setIsLoading(true);
     try {
-      // Create context about the user's network
-      const networkContext = `User has ${contacts.length} contacts across different circles:
-      - Inner circle: ${contacts.filter(c => c.circle === 'inner').length}
-      - Middle circle: ${contacts.filter(c => c.circle === 'middle').length}
-      - Outer circle: ${contacts.filter(c => c.circle === 'outer').length}`;
+      const networkAnalysis = await analyzeNetworkPatterns();
+      const systemPrompt = `You are Circl's strategic networking advisor. Generate 4-5 highly personalized, actionable relationship recommendations.
 
-      // Get sample contacts for AI analysis
-      const recentContacts = contacts.slice(0, 5);
-      const contactContext = recentContacts.map(c => 
-        `${c.name} (${c.circle} circle${c.company_name ? `, ${c.company_name}` : ''}${c.last_contact ? `, last contact: ${new Date(c.last_contact).toLocaleDateString()}` : ', no recent contact'})`
-      ).join(', ');
+      Focus on strategic value:
+      - Who could introduce you to new opportunities
+      - Relationships that need nurturing to prevent decay
+      - People who could benefit from your connections
+      - Strategic timing for outreach
+      - Mutual value creation opportunities
 
-      const systemPrompt = `You are Circl's network advisor - sharp, insightful, and action-oriented. Generate 3-4 specific recommendations to strengthen relationships.
+      Return JSON array: [{"type": "reach_out|follow_up|strengthen|birthday|reconnect|networking_opportunity", "contactName": "exact name", "suggestion": "specific actionable insight", "priority": "high|medium|low", "reasoning": "strategic rationale", "actionType": "message|call|meetup|introduction"}]`;
+      const prompt = `Network Analysis:
+${networkAnalysis}
 
-      Be concise and direct. Each suggestion should:
-      - Target a specific person or action
-      - Include clear reasoning (2-3 words max)
-      - Suggest concrete next steps
-      - Feel personal, not generic
+Generate strategic networking recommendations that:
+1. Identify high-value relationship opportunities
+2. Suggest specific actions with clear timing
+3. Focus on mutual benefit and relationship building
+4. Consider industry connections and career growth
+5. Prioritize based on relationship strength and potential impact
 
-      Return JSON array: [{"type": "reach_out|follow_up|strengthen|birthday|reconnect", "contactName": "name", "suggestion": "brief actionable text", "priority": "high|medium|low", "reasoning": "short reason"}]`;
-
-      const prompt = `${networkContext}
-
-      Sample contacts: ${contactContext}
-
-      Generate specific network recommendations. Focus on:
-      - Who needs attention based on last contact dates
-      - Relationship strengthening opportunities
-      - Upcoming important dates
-      - Strategic follow-ups
-
-      Keep suggestions actionable and personalized.`;
-
-      console.log('Generating network recommendations with AI');
-
-      const { data, error } = await supabase.functions.invoke('openrouter-ai', {
+Make each recommendation feel personal and strategic, not generic.`;
+      console.log('Generating enhanced network recommendations');
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('openrouter-ai', {
         body: {
           prompt,
           systemPrompt,
           model: 'mistralai/mistral-7b-instruct',
-          maxTokens: 400,
-          temperature: 0.7
+          maxTokens: 600,
+          temperature: 0.8
         }
       });
-
       if (error) {
         throw new Error(`AI service error: ${error.message}`);
       }
-
-      console.log('AI recommendation response:', data);
-
-      // Parse AI response and match with actual contacts
       let aiRecommendations = [];
       try {
         aiRecommendations = JSON.parse(data.response) || [];
@@ -92,76 +100,104 @@ export default function EnhancedNetworkRecommendations({ contacts }: NetworkReco
         console.error('Failed to parse AI response:', parseError);
         aiRecommendations = [];
       }
-
-      // Convert AI recommendations to our format
-      const formattedRecommendations: Recommendation[] = [];
-      
-      for (const aiRec of aiRecommendations.slice(0, 4)) {
-        // Find matching contact
-        const contact = contacts.find(c => 
-          c.name.toLowerCase().includes(aiRec.contactName?.toLowerCase()) ||
-          aiRec.contactName?.toLowerCase().includes(c.name.toLowerCase())
-        );
-
+      const enhancedRecommendations: Recommendation[] = [];
+      for (const aiRec of aiRecommendations.slice(0, 5)) {
+        const contact = findBestContactMatch(aiRec.contactName);
         if (contact) {
-          formattedRecommendations.push({
+          enhancedRecommendations.push({
+            id: `rec_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             type: aiRec.type || 'reach_out',
             contact,
             suggestion: aiRec.suggestion || `Connect with ${contact.name}`,
             priority: aiRec.priority || 'medium',
-            actionLabel: getActionLabel(aiRec.type || 'reach_out')
+            actionLabel: getActionLabel(aiRec.actionType || aiRec.type),
+            reasoning: aiRec.reasoning || 'Strategic networking opportunity',
+            createdAt: new Date()
           });
         }
       }
-
-      // If AI didn't provide enough matches, add some rule-based recommendations
-      if (formattedRecommendations.length < 3) {
-        const additionalRecs = await generateFallbackRecommendations(contacts);
-        formattedRecommendations.push(...additionalRecs.slice(0, 3 - formattedRecommendations.length));
+      if (enhancedRecommendations.length < 3) {
+        const fallbackRecs = await generateRuleBasedRecommendations();
+        enhancedRecommendations.push(...fallbackRecs.slice(0, 3 - enhancedRecommendations.length));
       }
-
-      setRecommendations(formattedRecommendations);
+      localStorage.setItem('networkRecommendations', JSON.stringify(enhancedRecommendations));
+      localStorage.setItem('recommendationsLastUpdate', new Date().toISOString());
+      setRecommendations(enhancedRecommendations);
       setLastUpdated(new Date());
-      toast.success("Fresh recommendations ready!");
-
+      toast.success("Fresh strategic recommendations generated!");
     } catch (error) {
       console.error('Error generating recommendations:', error);
-      // Fallback to rule-based recommendations
-      const fallbackRecs = await generateFallbackRecommendations(contacts);
-      setRecommendations(fallbackRecs.slice(0, 3));
-      setLastUpdated(new Date());
+      const fallbackRecs = await generateRuleBasedRecommendations();
+      setRecommendations(fallbackRecs.slice(0, 4));
+      toast.error("Using basic recommendations - AI service unavailable");
     } finally {
       setIsLoading(false);
     }
   };
+  const analyzeNetworkPatterns = async (): Promise<string> => {
+    const today = new Date();
+    const circleBreakdown = {
+      inner: contacts.filter(c => c.circle === 'inner').length,
+      middle: contacts.filter(c => c.circle === 'middle').length,
+      outer: contacts.filter(c => c.circle === 'outer').length
+    };
+    const staleContacts = contacts.filter(c => {
+      if (!c.last_contact) return true;
+      const daysSince = (today.getTime() - new Date(c.last_contact).getTime()) / (1000 * 60 * 60 * 24);
+      return daysSince > (c.circle === 'inner' ? 14 : c.circle === 'middle' ? 30 : 90);
+    });
+    const industries = [...new Set(contacts.map(c => c.company_name).filter(Boolean))];
+    const recentlyActive = contacts.filter(c => {
+      if (!c.last_contact) return false;
+      const daysSince = (today.getTime() - new Date(c.last_contact).getTime()) / (1000 * 60 * 60 * 24);
+      return daysSince <= 7;
+    });
+    return `Network Overview:
+- Total contacts: ${contacts.length}
+- Inner circle: ${circleBreakdown.inner}, Middle: ${circleBreakdown.middle}, Outer: ${circleBreakdown.outer}
+- Stale relationships: ${staleContacts.length}
+- Active industries: ${industries.slice(0, 5).join(', ')}
+- Recent activity: ${recentlyActive.length} contacts contacted this week
 
-  const generateFallbackRecommendations = async (contacts: Contact[]): Promise<Recommendation[]> => {
+Key Contacts Needing Attention:
+${staleContacts.slice(0, 8).map(c => `- ${c.name} (${c.circle} circle, ${c.company_name || 'Unknown company'}, last contact: ${c.last_contact ? Math.floor((today.getTime() - new Date(c.last_contact).getTime()) / (1000 * 60 * 60 * 24)) + ' days ago' : 'never'})`).join('\n')}`;
+  };
+  const findBestContactMatch = (contactName: string): Contact | null => {
+    if (!contactName) return null;
+    let match = contacts.find(c => c.name.toLowerCase() === contactName.toLowerCase());
+    if (!match) {
+      match = contacts.find(c => c.name.toLowerCase().includes(contactName.toLowerCase()) || contactName.toLowerCase().includes(c.name.toLowerCase()));
+    }
+    if (!match) {
+      const nameParts = contactName.toLowerCase().split(' ');
+      match = contacts.find(c => {
+        const contactParts = c.name.toLowerCase().split(' ');
+        return nameParts.some(part => contactParts.some(contactPart => contactPart.includes(part) || part.includes(contactPart)));
+      });
+    }
+    return match || null;
+  };
+  const generateRuleBasedRecommendations = async (): Promise<Recommendation[]> => {
     const recommendations: Recommendation[] = [];
     const today = new Date();
-
-    // Find contacts that need attention
-    for (const contact of contacts) {
+    for (const contact of contacts.slice(0, 10)) {
       if (recommendations.length >= 4) break;
-
       const lastContact = contact.last_contact ? new Date(contact.last_contact) : null;
       const daysSinceContact = lastContact ? Math.floor((today.getTime() - lastContact.getTime()) / (1000 * 60 * 60 * 24)) : 999;
-
-      // Different thresholds based on circle
       let threshold = 90;
-      if (contact.circle === 'inner') threshold = 14;
-      else if (contact.circle === 'middle') threshold = 30;
-
+      if (contact.circle === 'inner') threshold = 14;else if (contact.circle === 'middle') threshold = 30;
       if (daysSinceContact > threshold) {
         recommendations.push({
+          id: `rule_${Date.now()}_${contact.id}`,
           type: 'reconnect',
           contact,
-          suggestion: `Reconnect with ${contact.name} - it's been ${daysSinceContact} days`,
+          suggestion: `Reconnect with ${contact.name} - it's been ${daysSinceContact} days since your last interaction`,
           priority: contact.circle === 'inner' ? 'high' : 'medium',
-          actionLabel: 'Reach Out'
+          actionLabel: 'Message',
+          reasoning: `${contact.circle} circle contact needs regular attention`,
+          createdAt: new Date()
         });
       }
-
-      // Check for upcoming birthdays
       if (contact.birthday) {
         const birthday = new Date(contact.birthday);
         const thisYearBirthday = new Date(today.getFullYear(), birthday.getMonth(), birthday.getDate());
@@ -169,131 +205,187 @@ export default function EnhancedNetworkRecommendations({ contacts }: NetworkReco
           thisYearBirthday.setFullYear(today.getFullYear() + 1);
         }
         const daysUntilBirthday = Math.floor((thisYearBirthday.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-        
         if (daysUntilBirthday <= 14 && daysUntilBirthday >= 0) {
           recommendations.push({
+            id: `birthday_${Date.now()}_${contact.id}`,
             type: 'birthday',
             contact,
-            suggestion: `${contact.name}'s birthday is ${daysUntilBirthday === 0 ? 'today' : `in ${daysUntilBirthday} days`}`,
+            suggestion: `${contact.name}'s birthday is ${daysUntilBirthday === 0 ? 'today' : `in ${daysUntilBirthday} days`} - reach out to celebrate!`,
             priority: daysUntilBirthday <= 3 ? 'high' : 'medium',
-            actionLabel: 'Plan'
+            actionLabel: 'Celebrate',
+            reasoning: 'Birthday opportunity for personal connection',
+            createdAt: new Date()
           });
         }
       }
     }
-
     return recommendations;
   };
-
-  const getActionLabel = (type: string): string => {
-    switch (type) {
-      case 'reach_out': return 'Connect';
-      case 'follow_up': return 'Follow Up';
-      case 'strengthen': return 'Strengthen';
-      case 'birthday': return 'Plan';
-      case 'reconnect': return 'Reconnect';
-      default: return 'View';
+  const getActionLabel = (actionType: string): string => {
+    switch (actionType) {
+      case 'message':
+        return 'Message';
+      case 'call':
+        return 'Call';
+      case 'meetup':
+        return 'Meet Up';
+      case 'introduction':
+        return 'Introduce';
+      case 'follow_up':
+        return 'Follow Up';
+      case 'strengthen':
+        return 'Strengthen';
+      case 'birthday':
+        return 'Celebrate';
+      case 'reconnect':
+        return 'Reconnect';
+      default:
+        return 'Connect';
     }
   };
-
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-900/20';
-      case 'medium': return 'text-orange-600 bg-orange-50 dark:text-orange-400 dark:bg-orange-900/20';
-      case 'low': return 'text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-900/20';
-      default: return 'text-gray-600 bg-gray-50 dark:text-gray-400 dark:bg-gray-800/20';
+      case 'high':
+        return 'bg-red-50/20 text-red-700 border-red-200/30 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800/30 backdrop-blur-md';
+      case 'medium':
+        return 'bg-orange-50/20 text-orange-700 border-orange-200/30 dark:bg-orange-900/20 dark:text-orange-300 dark:border-orange-800/30 backdrop-blur-md';
+      case 'low':
+        return 'bg-blue-50/20 text-blue-700 border-blue-200/30 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800/30 backdrop-blur-md';
+      default:
+        return 'bg-gray-50/20 text-gray-700 border-gray-200/30 dark:bg-gray-800/20 dark:text-gray-300 dark:border-gray-700/30 backdrop-blur-md';
     }
   };
-
-  const handleContactClick = (contact: Contact) => {
-    navigate(`/contacts/${contact.id}`);
-  };
-
-  useEffect(() => {
-    if (contacts.length > 0) {
-      generateRecommendations();
+  const getCircleBadge = (circle: string) => {
+    switch (circle) {
+      case "inner":
+        return (
+          <Badge className="bg-[#2664EB] text-white hover:bg-[#1d4ed8] border-0">
+            Inner
+          </Badge>
+        );
+      case "middle":
+        return (
+          <Badge className="bg-[#16A34A] text-white hover:bg-[#15803d] border-0">
+            Middle
+          </Badge>
+        );
+      case "outer":
+        return (
+          <Badge className="bg-[#9CA3AF] text-white hover:bg-[#6b7280] border-0">
+            Outer
+          </Badge>
+        );
+      default:
+        return null;
     }
-  }, [contacts.length]);
-
-  return (
-    <Card className="glass-card-enhanced">
+  };
+  const handleActionClick = async (recommendation: Recommendation) => {
+    const {
+      contact,
+      actionLabel
+    } = recommendation;
+    switch (actionLabel.toLowerCase()) {
+      case 'message':
+        if (contact.personal_email) {
+          window.open(`mailto:${contact.personal_email}?subject=Following up&body=Hi ${contact.name},%0D%0A%0D%0AHope you're doing well! I wanted to reach out and see how things are going.%0D%0A%0D%0ABest regards`);
+        } else {
+          navigate(`/contacts/${contact.id}`);
+        }
+        break;
+      case 'call':
+        if (contact.mobile_phone) {
+          window.open(`tel:${contact.mobile_phone}`);
+        } else {
+          navigate(`/contacts/${contact.id}`);
+        }
+        break;
+      case 'celebrate':
+      case 'meet up':
+      case 'strengthen':
+      case 'reconnect':
+      case 'connect':
+      default:
+        navigate(`/contacts/${contact.id}`);
+        break;
+    }
+    toast.success(`Action initiated for ${contact.name}`);
+  };
+  const handleRefresh = () => {
+    localStorage.removeItem('networkRecommendations');
+    localStorage.removeItem('recommendationsLastUpdate');
+    generateEnhancedRecommendations();
+  };
+  return <Card className="glass-card-enhanced">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-medium flex items-center gap-2">
-            <Brain className="h-5 w-5 text-purple-500" />
-            Network Recommendations
+            <svg width="0" height="0" style={{ position: 'absolute' }}>
+              <defs>
+                <linearGradient id="atom-gradient-network" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#0092ca" />
+                  <stop offset="50%" stopColor="#a21caf" />
+                  <stop offset="100%" stopColor="#ec4899" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <Atom className="h-5 w-5" stroke="url(#atom-gradient-network)" strokeWidth="2" />
+            Arlo's Network Analysis
           </CardTitle>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={generateRecommendations}
-            disabled={isLoading || contacts.length === 0}
-            className="transition-all duration-200"
-          >
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <RefreshCw className="h-4 w-4" />
-            )}
+          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isLoading || contacts.length === 0} className="glass-button">
+            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
           </Button>
         </div>
-        {lastUpdated && (
-          <p className="text-xs text-muted-foreground">
-            Updated {lastUpdated.toLocaleDateString()}
-          </p>
-        )}
+        {lastUpdated && <p className="text-xs text-muted-foreground">
+            Last updated: {lastUpdated.toLocaleDateString()} at {lastUpdated.toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit'
+        })}
+          </p>}
       </CardHeader>
       
       <CardContent>
-        {isLoading && recommendations.length === 0 ? (
-          <div className="flex items-center justify-center py-8">
+        {isLoading && recommendations.length === 0 ? <div className="flex items-center justify-center py-8">
             <div className="text-center">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-primary" />
               <p className="text-sm text-muted-foreground">Analyzing your network...</p>
             </div>
-          </div>
-        ) : recommendations.length > 0 ? (
-          <div className="space-y-3">
-            {recommendations.map((rec, index) => (
-              <div 
-                key={`${rec.contact.id}-${index}`} 
-                className="p-3 rounded-lg border bg-card hover:bg-muted/30 cursor-pointer transition-all duration-200 ease-out"
-                onClick={() => handleContactClick(rec.contact)}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="font-medium text-sm">{rec.contact.name}</p>
-                      <Badge variant="outline" className={`text-xs ${getPriorityColor(rec.priority)}`}>
-                        {rec.priority}
-                      </Badge>
+          </div> : recommendations.length > 0 ? <div className="space-y-4">
+            {recommendations.map(rec => <div key={rec.id} className="p-4 rounded-xl glass-card hover:bg-white/40 dark:hover:bg-white/10 transition-all duration-200 cursor-pointer group" onClick={() => handleActionClick(rec)}>
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-primary/20 dark:bg-primary/15 flex items-center justify-center border border-white/20 dark:border-white/10">
+                      <User className="h-5 w-5 text-primary" />
                     </div>
-                    <p className="text-sm text-muted-foreground mb-2">{rec.suggestion}</p>
-                    <div className="flex items-center justify-between">
-                      <Badge variant="secondary" className="text-xs">
-                        {rec.contact.circle} circle
-                      </Badge>
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="h-7 text-xs transition-all duration-200 hover:bg-muted/50 hover:scale-[1.02]"
-                      >
-                        {rec.actionLabel} <ArrowRight className="h-3 w-3 ml-1" />
-                      </Button>
+                    <div>
+                      <p className="font-medium text-foreground">{rec.contact.name}</p>
+                      <p className="text-sm text-muted-foreground">{rec.contact.company_name || 'No company'}</p>
                     </div>
                   </div>
+                  <Badge variant="outline" className={`text-xs ${getPriorityColor(rec.priority)}`}>
+                    {rec.priority} priority
+                  </Badge>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-8 text-muted-foreground">
+                
+                <p className="text-sm text-muted-foreground mb-2">{rec.suggestion}</p>
+                <p className="text-xs text-muted-foreground/80 mb-3 italic">{rec.reasoning}</p>
+                
+                <div className="flex items-center justify-between">
+                  {getCircleBadge(rec.contact.circle)}
+                  <Button size="sm" onClick={e => {
+              e.stopPropagation();
+              handleActionClick(rec);
+            }} className="group-hover:text-primary-foreground rounded-xl bg-[#30a2ed]">
+                    {rec.actionLabel === 'Message' && <MessageCircle className="h-3 w-3 mr-1" />}
+                    {rec.actionLabel === 'Celebrate' && <Calendar className="h-3 w-3 mr-1" />}
+                    {rec.actionLabel} <ArrowRight className="h-3 w-3 ml-1" />
+                  </Button>
+                </div>
+              </div>)}
+          </div> : <div className="text-center py-8 text-muted-foreground">
             <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
-            <p>No recommendations yet.</p>
-            <p className="text-sm mt-1">Add contacts and interactions to get personalized suggestions.</p>
-          </div>
-        )}
+            <p>No strategic insights available yet.</p>
+            <p className="text-sm mt-1">Add more contacts and interactions to get personalized networking recommendations.</p>
+          </div>}
       </CardContent>
-    </Card>
-  );
+    </Card>;
 }

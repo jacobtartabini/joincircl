@@ -30,10 +30,9 @@ const CircleImportButtons = ({ onImportSuccess, className = "" }: CircleImportBu
         <Button 
           variant="outline" 
           size="sm" 
-          className={`h-12 px-4 flex items-center gap-2 rounded-full border-gray-200 hover:bg-gray-50 transition-all duration-200 ${className}`}
+          className={`h-10 px-3 text-sm flex items-center ${className}`}
         >
-          <Import className="h-4 w-4" />
-          <span className="text-sm font-medium">Import</span>
+          <Import className="h-4 w-4 mr-1" /> Import
         </Button>
       </PopoverTrigger>
       <PopoverContent 
@@ -45,7 +44,7 @@ const CircleImportButtons = ({ onImportSuccess, className = "" }: CircleImportBu
           <Button 
             variant="outline" 
             size="sm" 
-            className="w-full rounded-full"
+            className="w-full"
             onClick={handleImportClick}
           >
             Import from Google
@@ -53,7 +52,7 @@ const CircleImportButtons = ({ onImportSuccess, className = "" }: CircleImportBu
           <Button 
             variant="outline" 
             size="sm" 
-            className="w-full rounded-full"
+            className="w-full"
             onClick={handleImportClick}
           >
             Import from CSV

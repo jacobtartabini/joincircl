@@ -1,7 +1,6 @@
-
 import React, { useState, useCallback } from 'react';
-import { useDemoContacts } from '@/hooks/use-demo-contacts';
-import { useDemoKeystones } from '@/hooks/use-demo-keystones';
+import { useContacts } from '@/hooks/use-contacts';
+import { useKeystones } from '@/hooks/use-keystones';
 import { useActionSearch } from '@/hooks/use-action-search';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { ActionSearchBar } from '@/components/ui/action-search-bar';
@@ -20,8 +19,8 @@ const MobileHomeContent: React.FC = () => {
   const {
     contacts,
     followUpStats
-  } = useDemoContacts();
-  const { keystones } = useDemoKeystones();
+  } = useContacts();
+  const { keystones } = useKeystones();
   const [isAddContactSheetOpen, setIsAddContactSheetOpen] = useState(false);
   const [isAddKeystoneSheetOpen, setIsAddKeystoneSheetOpen] = useState(false);
   const [selectedKeystone, setSelectedKeystone] = useState<Keystone | null>(null);

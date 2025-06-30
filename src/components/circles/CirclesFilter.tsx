@@ -61,13 +61,13 @@ export function CirclesFilter({
         </Badge>
       )}
 
-      {/* Sort & Filter Dropdown - Unified styling */}
+      {/* Sort & Filter Dropdown - Unified height */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
             size="sm"
-            className="h-12 px-4 border-gray-200 hover:bg-gray-50 transition-all duration-200 rounded-full flex items-center gap-2"
+            className="h-12 px-4 border-gray-200 hover:bg-gray-50 transition-colors rounded-full flex items-center gap-2"
             aria-label="Sort and filter options"
           >
             <SlidersHorizontal className="h-5 w-5" />
@@ -98,24 +98,24 @@ export function CirclesFilter({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Import Contacts Button - Unified styling */}
+      {/* Import Contacts Button - Unified height */}
       <Button
         variant="outline"
         size="sm"
         aria-label="Import Contacts"
-        className="h-12 px-4 flex items-center gap-2 rounded-full border-gray-200 hover:bg-gray-50 transition-all duration-200"
+        className="h-12 px-4 flex items-center gap-2 rounded-full border-gray-200 hover:bg-gray-50 transition-colors"
         onClick={() => setImportOpen(true)}
       >
         <FileUp className="h-5 w-5" />
         <span className="text-sm font-medium">Import</span>
       </Button>
 
-      {/* Add Contact Button - Blue color scheme with unified styling */}
+      {/* Add Contact Button - Unified height and styling */}
       <Button
         onClick={onAddContact}
         size="sm"
         aria-label="Add new contact"
-        className="h-12 px-4 text-white transition-all duration-200 rounded-full bg-gradient-to-r from-[#0daeec]/90 to-[#0daeec]/70 hover:from-[#0daeec]/95 hover:to-[#0daeec]/80 border-[#0daeec]/30 flex items-center gap-2"
+        className="h-12 px-4 text-white transition-colors rounded-full bg-[#0daeec] hover:bg-[#0092ca] flex items-center gap-2"
       >
         <Plus className="h-5 w-5" />
         <span className="text-sm font-medium">Add</span>
