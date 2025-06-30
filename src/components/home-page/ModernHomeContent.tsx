@@ -18,6 +18,7 @@ import KeystoneForm from '../keystone/KeystoneForm';
 import EnhancedNetworkRecommendations from '../home/EnhancedNetworkRecommendations';
 import { KeystoneDetailDialog } from '../keystone/KeystoneDetailDialog';
 import type { Keystone } from '@/types/keystone';
+
 const ModernHomeContent: React.FC = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -34,12 +35,10 @@ const ModernHomeContent: React.FC = () => {
   const [selectedKeystone, setSelectedKeystone] = useState<Keystone | null>(null);
   const [isKeystoneDetailOpen, setIsKeystoneDetailOpen] = useState(false);
 
-  // Debug logging for component render
   console.log('[ModernHomeContent] Render - contacts:', contacts?.length, 'keystones:', keystones?.length);
   const handleAddContact = () => setIsAddContactDialogOpen(true);
   const handleAddKeystone = () => setIsAddKeystoneDialogOpen(true);
   const handleAddInteraction = () => {
-    // For now, navigate to circles where they can select a contact
     navigate('/circles');
   };
   const handleKeystoneSelect = useCallback((keystone: Keystone) => {
@@ -55,7 +54,6 @@ const ModernHomeContent: React.FC = () => {
     onAddInteraction: handleAddInteraction
   });
 
-  // Enable keyboard shortcuts
   useKeyboardShortcuts({
     onAddContact: handleAddContact,
     onAddKeystone: handleAddKeystone,
@@ -88,6 +86,7 @@ const ModernHomeContent: React.FC = () => {
   }];
   const contactFormContent = <ContactForm onSuccess={handleContactFormSuccess} onCancel={() => setIsAddContactDialogOpen(false)} />;
   const keystoneFormContent = <KeystoneForm onSuccess={handleKeystoneFormSuccess} onCancel={() => setIsAddKeystoneDialogOpen(false)} />;
+
   return <div className="min-h-screen refined-web-theme">
       <div className="max-w-7xl mx-auto p-6 space-y-8">
         <div className="flex flex-col space-y-2">
@@ -98,17 +97,33 @@ const ModernHomeContent: React.FC = () => {
         </div>
 
         <div className="space-y-4">
-          <ActionSearchBar actions={actions} contacts={contacts || []} keystones={keystones || []} onKeystoneSelect={handleKeystoneSelect} placeholder="What would you like to do today?" className="max-w-2xl" />
-          
-          <div className="flex gap-3">
-            <Button onClick={() => setIsAddContactDialogOpen(true)} className="px-6 py-2 text-white bg-gradient-to-r from-[#0daeec]/90 to-[#0daeec]/70 hover:from-[#0daeec] hover:to-[#0daeec]/90 border-[#0daeec]/30 rounded-full">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Contact
-            </Button>
-            <Button onClick={() => setIsAddKeystoneDialogOpen(true)} variant="outline" className="px-6 py-2 rounded-full">
-              <Calendar className="h-4 w-4 mr-2" />
-              Add Event
-            </Button>
+          <div className="flex items-center gap-3">
+            <ActionSearchBar 
+              actions={actions} 
+              contacts={contacts || []} 
+              keystones={keystones || []} 
+              onKeystoneSelect={handleKeystoneSelect} 
+              placeholder="What would you like to do today?" 
+              className="flex-1 max-w-2xl" 
+            />
+            
+            <div className="flex gap-3">
+              <Button 
+                onClick={() => setIsAddContactDialogOpen(true)} 
+                className="px-6 py-2 text-white bg-gradient-to-r from-[#0daeec]/90 to-[#0daeec]/70 hover:from-[#0daeec] hover:to-[#0daeec]/90 border-[#0daeec]/30 rounded-full hover:scale-[1.01]"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Contact
+              </Button>
+              <Button 
+                onClick={() => setIsAddKeystoneDialogOpen(true)} 
+                variant="outline" 
+                className="px-6 py-2 rounded-full"
+              >
+                <Calendar className="h-4 w-4 mr-2" />
+                Add Event
+              </Button>
+            </div>
           </div>
         </div>
 
