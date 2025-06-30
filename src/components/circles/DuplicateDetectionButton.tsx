@@ -17,10 +17,10 @@ export const DuplicateDetectionButton = () => {
       variant="outline"
       size="sm"
       onClick={() => navigate('/duplicates')}
-      className={`h-12 px-4 transition-all duration-200 rounded-full flex items-center gap-2 ${
+      className={`h-12 px-4 transition-all duration-200 rounded-full hover:scale-[1.01] flex items-center gap-2 ${
         duplicateCount > 0 
           ? 'bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100' 
-          : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+          : 'hover:bg-gray-50'
       }`}
       disabled={isChecking}
     >

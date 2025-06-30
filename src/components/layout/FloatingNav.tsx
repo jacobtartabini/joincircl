@@ -75,7 +75,7 @@ export default function FloatingNav() {
       <GlassFilter />
       <div className={`fixed z-50 ${isMobile ? 'bottom-2 left-3 right-3' : 'bottom-4 left-1/2 transform -translate-x-1/2'}`}>
         <div 
-          className={`glass-nav flex items-center gap-1 ${isMobile ? 'p-2 justify-around' : 'p-2'} rounded-full`}
+          className={`glass-nav flex items-center ${isMobile ? 'p-1.5 justify-around' : 'p-1.5 gap-1'} rounded-full`}
           style={{
             background: 'rgba(255, 255, 255, 0.8)',
             backdropFilter: 'blur(25px)',
@@ -118,11 +118,17 @@ export default function FloatingNav() {
               <Link 
                 key={navTab.title} 
                 to={navTab.path} 
-                className={`glass-nav-item relative flex items-center ${isMobile ? 'px-2 py-2' : 'px-3 py-2'} text-sm font-medium transition-all duration-500 ${
+                className={`glass-nav-item relative flex items-center ${
+                  isMobile 
+                    ? isSelected 
+                      ? 'px-3 py-2 gap-1 min-w-fit' // Mobile selected: show text with icon
+                      : 'px-2 py-2 justify-center min-w-[44px]' // Mobile unselected: icon only
+                    : 'px-3 py-2' // Desktop: normal padding
+                } text-sm font-medium transition-all duration-500 ${
                   isSelected 
-                    ? "bg-white/30 text-primary gap-2 rounded-full"
-                    : "text-muted-foreground hover:text-foreground gap-0 rounded-full hover:bg-white/20"
-                } ${isMobile ? 'flex-1 justify-center' : ''}`} 
+                    ? "bg-white/30 text-primary rounded-full"
+                    : "text-muted-foreground hover:text-foreground rounded-full hover:bg-white/20"
+                } ${isMobile && !isSelected ? 'flex-shrink-0' : isMobile ? 'flex-shrink' : ''}`} 
                 onClick={() => handleTabChange(index)}
                 style={{
                   backdropFilter: isSelected ? 'blur(15px)' : 'none',
@@ -133,12 +139,15 @@ export default function FloatingNav() {
                 }}
               >
                 {isArloTab ? (
-                  <Icon size={isMobile ? 18 : 20} stroke="url(#atom-gradient-nav)" strokeWidth="2" />
+                  <Icon size={isMobile ? 16 : 18} stroke="url(#atom-gradient-nav)" strokeWidth="2" />
                 ) : (
-                  <Icon size={isMobile ? 18 : 20} />
+                  <Icon size={isMobile ? 16 : 18} />
                 )}
-                {isSelected && !isMobile && (
+                {/* On mobile: show text only when selected. On desktop: show text when selected */}
+                {((isMobile && isSelected) || (!isMobile && isSelected)) && (
                   <span className={`overflow-hidden whitespace-nowrap transition-all duration-500 ${
+                    isMobile ? 'text-xs' : 'text-sm'
+                  } ${
                     isArloTab && isSelected 
                       ? "bg-gradient-to-r from-[#0092ca] via-[#a21caf] to-[#ec4899] bg-clip-text text-transparent font-semibold"
                       : ""

@@ -69,7 +69,7 @@ export function CirclesFilter({
           <Button
             variant="outline"
             size="sm"
-            className="h-12 px-4 border-gray-200 hover:bg-gray-50 transition-all duration-200 rounded-full flex items-center gap-2"
+            className="h-12 px-4 rounded-full hover:scale-[1.01] transition-all duration-200 flex items-center gap-2"
             aria-label="Sort and filter options"
           >
             <SlidersHorizontal className="h-5 w-5" />
@@ -106,12 +106,12 @@ export function CirclesFilter({
       {/* Duplicate Detection Button - Unified height and style */}
       <DuplicateDetectionButton />
 
-      {/* Add Contact Button - Unified height and styling */}
+      {/* Add Contact Button - Blue color with unified styling */}
       <Button
         onClick={onAddContact}
         size="sm"
         aria-label="Add new contact"
-        className="h-12 px-4 text-white transition-all duration-200 rounded-full bg-[#0daeec] hover:bg-[#0092ca] hover:scale-105 flex items-center gap-2"
+        className="h-12 px-4 text-white transition-all duration-200 rounded-full bg-[#0daeec] hover:bg-[#0092ca] hover:scale-[1.01] flex items-center gap-2"
       >
         <Plus className="h-5 w-5" />
         <span className="text-sm font-medium">Add</span>
