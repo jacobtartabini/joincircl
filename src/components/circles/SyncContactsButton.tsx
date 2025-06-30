@@ -23,7 +23,7 @@ export function SyncContactsButton({ onContactsImported }: SyncContactsButtonPro
           <Button 
             variant="outline" 
             size="sm" 
-            className="h-12 px-4 rounded-full hover:scale-[1.01] transition-all duration-200 flex items-center gap-2"
+            className="h-12 px-4 border-gray-200 hover:bg-gray-50 transition-all duration-200 rounded-full flex items-center gap-2"
           >
             <Upload className="h-5 w-5" />
             <span className="text-sm font-medium">Import</span>
