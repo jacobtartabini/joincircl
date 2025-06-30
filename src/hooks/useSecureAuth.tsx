@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { RateLimiter } from '@/services/security/simpleRateLimiter';
 import { AuditLogger } from '@/services/security/simpleAuditLogger';
