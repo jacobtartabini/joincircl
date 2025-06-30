@@ -4,6 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import { SyncContactsButton } from "./SyncContactsButton";
+import { DuplicateDetectionButton } from "./DuplicateDetectionButton";
 import React, { useState } from "react";
 import ImportContactsDialog from "./ImportContactsDialog";
 
@@ -48,12 +50,12 @@ export function CirclesFilter({
       {activeTagFilter && (
         <Badge 
           variant="secondary" 
-          className="px-3 py-2 h-12 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 transition-colors rounded-full flex items-center"
+          className="px-3 py-2 h-12 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 transition-all duration-200 rounded-full flex items-center"
         >
           <span className="text-sm font-medium">Tag: {activeTagFilter}</span>
           <button
             onClick={() => onFilter(null)}
-            className="ml-2 text-blue-500 hover:text-blue-700 font-medium"
+            className="ml-2 text-blue-500 hover:text-blue-700 font-medium transition-colors duration-200"
             aria-label="Remove tag filter"
           >
             ×
@@ -61,13 +63,13 @@ export function CirclesFilter({
         </Badge>
       )}
 
-      {/* Sort & Filter Dropdown - Unified height */}
+      {/* Sort & Filter Dropdown - Unified height and style */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
             size="sm"
-            className="h-12 px-4 border-gray-200 hover:bg-gray-50 transition-colors rounded-full flex items-center gap-2"
+            className="h-12 px-4 border-gray-200 hover:bg-gray-50 transition-all duration-200 rounded-full flex items-center gap-2"
             aria-label="Sort and filter options"
           >
             <SlidersHorizontal className="h-5 w-5" />
@@ -98,24 +100,18 @@ export function CirclesFilter({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Import Contacts Button - Unified height */}
-      <Button
-        variant="outline"
-        size="sm"
-        aria-label="Import Contacts"
-        className="h-12 px-4 flex items-center gap-2 rounded-full border-gray-200 hover:bg-gray-50 transition-colors"
-        onClick={() => setImportOpen(true)}
-      >
-        <FileUp className="h-5 w-5" />
-        <span className="text-sm font-medium">Import</span>
-      </Button>
+      {/* Sync Contacts Button - Unified height and style */}
+      <SyncContactsButton onContactsImported={refetchContacts} />
+
+      {/* Duplicate Detection Button - Unified height and style */}
+      <DuplicateDetectionButton />
 
       {/* Add Contact Button - Unified height and styling */}
       <Button
         onClick={onAddContact}
         size="sm"
         aria-label="Add new contact"
-        className="h-12 px-4 text-white transition-colors rounded-full bg-[#0daeec] hover:bg-[#0092ca] flex items-center gap-2"
+        className="h-12 px-4 text-white transition-all duration-200 rounded-full bg-[#0daeec] hover:bg-[#0092ca] hover:scale-105 flex items-center gap-2"
       >
         <Plus className="h-5 w-5" />
         <span className="text-sm font-medium">Add</span>

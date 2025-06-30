@@ -17,7 +17,7 @@ export const DuplicateDetectionButton = () => {
       variant="outline"
       size="sm"
       onClick={() => navigate('/duplicates')}
-      className={`flex items-center gap-2 transition-colors ${
+      className={`h-12 px-4 transition-all duration-200 rounded-full flex items-center gap-2 ${
         duplicateCount > 0 
           ? 'bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100' 
           : 'border-gray-200 text-gray-600 hover:bg-gray-50'
@@ -26,19 +26,19 @@ export const DuplicateDetectionButton = () => {
     >
       {isChecking ? (
         <>
-          <Loader2 className="h-4 w-4 animate-spin" />
-          Checking...
+          <Loader2 className="h-5 w-5 animate-spin" />
+          <span className="text-sm font-medium">Checking...</span>
         </>
       ) : duplicateCount > 0 ? (
         <>
-          <AlertTriangle className="h-4 w-4" />
-          <Users className="h-4 w-4" />
-          {duplicateCount} Duplicate{duplicateCount !== 1 ? 's' : ''}
+          <AlertTriangle className="h-5 w-5" />
+          <Users className="h-5 w-5" />
+          <span className="text-sm font-medium">{duplicateCount} Duplicate{duplicateCount !== 1 ? 's' : ''}</span>
         </>
       ) : (
         <>
-          <Users className="h-4 w-4" />
-          Check Duplicates
+          <Users className="h-5 w-5" />
+          <span className="text-sm font-medium">Check Duplicates</span>
         </>
       )}
     </Button>

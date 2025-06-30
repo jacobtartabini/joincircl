@@ -6,18 +6,18 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "glass-button inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all duration-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 relative overflow-hidden",
+  "glass-button inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 relative overflow-hidden",
   {
     variants: {
       variant: {
-        default: "bg-white/20 text-foreground hover:bg-white/30 border border-white/30",
+        default: "bg-white/20 text-foreground hover:bg-white/30 border border-white/30 hover:scale-[1.02]",
         destructive:
-          "bg-red-500/20 text-red-600 hover:bg-red-500/30 border border-red-500/30",
+          "bg-red-500/20 text-red-600 hover:bg-red-500/30 border border-red-500/30 hover:scale-[1.02]",
         outline:
-          "bg-white/10 border border-white/30 hover:bg-white/20 text-foreground",
+          "bg-white/10 border border-white/30 hover:bg-white/20 text-foreground hover:scale-[1.02]",
         secondary:
-          "bg-white/15 text-foreground hover:bg-white/25 border border-white/25",
-        ghost: "bg-transparent hover:bg-white/20 text-foreground border-transparent",
+          "bg-white/15 text-foreground hover:bg-white/25 border border-white/25 hover:scale-[1.02]",
+        ghost: "bg-transparent hover:bg-white/20 text-foreground border-transparent hover:scale-[1.02]",
         link: "text-primary underline-offset-4 hover:underline border-transparent bg-transparent backdrop-blur-none shadow-none",
       },
       size: {

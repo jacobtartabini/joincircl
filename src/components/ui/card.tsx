@@ -1,4 +1,3 @@
-
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
@@ -10,7 +9,7 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "glass-card glass-float p-6",
+      "glass-card glass-float p-6 hover:scale-[1.02] transition-all duration-200",
       className
     )}
     style={{
