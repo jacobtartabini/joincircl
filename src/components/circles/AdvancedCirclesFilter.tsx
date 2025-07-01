@@ -15,7 +15,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { ListFilter, Search, Plus } from "lucide-react";
+import { ListFilter, Search, Plus, Import } from "lucide-react";
 import { nanoid } from "nanoid";
 import { Input } from "@/components/ui/input";
 import { Contact } from "@/types/contact";
@@ -131,12 +131,12 @@ export function AdvancedCirclesFilter({
     <div className="flex items-center gap-3">
       {/* Search - Takes most space */}
       <div className="relative flex-1">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 z-10" />
         <Input
           placeholder="Search contacts..."
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-10 h-10 border-gray-200 bg-gray-50/50 focus:bg-white focus:border-[#0daeec] dark:focus:border-[#0daeec] transition-colors rounded-full text-sm"
+          className="pl-11 h-10"
         />
       </div>
 
@@ -152,7 +152,7 @@ export function AdvancedCirclesFilter({
           <Button
             variant="outline"
             size="sm"
-            className="transition group h-8 text-xs items-center rounded-full border-gray-200 hover:border-red-200 hover:text-red-600"
+            className="h-10 px-3 text-sm rounded-xl hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
             onClick={() => onFiltersChange([])}
           >
             Clear All
@@ -173,17 +173,16 @@ export function AdvancedCirclesFilter({
         >
           <PopoverTrigger asChild>
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               className={cn(
-                "transition group h-8 text-xs items-center rounded-full flex gap-1.5 items-center border border-gray-200 hover:border-[#0daeec] hover:bg-[#0daeec]/5",
-                activeFiltersCount > 0 && "w-8 px-2"
+                "h-10 w-10 p-0 rounded-xl relative",
+                activeFiltersCount > 0 && "border-primary text-primary"
               )}
             >
-              <ListFilter className="size-3 shrink-0 transition-all text-gray-500 group-hover:text-[#0daeec]" />
-              {activeFiltersCount === 0 && "Filter"}
+              <ListFilter className="h-4 w-4" />
               {activeFiltersCount > 0 && (
-                <span className="bg-[#0daeec] text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-medium">
+                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-medium">
                   {activeFiltersCount}
                 </span>
               )}
@@ -280,10 +279,10 @@ export function AdvancedCirclesFilter({
       <Button
         onClick={onAddContact}
         size="sm"
-        className="h-8 px-3 text-white transition-colors rounded-full bg-[#0daeec] hover:bg-[#0daeec]/90"
+        className="h-10 px-4 rounded-xl"
       >
-        <Plus className="h-3 w-3 mr-2" />
-        <span className="text-xs font-medium">Add</span>
+        <Plus className="h-4 w-4 mr-2" />
+        <span className="text-sm font-medium">Add</span>
       </Button>
     </div>
   );

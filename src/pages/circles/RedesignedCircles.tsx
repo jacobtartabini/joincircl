@@ -167,7 +167,7 @@ export default function RedesignedCircles() {
                 onFiltersChange={setFilters}
                 refetchContacts={fetchContacts}
               />
-              <div className="mt-3 flex justify-between items-center">
+              <div className="mt-3 flex justify-end items-center gap-2">
                 <DuplicateDetectionButton />
                 <SyncContactsButton onContactsImported={fetchContacts} />
               </div>
@@ -278,7 +278,7 @@ export default function RedesignedCircles() {
                     {filters.length > 0 && ' (filtered)'}
                   </p>
                 </div>
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
                   <div className="flex-1">
                     <AdvancedCirclesFilter
                       searchQuery={searchQuery}
@@ -290,10 +290,8 @@ export default function RedesignedCircles() {
                       refetchContacts={fetchContacts}
                     />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <DuplicateDetectionButton />
-                    <SyncContactsButton onContactsImported={fetchContacts} />
-                  </div>
+                  <DuplicateDetectionButton />
+                  <SyncContactsButton onContactsImported={fetchContacts} />
                 </div>
               </div>
             </div>
