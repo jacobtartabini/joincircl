@@ -374,7 +374,7 @@ ${staleContacts.slice(0, 8).map(c => `- ${c.name} (${c.circle} circle, ${c.compa
                   <Button size="sm" onClick={e => {
               e.stopPropagation();
               handleActionClick(rec);
-            }} className="group-hover:text-primary-foreground rounded-xl bg-[#30a2ed]">
+            }} className="rounded-full bg-[#30a2ed] hover:bg-[#2b8bc7] text-white transition-colors duration-200">
                     {rec.actionLabel === 'Message' && <MessageCircle className="h-3 w-3 mr-1" />}
                     {rec.actionLabel === 'Celebrate' && <Calendar className="h-3 w-3 mr-1" />}
                     {rec.actionLabel} <ArrowRight className="h-3 w-3 ml-1" />
