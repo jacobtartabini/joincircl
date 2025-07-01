@@ -3,12 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertTriangle, Globe, LogOut, Loader2 } from "lucide-react";
+import { AlertTriangle, Globe, LogOut, Loader2, Info } from "lucide-react";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { ThemeSelector } from "./ThemeSelector";
+import { getVersionInfo, getBuildInfo, getFormattedLastUpdated } from "@/services/versionService";
 
 const AccountTab = () => {
   const {
@@ -115,7 +116,37 @@ const AccountTab = () => {
       </div>;
   }
 
+  const versionInfo = getVersionInfo();
+
   return <div className="space-y-6">
+      {/* App Information */}
+      <Card className="border border-gray-200">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <Info className="h-5 w-5" />
+            App Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Version</label>
+              <p className="text-sm text-gray-900 font-mono">{getBuildInfo()}</p>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Last Updated</label>
+              <p className="text-sm text-gray-900">{getFormattedLastUpdated()}</p>
+            </div>
+          </div>
+          {versionInfo.commitHash && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Build Commit</label>
+              <p className="text-sm text-gray-900 font-mono">{versionInfo.commitHash.substring(0, 8)}</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* General Settings */}
       <Card className="border border-gray-200">
         <CardHeader className="pb-4">
