@@ -350,7 +350,7 @@ ${staleContacts.slice(0, 8).map(c => `- ${c.name} (${c.circle} circle, ${c.compa
               <p className="text-sm text-muted-foreground">Analyzing your network...</p>
             </div>
           </div> : recommendations.length > 0 ? <div className="space-y-4">
-            {recommendations.map(rec => <div key={rec.id} className="p-4 rounded-xl glass-card hover:bg-white/40 dark:hover:bg-white/10 transition-all duration-200 cursor-pointer group" onClick={() => handleActionClick(rec)}>
+            {recommendations.map(rec => <div key={rec.id} className="p-4 rounded-xl glass-card hover:scale-[1.01] transition-all duration-200 cursor-pointer group" onClick={() => handleActionClick(rec)}>
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-primary/20 dark:bg-primary/15 flex items-center justify-center border border-white/20 dark:border-white/10">
