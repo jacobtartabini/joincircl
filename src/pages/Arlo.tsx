@@ -366,14 +366,20 @@ export default function Arlo() {
 
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col min-h-0">
-        {/* Header with refresh button in top right */}
-        <div className="flex-shrink-0 glass-nav border-b px-6 py-4">
+        {/* Header with refined styling */}
+        <div className="flex-shrink-0 border-b border-border/30 px-6 py-4 bg-background/50 backdrop-blur-xl"
+          style={{
+            background: 'rgba(255, 255, 255, 0.5)',
+            backdropFilter: 'blur(20px)',
+            borderBottom: '1px solid rgba(0, 0, 0, 0.08)'
+          }}
+        >
           <div className="flex items-center justify-end">
             <Button
               onClick={refreshConversations}
               variant="ghost"
               size="sm"
-              className="glass-button"
+              className="hover:bg-muted/50 transition-colors rounded-xl"
             >
               <RefreshCw className="h-4 w-4" />
             </Button>
@@ -395,7 +401,7 @@ export default function Arlo() {
                   <ConversationStarters onSelectPrompt={handlePromptSelect} />
                 </div>
               ) : (
-                <div className="py-6 space-y-4 pb-32">
+                <div className="py-8 space-y-6 pb-32">
                   {activeConversation.messages.slice(1).map((message) => (
                     <motion.div
                       key={message.id}
@@ -408,11 +414,17 @@ export default function Arlo() {
                       )}
                     >
                       <div className={cn(
-                        "max-w-[75%] rounded-2xl px-4 py-3",
+                        "max-w-[75%] rounded-2xl px-5 py-4 shadow-sm",
                         message.role === 'user'
-                          ? 'bg-primary text-primary-foreground'
-                          : 'glass-card'
-                      )}>
+                          ? 'bg-primary text-primary-foreground shadow-primary/20'
+                          : 'bg-card/90 backdrop-blur-sm border border-border/50 shadow-lg'
+                      )}
+                        style={message.role !== 'user' ? {
+                          background: 'rgba(255, 255, 255, 0.95)',
+                          backdropFilter: 'blur(10px)',
+                          border: '1px solid rgba(0, 0, 0, 0.08)'
+                        } : {}}
+                      >
                         {message.role === 'user' ? (
                           <p className="text-sm leading-relaxed">{message.content}</p>
                         ) : (
@@ -436,7 +448,13 @@ export default function Arlo() {
                   
                   {isLoading && (
                     <div className="flex justify-start">
-                      <div className="glass-card rounded-2xl px-4 py-3">
+                      <div className="bg-card/90 backdrop-blur-sm border border-border/50 rounded-2xl px-5 py-4 shadow-lg"
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.95)',
+                          backdropFilter: 'blur(10px)',
+                          border: '1px solid rgba(0, 0, 0, 0.08)'
+                        }}
+                      >
                         <div className="flex items-center gap-2">
                           <Loader2 className="h-4 w-4 animate-spin text-primary" />
                           <span className="text-sm text-muted-foreground">Thinking...</span>
@@ -452,28 +470,42 @@ export default function Arlo() {
           </div>
         </div>
 
-        {/* Fixed Input Area - positioned above floating nav with more spacing */}
-        <div className="flex-shrink-0 glass-nav border-t px-6 py-6 mb-32">
+        {/* Fixed Input Area - Enhanced styling with cleaner background */}
+        <div className="flex-shrink-0 border-t border-border/30 px-6 py-6 mb-32 bg-background/80 backdrop-blur-xl"
+          style={{
+            background: 'rgba(255, 255, 255, 0.8)',
+            backdropFilter: 'blur(20px)',
+            borderTop: '1px solid rgba(0, 0, 0, 0.08)'
+          }}
+        >
           <div className="max-w-3xl mx-auto">
-            <div className="flex items-end gap-3">
-              <AutoExpandingTextarea
-                placeholder="Ask Arlo about your relationships..."
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={handleKeyDown}
-                disabled={isLoading}
-                className="flex-1 glass-input"
-                maxHeight={120}
-              />
+            <div className="flex items-end gap-4">
+              <div className="flex-1 relative">
+                <AutoExpandingTextarea
+                  placeholder="Ask Arlo about your relationships..."
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  disabled={isLoading}
+                  className="flex-1 bg-card/80 backdrop-blur-sm border border-border/50 shadow-sm hover:shadow-md focus:shadow-lg transition-all duration-300"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.9)',
+                    backdropFilter: 'blur(10px)',
+                    borderRadius: '16px'
+                  }}
+                  maxHeight={120}
+                />
+              </div>
               <Button
                 onClick={handleSendMessage}
                 disabled={isLoading || !inputValue.trim()}
-                className="min-w-[44px] h-[44px] rounded-xl"
+                size="sm"
+                className="min-w-[52px] h-[52px] rounded-2xl shadow-md hover:shadow-lg transition-all duration-300"
               >
                 {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
-                  <Send className="h-4 w-4" />
+                  <Send className="h-5 w-5" />
                 )}
               </Button>
             </div>

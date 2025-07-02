@@ -52,13 +52,24 @@ export default function ConversationSidebar({
 
   if (isCollapsed) {
     return (
-      <div className="w-12 bg-white/80 dark:bg-black/20 border-r border-white/20 dark:border-white/10 backdrop-blur-lg flex flex-col h-full">
-        <div className="p-2 border-b border-white/20 dark:border-white/10 flex justify-center">
+      <div className="w-12 bg-card/95 backdrop-blur-xl border-r border-border/50 flex flex-col h-full shadow-xl"
+        style={{
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(20px)',
+          borderRight: '1px solid rgba(0, 0, 0, 0.08)',
+          boxShadow: '0 0 40px rgba(0, 0, 0, 0.08)'
+        }}
+      >
+        <div className="p-2 border-b border-border/30 flex justify-center"
+          style={{
+            borderBottom: '1px solid rgba(0, 0, 0, 0.08)'
+          }}
+        >
           <Button 
             onClick={onToggleCollapse} 
             variant="ghost" 
             size="sm" 
-            className="w-8 h-8 p-0 glass-button"
+            className="w-8 h-8 p-0 hover:bg-muted/60 transition-colors"
           >
             <PanelLeft className="h-4 w-4" />
           </Button>
@@ -68,16 +79,27 @@ export default function ConversationSidebar({
   }
 
   return (
-    <div className="w-64 bg-white/80 dark:bg-black/20 border-r border-white/20 dark:border-white/10 backdrop-blur-lg flex flex-col h-full">
+    <div className="w-64 bg-card/95 backdrop-blur-xl border-r border-border/50 flex flex-col h-full shadow-xl"
+      style={{
+        background: 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: 'blur(20px)',
+        borderRight: '1px solid rgba(0, 0, 0, 0.08)',
+        boxShadow: '0 0 40px rgba(0, 0, 0, 0.08)'
+      }}
+    >
       {/* Header */}
-      <div className="p-3 border-b border-white/20 dark:border-white/10">
-        <div className="flex items-center gap-2 mb-3">
+      <div className="p-4 border-b border-border/30"
+        style={{
+          borderBottom: '1px solid rgba(0, 0, 0, 0.08)'
+        }}
+      >
+        <div className="flex items-center gap-2 mb-4">
           <h2 className="font-semibold text-foreground text-lg">Conversations</h2>
           <Button 
             onClick={onToggleCollapse} 
             variant="ghost" 
             size="sm" 
-            className="ml-auto w-8 h-8 p-0 glass-button"
+            className="ml-auto w-8 h-8 p-0 hover:bg-muted/60 transition-colors"
           >
             <PanelLeft className="h-4 w-4" />
           </Button>
@@ -85,7 +107,7 @@ export default function ConversationSidebar({
         
         <Button 
           onClick={onCreateConversation} 
-          className="w-full justify-start gap-2 glass-button rounded-full bg-[#0daeec]"
+          className="w-full justify-start gap-2 rounded-xl bg-primary hover:bg-primary/90 transition-colors"
         >
           <Plus className="h-4 w-4" />
           New Conversation
@@ -93,15 +115,15 @@ export default function ConversationSidebar({
       </div>
 
       {/* Conversations List */}
-      <ScrollArea className="flex-1 p-2">
+      <ScrollArea className="flex-1 p-3">
         <div className="space-y-1">
           {conversations.map(conversation => (
             <div
               key={conversation.id}
               className={cn(
-                "group relative flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all",
-                "hover:bg-white/20 dark:hover:bg-white/10",
-                activeConversationId === conversation.id && "bg-white/30 dark:bg-white/15 shadow-sm"
+                "group relative flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all",
+                "hover:bg-muted/50 hover:shadow-sm",
+                activeConversationId === conversation.id && "bg-primary/10 shadow-sm ring-1 ring-primary/20"
               )}
               onClick={() => onSelectConversation(conversation.id)}
             >
