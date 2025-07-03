@@ -44,9 +44,6 @@ export default function FloatingNav() {
       path: "/career"
     },
     {
-      type: "separator" as const
-    },
-    {
       title: "Events",
       icon: Calendar,
       path: "/events"
@@ -99,16 +96,6 @@ export default function FloatingNav() {
             </defs>
           </svg>
           {tabs.map((tab, index) => {
-            if ('type' in tab && tab.type === "separator") {
-              return (
-                <div 
-                  key={`separator-${index}`} 
-                  className={`mx-1 h-[20px] w-[1px] bg-white/30 dark:bg-white/20 ${isMobile ? 'hidden' : ''}`}
-                  aria-hidden="true" 
-                />
-              );
-            }
-
             const navTab = tab as NavTab;
             const Icon = navTab.icon;
             const isSelected = selectedTab === index;
