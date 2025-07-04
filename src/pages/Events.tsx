@@ -18,6 +18,12 @@ export default function Events() {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
   const [isCreateEventOpen, setIsCreateEventOpen] = useState(false);
+  const [prefilledEventData, setPrefilledEventData] = useState<{
+    date?: string;
+    time?: string;
+    endDate?: string;
+    endTime?: string;
+  } | null>(null);
   const {
     events,
     isLoading
@@ -75,13 +81,41 @@ export default function Events() {
     }
   };
 
+  const handleDragCreate = (startDate: Date, endDate: Date, startTime?: string, endTime?: string) => {
+    const startDateStr = format(startDate, 'yyyy-MM-dd');
+    const endDateStr = format(endDate, 'yyyy-MM-dd');
+    
+    setPrefilledEventData({
+      date: startDateStr,
+      time: startTime,
+      endDate: endDateStr,
+      endTime: endTime
+    });
+    
+    setIsCreateEventOpen(true);
+  };
+
+  const handleNewEvent = (date?: Date, time?: string) => {
+    const dateStr = date ? format(date, 'yyyy-MM-dd') : '';
+    setPrefilledEventData({
+      date: dateStr,
+      time: time
+    });
+    setIsCreateEventOpen(true);
+  };
+
+  const handleCloseEventForm = () => {
+    setIsCreateEventOpen(false);
+    setPrefilledEventData(null);
+  };
+
   // Actions for the search bar
   const searchActions = [{
     id: 'add-event',
     label: 'Add New Event',
     icon: <Plus className="h-4 w-4" />,
     description: 'Create a new event or keystone',
-    handler: () => setIsCreateEventOpen(true),
+    handler: () => handleNewEvent(),
     category: 'Actions'
   }, {
     id: 'calendar-view',
@@ -110,7 +144,7 @@ export default function Events() {
           <div className="w-80">
             <ActionSearchBar actions={searchActions} contacts={contacts} keystones={keystones} placeholder="Search events, contacts, or actions..." />
           </div>
-          <Button size="sm" className="gap-2" onClick={() => setIsCreateEventOpen(true)}>
+          <Button size="sm" className="gap-2" onClick={() => handleNewEvent()}>
             <Plus className="h-4 w-4" />
             Add Event
           </Button>
@@ -135,7 +169,12 @@ export default function Events() {
 
       {/* Content */}
       {view === 'calendar' ? <div className="h-[calc(100vh-16rem)]">
-          <FullCalendar data={calendarData} onNewEvent={() => setIsCreateEventOpen(true)} onEventClick={event => console.log('Event clicked:', event)} />
+          <FullCalendar 
+            data={calendarData} 
+            onNewEvent={handleNewEvent}
+            onDragCreate={handleDragCreate}
+            onEventClick={event => console.log('Event clicked:', event)} 
+          />
         </div> : <div className="space-y-4">
           {isLoading ? <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {Array.from({
@@ -233,9 +272,13 @@ export default function Events() {
         </div>}
 
       {/* Create Event Dialog */}
-      <Dialog open={isCreateEventOpen} onOpenChange={setIsCreateEventOpen}>
+      <Dialog open={isCreateEventOpen} onOpenChange={handleCloseEventForm}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <KeystoneForm onSuccess={() => setIsCreateEventOpen(false)} onCancel={() => setIsCreateEventOpen(false)} />
+          <KeystoneForm 
+            prefilledData={prefilledEventData}
+            onSuccess={handleCloseEventForm} 
+            onCancel={handleCloseEventForm} 
+          />
         </DialogContent>
       </Dialog>
     </div>;

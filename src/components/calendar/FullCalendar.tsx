@@ -24,6 +24,7 @@ interface CalendarData {
 interface FullScreenCalendarProps {
   data: CalendarData[];
   onNewEvent?: (date?: Date, time?: string) => void;
+  onDragCreate?: (startDate: Date, endDate: Date, startTime?: string, endTime?: string) => void;
   onEventClick?: (event: Event) => void;
 }
 const colStartClasses = ["", "col-start-2", "col-start-3", "col-start-4", "col-start-5", "col-start-6", "col-start-7"];
@@ -37,6 +38,7 @@ const eventTypeColors = {
 export function FullCalendar({
   data,
   onNewEvent,
+  onDragCreate,
   onEventClick
 }: FullScreenCalendarProps) {
   const today = startOfToday();
@@ -45,6 +47,11 @@ export function FullCalendar({
   const [view, setView] = React.useState<'day' | 'week' | 'month' | 'year'>('month');
   const firstDayCurrentMonth = parse(currentMonth, "MMM-yyyy", new Date());
   const isMobile = useIsMobile();
+
+  // Drag selection state
+  const [isDragging, setIsDragging] = React.useState(false);
+  const [dragStart, setDragStart] = React.useState<{ date: Date; time?: string } | null>(null);
+  const [dragEnd, setDragEnd] = React.useState<{ date: Date; time?: string } | null>(null);
   const days = eachDayOfInterval({
     start: startOfWeek(firstDayCurrentMonth),
     end: endOfWeek(endOfMonth(firstDayCurrentMonth))
@@ -68,6 +75,70 @@ export function FullCalendar({
   const handleDoubleClick = (date: Date, time?: string) => {
     onNewEvent?.(date, time);
   };
+
+  const handleMouseDown = (date: Date, time?: string) => {
+    setIsDragging(true);
+    setDragStart({ date, time });
+    setDragEnd({ date, time });
+  };
+
+  const handleMouseEnter = (date: Date, time?: string) => {
+    if (isDragging && dragStart) {
+      setDragEnd({ date, time });
+    }
+  };
+
+  const handleMouseUp = () => {
+    if (isDragging && dragStart && dragEnd && onDragCreate) {
+      // Only trigger drag create if we actually dragged (not just clicked)
+      const isSameDateTime = dragStart.date.getTime() === dragEnd.date.getTime() && dragStart.time === dragEnd.time;
+      if (!isSameDateTime) {
+        onDragCreate(dragStart.date, dragEnd.date, dragStart.time, dragEnd.time);
+      }
+    }
+    setIsDragging(false);
+    setDragStart(null);
+    setDragEnd(null);
+  };
+
+  const isInSelection = (date: Date, time?: string) => {
+    if (!isDragging || !dragStart || !dragEnd) return false;
+    
+    const currentDateTime = new Date(date);
+    if (time) {
+      const [hours, minutes] = time.split(':').map(Number);
+      currentDateTime.setHours(hours, minutes, 0, 0);
+    }
+    
+    const startDateTime = new Date(dragStart.date);
+    if (dragStart.time) {
+      const [hours, minutes] = dragStart.time.split(':').map(Number);
+      startDateTime.setHours(hours, minutes, 0, 0);
+    }
+    
+    const endDateTime = new Date(dragEnd.date);
+    if (dragEnd.time) {
+      const [hours, minutes] = dragEnd.time.split(':').map(Number);
+      endDateTime.setHours(hours, minutes, 0, 0);
+    }
+    
+    const minDateTime = startDateTime <= endDateTime ? startDateTime : endDateTime;
+    const maxDateTime = startDateTime <= endDateTime ? endDateTime : startDateTime;
+    
+    return currentDateTime >= minDateTime && currentDateTime <= maxDateTime;
+  };
+
+  // Add global mouse up listener
+  React.useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      if (isDragging) {
+        handleMouseUp();
+      }
+    };
+
+    document.addEventListener('mouseup', handleGlobalMouseUp);
+    return () => document.removeEventListener('mouseup', handleGlobalMouseUp);
+  }, [isDragging, dragStart, dragEnd]);
   const renderDayView = () => {
     const dayEvents = data.find(d => isSameDay(d.day, selectedDay))?.events || [];
     const hours = Array.from({
@@ -84,7 +155,18 @@ export function FullCalendar({
               const eventHour = parseInt(event.time?.split(':')[0] || '0');
               return eventHour === hour;
             });
-            return <div key={hour} className="flex border-b border-gray-100 dark:border-gray-800 min-h-16 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer" onDoubleClick={() => handleDoubleClick(selectedDay, `${hour.toString().padStart(2, '0')}:00`)}>
+            const timeString = `${hour.toString().padStart(2, '0')}:00`;
+            const isSelected = isInSelection(selectedDay, timeString);
+            return <div 
+              key={hour} 
+              className={cn(
+                "flex border-b border-gray-100 dark:border-gray-800 min-h-16 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer select-none",
+                isSelected && "bg-blue-100 dark:bg-blue-900/30"
+              )}
+              onDoubleClick={() => handleDoubleClick(selectedDay, timeString)}
+              onMouseDown={() => handleMouseDown(selectedDay, timeString)}
+              onMouseEnter={() => handleMouseEnter(selectedDay, timeString)}
+            >
                   <div className="w-20 p-2 text-sm text-gray-500 flex-shrink-0">
                     {hour === 0 ? '12 AM' : hour < 12 ? `${hour} AM` : hour === 12 ? '12 PM' : `${hour - 12} PM`}
                   </div>
@@ -140,7 +222,18 @@ export function FullCalendar({
                 const eventHour = parseInt(event.time?.split(':')[0] || '0');
                 return eventHour === hour;
               });
-              return <div key={day.toString()} className="border-l border-gray-200 dark:border-gray-700 p-1 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer" onDoubleClick={() => handleDoubleClick(day, `${hour.toString().padStart(2, '0')}:00`)}>
+              const timeString = `${hour.toString().padStart(2, '0')}:00`;
+              const isSelected = isInSelection(day, timeString);
+              return <div 
+                key={day.toString()} 
+                className={cn(
+                  "border-l border-gray-200 dark:border-gray-700 p-1 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer select-none",
+                  isSelected && "bg-blue-100 dark:bg-blue-900/30"
+                )}
+                onDoubleClick={() => handleDoubleClick(day, timeString)}
+                onMouseDown={() => handleMouseDown(day, timeString)}
+                onMouseEnter={() => handleMouseEnter(day, timeString)}
+              >
                       {hourEvents.map(event => <motion.div key={event.id} onClick={() => onEventClick?.(event)} className={cn("p-1 rounded text-xs cursor-pointer mb-1 border", eventTypeColors[event.type])} whileHover={{
                   scale: 1.05
                 }}>
@@ -166,7 +259,22 @@ export function FullCalendar({
           <div className="grid grid-cols-7 auto-rows-fr" style={{
           height: 'calc(100% - 60px)'
         }}>
-            {days.map((day, dayIdx) => <div key={dayIdx} onClick={() => setSelectedDay(day)} onDoubleClick={() => handleDoubleClick(day)} className={cn(dayIdx === 0 && colStartClasses[getDay(day)], !isEqual(day, selectedDay) && !isToday(day) && !isSameMonth(day, firstDayCurrentMonth) && "bg-gray-50 dark:bg-gray-800/50 text-gray-400", "relative flex flex-col border-b border-r border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer min-h-32", isEqual(day, selectedDay) && "bg-blue-50 dark:bg-blue-900/20")}>
+            {days.map((day, dayIdx) => {
+              const isSelected = isInSelection(day);
+              return <div 
+                key={dayIdx} 
+                onClick={() => setSelectedDay(day)} 
+                onDoubleClick={() => handleDoubleClick(day)} 
+                onMouseDown={() => handleMouseDown(day)}
+                onMouseEnter={() => handleMouseEnter(day)}
+                className={cn(
+                  dayIdx === 0 && colStartClasses[getDay(day)], 
+                  !isEqual(day, selectedDay) && !isToday(day) && !isSameMonth(day, firstDayCurrentMonth) && "bg-gray-50 dark:bg-gray-800/50 text-gray-400", 
+                  "relative flex flex-col border-b border-r border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer min-h-32 select-none", 
+                  isEqual(day, selectedDay) && "bg-blue-50 dark:bg-blue-900/20",
+                  isSelected && "bg-blue-100 dark:bg-blue-900/30"
+                )}
+              >
                 <div className="p-2">
                   <div className={cn("text-sm font-medium", isToday(day) && "bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center", isEqual(day, selectedDay) && !isToday(day) && "text-blue-600 dark:text-blue-400")}>
                     {format(day, 'd')}
@@ -204,7 +312,8 @@ export function FullCalendar({
                           </div>}
                       </div>)}
                 </div>
-              </div>)}
+              </div>
+            })}
           </div>
         </div>
 

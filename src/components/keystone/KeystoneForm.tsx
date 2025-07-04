@@ -18,17 +18,27 @@ import { Calendar } from "lucide-react";
 interface KeystoneFormProps {
   keystone?: Keystone;
   contact?: Contact;
+  prefilledData?: {
+    date?: string;
+    time?: string;
+    endDate?: string;
+    endTime?: string;
+  };
   onSuccess: (keystone?: Keystone) => void;
   onCancel: () => void;
 }
 
-export default function KeystoneForm({ keystone, contact, onSuccess, onCancel }: KeystoneFormProps) {
+export default function KeystoneForm({ keystone, contact, prefilledData, onSuccess, onCancel }: KeystoneFormProps) {
   const [selectedContacts, setSelectedContacts] = useState<Contact[]>([]);
   const [selectedDays, setSelectedDays] = useState<Set<string>>(new Set());
   const [formData, setFormData] = useState({
     title: keystone?.title || '',
-    date: keystone?.date ? new Date(keystone.date).toISOString().split('T')[0] : '',
-    time: keystone?.date ? new Date(keystone.date).toTimeString().slice(0, 5) : '',
+    date: keystone?.date 
+      ? new Date(keystone.date).toISOString().split('T')[0] 
+      : prefilledData?.date || '',
+    time: keystone?.date 
+      ? new Date(keystone.date).toTimeString().slice(0, 5) 
+      : prefilledData?.time || '',
     category: keystone?.category || '',
     notes: keystone?.notes || '',
     is_recurring: keystone?.is_recurring || false,
