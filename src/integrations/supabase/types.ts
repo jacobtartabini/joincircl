@@ -598,10 +598,12 @@ export type Database = {
       }
       keystones: {
         Row: {
+          all_day: boolean | null
           category: string | null
           contact_id: string | null
           created_at: string | null
           date: string
+          end_date: string | null
           id: string
           is_recurring: boolean | null
           notes: string | null
@@ -611,10 +613,12 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          all_day?: boolean | null
           category?: string | null
           contact_id?: string | null
           created_at?: string | null
           date: string
+          end_date?: string | null
           id?: string
           is_recurring?: boolean | null
           notes?: string | null
@@ -624,10 +628,12 @@ export type Database = {
           user_id: string
         }
         Update: {
+          all_day?: boolean | null
           category?: string | null
           contact_id?: string | null
           created_at?: string | null
           date?: string
+          end_date?: string | null
           id?: string
           is_recurring?: boolean | null
           notes?: string | null

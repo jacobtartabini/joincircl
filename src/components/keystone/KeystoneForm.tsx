@@ -4,6 +4,7 @@ import { GlassInput } from "@/components/ui/GlassInput";
 import { GlassTextarea } from "@/components/ui/GlassTextarea";
 import { Label } from "@/components/ui/label";
 import { GlassSelect, GlassSelectContent, GlassSelectItem, GlassSelectTrigger, GlassSelectValue } from "@/components/ui/GlassSelect";
+import { Switch } from "@/components/ui/switch";
 import { MultiContactSelector } from "@/components/ui/multi-contact-selector";
 import { RecurringScheduler } from "@/components/ui/scheduler";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -23,6 +24,7 @@ interface KeystoneFormProps {
     time?: string;
     endDate?: string;
     endTime?: string;
+    all_day?: boolean;
   };
   onSuccess: (keystone?: Keystone) => void;
   onCancel: () => void;
@@ -39,6 +41,13 @@ export default function KeystoneForm({ keystone, contact, prefilledData, onSucce
     time: keystone?.date 
       ? new Date(keystone.date).toTimeString().slice(0, 5) 
       : prefilledData?.time || '',
+    end_date: keystone?.end_date 
+      ? new Date(keystone.end_date).toISOString().split('T')[0] 
+      : prefilledData?.endDate || '',
+    end_time: keystone?.end_date 
+      ? new Date(keystone.end_date).toTimeString().slice(0, 5) 
+      : prefilledData?.endTime || '',
+    all_day: keystone?.all_day || prefilledData?.all_day || false,
     category: keystone?.category || '',
     notes: keystone?.notes || '',
     is_recurring: keystone?.is_recurring || false,
@@ -106,11 +115,22 @@ export default function KeystoneForm({ keystone, contact, prefilledData, onSucce
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const datetime = `${formData.date}T${formData.time || '00:00'}:00.000Z`;
+    const datetime = formData.all_day 
+      ? `${formData.date}T00:00:00.000Z`
+      : `${formData.date}T${formData.time || '00:00'}:00.000Z`;
+    
+    let endDatetime = null;
+    if (formData.end_date) {
+      endDatetime = formData.all_day
+        ? `${formData.end_date}T23:59:59.999Z`
+        : `${formData.end_date}T${formData.end_time || '23:59'}:00.000Z`;
+    }
     
     const keystoneData = {
       title: formData.title,
       date: datetime,
+      end_date: endDatetime,
+      all_day: formData.all_day,
       category: formData.category || undefined,
       contact_id: selectedContacts[0]?.id || null,
       is_recurring: formData.is_recurring,
@@ -134,6 +154,16 @@ export default function KeystoneForm({ keystone, contact, prefilledData, onSucce
 
   const toggleRecurring = () => {
     setFormData(prev => ({ ...prev, is_recurring: !prev.is_recurring }));
+  };
+
+  const toggleAllDay = () => {
+    setFormData(prev => ({ 
+      ...prev, 
+      all_day: !prev.all_day,
+      // Clear times when switching to all-day
+      time: !prev.all_day ? '' : prev.time,
+      end_time: !prev.all_day ? '' : prev.end_time
+    }));
   };
 
   const isLoading = createMutation.isPending || updateMutation.isPending;
@@ -161,7 +191,7 @@ export default function KeystoneForm({ keystone, contact, prefilledData, onSucce
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="date" className="text-sm font-medium">Date *</Label>
+              <Label htmlFor="date" className="text-sm font-medium">Start Date *</Label>
               <GlassInput
                 id="date"
                 type="date"
@@ -170,15 +200,52 @@ export default function KeystoneForm({ keystone, contact, prefilledData, onSucce
                 required
               />
             </div>
+            {!formData.all_day && (
+              <div className="space-y-2">
+                <Label htmlFor="time" className="text-sm font-medium">Start Time</Label>
+                <GlassInput
+                  id="time"
+                  type="time"
+                  value={formData.time}
+                  onChange={(e) => handleInputChange('time', e.target.value)}
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center space-x-2">
+              <Switch 
+                id="all-day" 
+                checked={formData.all_day}
+                onCheckedChange={toggleAllDay}
+              />
+              <Label htmlFor="all-day" className="text-sm font-medium">All Day Event</Label>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="time" className="text-sm font-medium">Time</Label>
+              <Label htmlFor="end_date" className="text-sm font-medium">End Date (Optional)</Label>
               <GlassInput
-                id="time"
-                type="time"
-                value={formData.time}
-                onChange={(e) => handleInputChange('time', e.target.value)}
+                id="end_date"
+                type="date"
+                value={formData.end_date}
+                onChange={(e) => handleInputChange('end_date', e.target.value)}
+                min={formData.date} // Ensure end date is not before start date
               />
             </div>
+            {!formData.all_day && formData.end_date && (
+              <div className="space-y-2">
+                <Label htmlFor="end_time" className="text-sm font-medium">End Time</Label>
+                <GlassInput
+                  id="end_time"
+                  type="time"
+                  value={formData.end_time}
+                  onChange={(e) => handleInputChange('end_time', e.target.value)}
+                />
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">

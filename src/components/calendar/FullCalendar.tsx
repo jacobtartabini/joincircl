@@ -14,6 +14,8 @@ interface Event {
   name: string;
   time: string;
   datetime: string;
+  end_datetime?: string;
+  all_day?: boolean;
   type: 'keystone' | 'interaction' | 'birthday' | 'sync' | 'calendar';
   contact_names?: string[];
 }
@@ -175,7 +177,10 @@ export function FullCalendar({
                   scale: 1.02
                 }}>
                         <div className="font-medium">{event.name}</div>
-                        <div className="text-xs opacity-75">{event.time}</div>
+                        <div className="text-xs opacity-75">
+                          {event.all_day ? 'All Day' : event.time}
+                          {event.end_datetime && !event.all_day && ` - ${format(new Date(event.end_datetime), 'HH:mm')}`}
+                        </div>
                         {event.contact_names && event.contact_names.length > 0 && <div className="text-xs opacity-75 mt-1">
                             {event.contact_names.join(', ')}
                           </div>}
@@ -238,7 +243,10 @@ export function FullCalendar({
                   scale: 1.05
                 }}>
                           <div className="font-medium truncate">{event.name}</div>
-                          <div className="opacity-75">{event.time}</div>
+                          <div className="opacity-75">
+                            {event.all_day ? 'All Day' : event.time}
+                            {event.end_datetime && !event.all_day && ` - ${format(new Date(event.end_datetime), 'HH:mm')}`}
+                          </div>
                         </motion.div>)}
                     </div>;
             })}
@@ -290,14 +298,18 @@ export function FullCalendar({
                       scale: 1.02
                     }}>
                                 <div className="font-medium truncate">{event.name}</div>
-                                <div className="opacity-75">{event.time}</div>
+                                <div className="opacity-75">
+                                  {event.all_day ? 'All Day' : event.time}
+                                  {event.end_datetime && !event.all_day && ` - ${format(new Date(event.end_datetime), 'HH:mm')}`}
+                                </div>
                               </motion.div>
                             </PopoverTrigger>
                             <PopoverContent className="w-80 p-3">
-                              <div className="space-y-2">
+                                <div className="space-y-2">
                                 <h4 className="font-semibold">{event.name}</h4>
                                 <div className="text-sm text-gray-600 dark:text-gray-400">
-                                  <div>{format(day, 'PPP')} at {event.time}</div>
+                                  <div>{format(day, 'PPP')} {event.all_day ? '(All Day)' : `at ${event.time}`}</div>
+                                  {event.end_datetime && !event.all_day && <div>Ends: {format(new Date(event.end_datetime), 'PPP')} at {format(new Date(event.end_datetime), 'HH:mm')}</div>}
                                   <div className="mt-1">Type: {event.type}</div>
                                   {event.contact_names && event.contact_names.length > 0 && <div className="mt-1">Contacts: {event.contact_names.join(', ')}</div>}
                                 </div>

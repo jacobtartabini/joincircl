@@ -2,7 +2,9 @@
 export interface Keystone {
   id: string;
   title: string;
-  date: string; // Date stored as string to match Supabase
+  date: string; // Start date stored as string to match Supabase
+  end_date?: string; // End date (optional)
+  all_day?: boolean; // Whether this is an all-day event
   due_date?: string; // Making this explicitly optional
   category?: string;
   contact_id?: string;

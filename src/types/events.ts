@@ -4,6 +4,8 @@ export interface UnifiedEvent {
   title: string
   date: string
   time?: string
+  end_date?: string
+  all_day?: boolean
   type: 'keystone' | 'interaction' | 'birthday' | 'sync' | 'calendar'
   source: 'circl' | 'google' | 'outlook' | 'gmail'
   contact_ids?: string[]
@@ -21,6 +23,9 @@ export interface EventFormData {
   title: string
   date: string
   time?: string
+  end_date?: string
+  end_time?: string
+  all_day?: boolean
   type: 'keystone' | 'interaction'
   contact_ids?: string[]
   category?: string

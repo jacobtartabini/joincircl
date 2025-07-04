@@ -23,6 +23,7 @@ export default function Events() {
     time?: string;
     endDate?: string;
     endTime?: string;
+    all_day?: boolean;
   } | null>(null);
   const {
     events,
@@ -44,6 +45,8 @@ export default function Events() {
       name: event.title,
       time: event.time || format(new Date(event.date), 'HH:mm'),
       datetime: event.date,
+      end_datetime: event.end_date,
+      all_day: event.all_day,
       type: event.type as 'keystone' | 'interaction' | 'birthday' | 'sync' | 'calendar',
       contact_names: event.contact_names
     }]
@@ -85,11 +88,17 @@ export default function Events() {
     const startDateStr = format(startDate, 'yyyy-MM-dd');
     const endDateStr = format(endDate, 'yyyy-MM-dd');
     
+    // Determine if this should be an all-day event
+    const isMultiDay = startDateStr !== endDateStr;
+    const isSameTimeSlot = startTime === endTime;
+    const shouldBeAllDay = isMultiDay && isSameTimeSlot;
+    
     setPrefilledEventData({
       date: startDateStr,
-      time: startTime,
-      endDate: endDateStr,
-      endTime: endTime
+      time: shouldBeAllDay ? '' : startTime,
+      endDate: isMultiDay ? endDateStr : '',
+      endTime: shouldBeAllDay ? '' : endTime,
+      all_day: shouldBeAllDay
     });
     
     setIsCreateEventOpen(true);
