@@ -38,20 +38,29 @@ export function RequireAuth({ children, requiredPermission }: RequireAuthProps) 
         return;
       }
 
-      try {
-        // Verify session is still valid
-        const isValidSession = await validateSession();
-        if (!isValidSession) {
-          console.log('RequireAuth: invalid session, redirecting to signin');
-          navigate("/signin", {
-            replace: true,
-            state: { from: location.pathname }
-          });
-          return;
+      // Skip session validation for a short period after OAuth callback to prevent race conditions
+      const isRecentlyAuthenticated = sessionStorage.getItem('recent_oauth') === 'true';
+      
+      if (!isRecentlyAuthenticated) {
+        try {
+          // Verify session is still valid
+          const isValidSession = await validateSession();
+          if (!isValidSession) {
+            console.log('RequireAuth: invalid session, redirecting to signin');
+            navigate("/signin", {
+              replace: true,
+              state: { from: location.pathname }
+            });
+            return;
+          }
+        } catch (error) {
+          console.error('RequireAuth: error validating session:', error);
+          // Continue with auth check even if validation fails
         }
-      } catch (error) {
-        console.error('RequireAuth: error validating session:', error);
-        // Continue with auth check even if validation fails
+      } else {
+        console.log('RequireAuth: skipping session validation (recently authenticated)');
+        // Clear the flag after using it
+        sessionStorage.removeItem('recent_oauth');
       }
 
       // Check if user needs onboarding (but not if already on onboarding page)

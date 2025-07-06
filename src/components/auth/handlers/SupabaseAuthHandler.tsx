@@ -9,7 +9,10 @@ export const useSupabaseAuthHandler = () => {
 
   const handleSupabaseAuth = async (code: string, onComplete: () => void) => {
     try {
-      console.log('Processing Supabase OAuth callback...');
+      console.log('Processing Supabase OAuth callback with code:', code);
+      
+      // Wait a moment to ensure any concurrent auth operations complete
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       const { data, error: authError } = await supabase.auth.exchangeCodeForSession(window.location.href);
 
@@ -27,15 +30,26 @@ export const useSupabaseAuthHandler = () => {
       if (data?.session?.user) {
         console.log('OAuth authentication successful, user:', data.session.user.email);
         
+        // Store session explicitly to ensure persistence
+        if (typeof window !== 'undefined' && data.session) {
+          try {
+            localStorage.setItem('supabase.auth.token', JSON.stringify(data.session));
+            // Set flag to skip aggressive session validation after OAuth
+            sessionStorage.setItem('recent_oauth', 'true');
+          } catch (storageError) {
+            console.warn('Failed to store session:', storageError);
+          }
+        }
+        
         toast({
           title: "Welcome!",
           description: "You have been signed in successfully.",
         });
 
-        // Navigate to home page after successful authentication
+        // Wait a bit longer before navigation to ensure session is fully established
         setTimeout(() => {
           navigate("/", { replace: true });
-        }, 1000);
+        }, 1500);
       } else {
         console.warn('No session established after auth exchange');
         navigate("/signin", { replace: true });

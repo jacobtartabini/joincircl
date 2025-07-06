@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-export const validateSession = async (): Promise<boolean> => {
+export const validateSession = async (skipUserCheck = false): Promise<boolean> => {
   try {
     // Get current session
     const { data: { session }, error } = await supabase.auth.getSession();
@@ -40,6 +40,12 @@ export const validateSession = async (): Promise<boolean> => {
         }
       }
       
+      return true;
+    }
+
+    // Skip user validation during OAuth flow to prevent race conditions
+    if (skipUserCheck) {
+      console.log('Session validation passed (user check skipped)');
       return true;
     }
 
