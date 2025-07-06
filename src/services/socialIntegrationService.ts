@@ -7,61 +7,59 @@ export const socialIntegrationService = {
   // Get all social profiles for a user
   async getUserSocialIntegrations(): Promise<SocialIntegrationStatus[]> {
     try {
-      const userSessionResponse = await supabase.auth.getSession();
-      const userSession = userSessionResponse.data.session;
-      
-      if (!userSession) {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session?.user) {
         throw new Error("User not authenticated");
       }
 
-      // Since we don't have the social_integrations table yet,
-      // we'll return mock data instead of querying the database
-      return [
-        { platform: "twitter", connected: false },
-        { platform: "facebook", connected: true, username: "demo.user", last_synced: new Date().toISOString() },
-        { platform: "linkedin", connected: false },
-        { platform: "instagram", connected: false }
-      ];
+      // Get real social integrations from the database
+      const { data: integrations, error } = await supabase
+        .from('user_social_integrations')
+        .select('platform, username, last_synced, sync_enabled')
+        .eq('user_id', session.session.user.id);
+
+      if (error) {
+        console.error("Error getting user social integrations:", error);
+        return [];
+      }
+
+      // Convert to expected format
+      return (integrations || []).map(integration => ({
+        platform: integration.platform as SocialPlatform,
+        connected: true,
+        username: integration.username,
+        last_synced: integration.last_synced
+      }));
     } catch (error) {
       console.error("Error getting user social integrations:", error);
-      return [
-        { platform: "twitter", connected: false },
-        { platform: "facebook", connected: false },
-        { platform: "linkedin", connected: false },
-        { platform: "instagram", connected: false }
-      ];
+      return [];
     }
   },
 
-  // Connect to a social platform
+  // Connect to a social platform (handled by OAuth flows)
   async connectSocialPlatform(platform: SocialPlatform): Promise<SocialIntegrationStatus> {
     try {
-      const userSessionResponse = await supabase.auth.getSession();
-      const userSession = userSessionResponse.data.session;
-      
-      if (!userSession) {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session?.user) {
         throw new Error("User not authenticated");
       }
 
-      // Simulate API connection - in production, this would use real OAuth
-      console.log(`Connecting to ${platform}...`);
-      
-      // Different demo username based on platform
-      const demoUsername = platform === "facebook" ? "demo.user" : 
-                          platform === "twitter" ? "circl_user" : 
-                          `demo_${platform}`;
-      
-      const now = new Date().toISOString();
-      
-      // In a real implementation, we would update or insert a record in the social_integrations table
-      // For this demo, we'll just return a successful status
-      
-      // Return status
+      // For Twitter, trigger OAuth flow
+      if (platform === 'twitter') {
+        // This should trigger the Twitter OAuth dialog
+        // The actual connection happens in the TwitterAuthDialog component
+        return {
+          platform,
+          connected: false,
+          error: 'OAuth flow required'
+        };
+      }
+
+      // Other platforms not implemented yet
       return {
         platform,
-        connected: true,
-        last_synced: now,
-        username: demoUsername
+        connected: false,
+        error: 'Platform not supported yet'
       };
     } catch (error) {
       console.error(`Error connecting to ${platform}:`, error);
@@ -76,15 +74,20 @@ export const socialIntegrationService = {
   // Disconnect from a platform
   async disconnectSocialPlatform(platform: SocialPlatform): Promise<void> {
     try {
-      const userSessionResponse = await supabase.auth.getSession();
-      const userSession = userSessionResponse.data.session;
-      
-      if (!userSession) {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session?.user) {
         throw new Error("User not authenticated");
       }
 
-      // In a real implementation, we would remove the integration record
-      console.log(`Disconnecting from ${platform}...`);
+      const { error } = await supabase
+        .from('user_social_integrations')
+        .delete()
+        .eq('user_id', session.session.user.id)
+        .eq('platform', platform);
+
+      if (error) {
+        throw new Error(`Failed to disconnect from ${platform}: ${error.message}`);
+      }
     } catch (error) {
       console.error(`Error disconnecting from ${platform}:`, error);
       throw error;
@@ -94,27 +97,37 @@ export const socialIntegrationService = {
   // Sync contacts from a platform
   async syncContactsFromPlatform(platform: SocialPlatform): Promise<SocialSyncResult> {
     try {
-      const userSessionResponse = await supabase.auth.getSession();
-      const userSession = userSessionResponse.data.session;
-      
-      if (!userSession) {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session?.user) {
         throw new Error("User not authenticated");
       }
 
-      // In a real implementation, this would call the platform's API
-      // to fetch contacts and import/update them
+      if (platform === 'twitter') {
+        const { data, error } = await supabase.functions.invoke('twitter-sync', {
+          body: {
+            action: 'sync'
+          }
+        });
 
-      // For demo purposes, we'll generate some mock contacts
-      const mockContacts = this.generateMockContacts(platform, 5);
-      const result: SocialSyncResult = {
-        contacts_imported: mockContacts.length,
+        if (error) {
+          throw new Error(`Twitter sync failed: ${error.message}`);
+        }
+
+        return {
+          contacts_imported: 0,
+          contacts_updated: 0,
+          posts_fetched: data?.results?.tweets || 0,
+          errors: data?.results?.errors || []
+        };
+      }
+
+      // Other platforms not implemented yet
+      return {
+        contacts_imported: 0,
         contacts_updated: 0,
-        posts_fetched: platform === "twitter" ? 10 : 0, // Simulate fetching tweets for Twitter
-        errors: []
+        posts_fetched: 0,
+        errors: ['Platform not supported yet']
       };
-
-      // Return results
-      return result;
     } catch (error) {
       console.error(`Error syncing contacts from ${platform}:`, error);
       return {
@@ -126,110 +139,69 @@ export const socialIntegrationService = {
     }
   },
 
-  // Fetch and summarize posts
+  // Fetch and summarize posts for a contact
   async fetchAndSummarizePosts(contactId: string): Promise<SocialPost[]> {
     try {
-      // In a real implementation, this would:
-      // 1. Get the contact's social profiles
-      // 2. Call each platform's API to fetch recent posts
-      // 3. Summarize the posts (could use an AI service)
-      // 4. Store the posts and summaries
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session?.user) {
+        return [];
+      }
 
-      // For demo purposes, return mock posts
-      return this.generateMockPosts(contactId, 3);
+      // Get posts from database
+      const { data: posts, error } = await supabase
+        .from('social_posts')
+        .select('*')
+        .eq('user_id', session.session.user.id)
+        .eq('contact_id', contactId)
+        .order('posted_at', { ascending: false })
+        .limit(10);
+
+      if (error) {
+        console.error('Error fetching social posts:', error);
+        return [];
+      }
+
+      return (posts || []).map(post => ({
+        id: post.id,
+        platform: post.platform as SocialPlatform,
+        content: post.content,
+        summary: post.summary || post.content.substring(0, 100),
+        post_url: post.post_url,
+        posted_at: post.posted_at,
+        social_profile_id: `${post.platform}-${post.contact_id}`,
+        contact_id: post.contact_id
+      }));
     } catch (error) {
       console.error(`Error fetching posts for contact ${contactId}:`, error);
       return [];
     }
   },
 
-  // Helper function to generate mock contacts
-  generateMockContacts(platform: SocialPlatform, count: number): Contact[] {
-    const mockContacts: Contact[] = [];
-    
+  // Get email interactions for a contact
+  async getEmailInteractions(contactId: string): Promise<any[]> {
     try {
-      // For demo, use a placeholder user ID
-      const userId = "mock-user-id";
-
-      for (let i = 1; i <= count; i++) {
-        let name = "";
-        let company = "";
-        let jobTitle = "";
-        
-        switch (platform) {
-          case "facebook":
-            name = `FB Friend ${i}`;
-            company = "Facebook Inc";
-            jobTitle = "Social Media Expert";
-            break;
-          case "twitter":
-            name = `Twitter User ${i}`;
-            company = "Media Company";
-            jobTitle = "Content Creator";
-            break;
-          default:
-            name = `${platform.charAt(0).toUpperCase() + platform.slice(1)} Contact ${i}`;
-            company = "Tech Company";
-            jobTitle = "Professional";
-        }
-        
-        mockContacts.push({
-          id: `mock-${platform}-${i}`,
-          name,
-          user_id: userId,
-          circle: "outer",
-          company_name: company,
-          job_title: jobTitle,
-          tags: [platform],
-          notes: `Imported from ${platform} (demo)`
-        });
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session?.user) {
+        return [];
       }
+
+      const { data: emails, error } = await supabase
+        .from('email_interactions')
+        .select('*')
+        .eq('user_id', session.session.user.id)
+        .eq('contact_id', contactId)
+        .order('received_at', { ascending: false })
+        .limit(10);
+
+      if (error) {
+        console.error('Error fetching email interactions:', error);
+        return [];
+      }
+
+      return emails || [];
     } catch (error) {
-      console.error("Error generating mock contacts:", error);
+      console.error(`Error fetching email interactions for contact ${contactId}:`, error);
+      return [];
     }
-    
-    return mockContacts;
-  },
-
-  // Helper function to generate mock posts
-  generateMockPosts(contactId: string, count: number): SocialPost[] {
-    const mockPosts: SocialPost[] = [];
-    const platforms: SocialPlatform[] = ["twitter", "facebook"];
-    
-    for (let i = 1; i <= count; i++) {
-      const platform = platforms[Math.floor(Math.random() * platforms.length)];
-      const date = new Date();
-      date.setDate(date.getDate() - i); // Posts from recent days
-      
-      let content = "";
-      let summary = "";
-      
-      switch (platform) {
-        case "facebook":
-          content = `This is a mock Facebook post #${i}. Imagine this is something interesting that your contact shared on their timeline!`;
-          summary = `Shared an update about their day (${i} days ago)`;
-          break;
-        case "twitter":
-          content = `Mock tweet #${i}: Something short and witty with #hashtags that demonstrates what your contact might post on Twitter/X.`;
-          summary = `Posted a tweet about trending topics (${i} days ago)`;
-          break;
-        default:
-          content = `Mock ${platform} post #${i}: Generic content for demonstration`;
-          summary = `Shared content on ${platform} (${i} days ago)`;
-      }
-      
-      mockPosts.push({
-        id: `mock-post-${i}`,
-        platform,
-        content,
-        summary,
-        post_url: `https://${platform}.com/post/${i}`,
-        posted_at: date.toISOString(),
-        social_profile_id: `mock-profile-${platform}`,
-        contact_id: contactId
-      });
-    }
-    
-    return mockPosts;
   }
 };

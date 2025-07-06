@@ -106,13 +106,76 @@ async function fetchUpcomingEvents(accessToken: string, daysAhead = 7) {
   }
 }
 
+// Store calendar events in database
+async function storeCalendarEvents(userId: string, events: any[]) {
+  const results = { stored: 0, errors: [] as string[] };
+  
+  for (const event of events) {
+    try {
+      // Parse attendees and find contacts
+      const contactIds: string[] = [];
+      if (event.attendees) {
+        for (const attendee of event.attendees) {
+          if (attendee.email && !attendee.self) {
+            const contact = await findContactByEmail(userId, attendee.email);
+            if (contact) {
+              contactIds.push(contact.id);
+            }
+          }
+        }
+      }
+
+      const startTime = event.start.dateTime || event.start.date;
+      const endTime = event.end.dateTime || event.end.date;
+      const isAllDay = !event.start.dateTime; // All-day events don't have dateTime
+
+      const { error } = await supabase
+        .from('calendar_events')
+        .upsert({
+          user_id: userId,
+          provider: 'google',
+          event_id: event.id,
+          summary: event.summary || 'Untitled Event',
+          description: event.description || '',
+          start_time: new Date(startTime).toISOString(),
+          end_time: endTime ? new Date(endTime).toISOString() : null,
+          all_day: isAllDay,
+          location: event.location || '',
+          attendees: event.attendees || [],
+          contact_ids: contactIds,
+          metadata: {
+            creator: event.creator,
+            organizer: event.organizer,
+            status: event.status,
+            html_link: event.htmlLink
+          },
+          updated_at: new Date().toISOString()
+        }, { 
+          onConflict: 'user_id,provider,event_id' 
+        });
+
+      if (error) {
+        console.error(`Error storing calendar event ${event.id}:`, error);
+        results.errors.push(`Error storing event ${event.id}: ${error.message}`);
+      } else {
+        results.stored++;
+      }
+    } catch (error) {
+      console.error(`Error processing calendar event ${event.id}:`, error);
+      results.errors.push(`Error processing event ${event.id}: ${error.message}`);
+    }
+  }
+  
+  return results;
+}
+
 // Find contact by email
 async function findContactByEmail(userId: string, email: string) {
   const { data, error } = await supabase
     .from('contacts')
-    .select('id, first_name, last_name, email')
+    .select('id, name, personal_email')
     .eq('user_id', userId)
-    .eq('email', email)
+    .eq('personal_email', email)
     .maybeSingle();
     
   if (error) {
@@ -238,18 +301,26 @@ serve(async (req) => {
       });
     }
 
-    const { action, days = 7 } = await req.json();
+    const { action, days = 7, userId } = await req.json();
+    const targetUserId = userId || user.id;
     
     switch (action) {
       case 'upcoming': {
         // Get Calendar token for the user
-        const accessToken = await getCalendarToken(user.id);
+        const accessToken = await getCalendarToken(targetUserId);
         
         // Fetch upcoming events
         const events = await fetchUpcomingEvents(accessToken, days);
         
+        // Store events in calendar_events table and process interactions
+        await storeCalendarEvents(targetUserId, events);
+        
         // Process events in background task
-        EdgeRuntime.waitUntil(processCalendarEvents(user.id, events));
+        if (typeof EdgeRuntime !== 'undefined') {
+          EdgeRuntime.waitUntil(processCalendarEvents(targetUserId, events));
+        } else {
+          processCalendarEvents(targetUserId, events).catch(console.error);
+        }
         
         return new Response(JSON.stringify(events), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -258,15 +329,21 @@ serve(async (req) => {
       
       case 'sync': {
         // Get Calendar token for the user
-        const accessToken = await getCalendarToken(user.id);
+        const accessToken = await getCalendarToken(targetUserId);
         
         // Fetch upcoming events
         const events = await fetchUpcomingEvents(accessToken, days);
         
-        // Process events and wait for result
-        const results = await processCalendarEvents(user.id, events);
+        // Store events in calendar_events table
+        const storeResults = await storeCalendarEvents(targetUserId, events);
         
-        return new Response(JSON.stringify(results), {
+        // Process events and wait for result
+        const results = await processCalendarEvents(targetUserId, events);
+        
+        return new Response(JSON.stringify({
+          ...results,
+          events_stored: storeResults.stored
+        }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }

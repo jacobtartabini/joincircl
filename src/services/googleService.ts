@@ -1,83 +1,89 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
-// Google API scopes
-export const GMAIL_SCOPE = 'https://www.googleapis.com/auth/gmail.readonly';
-export const CALENDAR_SCOPE = 'https://www.googleapis.com/auth/calendar.readonly';
-
-// Google OAuth Client ID
-export const GOOGLE_CLIENT_ID = '1082106594085-er19ne14fh1si3391t8rbls3jfsbppa2.apps.googleusercontent.com';
-
-// Types
-export type GoogleProvider = 'gmail' | 'calendar';
-
-interface GoogleTokenResponse {
-  access_token: string;
-  refresh_token?: string;
-  expires_in: number;
-  token_type: string;
-  scope: string;
+export interface GoogleServiceResponse<T = any> {
+  data?: T;
+  error?: string;
 }
 
-// Helper function to generate the Google OAuth URL
-export const generateGoogleAuthUrl = (provider: GoogleProvider): string => {
-  const scope = provider === 'gmail' ? GMAIL_SCOPE : CALENDAR_SCOPE;
-  
-  // Create random state for CSRF protection
-  const state = Math.random().toString(36).substring(2);
-  localStorage.setItem(`google_${provider}_state`, state);
-  
-  // Use dynamic redirect URI based on current environment
-  const redirectUri = `${window.location.origin}/auth/callback`;
-  
-  const params = new URLSearchParams({
-    client_id: GOOGLE_CLIENT_ID,
-    redirect_uri: redirectUri,
-    response_type: 'code',
-    scope,
-    access_type: 'offline',
-    prompt: 'consent',
-    state: `${provider}_${state}`
-  });
-  
-  return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
-};
+class GoogleService {
+  private readonly clientId = "1082106594085-er19ne14fh1si3391t8rb3391t8rbls3jfsbppa2.apps.googleusercontent.com";
 
-// Service object
-export const googleService = {
-  // Connect to Gmail
-  connectGmail: async (): Promise<boolean> => {
+  // Check if a Google service is connected
+  async isConnected(service: 'gmail' | 'calendar'): Promise<boolean> {
     try {
-      const authUrl = generateGoogleAuthUrl('gmail');
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session?.user) return false;
+
+      if (service === 'gmail') {
+        const { data } = await supabase
+          .from('user_email_tokens')
+          .select('id')
+          .eq('user_id', session.session.user.id)
+          .eq('provider', 'gmail')
+          .single();
+        return !!data;
+      } else {
+        const { data } = await supabase
+          .from('user_calendar_tokens')
+          .select('id')
+          .eq('user_id', session.session.user.id)
+          .eq('provider', 'google')
+          .single();
+        return !!data;
+      }
+    } catch (error) {
+      console.error(`Error checking ${service} connection:`, error);
+      return false;
+    }
+  }
+
+  // Connect to Gmail
+  async connectGmail(): Promise<boolean> {
+    try {
+      const redirectUri = `${window.location.origin}/auth/callback`;
+      const scope = 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/userinfo.email';
+      
+      const authUrl = `https://accounts.google.com/oauth/authorize?` +
+        `client_id=${this.clientId}&` +
+        `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+        `scope=${encodeURIComponent(scope)}&` +
+        `response_type=code&` +
+        `access_type=offline&` +
+        `prompt=consent`;
+
       window.location.href = authUrl;
       return true;
     } catch (error) {
       console.error('Error connecting to Gmail:', error);
       return false;
     }
-  },
-  
+  }
+
   // Connect to Google Calendar
-  connectCalendar: async (): Promise<boolean> => {
+  async connectCalendar(): Promise<boolean> {
     try {
-      const authUrl = generateGoogleAuthUrl('calendar');
+      const redirectUri = `${window.location.origin}/auth/callback`;
+      const scope = 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.email';
+      
+      const authUrl = `https://accounts.google.com/oauth/authorize?` +
+        `client_id=${this.clientId}&` +
+        `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+        `scope=${encodeURIComponent(scope)}&` +
+        `response_type=code&` +
+        `access_type=offline&` +
+        `prompt=consent`;
+
       window.location.href = authUrl;
       return true;
     } catch (error) {
       console.error('Error connecting to Google Calendar:', error);
       return false;
     }
-  },
-  
+  }
+
   // Exchange code for token
-  exchangeCodeForToken: async (
-    code: string, 
-    redirectUri: string, 
-    scope: string
-  ): Promise<GoogleTokenResponse | null> => {
+  async exchangeCodeForToken(code: string, redirectUri: string, scope: string): Promise<any> {
     try {
-      console.log('Exchanging Google OAuth code for token...');
-      
       const { data, error } = await supabase.functions.invoke('google-oauth', {
         body: {
           action: 'exchange',
@@ -86,26 +92,20 @@ export const googleService = {
           scope
         }
       });
-      
+
       if (error) {
-        console.error('Error exchanging code for token:', error);
-        throw new Error(error.message || 'Failed to exchange code for token');
+        throw new Error(`Token exchange failed: ${error.message}`);
       }
-      
-      if (!data) {
-        throw new Error('No token data received');
-      }
-      
-      console.log('Successfully exchanged code for token');
-      return data as GoogleTokenResponse;
+
+      return data;
     } catch (error) {
       console.error('Error exchanging code for token:', error);
       throw error;
     }
-  },
-  
-  // Fetch recent emails from Gmail
-  fetchRecentEmails: async (limit: number = 10): Promise<{ data: any[], error: any }> => {
+  }
+
+  // Fetch recent emails
+  async fetchRecentEmails(limit = 10): Promise<GoogleServiceResponse> {
     try {
       const { data, error } = await supabase.functions.invoke('gmail-fetch', {
         body: {
@@ -113,21 +113,41 @@ export const googleService = {
           limit
         }
       });
-      
+
       if (error) {
-        console.error('Error fetching Gmail messages:', error);
-        return { data: [], error };
+        return { error: error.message };
       }
-      
-      return { data: data || [], error: null };
+
+      return { data };
     } catch (error) {
-      console.error('Error fetching Gmail messages:', error);
-      return { data: [], error };
+      console.error('Error fetching emails:', error);
+      return { error: 'Failed to fetch emails' };
     }
-  },
-  
+  }
+
+  // Sync Gmail (fetch and process emails)
+  async syncGmail(): Promise<GoogleServiceResponse> {
+    try {
+      const { data, error } = await supabase.functions.invoke('gmail-fetch', {
+        body: {
+          action: 'sync',
+          limit: 20
+        }
+      });
+
+      if (error) {
+        return { error: error.message };
+      }
+
+      return { data };
+    } catch (error) {
+      console.error('Error syncing Gmail:', error);
+      return { error: 'Failed to sync Gmail' };
+    }
+  }
+
   // Fetch upcoming calendar events
-  fetchUpcomingEvents: async (days: number = 7): Promise<{ data: any[], error: any }> => {
+  async fetchUpcomingEvents(days = 7): Promise<GoogleServiceResponse> {
     try {
       const { data, error } = await supabase.functions.invoke('calendar-events', {
         body: {
@@ -135,84 +155,67 @@ export const googleService = {
           days
         }
       });
-      
+
       if (error) {
-        console.error('Error fetching calendar events:', error);
-        return { data: [], error };
+        return { error: error.message };
       }
-      
-      return { data: data || [], error: null };
+
+      return { data };
     } catch (error) {
       console.error('Error fetching calendar events:', error);
-      return { data: [], error };
+      return { error: 'Failed to fetch calendar events' };
     }
-  },
-  
-  // Check if provider is connected
-  isConnected: async (provider: GoogleProvider): Promise<boolean> => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return false;
+  }
 
-      if (provider === 'gmail') {
-        const { data } = await supabase
-          .from('user_email_tokens')
-          .select('*')
-          .eq('provider', 'gmail')
-          .eq('user_id', session.user.id)
-          .maybeSingle();
-          
-        return !!data;
-      } else {
-        const { data } = await supabase
-          .from('user_calendar_tokens')
-          .select('*')
-          .eq('provider', 'google')
-          .eq('user_id', session.user.id)
-          .maybeSingle();
-          
-        return !!data;
+  // Sync Google Calendar (fetch and process events)
+  async syncCalendar(): Promise<GoogleServiceResponse> {
+    try {
+      const { data, error } = await supabase.functions.invoke('calendar-events', {
+        body: {
+          action: 'sync',
+          days: 30
+        }
+      });
+
+      if (error) {
+        return { error: error.message };
       }
-    } catch (error) {
-      console.error(`Error checking ${provider} connection:`, error);
-      return false;
-    }
-  },
-  
-  // Disconnect a provider
-  disconnect: async (provider: GoogleProvider): Promise<boolean> => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return false;
 
-      if (provider === 'gmail') {
+      return { data };
+    } catch (error) {
+      console.error('Error syncing calendar:', error);
+      return { error: 'Failed to sync calendar' };
+    }
+  }
+
+  // Disconnect a service
+  async disconnect(service: 'gmail' | 'calendar'): Promise<boolean> {
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session?.user) return false;
+
+      if (service === 'gmail') {
         const { error } = await supabase
           .from('user_email_tokens')
           .delete()
-          .eq('provider', 'gmail')
-          .eq('user_id', session.user.id);
-          
-        if (error) {
-          console.error('Error disconnecting Gmail:', error);
-          return false;
-        }
+          .eq('user_id', session.session.user.id)
+          .eq('provider', 'gmail');
+        
+        return !error;
       } else {
         const { error } = await supabase
           .from('user_calendar_tokens')
           .delete()
-          .eq('provider', 'google')
-          .eq('user_id', session.user.id);
-          
-        if (error) {
-          console.error('Error disconnecting Google Calendar:', error);
-          return false;
-        }
+          .eq('user_id', session.session.user.id)
+          .eq('provider', 'google');
+        
+        return !error;
       }
-      
-      return true;
     } catch (error) {
-      console.error(`Error disconnecting ${provider}:`, error);
+      console.error(`Error disconnecting ${service}:`, error);
       return false;
     }
   }
-};
+}
+
+export const googleService = new GoogleService();

@@ -88,6 +88,60 @@ export type Database = {
           },
         ]
       }
+      calendar_events: {
+        Row: {
+          all_day: boolean | null
+          attendees: Json | null
+          contact_ids: string[] | null
+          created_at: string | null
+          description: string | null
+          end_time: string | null
+          event_id: string
+          id: string
+          location: string | null
+          metadata: Json | null
+          provider: string
+          start_time: string
+          summary: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          all_day?: boolean | null
+          attendees?: Json | null
+          contact_ids?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          end_time?: string | null
+          event_id: string
+          id?: string
+          location?: string | null
+          metadata?: Json | null
+          provider: string
+          start_time: string
+          summary?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          all_day?: boolean | null
+          attendees?: Json | null
+          contact_ids?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          end_time?: string | null
+          event_id?: string
+          id?: string
+          location?: string | null
+          metadata?: Json | null
+          provider?: string
+          start_time?: string
+          summary?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       career_documents: {
         Row: {
           contact_id: string | null
@@ -380,6 +434,62 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      email_interactions: {
+        Row: {
+          contact_id: string | null
+          created_at: string | null
+          email_id: string
+          id: string
+          labels: string[] | null
+          metadata: Json | null
+          received_at: string
+          sender_email: string
+          sender_name: string | null
+          snippet: string | null
+          subject: string | null
+          thread_id: string | null
+          user_id: string
+        }
+        Insert: {
+          contact_id?: string | null
+          created_at?: string | null
+          email_id: string
+          id?: string
+          labels?: string[] | null
+          metadata?: Json | null
+          received_at: string
+          sender_email: string
+          sender_name?: string | null
+          snippet?: string | null
+          subject?: string | null
+          thread_id?: string | null
+          user_id: string
+        }
+        Update: {
+          contact_id?: string | null
+          created_at?: string | null
+          email_id?: string
+          id?: string
+          labels?: string[] | null
+          metadata?: Json | null
+          received_at?: string
+          sender_email?: string
+          sender_name?: string | null
+          snippet?: string | null
+          subject?: string | null
+          thread_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_interactions_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       email_logs: {
         Row: {
@@ -772,6 +882,56 @@ export type Database = {
         }
         Relationships: []
       }
+      social_posts: {
+        Row: {
+          contact_id: string | null
+          content: string
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          platform: string
+          post_id: string
+          post_url: string | null
+          posted_at: string
+          summary: string | null
+          user_id: string
+        }
+        Insert: {
+          contact_id?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          platform: string
+          post_id: string
+          post_url?: string | null
+          posted_at: string
+          summary?: string | null
+          user_id: string
+        }
+        Update: {
+          contact_id?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          platform?: string
+          post_id?: string
+          post_url?: string | null
+          posted_at?: string
+          summary?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_posts_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sync_logs: {
         Row: {
           contact_count: number
@@ -907,8 +1067,11 @@ export type Database = {
           created_at: string
           expires_at: string
           id: string
+          last_synced: string | null
           provider: string
           refresh_token: string | null
+          sync_enabled: boolean | null
+          sync_frequency: number | null
           updated_at: string
           user_id: string
         }
@@ -917,8 +1080,11 @@ export type Database = {
           created_at?: string
           expires_at: string
           id?: string
+          last_synced?: string | null
           provider: string
           refresh_token?: string | null
+          sync_enabled?: boolean | null
+          sync_frequency?: number | null
           updated_at?: string
           user_id: string
         }
@@ -927,8 +1093,11 @@ export type Database = {
           created_at?: string
           expires_at?: string
           id?: string
+          last_synced?: string | null
           provider?: string
           refresh_token?: string | null
+          sync_enabled?: boolean | null
+          sync_frequency?: number | null
           updated_at?: string
           user_id?: string
         }
@@ -1080,7 +1249,10 @@ export type Database = {
           id: string
           last_synced: string | null
           platform: string
+          profile_data: Json | null
           refresh_token: string | null
+          sync_enabled: boolean | null
+          sync_frequency: number | null
           updated_at: string
           user_id: string
           username: string
@@ -1092,7 +1264,10 @@ export type Database = {
           id?: string
           last_synced?: string | null
           platform: string
+          profile_data?: Json | null
           refresh_token?: string | null
+          sync_enabled?: boolean | null
+          sync_frequency?: number | null
           updated_at?: string
           user_id: string
           username: string
@@ -1104,7 +1279,10 @@ export type Database = {
           id?: string
           last_synced?: string | null
           platform?: string
+          profile_data?: Json | null
           refresh_token?: string | null
+          sync_enabled?: boolean | null
+          sync_frequency?: number | null
           updated_at?: string
           user_id?: string
           username?: string

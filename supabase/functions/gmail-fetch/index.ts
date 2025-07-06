@@ -156,9 +156,9 @@ async function updateOrCreateContact(userId: string, email: string, name: string
     // First check if the contact exists by email
     const { data: existingContact, error: findError } = await supabase
       .from('contacts')
-      .select('id, first_name, last_name, email')
+      .select('id, name, personal_email')
       .eq('user_id', userId)
-      .eq('email', email)
+      .eq('personal_email', email)
       .maybeSingle();
     
     if (findError) {
@@ -170,17 +170,33 @@ async function updateOrCreateContact(userId: string, email: string, name: string
       // Return existing contact
       return existingContact;
     } else {
-      // No matching contact found, create a new one
+      // Check if contact exists by name and add email
+      const { data: contactByName, error: nameError } = await supabase
+        .from('contacts')
+        .select('id, name, personal_email')
+        .eq('user_id', userId)
+        .ilike('name', `%${name}%`)
+        .is('personal_email', null)
+        .maybeSingle();
       
-      // Parse the name
-      let firstName = name;
-      let lastName = "";
-      
-      // If the name contains a space, split it into first and last name
-      if (name.includes(' ')) {
-        const nameParts = name.split(' ');
-        firstName = nameParts[0];
-        lastName = nameParts.slice(1).join(' ');
+      if (!nameError && contactByName) {
+        // Update existing contact with email
+        const { data: updatedContact, error: updateError } = await supabase
+          .from('contacts')
+          .update({
+            personal_email: email,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', contactByName.id)
+          .select()
+          .single();
+        
+        if (updateError) {
+          console.error('Error updating contact with email:', updateError);
+          return contactByName;
+        }
+        
+        return updatedContact;
       }
       
       // Create new contact
@@ -188,9 +204,10 @@ async function updateOrCreateContact(userId: string, email: string, name: string
         .from('contacts')
         .insert({
           user_id: userId,
-          first_name: firstName,
-          last_name: lastName,
-          email: email,
+          name: name,
+          personal_email: email,
+          circle: 'outer',
+          tags: ['email-import'],
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
@@ -210,36 +227,58 @@ async function updateOrCreateContact(userId: string, email: string, name: string
   }
 }
 
-// Add email interaction to contact
+// Add email interaction to database
 async function addEmailInteraction(userId: string, contactId: string, emailData: any) {
   try {
-    // Add interaction to contact's timeline
-    const { data: interaction, error } = await supabase
+    // Store in email_interactions table
+    const { data: emailInteraction, error: emailError } = await supabase
+      .from('email_interactions')
+      .upsert({
+        user_id: userId,
+        contact_id: contactId,
+        email_id: emailData.id,
+        thread_id: emailData.threadId,
+        subject: emailData.subject,
+        sender_email: emailData.senderEmail,
+        sender_name: emailData.from.split('<')[0].trim().replace(/"/g, ''),
+        snippet: emailData.snippet,
+        received_at: emailData.receivedAt,
+        labels: emailData.labels,
+        metadata: {
+          thread_id: emailData.threadId,
+          labels: emailData.labels
+        }
+      }, { 
+        onConflict: 'user_id,email_id' 
+      })
+      .select()
+      .single();
+
+    if (emailError) {
+      console.error('Error storing email interaction:', emailError);
+    }
+
+    // Also add to general interactions for timeline
+    const { data: interaction, error: interactionError } = await supabase
       .from('interactions')
-      .insert({
+      .upsert({
         user_id: userId,
         contact_id: contactId,
         type: 'email',
         date: emailData.receivedAt,
         notes: `Email: ${emailData.subject}`,
         created_at: new Date().toISOString(),
-        metadata: {
-          email_id: emailData.id,
-          thread_id: emailData.threadId,
-          subject: emailData.subject,
-          sender: emailData.from,
-          snippet: emailData.snippet
-        }
+      }, {
+        onConflict: 'user_id,contact_id,type,date'
       })
       .select()
       .single();
     
-    if (error) {
-      console.error('Error adding interaction:', error);
-      return null;
+    if (interactionError) {
+      console.error('Error adding interaction:', interactionError);
     }
     
-    return interaction;
+    return { emailInteraction, interaction };
   } catch (error) {
     console.error('Error adding email interaction:', error);
     return null;
@@ -324,18 +363,26 @@ serve(async (req) => {
       });
     }
 
-    const { action, limit = 10 } = await req.json();
+    const { action, limit = 10, userId } = await req.json();
+    
+    // Use provided userId or get from auth
+    const targetUserId = userId || user.id;
     
     switch (action) {
       case 'recent': {
         // Get Gmail token for the user
-        const accessToken = await getGmailToken(user.id);
+        const accessToken = await getGmailToken(targetUserId);
         
         // Fetch recent emails
         const emails = await fetchRecentEmails(accessToken, limit);
         
         // Process emails in background task in Edge Runtime environment
-        EdgeRuntime.waitUntil(processEmails(user.id, emails));
+        if (typeof EdgeRuntime !== 'undefined') {
+          EdgeRuntime.waitUntil(processEmails(targetUserId, emails));
+        } else {
+          // Fallback for environments without EdgeRuntime
+          processEmails(targetUserId, emails).catch(console.error);
+        }
         
         return new Response(JSON.stringify(emails), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -344,13 +391,13 @@ serve(async (req) => {
       
       case 'sync': {
         // Get Gmail token for the user
-        const accessToken = await getGmailToken(user.id);
+        const accessToken = await getGmailToken(targetUserId);
         
         // Fetch recent emails
         const emails = await fetchRecentEmails(accessToken, limit);
         
         // Process emails and wait for result
-        const results = await processEmails(user.id, emails);
+        const results = await processEmails(targetUserId, emails);
         
         return new Response(JSON.stringify(results), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
