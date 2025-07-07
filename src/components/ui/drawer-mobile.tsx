@@ -24,15 +24,17 @@ export function DrawerMobile({
   if (isMobile) {
     return (
       <Sheet open={isOpen} onOpenChange={onOpenChange}>
-        <SheetContent side="bottom" className="h-[90vh] overflow-auto pt-6">
-          <div className="mx-auto -mt-1 mb-4 h-1.5 w-[60px] rounded-full bg-muted" />
+        <SheetContent side="bottom" className="h-[90vh] overflow-auto pt-6 glass-card border-0">
+          <div className="mx-auto -mt-1 mb-6 h-1.5 w-[60px] rounded-full bg-muted/60 hover:bg-muted transition-colors cursor-grab active:cursor-grabbing" />
           {(title || description) && (
-            <div className="mb-5">
-              {title && <h3 className="text-lg font-semibold">{title}</h3>}
-              {description && <p className="text-sm text-muted-foreground">{description}</p>}
+            <div className="mb-6 px-1">
+              {title && <h3 className="text-xl font-semibold text-foreground">{title}</h3>}
+              {description && <p className="text-sm text-muted-foreground mt-2">{description}</p>}
             </div>
           )}
-          {children}
+          <div className="mobile-scroll">
+            {children}
+          </div>
         </SheetContent>
       </Sheet>
     );

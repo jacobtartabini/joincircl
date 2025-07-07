@@ -292,7 +292,7 @@
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* Mobile-specific improvements */
+/* Enhanced Mobile-specific improvements */
 @media (max-width: 768px) {
   * {
     -ms-overflow-style: none;
@@ -306,18 +306,55 @@
   .mobile-tap-target {
     min-height: 44px;
     min-width: 44px;
+    touch-action: manipulation;
   }
   
   .mobile-scroll {
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
+    overscroll-behavior: contain;
   }
 
   /* Optimized glass effects for mobile */
   .glass-card,
   .glass-button,
   .glass-nav {
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
+  }
+
+  /* Enhanced mobile interactions */
+  .glass-nav-item:active {
+    transform: scale(0.98);
+  }
+  
+  .glass-button:active {
+    transform: scale(0.98);
+  }
+  
+  /* Safe area handling */
+  .mobile-safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .mobile-safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  /* Mobile typography adjustments */
+  h1, h2, h3 {
+    line-height: 1.2;
+  }
+  
+  /* Mobile form enhancements */
+  .mobile-form-spacing {
+    gap: 1rem;
+  }
+  
+  /* Enhanced mobile card spacing */
+  .mobile-card-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: 1fr;
   }
 }
 

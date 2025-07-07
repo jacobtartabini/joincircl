@@ -13,10 +13,10 @@ export function TopStatusBar() {
   
   if (isMobile) {
     return (
-      <div className="flex items-center justify-between py-2 md:py-3 px-4 border-b border-border">
+      <div className="flex items-center justify-between py-3 px-4 border-b border-border/20 bg-background/80 backdrop-blur-lg">
         <div className="flex items-center space-x-3">
-          <CirclLogo size={20} />
-          <h1 className="text-lg font-semibold text-foreground">Circl</h1>
+          <CirclLogo size={22} />
+          <h1 className="text-lg font-semibold text-foreground gradient-text">Circl</h1>
         </div>
         <AvatarNotificationBell size="sm" />
       </div>

@@ -20,8 +20,8 @@ export function MobileOptimizedLayout({
     return (
       <div className="flex flex-col h-screen bg-background dark:bg-background overflow-hidden">
         <TopStatusBar />
-        <main className="flex-1 overflow-y-auto pb-24">
-          <div className="min-h-full">
+        <main className="flex-1 overflow-y-auto pb-24 mobile-scroll">
+          <div className="min-h-full px-4 py-4">
             {children}
           </div>
         </main>
@@ -31,9 +31,9 @@ export function MobileOptimizedLayout({
     );
   }
 
-  // Desktop layout
+  // Desktop layout with refined theme
   return (
-    <div className="flex flex-col h-screen bg-background dark:bg-background overflow-hidden">
+    <div className="flex flex-col h-screen bg-background dark:bg-background overflow-hidden refined-web-theme">
       <TopStatusBar />
       <main className="flex-1 overflow-y-auto">
         <div className="min-h-full max-w-full bg-inherit">

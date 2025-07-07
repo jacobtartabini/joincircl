@@ -26,14 +26,15 @@ export function AddContactDialog({
   if (isMobile) {
     return (
       <Sheet open={isOpen} onOpenChange={onOpenChange}>
-        <SheetContent side="bottom" className="h-[95vh] overflow-auto bg-white">
-          <SheetHeader className="pb-6">
-            <SheetTitle>Add Contact</SheetTitle>
-            <SheetDescription>
+        <SheetContent side="bottom" className="h-[95vh] overflow-auto glass-card border-0">
+          <div className="mx-auto -mt-1 mb-6 h-1.5 w-[60px] rounded-full bg-muted/60 hover:bg-muted transition-colors cursor-grab active:cursor-grabbing" />
+          <SheetHeader className="pb-6 px-1">
+            <SheetTitle className="text-xl font-semibold text-foreground text-left">Add Contact</SheetTitle>
+            <SheetDescription className="text-sm text-muted-foreground text-left mt-2">
               Add a new contact to your circles
             </SheetDescription>
           </SheetHeader>
-          <div className="px-2">
+          <div className="px-2 mobile-scroll">
             <ContactForm
               onSuccess={handleSuccess}
               onCancel={() => onOpenChange(false)}

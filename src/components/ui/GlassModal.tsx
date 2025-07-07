@@ -56,10 +56,10 @@ export function GlassModal({
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent 
           side="bottom" 
-          className={`${styles.glass} h-[95vh] overflow-auto border-0 shadow-xl rounded-t-3xl p-0`}
+          className={`${styles.glass} h-[95vh] overflow-auto border-0 shadow-xl rounded-t-3xl p-0 glass-card`}
         >
-          <div className="mx-auto -mt-1 mb-4 h-1.5 w-[60px] rounded-full bg-muted" />
-          <div className="px-6 py-4 h-full overflow-y-auto">
+          <div className="mx-auto -mt-1 mb-6 h-1.5 w-[60px] rounded-full bg-muted/60 hover:bg-muted transition-colors cursor-grab active:cursor-grabbing" />
+          <div className="px-6 py-2 h-full overflow-y-auto mobile-scroll">
             {content}
           </div>
         </SheetContent>
