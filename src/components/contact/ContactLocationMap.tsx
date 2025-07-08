@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { MapPin } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ContactLocationMapProps {
   location?: string;
@@ -20,12 +21,36 @@ export function ContactLocationMap({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Use your public Mapbox token directly
-  const mapboxToken = 'pk.eyJ1IjoiamFjb2J0YXJ0YWJpbmkiLCJhIjoiY21jNHFiNGJqMGk0bDJvcHpqMG14MWI4eSJ9.prmjtbXfU8a3Xbcg2oSpQQ';
+  const [mapboxToken, setMapboxToken] = useState<string>('');
+
+  // Fetch Mapbox token securely
+  useEffect(() => {
+    const fetchMapboxToken = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+
+        const response = await supabase.functions.invoke('get-mapbox-token', {
+        });
+
+        if (!response.error && response.data) {
+          setMapboxToken(response.data.token);
+        }
+      } catch (error) {
+        console.error('Failed to fetch Mapbox token:', error);
+      }
+    };
+
+    fetchMapboxToken();
+  }, []);
 
   useEffect(() => {
-    if (!location || !mapContainer.current) {
-      console.log('Map not loading:', { location: !!location, container: !!mapContainer.current });
+    if (!location || !mapContainer.current || !mapboxToken) {
+      console.log('Map not loading:', { 
+        location: !!location, 
+        container: !!mapContainer.current,
+        token: !!mapboxToken 
+      });
       return;
     }
 

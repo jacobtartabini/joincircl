@@ -9,6 +9,55 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Rate limiting
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const MAX_REQUESTS_PER_MINUTE = 20;
+
+function checkRateLimit(clientId: string): { allowed: boolean; resetTime?: number } {
+  const now = Date.now();
+  const clientRateData = rateLimitMap.get(clientId);
+  
+  if (!clientRateData || now > clientRateData.resetTime) {
+    // Reset or initialize rate limit
+    rateLimitMap.set(clientId, { count: 1, resetTime: now + 60000 });
+    return { allowed: true, resetTime: now + 60000 };
+  }
+  
+  if (clientRateData.count >= MAX_REQUESTS_PER_MINUTE) {
+    return { allowed: false, resetTime: clientRateData.resetTime };
+  }
+  
+  clientRateData.count++;
+  return { allowed: true, resetTime: clientRateData.resetTime };
+}
+
+function createRateLimitResponse(resetTime?: number) {
+  const resetInSeconds = resetTime ? Math.ceil((resetTime - Date.now()) / 1000) : 60;
+  return new Response(
+    JSON.stringify({ 
+      error: 'Rate limit exceeded',
+      message: `Too many requests. Try again in ${resetInSeconds} seconds.`
+    }), 
+    {
+      status: 429,
+      headers: { 
+        ...corsHeaders, 
+        'Content-Type': 'application/json',
+        'Retry-After': resetInSeconds.toString()
+      }
+    }
+  );
+}
+
+function getClientIP(req: Request): string {
+  // Try to get real IP from headers (for deployments behind proxies)
+  const xForwardedFor = req.headers.get('x-forwarded-for');
+  const xRealIP = req.headers.get('x-real-ip');
+  const cfConnectingIP = req.headers.get('cf-connecting-ip');
+  
+  return cfConnectingIP || xRealIP || (xForwardedFor?.split(',')[0]) || 'unknown';
+}
+
 interface AIRequest {
   prompt: string;
   model?: string;
@@ -23,6 +72,17 @@ serve(async (req) => {
   }
 
   try {
+    // Check rate limit using client IP
+    const clientId = getClientIP(req);
+    const rateLimitResult = checkRateLimit(clientId);
+    if (!rateLimitResult.allowed) {
+      console.log(`Rate limit exceeded for client ${clientId}`);
+      return createRateLimitResponse(rateLimitResult.resetTime);
+    }
+
+    // Log security event
+    console.log(`AI request from client: ${clientId} at ${new Date().toISOString()}`);
+
     const { prompt, maxTokens = 200, temperature = 0.7, systemPrompt }: AIRequest = await req.json();
 
     if (!togetherApiKey) {

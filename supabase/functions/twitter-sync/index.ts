@@ -6,6 +6,46 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Rate limiting
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const MAX_REQUESTS_PER_MINUTE = 5;
+
+function checkRateLimit(userId: string): { allowed: boolean; resetTime?: number } {
+  const now = Date.now();
+  const userRateData = rateLimitMap.get(userId);
+  
+  if (!userRateData || now > userRateData.resetTime) {
+    // Reset or initialize rate limit
+    rateLimitMap.set(userId, { count: 1, resetTime: now + 60000 });
+    return { allowed: true, resetTime: now + 60000 };
+  }
+  
+  if (userRateData.count >= MAX_REQUESTS_PER_MINUTE) {
+    return { allowed: false, resetTime: userRateData.resetTime };
+  }
+  
+  userRateData.count++;
+  return { allowed: true, resetTime: userRateData.resetTime };
+}
+
+function createRateLimitResponse(resetTime?: number) {
+  const resetInSeconds = resetTime ? Math.ceil((resetTime - Date.now()) / 1000) : 60;
+  return new Response(
+    JSON.stringify({ 
+      error: 'Rate limit exceeded',
+      message: `Too many requests. Try again in ${resetInSeconds} seconds.`
+    }), 
+    {
+      status: 429,
+      headers: { 
+        ...corsHeaders, 
+        'Content-Type': 'application/json',
+        'Retry-After': resetInSeconds.toString()
+      }
+    }
+  );
+}
+
 const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -197,7 +237,14 @@ serve(async (req) => {
       targetUserId = user.id;
     }
 
-    console.log(`Twitter sync requested for user ${targetUserId}, action: ${action}`);
+    // Check rate limit
+    const rateLimitResult = checkRateLimit(targetUserId);
+    if (!rateLimitResult.allowed) {
+      console.log(`Rate limit exceeded for user ${targetUserId}`);
+      return createRateLimitResponse(rateLimitResult.resetTime);
+    }
+
+    console.log(`Twitter sync requested for user ${targetUserId}, action: ${action} at ${new Date().toISOString()}`);
 
     switch (action) {
       case 'sync': {
