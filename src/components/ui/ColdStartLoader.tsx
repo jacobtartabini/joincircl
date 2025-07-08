@@ -30,54 +30,57 @@ export function ColdStartLoader({ show, onLoadingComplete }: ColdStartLoaderProp
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background">
-      {/* Glass effect background */}
+      {/* Branded background with subtle gradient */}
       <div 
-        className="absolute inset-0 glass-card"
+        className="absolute inset-0"
         style={{
-          background: 'linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted)/0.3) 50%, hsl(var(--background)) 100%)',
-          backdropFilter: 'blur(30px)',
+          background: 'linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted)/0.5) 100%)',
         }}
       />
       
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center space-y-8">
-        {/* Logo with subtle animation */}
+        {/* Logo with brand-consistent glass effect */}
         <div className="relative">
+          {/* Subtle glow effect using brand colors */}
           <div 
-            className="absolute inset-0 rounded-full opacity-20 animate-pulse"
+            className="absolute inset-0 rounded-full opacity-30 animate-pulse"
             style={{
-              background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--chart-1)) 100%)',
-              filter: 'blur(20px)',
-              transform: 'scale(1.5)',
+              background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, #38bbe1 100%)',
+              filter: 'blur(24px)',
+              transform: 'scale(1.8)',
             }}
           />
-          <div className="relative glass-card p-6 rounded-3xl">
-            <CirclLogo size={48} className="animate-pulse" />
+          <div className="relative glass-card p-8 rounded-3xl border border-border/20">
+            <CirclLogo size={56} className="text-primary" />
           </div>
         </div>
 
-        {/* App name with gradient */}
-        <div className="text-center space-y-2">
-          <h1 className="text-2xl font-bold gradient-text">Circl</h1>
-          <p className="text-sm text-muted-foreground">Connecting your circles</p>
+        {/* Brand-consistent app name */}
+        <div className="text-center space-y-3">
+          <h1 className="text-3xl font-bold gradient-text">Circl</h1>
+          <p className="text-sm text-muted-foreground font-medium">Connecting your circles</p>
         </div>
 
-        {/* Elegant spinner */}
+        {/* Enhanced spinner using brand colors */}
         <div className="relative">
-          <div 
-            className="w-8 h-8 rounded-full border-2 border-transparent animate-spin"
-            style={{
-              background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--chart-1)) 100%)',
-              borderImage: 'linear-gradient(45deg, hsl(var(--primary)), transparent, hsl(var(--primary))) 1',
-            }}
-          >
+          {/* Outer ring */}
+          <div className="w-10 h-10 rounded-full border-2 border-border/20 animate-spin">
             <div 
-              className="absolute inset-1 rounded-full"
+              className="absolute inset-0 rounded-full border-2 border-transparent border-t-primary animate-spin"
               style={{
-                background: 'hsl(var(--background))',
+                animationDuration: '1.5s',
               }}
             />
           </div>
+          {/* Inner dot */}
+          <div 
+            className="absolute top-1/2 left-1/2 w-2 h-2 rounded-full transform -translate-x-1/2 -translate-y-1/2"
+            style={{
+              background: 'hsl(var(--primary))',
+              boxShadow: '0 0 12px hsl(var(--primary)/0.4)',
+            }}
+          />
         </div>
       </div>
     </div>
