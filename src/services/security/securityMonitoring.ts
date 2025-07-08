@@ -64,13 +64,13 @@ class SecurityMonitor {
     this.isProcessing = true;
 
     try {
-      const events = [...this.eventQueue];
+      const eventsToProcess = [...this.eventQueue];
       this.eventQueue = [];
 
-      // Batch insert security events
-      const { error } = await supabase
+      // Use any to avoid complex type issues with the dynamic table
+      const { error } = await (supabase as any)
         .from('security_events')
-        .insert(events.map(event => ({
+        .insert(eventsToProcess.map(event => ({
           type: event.type,
           user_id: event.userId,
           client_ip: event.clientIp,
@@ -82,7 +82,7 @@ class SecurityMonitor {
       if (error) {
         console.error('Failed to log security events:', error);
         // Re-queue events if they failed to save
-        this.eventQueue.unshift(...events);
+        this.eventQueue.unshift(...eventsToProcess);
       }
     } catch (error) {
       console.error('Error processing security event queue:', error);
@@ -105,7 +105,8 @@ class SecurityMonitor {
     recommendations: string[];
   }> {
     try {
-      const query = supabase
+      // Use any to avoid complex type issues
+      const query = (supabase as any)
         .from('security_events')
         .select('*')
         .gte('occurred_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()) // Last 24 hours
@@ -169,7 +170,8 @@ class SecurityMonitor {
     const startTime = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
 
     try {
-      const { data: events, error } = await supabase
+      // Use any to avoid complex type issues
+      const { data: events, error } = await (supabase as any)
         .from('security_events')
         .select('*')
         .gte('occurred_at', startTime)
@@ -180,13 +182,13 @@ class SecurityMonitor {
       }
 
       // Group events by type
-      const eventsByType = events.reduce((acc, event) => {
+      const eventsByType = events.reduce((acc: any, event: any) => {
         acc[event.type] = (acc[event.type] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
 
       // Create timeline data
-      const timeline = events.reduce((acc, event) => {
+      const timeline = events.reduce((acc: any, event: any) => {
         const hour = new Date(event.occurred_at).toISOString().slice(0, 13);
         acc[hour] = (acc[hour] || 0) + 1;
         return acc;

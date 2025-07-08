@@ -887,6 +887,39 @@ export type Database = {
         }
         Relationships: []
       }
+      security_events: {
+        Row: {
+          client_ip: string | null
+          created_at: string
+          details: Json | null
+          id: string
+          occurred_at: string
+          type: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          client_ip?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          occurred_at?: string
+          type: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          client_ip?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          occurred_at?: string
+          type?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       social_posts: {
         Row: {
           contact_id: string | null

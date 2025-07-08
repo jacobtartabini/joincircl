@@ -51,6 +51,7 @@ import SkillGapAnalysis from "@/pages/career/SkillGapAnalysis";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ColdStartLoader } from "@/components/ui/ColdStartLoader";
 import { useColdStartLoader } from "@/hooks/useColdStartLoader";
+import { SecureHeaders } from "@/components/security/SecureHeaders";
 
 const queryClient = new QueryClient();
 
@@ -59,6 +60,7 @@ function AppContent() {
 
   return (
     <>
+      <SecureHeaders />
       <ColdStartLoader show={showLoader} onLoadingComplete={onLoadingComplete} />
       <Routes>
         {/* Public routes with clean URLs */}
