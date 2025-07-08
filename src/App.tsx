@@ -49,8 +49,88 @@ import OfferComparison from "@/pages/career/OfferComparison";
 import SkillGapAnalysis from "@/pages/career/SkillGapAnalysis";
 
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ColdStartLoader } from "@/components/ui/ColdStartLoader";
+import { useColdStartLoader } from "@/hooks/useColdStartLoader";
 
 const queryClient = new QueryClient();
+
+function AppContent() {
+  const { showLoader, onLoadingComplete } = useColdStartLoader();
+
+  return (
+    <>
+      <ColdStartLoader show={showLoader} onLoadingComplete={onLoadingComplete} />
+      <Routes>
+        {/* Public routes with clean URLs */}
+        <Route path="/signin" element={<SignIn />} />
+        <Route path="/signup" element={<SignUp />} />
+        <Route path="/forgot" element={<ForgotPassword />} />
+        <Route path="/reset" element={<ResetPassword />} />
+        <Route path="/auth/callback" element={<UnifiedAuthCallbackHandler />} />
+        <Route path="/auth/google/callback" element={<UnifiedAuthCallbackHandler />} />
+
+        {/* Onboarding route - protected but separate from main layout */}
+        <Route
+          path="/onboarding"
+          element={
+            <RequireAuth>
+              <Onboarding />
+            </RequireAuth>
+          }
+        />
+
+        {/* Protected routes */}
+        <Route
+          element={
+            <RequireAuth>
+              <MainLayout>
+                <Outlet />
+              </MainLayout>
+            </RequireAuth>
+          }
+        >
+          <Route path="/" element={<Home />} />
+          
+          {/* Core application routes - using the mobile-aware Circles component */}
+          <Route path="/circles" element={<Circles />} />
+          <Route path="/contact/:id" element={<RedesignedContactDetail />} />
+          <Route path="/events" element={<Events />} />
+          <Route path="/arlo" element={<Arlo />} />
+          <Route path="/notifications" element={<Notifications />} />
+          
+          {/* Career Hub and tools */}
+          <Route path="/career" element={<CareerHub />} />
+          <Route path="/career/resume" element={<ResumeReviewer />} />
+          <Route path="/career/coverLetter" element={<CoverLetterGenerator />} />
+          <Route path="/career/jobAnalyzer" element={<JobAnalyzer />} />
+          <Route path="/career/networkDiscovery" element={<NetworkDiscovery />} />
+          <Route path="/career/interviewerResearch" element={<InterviewerResearch />} />
+          <Route path="/career/companyResearch" element={<CompanyResearch />} />
+          <Route path="/career/mockInterview" element={<MockInterview />} />
+          <Route path="/career/followUp" element={<FollowUpGenerator />} />
+          <Route path="/career/offerCompare" element={<OfferComparison />} />
+          <Route path="/career/skillGap" element={<SkillGapAnalysis />} />
+          
+          {/* Settings and management */}
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/duplicates" element={<Duplicates />} />
+          
+          {/* Support and information */}
+          <Route path="/help" element={<Help />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/bugs" element={<Bugs />} />
+          <Route path="/legal" element={<Legal />} />
+          <Route path="/security" element={<SecurityGuide />} />
+          
+          {/* PWA functionality */}
+          <Route path="/share-target" element={<ShareTarget />} />
+        </Route>
+        
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </>
+  );
+}
 
 function App() {
   return (
@@ -61,74 +141,7 @@ function App() {
           <Sonner />
           <BrowserRouter>
             <AuthErrorBoundary>
-              <Routes>
-                {/* Public routes with clean URLs */}
-                <Route path="/signin" element={<SignIn />} />
-                <Route path="/signup" element={<SignUp />} />
-                <Route path="/forgot" element={<ForgotPassword />} />
-                <Route path="/reset" element={<ResetPassword />} />
-                <Route path="/auth/callback" element={<UnifiedAuthCallbackHandler />} />
-                <Route path="/auth/google/callback" element={<UnifiedAuthCallbackHandler />} />
-
-                {/* Onboarding route - protected but separate from main layout */}
-                <Route
-                  path="/onboarding"
-                  element={
-                    <RequireAuth>
-                      <Onboarding />
-                    </RequireAuth>
-                  }
-                />
-
-                {/* Protected routes */}
-                <Route
-                  element={
-                    <RequireAuth>
-                      <MainLayout>
-                        <Outlet />
-                      </MainLayout>
-                    </RequireAuth>
-                  }
-                >
-                  <Route path="/" element={<Home />} />
-                  
-                  {/* Core application routes - using the mobile-aware Circles component */}
-                  <Route path="/circles" element={<Circles />} />
-                  <Route path="/contact/:id" element={<RedesignedContactDetail />} />
-                  <Route path="/events" element={<Events />} />
-                  <Route path="/arlo" element={<Arlo />} />
-                  <Route path="/notifications" element={<Notifications />} />
-                  
-                  {/* Career Hub and tools */}
-                  <Route path="/career" element={<CareerHub />} />
-                  <Route path="/career/resume" element={<ResumeReviewer />} />
-                  <Route path="/career/coverLetter" element={<CoverLetterGenerator />} />
-                  <Route path="/career/jobAnalyzer" element={<JobAnalyzer />} />
-                  <Route path="/career/networkDiscovery" element={<NetworkDiscovery />} />
-                  <Route path="/career/interviewerResearch" element={<InterviewerResearch />} />
-                  <Route path="/career/companyResearch" element={<CompanyResearch />} />
-                  <Route path="/career/mockInterview" element={<MockInterview />} />
-                  <Route path="/career/followUp" element={<FollowUpGenerator />} />
-                  <Route path="/career/offerCompare" element={<OfferComparison />} />
-                  <Route path="/career/skillGap" element={<SkillGapAnalysis />} />
-                  
-                  {/* Settings and management */}
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/duplicates" element={<Duplicates />} />
-                  
-                  {/* Support and information */}
-                  <Route path="/help" element={<Help />} />
-                  <Route path="/contact" element={<Contact />} />
-                  <Route path="/bugs" element={<Bugs />} />
-                  <Route path="/legal" element={<Legal />} />
-                  <Route path="/security" element={<SecurityGuide />} />
-                  
-                  {/* PWA functionality */}
-                  <Route path="/share-target" element={<ShareTarget />} />
-                </Route>
-                
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <AppContent />
             </AuthErrorBoundary>
           </BrowserRouter>
         </TooltipProvider>
