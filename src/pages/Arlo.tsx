@@ -366,25 +366,6 @@ export default function Arlo() {
 
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col min-h-0">
-        {/* Header with refined styling */}
-        <div className="flex-shrink-0 border-b border-border/30 px-6 py-4 bg-background/50 backdrop-blur-xl"
-          style={{
-            background: 'rgba(255, 255, 255, 0.5)',
-            backdropFilter: 'blur(20px)',
-            borderBottom: '1px solid rgba(0, 0, 0, 0.08)'
-          }}
-        >
-          <div className="flex items-center justify-end">
-            <Button
-              onClick={refreshConversations}
-              variant="ghost"
-              size="sm"
-              className="hover:bg-muted/50 transition-colors rounded-xl"
-            >
-              <RefreshCw className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
 
         {/* Messages Area */}
         <div className="flex-1 min-h-0 relative">
