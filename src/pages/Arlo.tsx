@@ -1,337 +1,525 @@
-
-import React, { useState, useEffect } from 'react';
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState, useRef, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Progress } from "@/components/ui/progress";
-import { 
-  Send, 
-  Mic, 
-  MicOff, 
-  Brain, 
-  Target, 
-  TrendingUp, 
-  Clock, 
-  Calendar,
-  User,
-  MessageSquare,
-  BarChart3,
-  Settings,
-  ChevronRight,
-  Star,
-  Lightbulb
-} from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Brain, Send, RefreshCw, Loader2 } from "lucide-react";
+import { useContacts } from "@/hooks/use-contacts";
+import { useConversations } from "@/hooks/use-conversations";
+import { useSidebarState } from "@/hooks/use-sidebar-state";
+import { AutoExpandingTextarea } from "@/components/ui/auto-expanding-textarea";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
+import { useIsMobile } from "@/hooks/use-mobile";
+import ConversationSidebar from "@/components/ai/ConversationSidebar";
+import ConversationStarters from "@/components/ai/ConversationStarters";
 
-interface Message {
-  id: string;
-  content: string;
-  sender: 'user' | 'arlo';
-  timestamp: Date;
-  type?: 'text' | 'insight' | 'action';
-}
-
-interface InsightCard {
-  id: string;
-  title: string;
-  content: string;
-  category: 'networking' | 'career' | 'productivity';
-  priority: 'high' | 'medium' | 'low';
-  actionable: boolean;
-}
-
-const Arlo = () => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      content: "Hello! I'm Arlo, your AI career companion. I'm here to help you navigate your professional journey, optimize your networking, and achieve your career goals. What would you like to work on today?",
-      sender: 'arlo',
-      timestamp: new Date(),
-      type: 'text'
-    }
-  ]);
+export default function Arlo() {
+  const { contacts } = useContacts();
+  const {
+    conversations,
+    activeConversation,
+    activeConversationId,
+    isLoading: conversationsLoading,
+    setActiveConversationId,
+    createNewConversation,
+    deleteConversation,
+    renameConversation,
+    addMessage,
+    refreshConversations
+  } = useConversations();
   
-  const [inputMessage, setInputMessage] = useState('');
-  const [isListening, setIsListening] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
-  
-  const [insights, setInsights] = useState<InsightCard[]>([
-    {
-      id: '1',
-      title: 'Networking Opportunity',
-      content: 'You haven\'t connected with Sarah Chen in 3 weeks. Consider reaching out about her recent promotion.',
-      category: 'networking',
-      priority: 'high',
-      actionable: true
-    },
-    {
-      id: '2',
-      title: 'Career Progress',
-      content: 'Your application to TechCorp is in the interview stage. Prepare for potential technical questions.',
-      category: 'career',
-      priority: 'high',
-      actionable: true
-    },
-    {
-      id: '3',
-      title: 'Skill Development',
-      content: 'Based on your goals, consider taking a course in machine learning fundamentals.',
-      category: 'productivity',
-      priority: 'medium',
-      actionable: true
-    }
-  ]);
+  const { isOpen: sidebarOpen, toggleSidebar } = useSidebarState();
+  const [isLoading, setIsLoading] = useState(false);
+  const [inputValue, setInputValue] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
 
-  const sendMessage = async () => {
-    if (!inputMessage.trim()) return;
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content: inputMessage,
-      sender: 'user',
-      timestamp: new Date(),
-      type: 'text'
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    setInputMessage('');
-    setIsTyping(true);
-
-    // Simulate AI response
-    setTimeout(() => {
-      const arloResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        content: "I understand you'd like help with that. Let me analyze your situation and provide some tailored recommendations...",
-        sender: 'arlo',
-        timestamp: new Date(),
-        type: 'text'
-      };
-      
-      setMessages(prev => [...prev, arloResponse]);
-      setIsTyping(false);
-    }, 2000);
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth"
+    });
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  useEffect(() => {
+    scrollToBottom();
+  }, [activeConversation?.messages]);
+
+  const handleSendMessage = async () => {
+    if (!inputValue.trim() || isLoading) return;
+
+    console.log('[Arlo] Sending message', { input: inputValue, hasActiveConversation: !!activeConversationId });
+
+    // Create conversation if this is the first message
+    let conversationId = activeConversationId;
+    if (!conversationId || conversations.length === 0) {
+      console.log('[Arlo] Creating new conversation');
+      conversationId = createNewConversation();
+    }
+    
+    if (!conversationId) {
+      console.error('[Arlo] Failed to create or get conversation ID');
+      toast.error("Failed to create conversation");
+      return;
+    }
+
+    const userMessageContent = inputValue;
+    console.log('[Arlo] Adding user message to conversation', { conversationId });
+    
+    const messageId = await addMessage(conversationId, {
+      role: 'user',
+      content: userMessageContent
+    });
+
+    if (!messageId) {
+      console.error('[Arlo] Failed to add user message');
+      toast.error("Failed to send message");
+      return;
+    }
+
+    setInputValue("");
+    setIsLoading(true);
+
+    try {
+      const networkSummary = `Network: ${contacts.length} contacts (${contacts.filter(c => c.circle === 'inner').length} inner, ${contacts.filter(c => c.circle === 'middle').length} middle, ${contacts.filter(c => c.circle === 'outer').length} outer)`;
+      const recentContacts = contacts.slice(0, 5);
+      const contactContext = recentContacts.length > 0 ? `Recent contacts: ${recentContacts.map(c => `${c.name} (${c.circle}${c.last_contact ? `, last: ${new Date(c.last_contact).toLocaleDateString()}` : ''})`).join(', ')}` : 'No contacts yet';
+
+      const systemPrompt = `You're Arlo, Circl's relationship advisor. Provide helpful, structured responses.
+
+      **Formatting Guidelines:**
+      - Use **bold headers** for main topics
+      - Break information into bullet points or numbered lists
+      - Keep paragraphs short (2-3 sentences max)
+      - Use clear sections for different aspects
+      - Be concise but comprehensive
+      - Adapt length to question complexity
+
+      **Tone Guidelines:**
+      - Be friendly and professional
+      - Use "you" and "your" - be personal
+      - Give specific, actionable advice
+      - Sound like a knowledgeable assistant
+      - Always refer to yourself as "Arlo"
+
+      Focus areas: relationship maintenance, networking strategies, follow-up timing, communication best practices.
+
+      ${networkSummary}
+      ${contactContext}`;
+
+      console.log('[Arlo] Calling AI service');
+
+      const { data, error } = await supabase.functions.invoke('openrouter-ai', {
+        body: {
+          prompt: userMessageContent,
+          systemPrompt: systemPrompt,
+          model: 'mistralai/mistral-7b-instruct',
+          maxTokens: 400,
+          temperature: 0.7
+        }
+      });
+
+      if (error) {
+        console.error('[Arlo] AI service error', error);
+        throw new Error(`AI service error: ${error.message}`);
+      }
+
+      const aiResponse = data?.response || "**How can I help?** Ask me about:\n\n• Your relationship network\n• Networking strategies\n• Follow-up timing\n• Communication best practices";
+
+      console.log('[Arlo] Adding AI response to conversation');
+      
+      const aiMessageId = await addMessage(conversationId, {
+        role: 'assistant',
+        content: aiResponse
+      });
+
+      if (!aiMessageId) {
+        console.error('[Arlo] Failed to add AI message');
+        toast.error("Failed to save AI response");
+      }
+
+    } catch (error) {
+      console.error('[Arlo] Error getting AI response:', error);
+      
+      const errorMessage = "**Sorry!** I'm having trouble right now. Please try asking about:\n\n• Specific contacts or relationships\n• Networking strategies\n• Follow-up timing\n• Communication tips";
+      
+      await addMessage(conversationId, {
+        role: 'assistant',
+        content: errorMessage
+      });
+      
+      toast.error("Arlo is temporarily unavailable");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePromptSelect = (prompt: string) => {
+    setInputValue(prompt);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      sendMessage();
+      handleSendMessage();
     }
   };
 
-  const toggleListening = () => {
-    setIsListening(!isListening);
-    if (!isListening) {
-      toast.success("Voice input activated");
-    } else {
-      toast.info("Voice input deactivated");
-    }
+  const formatMessage = (content: string) => {
+    const sections = content.split('\n\n');
+    return sections.map((section, index) => {
+      if (section.includes('**') && section.includes('**')) {
+        const parts = section.split('**');
+        return (
+          <div key={index} className="mb-3">
+            {parts.map((part, partIndex) => 
+              partIndex % 2 === 1 ? (
+                <strong key={partIndex} className="text-foreground font-medium">
+                  {part}
+                </strong>
+              ) : (
+                <span key={partIndex}>{part}</span>
+              )
+            )}
+          </div>
+        );
+      }
+      if (section.includes('•') || section.includes('-')) {
+        const lines = section.split('\n');
+        return (
+          <div key={index} className="mb-3">
+            {lines.map((line, lineIndex) => {
+              if (line.trim().startsWith('•') || line.trim().startsWith('-')) {
+                return (
+                  <div key={lineIndex} className="flex items-start gap-2 mb-1.5">
+                    <span className="text-primary mt-1 text-xs">•</span>
+                    <span className="text-muted-foreground text-sm leading-relaxed">
+                      {line.replace(/^[•-]\s*/, '')}
+                    </span>
+                  </div>
+                );
+              }
+              return (
+                <div key={lineIndex} className="text-muted-foreground text-sm leading-relaxed mb-1.5">
+                  {line}
+                </div>
+              );
+            })}
+          </div>
+        );
+      }
+      return (
+        <div key={index} className="mb-3 text-muted-foreground text-sm leading-relaxed">
+          {section}
+        </div>
+      );
+    });
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'destructive';
-      case 'medium': return 'default';
-      case 'low': return 'secondary';
-      default: return 'default';
-    }
-  };
+  // Show loading state while conversations are loading
+  if (conversationsLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center refined-web-theme">
+        <div className="text-center">
+          <div className="w-16 h-16 glass-card rounded-2xl flex items-center justify-center mb-4 mx-auto">
+            <Brain className="h-8 w-8 text-primary" />
+          </div>
+          <p className="text-muted-foreground">Loading conversations...</p>
+        </div>
+      </div>
+    );
+  }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      <div className="container mx-auto px-4 py-6 max-w-7xl">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-8rem)]">
-          {/* Main Chat Interface */}
-          <div className="lg:col-span-2 flex flex-col">
-            <Card className="flex-1 flex flex-col shadow-xl border-0 bg-card/95 backdrop-blur-xl">
-              <div className="flex items-center justify-between p-6 border-b border-border/30">
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-10 w-10 ring-2 ring-primary/20">
-                    <AvatarImage src="/placeholder.svg" />
-                    <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
-                      <Brain className="h-5 w-5" />
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h1 className="text-xl font-semibold text-foreground">Arlo</h1>
-                    <p className="text-sm text-muted-foreground">Your AI Career Companion</p>
+  if (isMobile) {
+    return (
+      <div className="h-full flex flex-col refined-web-theme pb-20">
+        {/* Mobile Header */}
+        <div className="flex-shrink-0 glass-nav border-b p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 glass-card rounded-xl flex items-center justify-center">
+              <Brain className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex-1">
+              {/* Mobile header content removed as requested */}
+            </div>
+            <Button
+              onClick={refreshConversations}
+              variant="ghost"
+              size="sm"
+              className="glass-button p-2"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Chat Messages Area */}
+        <div className="flex-1 min-h-0">
+          <ScrollArea className="h-full">
+            <div className="p-4 pb-32">
+              {!activeConversation || activeConversation.messages.length <= 1 ? (
+                <ConversationStarters onSelectPrompt={handlePromptSelect} />
+              ) : (
+                <AnimatePresence>
+                  {activeConversation.messages.slice(1).map((message) => (
+                    <motion.div
+                      key={message.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className={cn(
+                        "flex mb-4",
+                        message.role === 'user' ? "justify-end" : "justify-start"
+                      )}
+                    >
+                      <div className={cn(
+                        "max-w-[85%] rounded-2xl px-4 py-3",
+                        message.role === 'user'
+                          ? "bg-primary text-primary-foreground"
+                          : "glass-card"
+                      )}>
+                        {message.role === 'user' ? (
+                          <p className="text-sm leading-relaxed">{message.content}</p>
+                        ) : (
+                          <div className="prose-sm">
+                            {formatMessage(message.content)}
+                          </div>
+                        )}
+                        
+                        <div className={cn(
+                          "text-xs mt-2 opacity-60",
+                          message.role === 'user' ? "text-primary-foreground" : "text-muted-foreground"
+                        )}>
+                          {message.timestamp.toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              )}
+              
+              {isLoading && (
+                <div className="flex justify-start mb-4">
+                  <div className="glass-card px-4 py-3 rounded-2xl">
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                      <span className="text-sm text-muted-foreground">Thinking...</span>
+                    </div>
                   </div>
                 </div>
-                <Badge variant="outline" className="gap-1.5">
-                  <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
-                  Online
-                </Badge>
-              </div>
+              )}
+              
+              <div ref={messagesEndRef} />
+            </div>
+          </ScrollArea>
+        </div>
 
-              <ScrollArea className="flex-1 p-6">
-                <div className="space-y-4">
-                  {messages.map((message) => (
-                    <div
+        {/* Fixed Input Area */}
+        <div className="fixed bottom-32 left-0 right-0 glass-nav border-t p-4">
+          <div className="flex items-end gap-3">
+            <AutoExpandingTextarea
+              placeholder="Ask Arlo about your relationships..."
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={isLoading}
+              className="flex-1 glass-input"
+              maxHeight={120}
+            />
+            <Button
+              onClick={handleSendMessage}
+              disabled={isLoading || !inputValue.trim()}
+              size="sm"
+              className="min-w-[44px] h-[44px] rounded-xl"
+            >
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-screen flex refined-web-theme overflow-hidden">
+      {/* Sidebar */}
+      <ConversationSidebar
+        conversations={conversations}
+        activeConversationId={activeConversationId}
+        onSelectConversation={setActiveConversationId}
+        onCreateConversation={() => {
+          const newId = createNewConversation();
+          return newId;
+        }}
+        onDeleteConversation={deleteConversation}
+        onRenameConversation={renameConversation}
+        isCollapsed={!sidebarOpen}
+        onToggleCollapse={toggleSidebar}
+      />
+
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col min-h-0">
+        {/* Header with refined styling */}
+        <div className="flex-shrink-0 border-b border-border/30 px-6 py-4 bg-background/50 backdrop-blur-xl"
+          style={{
+            background: 'rgba(255, 255, 255, 0.5)',
+            backdropFilter: 'blur(20px)',
+            borderBottom: '1px solid rgba(0, 0, 0, 0.08)'
+          }}
+        >
+          <div className="flex items-center justify-end">
+            <Button
+              onClick={refreshConversations}
+              variant="ghost"
+              size="sm"
+              className="hover:bg-muted/50 transition-colors rounded-xl"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Messages Area */}
+        <div className="flex-1 min-h-0 relative">
+          <div 
+            className="h-full overflow-y-auto scrollbar-hide"
+            style={{
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none'
+            }}
+          >
+            <div className="max-w-3xl mx-auto px-6">
+              {!activeConversation || activeConversation.messages.length <= 1 ? (
+                <div className="py-8">
+                  <ConversationStarters onSelectPrompt={handlePromptSelect} />
+                </div>
+              ) : (
+                <div className="py-8 space-y-6 pb-32">
+                  {activeConversation.messages.slice(1).map((message) => (
+                    <motion.div
                       key={message.id}
-                      className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className={cn(
+                        "flex",
+                        message.role === 'user' ? 'justify-end' : 'justify-start'
+                      )}
                     >
-                      <div
-                        className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-                          message.sender === 'user'
-                            ? 'bg-primary text-primary-foreground ml-4'
-                            : 'bg-muted/80 text-foreground mr-4'
-                        }`}
+                      <div className={cn(
+                        "max-w-[75%] rounded-2xl px-5 py-4 shadow-sm",
+                        message.role === 'user'
+                          ? 'bg-primary text-primary-foreground shadow-primary/20'
+                          : 'bg-card/90 backdrop-blur-sm border border-border/50 shadow-lg'
+                      )}
+                        style={message.role !== 'user' ? {
+                          background: 'rgba(255, 255, 255, 0.95)',
+                          backdropFilter: 'blur(10px)',
+                          border: '1px solid rgba(0, 0, 0, 0.08)'
+                        } : {}}
                       >
-                        <p className="text-sm leading-relaxed">{message.content}</p>
-                        <p className="text-xs opacity-70 mt-2">
-                          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </p>
+                        {message.role === 'user' ? (
+                          <p className="text-sm leading-relaxed">{message.content}</p>
+                        ) : (
+                          <div className="prose-sm">
+                            {formatMessage(message.content)}
+                          </div>
+                        )}
+                        
+                        <div className={cn(
+                          "text-xs mt-2 opacity-60",
+                          message.role === 'user' ? "text-primary-foreground" : "text-muted-foreground"
+                        )}>
+                          {message.timestamp.toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </div>
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
                   
-                  {isTyping && (
+                  {isLoading && (
                     <div className="flex justify-start">
-                      <div className="bg-muted/80 text-foreground rounded-2xl px-4 py-3 mr-4">
+                      <div className="bg-card/90 backdrop-blur-sm border border-border/50 rounded-2xl px-5 py-4 shadow-lg"
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.95)',
+                          backdropFilter: 'blur(10px)',
+                          border: '1px solid rgba(0, 0, 0, 0.08)'
+                        }}
+                      >
                         <div className="flex items-center gap-2">
-                          <div className="flex gap-1">
-                            <div className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                            <div className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                            <div className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                          </div>
-                          <span className="text-xs text-muted-foreground">Arlo is thinking...</span>
+                          <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                          <span className="text-sm text-muted-foreground">Thinking...</span>
                         </div>
                       </div>
                     </div>
                   )}
                 </div>
-              </ScrollArea>
-
-              <div className="p-6 border-t border-border/30 bg-background/50">
-                <div className="flex gap-3">
-                  <div className="relative flex-1">
-                    <Textarea
-                      value={inputMessage}
-                      onChange={(e) => setInputMessage(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                      placeholder="Ask Arlo anything about your career, networking, or professional goals..."
-                      className="min-h-[44px] max-h-32 resize-none border-border/50 bg-background/80 focus:bg-background transition-colors"
-                      rows={1}
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={toggleListening}
-                      className={`h-11 w-11 ${isListening ? 'bg-red-500 hover:bg-red-600 text-white' : 'hover:bg-muted'}`}
-                    >
-                      {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                    </Button>
-                    <Button 
-                      onClick={sendMessage}
-                      disabled={!inputMessage.trim() || isTyping}
-                      className="h-11 px-6"
-                    >
-                      <Send className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </Card>
+              )}
+              
+              <div ref={messagesEndRef} />
+            </div>
           </div>
+        </div>
 
-          {/* Sidebar with Insights and Analytics */}
-          <div className="space-y-6">
-            <Card className="shadow-xl border-0 bg-card/95 backdrop-blur-xl">
-              <div className="p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <Lightbulb className="h-5 w-5 text-primary" />
-                  <h2 className="text-lg font-semibold">Smart Insights</h2>
-                </div>
-                
-                <div className="space-y-3">
-                  {insights.map((insight) => (
-                    <div
-                      key={insight.id}
-                      className="p-4 rounded-lg border border-border/50 bg-background/50 hover:bg-background/80 transition-colors cursor-pointer group"
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <h3 className="font-medium text-sm text-foreground group-hover:text-primary transition-colors">
-                          {insight.title}
-                        </h3>
-                        <Badge variant={getPriorityColor(insight.priority)} className="text-xs">
-                          {insight.priority}
-                        </Badge>
-                      </div>
-                      <p className="text-xs text-muted-foreground leading-relaxed mb-3">
-                        {insight.content}
-                      </p>
-                      {insight.actionable && (
-                        <Button size="sm" variant="outline" className="h-7 text-xs">
-                          Take Action
-                          <ChevronRight className="h-3 w-3 ml-1" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                </div>
+        {/* Fixed Input Area - Enhanced styling with cleaner background */}
+        <div className="flex-shrink-0 border-t border-border/30 px-6 py-6 mb-32 bg-background/80 backdrop-blur-xl"
+          style={{
+            background: 'rgba(255, 255, 255, 0.8)',
+            backdropFilter: 'blur(20px)',
+            borderTop: '1px solid rgba(0, 0, 0, 0.08)'
+          }}
+        >
+          <div className="max-w-3xl mx-auto">
+            <div className="flex items-end gap-4">
+              <div className="flex-1 relative">
+                <AutoExpandingTextarea
+                  placeholder="Ask Arlo about your relationships..."
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  disabled={isLoading}
+                  className="flex-1 bg-card/80 backdrop-blur-sm border border-border/50 shadow-sm hover:shadow-md focus:shadow-lg transition-all duration-300"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.9)',
+                    backdropFilter: 'blur(10px)',
+                    borderRadius: '16px'
+                  }}
+                  maxHeight={120}
+                />
               </div>
-            </Card>
-
-            <Card className="shadow-xl border-0 bg-card/95 backdrop-blur-xl">
-              <div className="p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <BarChart3 className="h-5 w-5 text-primary" />
-                  <h2 className="text-lg font-semibold">Progress Overview</h2>
-                </div>
-                
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium">Networking Goals</span>
-                      <span className="text-sm text-muted-foreground">75%</span>
-                    </div>
-                    <Progress value={75} className="h-2" />
-                  </div>
-                  
-                  <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium">Job Applications</span>
-                      <span className="text-sm text-muted-foreground">60%</span>
-                    </div>
-                    <Progress value={60} className="h-2" />
-                  </div>
-                  
-                  <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium">Skill Development</span>
-                      <span className="text-sm text-muted-foreground">40%</span>
-                    </div>
-                    <Progress value={40} className="h-2" />
-                  </div>
-                </div>
-
-                <Separator className="my-4" />
-
-                <div className="grid grid-cols-2 gap-4 text-center">
-                  <div>
-                    <div className="text-2xl font-bold text-primary">23</div>
-                    <div className="text-xs text-muted-foreground">Active Connections</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-primary">8</div>
-                    <div className="text-xs text-muted-foreground">Applications</div>
-                  </div>
-                </div>
-              </div>
-            </Card>
+              <Button
+                onClick={handleSendMessage}
+                disabled={isLoading || !inputValue.trim()}
+                size="sm"
+                className="min-w-[52px] h-[52px] rounded-2xl shadow-md hover:shadow-lg transition-all duration-300"
+              >
+                {isLoading ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <Send className="h-5 w-5" />
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
+
+      <style>
+        {`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+      `}
+      </style>
     </div>
   );
-};
-
-export default Arlo;
+}
