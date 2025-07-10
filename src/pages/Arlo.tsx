@@ -365,70 +365,87 @@ export default function Arlo() {
       />
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col min-h-0">
-
-        {/* Messages Area */}
-        <div className="flex-1 min-h-0 relative">
-          <div 
-            className="h-full overflow-y-auto scrollbar-hide"
-            style={{
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none'
-            }}
-          >
-            <div className="max-w-3xl mx-auto px-6">
+      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+        {/* Messages Area - Scrollable */}
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <ScrollArea className="h-full">
+            <div className="max-w-3xl mx-auto px-6 py-8">
               {!activeConversation || activeConversation.messages.length <= 1 ? (
-                <div className="py-8">
+                <motion.div 
+                  className="min-h-[calc(100vh-200px)] flex items-center justify-center"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                >
                   <ConversationStarters onSelectPrompt={handlePromptSelect} />
-                </div>
+                </motion.div>
               ) : (
-                <div className="py-8 space-y-6 pb-32">
-                  {activeConversation.messages.slice(1).map((message) => (
-                    <motion.div
-                      key={message.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className={cn(
-                        "flex",
-                        message.role === 'user' ? 'justify-end' : 'justify-start'
-                      )}
-                    >
-                      <div className={cn(
-                        "max-w-[75%] rounded-2xl px-5 py-4 shadow-sm",
-                        message.role === 'user'
-                          ? 'bg-primary text-primary-foreground shadow-primary/20'
-                          : 'bg-card/90 backdrop-blur-sm border border-border/50 shadow-lg'
-                      )}
-                        style={message.role !== 'user' ? {
-                          background: 'rgba(255, 255, 255, 0.95)',
-                          backdropFilter: 'blur(10px)',
-                          border: '1px solid rgba(0, 0, 0, 0.08)'
-                        } : {}}
-                      >
-                        {message.role === 'user' ? (
-                          <p className="text-sm leading-relaxed">{message.content}</p>
-                        ) : (
-                          <div className="prose-sm">
-                            {formatMessage(message.content)}
-                          </div>
+                <div className="space-y-6 pb-32">
+                  <AnimatePresence>
+                    {activeConversation.messages.slice(1).map((message, index) => (
+                      <motion.div
+                        key={message.id}
+                        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                        transition={{ 
+                          duration: 0.3, 
+                          delay: index * 0.1,
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 30
+                        }}
+                        className={cn(
+                          "flex",
+                          message.role === 'user' ? 'justify-end' : 'justify-start'
                         )}
-                        
-                        <div className={cn(
-                          "text-xs mt-2 opacity-60",
-                          message.role === 'user' ? "text-primary-foreground" : "text-muted-foreground"
-                        )}>
-                          {message.timestamp.toLocaleTimeString([], {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
+                      >
+                        <motion.div 
+                          className={cn(
+                            "max-w-[75%] rounded-2xl px-5 py-4 shadow-sm",
+                            message.role === 'user'
+                              ? 'bg-primary text-primary-foreground shadow-primary/20'
+                              : 'bg-card/90 backdrop-blur-sm border border-border/50 shadow-lg'
+                          )}
+                          style={message.role !== 'user' ? {
+                            background: 'rgba(255, 255, 255, 0.95)',
+                            backdropFilter: 'blur(10px)',
+                            border: '1px solid rgba(0, 0, 0, 0.08)'
+                          } : {}}
+                          whileHover={{ 
+                            scale: 1.02,
+                            transition: { duration: 0.2 }
+                          }}
+                        >
+                          {message.role === 'user' ? (
+                            <p className="text-sm leading-relaxed">{message.content}</p>
+                          ) : (
+                            <div className="prose-sm">
+                              {formatMessage(message.content)}
+                            </div>
+                          )}
+                          
+                          <div className={cn(
+                            "text-xs mt-2 opacity-60",
+                            message.role === 'user' ? "text-primary-foreground" : "text-muted-foreground"
+                          )}>
+                            {message.timestamp.toLocaleTimeString([], {
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </div>
+                        </motion.div>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
                   
                   {isLoading && (
-                    <div className="flex justify-start">
+                    <motion.div 
+                      className="flex justify-start"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
                       <div className="bg-card/90 backdrop-blur-sm border border-border/50 rounded-2xl px-5 py-4 shadow-lg"
                         style={{
                           background: 'rgba(255, 255, 255, 0.95)',
@@ -441,57 +458,69 @@ export default function Arlo() {
                           <span className="text-sm text-muted-foreground">Thinking...</span>
                         </div>
                       </div>
-                    </div>
+                    </motion.div>
                   )}
+                  
+                  <div ref={messagesEndRef} />
                 </div>
               )}
-              
-              <div ref={messagesEndRef} />
             </div>
-          </div>
+          </ScrollArea>
         </div>
 
-        {/* Fixed Input Area - Enhanced styling with cleaner background */}
-        <div className="flex-shrink-0 border-t border-border/30 px-6 py-6 mb-32 bg-background/80 backdrop-blur-xl"
+        {/* Fixed Input Area */}
+        <motion.div 
+          className="flex-shrink-0 p-6 border-t border-border/30"
           style={{
-            background: 'rgba(255, 255, 255, 0.8)',
+            background: 'rgba(255, 255, 255, 0.95)',
             backdropFilter: 'blur(20px)',
             borderTop: '1px solid rgba(0, 0, 0, 0.08)'
           }}
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
         >
           <div className="max-w-3xl mx-auto">
-            <div className="flex items-end gap-4">
-              <div className="flex-1 relative">
-                <AutoExpandingTextarea
-                  placeholder="Ask Arlo about your relationships..."
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  disabled={isLoading}
-                  className="flex-1 bg-card/80 backdrop-blur-sm border border-border/50 shadow-sm hover:shadow-md focus:shadow-lg transition-all duration-300"
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.9)',
-                    backdropFilter: 'blur(10px)',
-                    borderRadius: '16px'
-                  }}
-                  maxHeight={120}
-                />
-              </div>
-              <Button
-                onClick={handleSendMessage}
-                disabled={isLoading || !inputValue.trim()}
-                size="sm"
-                className="min-w-[52px] h-[52px] rounded-2xl shadow-md hover:shadow-lg transition-all duration-300"
+            <motion.div 
+              className="flex items-end gap-3"
+              whileHover={{ scale: 1.01 }}
+              transition={{ duration: 0.2 }}
+            >
+              <AutoExpandingTextarea
+                placeholder="Ask Arlo about your relationships..."
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={handleKeyDown}
+                disabled={isLoading}
+                className="flex-1 glass-input rounded-2xl border-border/50 resize-none min-h-[48px] px-4 py-3 transition-all focus:scale-[1.01] focus:shadow-lg"
+                maxHeight={120}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.8)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(0, 0, 0, 0.1)'
+                }}
+              />
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ duration: 0.1 }}
               >
-                {isLoading ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                ) : (
-                  <Send className="h-5 w-5" />
-                )}
-              </Button>
-            </div>
+                <Button
+                  onClick={handleSendMessage}
+                  disabled={isLoading || !inputValue.trim()}
+                  size="lg"
+                  className="min-w-[48px] h-[48px] rounded-2xl bg-primary hover:bg-primary/90 transition-all shadow-lg hover:shadow-xl"
+                >
+                  {isLoading ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <Send className="h-5 w-5" />
+                  )}
+                </Button>
+              </motion.div>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       <style>
