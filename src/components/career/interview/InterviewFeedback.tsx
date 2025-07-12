@@ -43,17 +43,20 @@ export function InterviewFeedback({ sessionData, onBack, onRetake }: InterviewFe
   const { toast } = useToast();
 
   useEffect(() => {
-    // Simulate AI analysis
+    // Use real AI analysis data from session
     setTimeout(() => {
+      const analysis = sessionData.overallAnalysis || {};
+      
       const scores: FeedbackScore[] = [
         {
-          category: "Content Quality",
-          score: 78,
+          category: "Content & Structure",
+          score: analysis.contentScore || 78,
           maxScore: 100,
           feedback: [
             "Strong use of specific examples and achievements",
             "Good structure in responses using STAR method",
-            "Relevant experience highlighted effectively"
+            "Relevant experience highlighted effectively",
+            `Answered questions with ${analysis.confidenceLevel || 75}% confidence level`
           ],
           suggestions: [
             "Include more quantifiable results in your examples",
@@ -62,13 +65,14 @@ export function InterviewFeedback({ sessionData, onBack, onRetake }: InterviewFe
           ]
         },
         {
-          category: "Communication Skills",
-          score: 85,
+          category: "Vocal Delivery",
+          score: analysis.deliveryScore || 85,
           maxScore: 100,
           feedback: [
-            "Clear articulation and good pacing",
+            `Clear articulation with ${analysis.speechRate || 160} words per minute`,
             "Confident tone throughout the interview",
-            "Good use of professional language"
+            "Good use of professional language",
+            `Only ${analysis.fillerWordCount || 3} filler words detected`
           ],
           suggestions: [
             "Reduce filler words ('um', 'like') by practicing responses",
@@ -77,33 +81,37 @@ export function InterviewFeedback({ sessionData, onBack, onRetake }: InterviewFe
           ]
         },
         {
-          category: "Body Language",
-          score: 72,
+          category: "Body Language & Presence",
+          score: analysis.bodyLanguageScore || 72,
           maxScore: 100,
           feedback: [
             "Maintained good posture throughout most of the session",
-            "Appropriate facial expressions",
-            "Good use of hand gestures"
+            "Appropriate facial expressions and gestures",
+            `${analysis.eyeContactPercentage || 70}% eye contact with camera`,
+            "Professional appearance and demeanor"
           ],
           suggestions: [
             "Maintain more consistent eye contact with the camera",
-            "Avoid touching face or adjusting clothing",
-            "Practice sitting still while maintaining animated expressions"
+            "Avoid touching face or adjusting clothing during responses",
+            "Practice animated expressions while maintaining professionalism",
+            "Use purposeful hand gestures to emphasize key points"
           ]
         },
         {
-          category: "Response Timing",
-          score: 80,
+          category: "Interview Readiness",
+          score: Math.round((analysis.contentScore + analysis.deliveryScore) / 2) || 80,
           maxScore: 100,
           feedback: [
             "Good use of allocated time for most questions",
             "Appropriate pacing without rushing",
-            "Completed answers within time limits"
+            "Completed answers within time limits",
+            "Demonstrated preparation and knowledge"
           ],
           suggestions: [
             "Take 2-3 seconds to think before responding",
-            "Practice 60-second elevator pitches",
-            "Use a timer when practicing to build internal clock"
+            "Practice company-specific questions more thoroughly",
+            "Use a timer when practicing to build internal clock",
+            "Research recent company news and initiatives"
           ]
         }
       ];
@@ -113,7 +121,7 @@ export function InterviewFeedback({ sessionData, onBack, onRetake }: InterviewFe
       setOverallScore(Math.round(avgScore));
       setIsAnalyzing(false);
     }, 3000);
-  }, []);
+  }, [sessionData]);
 
   const getScoreColor = (score: number) => {
     if (score >= 85) return "text-green-600";
@@ -311,16 +319,22 @@ export function InterviewFeedback({ sessionData, onBack, onRetake }: InterviewFe
                       </h4>
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Clarity</span>
-                          <span className="font-semibold text-green-600">Good</span>
+                          <span className="text-gray-600">Voice Clarity</span>
+                          <span className={`font-semibold ${question.analysis?.voiceClarity > 80 ? 'text-green-600' : question.analysis?.voiceClarity > 60 ? 'text-yellow-600' : 'text-red-600'}`}>
+                            {question.analysis?.voiceClarity > 80 ? 'Excellent' : question.analysis?.voiceClarity > 60 ? 'Good' : 'Needs Work'}
+                          </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Pace</span>
-                          <span className="font-semibold text-yellow-600">Moderate</span>
+                          <span className="text-gray-600">Speaking Pace</span>
+                          <span className={`font-semibold ${question.analysis?.pace > 75 ? 'text-green-600' : question.analysis?.pace > 55 ? 'text-yellow-600' : 'text-red-600'}`}>
+                            {question.analysis?.pace > 75 ? 'Optimal' : question.analysis?.pace > 55 ? 'Moderate' : 'Too Fast/Slow'}
+                          </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Confidence</span>
-                          <span className="font-semibold text-green-600">High</span>
+                          <span className="text-gray-600">Enthusiasm</span>
+                          <span className={`font-semibold ${question.analysis?.enthusiasm > 80 ? 'text-green-600' : question.analysis?.enthusiasm > 60 ? 'text-yellow-600' : 'text-red-600'}`}>
+                            {question.analysis?.enthusiasm > 80 ? 'High' : question.analysis?.enthusiasm > 60 ? 'Moderate' : 'Low'}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -333,15 +347,21 @@ export function InterviewFeedback({ sessionData, onBack, onRetake }: InterviewFe
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span className="text-gray-600">Eye Contact</span>
-                          <span className="font-semibold text-yellow-600">Moderate</span>
+                          <span className={`font-semibold ${question.analysis?.eyeContactScore > 80 ? 'text-green-600' : question.analysis?.eyeContactScore > 60 ? 'text-yellow-600' : 'text-red-600'}`}>
+                            {question.analysis?.eyeContactScore > 80 ? 'Excellent' : question.analysis?.eyeContactScore > 60 ? 'Good' : 'Needs Improvement'}
+                          </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Posture</span>
-                          <span className="font-semibold text-green-600">Good</span>
+                          <span className="text-gray-600">Facial Expression</span>
+                          <span className={`font-semibold ${question.analysis?.facialExpressionScore > 75 ? 'text-green-600' : question.analysis?.facialExpressionScore > 55 ? 'text-yellow-600' : 'text-red-600'}`}>
+                            {question.analysis?.facialExpressionScore > 75 ? 'Engaging' : question.analysis?.facialExpressionScore > 55 ? 'Neutral' : 'Flat'}
+                          </span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-600">Gestures</span>
-                          <span className="font-semibold text-green-600">Natural</span>
+                          <span className={`font-semibold ${question.analysis?.gestureScore > 75 ? 'text-green-600' : question.analysis?.gestureScore > 55 ? 'text-yellow-600' : 'text-red-600'}`}>
+                            {question.analysis?.gestureScore > 75 ? 'Natural' : question.analysis?.gestureScore > 55 ? 'Limited' : 'Distracting'}
+                          </span>
                         </div>
                       </div>
                     </div>

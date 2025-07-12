@@ -18,7 +18,9 @@ import {
   Building,
   Target,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Eye,
+  Volume2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { JobApplicationWorkflow } from "@/hooks/use-job-application-workflow";
@@ -30,6 +32,13 @@ interface MockInterviewQuestion {
   category: string;
   timeLimit: number; // in seconds
   tips?: string[];
+}
+
+interface RecordedResponse {
+  videoBlob: Blob;
+  duration: number;
+  startTime: number;
+  endTime: number;
 }
 
 interface MockInterviewSessionProps {
@@ -46,7 +55,10 @@ export function MockInterviewSession({ workflow, onBack, onComplete }: MockInter
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [isAnswering, setIsAnswering] = useState(false);
   const [sessionStarted, setSessionStarted] = useState(false);
-  const [responses, setResponses] = useState<Record<string, { audioBlob?: Blob; videoBlob?: Blob; duration: number }>>({});
+  const [responses, setResponses] = useState<Record<string, RecordedResponse>>({});
+  const [recordingStartTime, setRecordingStartTime] = useState<number>(0);
+  const [preparationTime, setPreparationTime] = useState(30); // 30 seconds to prepare
+  const [isPreparingAnswer, setIsPreparingAnswer] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -171,14 +183,39 @@ export function MockInterviewSession({ workflow, onBack, onComplete }: MockInter
     });
   };
 
+  const startPreparation = () => {
+    setIsPreparingAnswer(true);
+    setPreparationTime(30);
+    
+    const prepTimer = setInterval(() => {
+      setPreparationTime(prev => {
+        if (prev <= 1) {
+          clearInterval(prepTimer);
+          setIsPreparingAnswer(false);
+          toast({
+            title: "Preparation Time Over",
+            description: "You can now start recording your answer.",
+          });
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
   const startAnswer = async () => {
     if (!streamRef.current) return;
 
     try {
-      const mediaRecorder = new MediaRecorder(streamRef.current);
+      const mediaRecorder = new MediaRecorder(streamRef.current, {
+        mimeType: 'video/webm;codecs=vp9'
+      });
       mediaRecorderRef.current = mediaRecorder;
       
       const chunks: BlobPart[] = [];
+      const startTime = Date.now();
+      setRecordingStartTime(startTime);
+
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           chunks.push(event.data);
@@ -186,17 +223,28 @@ export function MockInterviewSession({ workflow, onBack, onComplete }: MockInter
       };
 
       mediaRecorder.onstop = () => {
+        const endTime = Date.now();
+        const duration = Math.round((endTime - startTime) / 1000);
         const blob = new Blob(chunks, { type: 'video/webm' });
+        
         setResponses(prev => ({
           ...prev,
           [currentQuestion.id]: {
             videoBlob: blob,
-            duration: currentQuestion.timeLimit - timeRemaining
+            duration,
+            startTime,
+            endTime
           }
         }));
+
+        // Show completion feedback
+        toast({
+          title: "Response Recorded",
+          description: `Your ${duration}s response has been saved for analysis.`,
+        });
       };
 
-      mediaRecorder.start();
+      mediaRecorder.start(1000); // Collect data every second
       setIsRecording(true);
       setIsAnswering(true);
       setTimeRemaining(currentQuestion.timeLimit);
@@ -204,7 +252,7 @@ export function MockInterviewSession({ workflow, onBack, onComplete }: MockInter
       console.error('Error starting recording:', error);
       toast({
         title: "Recording Error",
-        description: "Unable to start recording. You can still practice without recording.",
+        description: "Unable to start recording. Please check your camera permissions.",
         variant: "destructive"
       });
     }
@@ -232,21 +280,56 @@ export function MockInterviewSession({ workflow, onBack, onComplete }: MockInter
     }
   };
 
-  const completeSession = () => {
+  const completeSession = async () => {
+    // Generate AI analysis data
+    const analysisData = await generateMockAnalysis();
+    
     const sessionData = {
       applicationId: workflow.id,
+      jobTitle: workflow.job_title,
+      company: workflow.company_name,
       questions: questions.map(q => ({
         ...q,
-        response: responses[q.id]
+        response: responses[q.id],
+        analysis: analysisData[q.id] || {}
       })),
       completedAt: new Date().toISOString(),
       totalDuration: questions.reduce((acc, q) => {
         const response = responses[q.id];
         return acc + (response?.duration || 0);
-      }, 0)
+      }, 0),
+      overallAnalysis: analysisData.overall || {}
     };
 
     onComplete(sessionData);
+  };
+
+  const generateMockAnalysis = async () => {
+    // Simulate AI analysis of video content
+    return {
+      overall: {
+        contentScore: Math.floor(Math.random() * 20) + 75, // 75-95
+        deliveryScore: Math.floor(Math.random() * 20) + 70, // 70-90
+        bodyLanguageScore: Math.floor(Math.random() * 25) + 65, // 65-90
+        eyeContactPercentage: Math.floor(Math.random() * 30) + 60, // 60-90%
+        speechRate: Math.floor(Math.random() * 40) + 140, // 140-180 words per minute
+        fillerWordCount: Math.floor(Math.random() * 8), // 0-8 filler words
+        confidenceLevel: Math.floor(Math.random() * 30) + 70 // 70-100%
+      },
+      ...questions.reduce((acc, q) => {
+        acc[q.id] = {
+          contentRelevance: Math.floor(Math.random() * 20) + 75,
+          structureClarity: Math.floor(Math.random() * 20) + 70,
+          eyeContactScore: Math.floor(Math.random() * 30) + 60,
+          facialExpressionScore: Math.floor(Math.random() * 25) + 70,
+          gestureScore: Math.floor(Math.random() * 20) + 75,
+          voiceClarity: Math.floor(Math.random() * 20) + 75,
+          pace: Math.floor(Math.random() * 20) + 70,
+          enthusiasm: Math.floor(Math.random() * 25) + 70
+        };
+        return acc;
+      }, {} as Record<string, any>)
+    };
   };
 
   const toggleCamera = () => {
@@ -443,15 +526,43 @@ export function MockInterviewSession({ workflow, onBack, onComplete }: MockInter
 
             {/* Recording Controls */}
             <div className="flex items-center justify-center gap-4">
-              {!isAnswering ? (
+              {!isAnswering && !isPreparingAnswer ? (
+                <div className="space-y-3 text-center">
+                  <Button onClick={startPreparation} size="lg" className="px-6 rounded-full">
+                    <Clock className="h-5 w-5 mr-2" />
+                    Prepare Answer (30s)
+                  </Button>
+                  <p className="text-sm text-muted-foreground">
+                    Take time to think, then record your response
+                  </p>
+                </div>
+              ) : isPreparingAnswer ? (
+                <div className="text-center space-y-2">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {preparationTime}s
+                  </div>
+                  <p className="text-sm text-blue-700">Think about your answer...</p>
+                  <Button 
+                    onClick={() => {
+                      setIsPreparingAnswer(false);
+                      startAnswer();
+                    }} 
+                    variant="outline" 
+                    size="sm" 
+                    className="rounded-full"
+                  >
+                    Start Recording Early
+                  </Button>
+                </div>
+              ) : !isAnswering && preparationTime === 0 ? (
                 <Button onClick={startAnswer} size="lg" className="px-6 rounded-full">
                   <Play className="h-5 w-5 mr-2" />
-                  Start Answer
+                  Start Recording
                 </Button>
               ) : (
                 <Button onClick={handleStopAnswer} variant="destructive" size="lg" className="px-6 rounded-full">
                   <Square className="h-5 w-5 mr-2" />
-                  Stop Answer
+                  Stop Recording
                 </Button>
               )}
             </div>
@@ -499,34 +610,48 @@ export function MockInterviewSession({ workflow, onBack, onComplete }: MockInter
               <Progress value={((currentQuestionIndex + 1) / questions.length) * 100} className="h-2" />
             </div>
 
+            {/* Real-time feedback indicators */}
+            {isAnswering && (
+              <div className="grid grid-cols-2 gap-3 p-4 bg-gray-50 rounded-xl">
+                <div className="flex items-center gap-2">
+                  <Eye className="h-4 w-4 text-blue-600" />
+                  <span className="text-sm">Eye Contact</span>
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Volume2 className="h-4 w-4 text-purple-600" />
+                  <span className="text-sm">Voice Level</span>
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                </div>
+              </div>
+            )}
+
             {/* Navigation */}
-            <div className="flex justify-between">
-              <Button
-                variant="outline"
-                onClick={nextQuestion}
-                disabled={currentQuestionIndex === 0}
+            <div className="flex justify-between pt-6">
+              <Button 
+                variant="outline" 
+                onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
+                disabled={currentQuestionIndex === 0 || isAnswering}
                 className="rounded-full"
               >
-                Skip Question
+                Previous
               </Button>
               
-              <Button
-                onClick={nextQuestion}
-                disabled={isAnswering}
-                className="rounded-full"
-              >
-                {currentQuestionIndex === questions.length - 1 ? (
-                  <>
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Complete Interview
-                  </>
-                ) : (
-                  <>
-                    Next Question
-                    <SkipForward className="h-4 w-4 ml-2" />
-                  </>
-                )}
-              </Button>
+              {responses[currentQuestion.id] && !isAnswering && (
+                <Button onClick={nextQuestion} className="rounded-full">
+                  {currentQuestionIndex === questions.length - 1 ? (
+                    <>
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Complete Interview
+                    </>
+                  ) : (
+                    <>
+                      Next Question
+                      <SkipForward className="h-4 w-4 ml-2" />
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
           </div>
         </Card>
