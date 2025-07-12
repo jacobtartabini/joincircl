@@ -54,14 +54,16 @@ export function InterviewFeedback({ sessionData, onBack, onRetake }: InterviewFe
           maxScore: 100,
           feedback: [
             "Strong use of specific examples and achievements",
-            "Good structure in responses using STAR method",
+            "Good structure in responses using STAR method", 
             "Relevant experience highlighted effectively",
-            `Answered questions with ${analysis.confidenceLevel || 75}% confidence level`
+            `Answered questions with ${analysis.confidenceLevel || 75}% confidence level`,
+            ...(analysis.keyStrengths || []).slice(0, 2)
           ],
           suggestions: [
             "Include more quantifiable results in your examples",
             "Practice connecting experiences more directly to the role",
-            "Prepare 2-3 additional examples for behavioral questions"
+            "Prepare 2-3 additional examples for behavioral questions",
+            ...(analysis.improvementAreas || []).slice(0, 2)
           ]
         },
         {
@@ -72,29 +74,33 @@ export function InterviewFeedback({ sessionData, onBack, onRetake }: InterviewFe
             `Clear articulation with ${analysis.speechRate || 160} words per minute`,
             "Confident tone throughout the interview",
             "Good use of professional language",
-            `Only ${analysis.fillerWordCount || 3} filler words detected`
+            `Only ${analysis.fillerWordCount || 3} filler words detected`,
+            `Voice clarity rated at ${analysis.voiceClarity || 'good'} level`
           ],
           suggestions: [
             "Reduce filler words ('um', 'like') by practicing responses",
-            "Vary your tone more to show enthusiasm",
-            "Practice pausing before answering complex questions"
+            "Vary your tone more to show enthusiasm", 
+            "Practice pausing before answering complex questions",
+            ...(analysis.speechImprovements || []).slice(0, 1)
           ]
         },
         {
-          category: "Body Language & Presence",
+          category: "Body Language & Presence", 
           score: analysis.bodyLanguageScore || 72,
           maxScore: 100,
           feedback: [
             "Maintained good posture throughout most of the session",
             "Appropriate facial expressions and gestures",
             `${analysis.eyeContactPercentage || 70}% eye contact with camera`,
-            "Professional appearance and demeanor"
+            "Professional appearance and demeanor",
+            ...(analysis.visualStrengths || []).slice(0, 2)
           ],
           suggestions: [
             "Maintain more consistent eye contact with the camera",
-            "Avoid touching face or adjusting clothing during responses",
+            "Avoid touching face or adjusting clothing during responses", 
             "Practice animated expressions while maintaining professionalism",
-            "Use purposeful hand gestures to emphasize key points"
+            "Use purposeful hand gestures to emphasize key points",
+            ...(analysis.visualImprovements || []).slice(0, 2)
           ]
         },
         {
