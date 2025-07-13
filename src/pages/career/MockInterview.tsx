@@ -81,6 +81,8 @@ export default function MockInterview() {
   const [preparationTime, setPreparationTime] = useState(30);
   const [isPreparingAnswer, setIsPreparingAnswer] = useState(false);
   const [sessionAnalysis, setSessionAnalysis] = useState<any>(null);
+  const [isCameraConnected, setIsCameraConnected] = useState(false);
+  const [isConnectingCamera, setIsConnectingCamera] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -155,16 +157,39 @@ export default function MockInterview() {
   };
 
   const setupCamera = async () => {
+    setIsConnectingCamera(true);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true
+        video: {
+          width: { ideal: 1280, min: 640 },
+          height: { ideal: 720, min: 480 },
+          facingMode: 'user'
+        },
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true
+        }
       });
       
       streamRef.current = stream;
+      
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        
+        // Wait for video to be ready
+        await new Promise((resolve) => {
+          if (videoRef.current) {
+            videoRef.current.onloadedmetadata = () => {
+              resolve(true);
+            };
+          }
+        });
       }
+      
+      setIsCameraConnected(true);
+      setIsCameraOn(true);
+      setIsMicOn(true);
+      
     } catch (error) {
       console.error('Error accessing camera:', error);
       toast({
@@ -173,6 +198,9 @@ export default function MockInterview() {
         variant: "destructive"
       });
       setIsCameraOn(false);
+      setIsCameraConnected(false);
+    } finally {
+      setIsConnectingCamera(false);
     }
   };
 
@@ -199,14 +227,12 @@ export default function MockInterview() {
       return;
     }
 
-    await setupCamera();
     setCurrentStep('interview');
-    setSessionStarted(true);
-    setTimeRemaining(currentQuestion.timeLimit);
+    setSessionStarted(false);  // Start with setup screen first
     
     toast({
-      title: "Interview Started",
-      description: "Good luck! Take your time to prepare before recording."
+      title: "Setting up interview...",
+      description: "Please allow camera access to continue."
     });
   };
 
@@ -794,7 +820,24 @@ export default function MockInterview() {
                 </div>
 
                 <Button
-                  onClick={() => setSessionStarted(true)}
+                  onClick={async () => {
+                    toast({
+                      title: "Setting up camera...",
+                      description: "Please allow camera access to continue."
+                    });
+                    
+                    await setupCamera();
+                    
+                    // Give a moment for video to connect
+                    setTimeout(() => {
+                      setSessionStarted(true);
+                      setTimeRemaining(currentQuestion.timeLimit);
+                      toast({
+                        title: "Interview Ready!",
+                        description: "Your camera is connected. You can now begin the interview."
+                      });
+                    }, 1000);
+                  }}
                   size="lg"
                   className="px-12"
                 >
@@ -857,82 +900,104 @@ export default function MockInterview() {
                   </div>
                 )}
 
-                <div className="space-y-3 pt-4">
-                  {!isPreparingAnswer && !isAnswering && !responses[currentQuestion.id] && (
-                    <Button
-                      onClick={startPreparation}
-                      className="w-full gap-2"
-                      size="lg"
-                    >
-                      <Clock className="h-4 w-4" />
-                      Start 30s Preparation
-                    </Button>
-                  )}
-
-                  {isPreparingAnswer && (
-                    <div className="text-center">
-                      <p className="text-lg font-semibold">Preparation Time</p>
-                      <p className="text-3xl font-bold text-primary">{preparationTime}s</p>
+                <div className="space-y-4 pt-4">
+                  {!responses[currentQuestion.id] && !isAnswering && (
+                    <div className="text-center space-y-4">
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <p className="text-sm text-gray-600 mb-3">
+                          Take a moment to think about your response using the STAR method.
+                        </p>
+                        <p className="text-lg font-semibold text-gray-800">
+                          Time limit: {formatTime(currentQuestion.timeLimit)}
+                        </p>
+                      </div>
+                      
+                      <Button
+                        onClick={startAnswer}
+                        className="w-full gap-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white"
+                        size="lg"
+                      >
+                        <Video className="h-4 w-4" />
+                        Start Recording Response
+                      </Button>
                     </div>
                   )}
 
-                  {!isPreparingAnswer && !isAnswering && !responses[currentQuestion.id] && (
-                    <Button
-                      onClick={startAnswer}
-                      className="w-full gap-2"
-                      size="lg"
-                      variant="outline"
-                    >
-                      <Video className="h-4 w-4" />
-                      Start Recording
-                    </Button>
-                  )}
-
                   {isAnswering && (
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       <div className="text-center">
-                        <p className="text-lg font-semibold">Recording...</p>
-                        <p className="text-2xl font-bold text-red-500">{formatTime(timeRemaining)}</p>
+                        <div className="bg-red-50 border border-red-200 p-4 rounded-lg mb-4">
+                          <p className="text-lg font-semibold text-red-800 mb-2">Recording...</p>
+                          <p className="text-3xl font-bold text-red-600">{formatTime(timeRemaining)}</p>
+                          <p className="text-sm text-red-700 mt-2">
+                            {timeRemaining <= 30 ? "Final 30 seconds!" : "Speak clearly and confidently"}
+                          </p>
+                        </div>
                       </div>
+                      
                       <Button
                         onClick={handleStopAnswer}
-                        className="w-full gap-2"
-                        variant="destructive"
+                        className="w-full gap-2 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800"
+                        size="lg"
                       >
                         <Square className="h-4 w-4" />
-                        Stop Recording
+                        Stop Recording & Continue
                       </Button>
                     </div>
                   )}
 
                   {responses[currentQuestion.id] && (
-                    <div className="space-y-3">
-                      <div className="bg-green-50 p-4 rounded-lg">
-                        <p className="text-green-800 font-medium">✓ Response recorded!</p>
-                        <p className="text-green-700 text-sm">
-                          Duration: {responses[currentQuestion.id].duration}s
-                        </p>
+                    <div className="space-y-4">
+                      <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <CheckCircle className="h-5 w-5 text-green-600" />
+                          <p className="font-semibold text-green-800">Response Recorded Successfully!</p>
+                        </div>
+                        <div className="text-sm text-green-700 space-y-1">
+                          <p>Duration: {responses[currentQuestion.id].duration} seconds</p>
+                          <p>Your response has been saved and will be analyzed by Arlo AI.</p>
+                        </div>
                       </div>
                       
-                      {currentQuestionIndex < questions.length - 1 ? (
+                      <div className="flex gap-3">
+                        {currentQuestionIndex < questions.length - 1 ? (
+                          <Button
+                            onClick={nextQuestion}
+                            className="flex-1 gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+                            size="lg"
+                          >
+                            <SkipForward className="h-4 w-4" />
+                            Next Question
+                          </Button>
+                        ) : (
+                          <Button
+                            onClick={completeSession}
+                            className="flex-1 gap-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
+                            size="lg"
+                          >
+                            <CheckCircle className="h-4 w-4" />
+                            Complete Interview
+                          </Button>
+                        )}
+                        
                         <Button
-                          onClick={nextQuestion}
-                          className="w-full gap-2"
+                          onClick={() => {
+                            // Allow re-recording
+                            setResponses(prev => {
+                              const newResponses = { ...prev };
+                              delete newResponses[currentQuestion.id];
+                              return newResponses;
+                            });
+                            setIsAnswering(false);
+                            setTimeRemaining(currentQuestion.timeLimit);
+                          }}
+                          variant="outline"
                           size="lg"
+                          className="px-6"
                         >
-                          <SkipForward className="h-4 w-4" />
-                          Next Question
+                          <RotateCcw className="h-4 w-4" />
                         </Button>
-                      ) : (
-                        <Button
-                          onClick={completeSession}
-                          className="w-full gap-2"
-                          size="lg"
-                        >
-                          <CheckCircle className="h-4 w-4" />
-                          Complete Interview
-                        </Button>
-                      )}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -943,7 +1008,13 @@ export default function MockInterview() {
             <Card className="p-6">
               <div className="space-y-4">
                 <div className="aspect-video bg-black rounded-lg overflow-hidden relative">
-                  {isCameraOn ? (
+                  {isConnectingCamera ? (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-white">
+                      <Video className="h-12 w-12 mb-4 animate-pulse" />
+                      <p className="text-lg font-medium">Connecting Camera...</p>
+                      <p className="text-sm text-gray-300 mt-2">Please allow camera access</p>
+                    </div>
+                  ) : isCameraConnected && isCameraOn ? (
                     <video
                       ref={videoRef}
                       autoPlay
@@ -951,15 +1022,29 @@ export default function MockInterview() {
                       playsInline
                       className="w-full h-full object-cover"
                     />
+                  ) : !isCameraConnected ? (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-white">
+                      <CameraOff className="h-12 w-12 mb-4" />
+                      <p className="text-lg font-medium">Camera Not Connected</p>
+                      <p className="text-sm text-gray-300 mt-2">Click "Begin Interview" to connect</p>
+                    </div>
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-white">
-                      <CameraOff className="h-12 w-12" />
+                    <div className="w-full h-full flex flex-col items-center justify-center text-white">
+                      <CameraOff className="h-12 w-12 mb-4" />
+                      <p className="text-lg font-medium">Camera Disabled</p>
+                      <p className="text-sm text-gray-300 mt-2">Click the camera button to enable</p>
                     </div>
                   )}
                   
                   {isRecording && (
                     <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium animate-pulse">
                       ● REC
+                    </div>
+                  )}
+                  
+                  {isCameraConnected && (
+                    <div className="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-medium">
+                      ● LIVE
                     </div>
                   )}
                 </div>
@@ -969,6 +1054,7 @@ export default function MockInterview() {
                     variant="outline"
                     size="sm"
                     onClick={toggleCamera}
+                    disabled={!isCameraConnected}
                     className={!isCameraOn ? "bg-red-50 border-red-200" : ""}
                   >
                     {isCameraOn ? <Camera className="h-4 w-4" /> : <CameraOff className="h-4 w-4" />}
@@ -977,11 +1063,20 @@ export default function MockInterview() {
                     variant="outline"
                     size="sm"
                     onClick={toggleMic}
+                    disabled={!isCameraConnected}
                     className={!isMicOn ? "bg-red-50 border-red-200" : ""}
                   >
                     {isMicOn ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
                   </Button>
                 </div>
+                
+                {isCameraConnected && (
+                  <div className="text-center">
+                    <p className="text-sm text-gray-600">
+                      Camera ready! You can now record your responses.
+                    </p>
+                  </div>
+                )}
               </div>
             </Card>
           </div>
