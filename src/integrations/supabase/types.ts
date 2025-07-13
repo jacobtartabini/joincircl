@@ -815,6 +815,54 @@ export type Database = {
           },
         ]
       }
+      mock_interview_sessions: {
+        Row: {
+          company_name: string | null
+          created_at: string
+          experience_level: string | null
+          id: string
+          job_description: string | null
+          job_title: string
+          overall_analysis: Json
+          questions: Json
+          responses: Json
+          session_data: Json
+          total_duration: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_name?: string | null
+          created_at?: string
+          experience_level?: string | null
+          id?: string
+          job_description?: string | null
+          job_title: string
+          overall_analysis?: Json
+          questions?: Json
+          responses?: Json
+          session_data?: Json
+          total_duration?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_name?: string | null
+          created_at?: string
+          experience_level?: string | null
+          id?: string
+          job_description?: string | null
+          job_title?: string
+          overall_analysis?: Json
+          questions?: Json
+          responses?: Json
+          session_data?: Json
+          total_duration?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           additional_notes: string | null
