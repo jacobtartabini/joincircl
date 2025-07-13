@@ -69,32 +69,8 @@ export function MockInterviewSession({ workflow, onBack, onComplete }: MockInter
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
 
-  // Generate tailored questions based on job application
+  // Generate 2 behavioral questions for the interview
   const questions: MockInterviewQuestion[] = [
-    {
-      id: "intro",
-      question: `Tell me about yourself and why you're interested in the ${workflow.job_title} position at ${workflow.company_name}.`,
-      type: "behavioral",
-      category: "Introduction",
-      timeLimit: 120,
-      tips: ["Keep it concise", "Focus on relevant experience", "Show enthusiasm"]
-    },
-    {
-      id: "experience",
-      question: `Describe your most relevant experience for this ${workflow.job_title} role.`,
-      type: "behavioral",
-      category: "Experience",
-      timeLimit: 180,
-      tips: ["Use specific examples", "Quantify achievements", "Connect to job requirements"]
-    },
-    {
-      id: "company-specific",
-      question: `What do you know about ${workflow.company_name} and why do you want to work here?`,
-      type: "company-specific",
-      category: "Company Knowledge",
-      timeLimit: 120,
-      tips: ["Show research", "Align with company values", "Be specific"]
-    },
     {
       id: "challenge",
       question: "Tell me about a time you faced a significant challenge at work and how you handled it.",
@@ -667,44 +643,36 @@ export function MockInterviewSession({ workflow, onBack, onComplete }: MockInter
 
             {/* Recording Controls */}
             <div className="flex items-center justify-center gap-4">
-              {!isAnswering && !isPreparingAnswer ? (
+              {!responses[currentQuestion.id] && !isAnswering ? (
                 <div className="space-y-3 text-center">
-                  <Button onClick={startPreparation} size="lg" className="px-6 rounded-full">
-                    <Clock className="h-5 w-5 mr-2" />
-                    Prepare Answer (30s)
+                  <Button onClick={startAnswer} size="lg" className="px-6 rounded-full">
+                    <Play className="h-5 w-5 mr-2" />
+                    Start Video Recording
                   </Button>
                   <p className="text-sm text-muted-foreground">
-                    Take time to think, then record your response
+                    Record your video response to this question
                   </p>
                 </div>
-              ) : isPreparingAnswer ? (
-                <div className="text-center space-y-2">
-                  <div className="text-2xl font-bold text-blue-600">
-                    {preparationTime}s
+              ) : isAnswering ? (
+                <div className="space-y-3 text-center">
+                  <Button onClick={handleStopAnswer} variant="destructive" size="lg" className="px-6 rounded-full">
+                    <Square className="h-5 w-5 mr-2" />
+                    Stop Recording
+                  </Button>
+                  <p className="text-sm text-muted-foreground">
+                    Recording in progress... ({formatTime(timeRemaining)} remaining)
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3 text-center">
+                  <div className="flex items-center gap-2 text-green-600">
+                    <CheckCircle className="h-5 w-5" />
+                    <span className="font-medium">Response Recorded</span>
                   </div>
-                  <p className="text-sm text-blue-700">Think about your answer...</p>
-                  <Button 
-                    onClick={() => {
-                      setIsPreparingAnswer(false);
-                      startAnswer();
-                    }} 
-                    variant="outline" 
-                    size="sm" 
-                    className="rounded-full"
-                  >
-                    Start Recording Early
+                  <Button onClick={startAnswer} variant="outline" size="sm" className="rounded-full">
+                    Re-record Response
                   </Button>
                 </div>
-              ) : !isAnswering && preparationTime === 0 ? (
-                <Button onClick={startAnswer} size="lg" className="px-6 rounded-full">
-                  <Play className="h-5 w-5 mr-2" />
-                  Start Recording
-                </Button>
-              ) : (
-                <Button onClick={handleStopAnswer} variant="destructive" size="lg" className="px-6 rounded-full">
-                  <Square className="h-5 w-5 mr-2" />
-                  Stop Recording
-                </Button>
               )}
             </div>
           </div>
@@ -792,6 +760,12 @@ export function MockInterviewSession({ workflow, onBack, onComplete }: MockInter
                     </>
                   )}
                 </Button>
+              )}
+              
+              {!responses[currentQuestion.id] && !isAnswering && (
+                <div className="text-sm text-amber-600 font-medium">
+                  Video recording required to proceed
+                </div>
               )}
             </div>
           </div>
