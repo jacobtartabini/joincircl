@@ -45,24 +45,69 @@ export default function MockInterview() {
     const initializeMedia = async () => {
       setIsConnecting(true);
       try {
-        const mediaStream = await navigator.mediaDevices.getUserMedia({
-          video: true,
+        const constraints = {
+          video: { 
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            facingMode: 'user' 
+          },
           audio: true
+        };
+        
+        console.log('Requesting media access with constraints:', constraints);
+        const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+        
+        // Verify stream has video tracks
+        const videoTracks = mediaStream.getVideoTracks();
+        const audioTracks = mediaStream.getAudioTracks();
+        
+        console.log('Media stream obtained:', {
+          videoTracks: videoTracks.length,
+          audioTracks: audioTracks.length,
+          active: mediaStream.active
         });
+        
+        if (videoTracks.length === 0) {
+          throw new Error('No video track found in media stream');
+        }
         
         setStream(mediaStream);
         
         // Connect stream to video element for live preview
         if (videoRef.current) {
+          console.log('Connecting stream to video element');
           videoRef.current.srcObject = mediaStream;
-          videoRef.current.play();
+          
+          // Explicitly play the video with error handling
+          try {
+            await videoRef.current.play();
+            console.log('Video playback started successfully');
+          } catch (playError) {
+            console.error('Error starting video playback:', playError);
+            // Try playing after user interaction if autoplay fails
+            if (playError.name === 'NotAllowedError') {
+              toast.error('Click anywhere to start camera preview');
+            }
+          }
         }
         
         setIsConnected(true);
         console.log('Camera and microphone initialized successfully');
       } catch (error) {
         console.error('Error accessing media devices:', error);
-        toast.error('Failed to access camera or microphone. Please check your permissions.');
+        let errorMessage = 'Failed to access camera or microphone. ';
+        
+        if (error.name === 'NotFoundError') {
+          errorMessage += 'No camera found.';
+        } else if (error.name === 'NotAllowedError') {
+          errorMessage += 'Please allow camera and microphone permissions.';
+        } else if (error.name === 'NotReadableError') {
+          errorMessage += 'Camera is being used by another application.';
+        } else {
+          errorMessage += 'Please check your permissions and try again.';
+        }
+        
+        toast.error(errorMessage);
       } finally {
         setIsConnecting(false);
       }
@@ -73,7 +118,11 @@ export default function MockInterview() {
     return () => {
       // Cleanup function
       if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+        console.log('Cleaning up media stream');
+        stream.getTracks().forEach(track => {
+          track.stop();
+          console.log(`Stopped ${track.kind} track`);
+        });
       }
     };
   }, []);
@@ -310,6 +359,10 @@ export default function MockInterview() {
                     autoPlay
                     muted
                     playsInline
+                    onLoadedMetadata={() => console.log('Video metadata loaded')}
+                    onCanPlay={() => console.log('Video can play')}
+                    onPlay={() => console.log('Video started playing')}
+                    onError={(e) => console.error('Video error:', e)}
                   />
                 ) : (
                   <div className="absolute inset-0 flex items-center justify-center">
